@@ -1,2 +1,2 @@
 # phonometrica
-A platform for the analysis of speech corpora
+An open-source platform for phonometrics

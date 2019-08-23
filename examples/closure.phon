@@ -1,0 +1,23 @@
+
+# Functions can be nested and can capture their environment.
+# Such functions are called "closures".
+function outer(c)
+   var b = 1
+
+   function inner()
+        
+         var a = 2
+         print(a + b + c)
+    end
+
+   # Return a closure which captures b and c
+   return inner
+end
+
+# Create two closures
+var f1 = outer(3)
+var f2 = outer(5)
+
+# Execute them
+f1() # prints "6"
+f2() # prints "8"

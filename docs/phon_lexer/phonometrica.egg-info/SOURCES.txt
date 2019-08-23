@@ -1,0 +1,8 @@
+setup.py
+phon/__init__.py
+phon/lexer.py
+phonometrica.egg-info/PKG-INFO
+phonometrica.egg-info/SOURCES.txt
+phonometrica.egg-info/dependency_links.txt
+phonometrica.egg-info/entry_points.txt
+phonometrica.egg-info/top_level.txt

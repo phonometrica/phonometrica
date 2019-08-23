@@ -1,0 +1,89 @@
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                           *
+ *                                                                                                                    *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public  *
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any     *
+ * later version.                                                                                                     *
+ *                                                                                                                    *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied *
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more      *
+ * details.                                                                                                           *
+ *                                                                                                                    *
+ * You should have received a copy of the GNU General Public License along with this program. If not, see             *
+ * <http://www.gnu.org/licenses/>.                                                                                    *
+ *                                                                                                                    *
+ * Created: 28/02/2019                                                                                                *
+ *                                                                                                                    *
+ * Purpose: see header.                                                                                               *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
+
+#include <phon/application/bookmark.hpp>
+#include <phon/application/project.hpp>
+#include <phon/utils/file_system.hpp>
+
+namespace phonometrica {
+
+Bookmark::Bookmark(VFolder *parent) :
+		VNode(parent)
+{
+
+}
+
+
+Bookmark::Bookmark(VFolder *parent, String title) :
+		VNode(parent), m_title(std::move(title))
+{
+
+}
+
+String Bookmark::label() const
+{
+	return m_title;
+}
+
+bool Bookmark::is_bookmark() const
+{
+	return true;
+}
+
+AnnotationStamp::AnnotationStamp(VFolder *parent, String title, std::shared_ptr<VFile> file, size_t layer,
+								 double start, double end, String match, String left, String right) :
+		Bookmark(parent, std::move(title)), m_file(std::move(file)), m_match(std::move(match)),
+		m_left(std::move(left)), m_right(std::move(right))
+{
+	m_layer = layer;
+	m_start = start;
+	m_end = end;
+}
+
+const char *AnnotationStamp::class_name() const
+{
+	return "AnnotationStamp";
+}
+
+void AnnotationStamp::to_xml(xml_node root)
+{
+	auto node = root.append_child("Bookmark");
+	auto attr = node.append_attribute("type");
+	attr.set_value(class_name());
+
+	String path(m_file->path());
+	filesystem::compress(path, Project::instance()->directory());
+
+	add_data_node(node, "Title", m_title);
+	add_data_node(node, "Notes", m_notes);
+	add_data_node(node, "LeftContext", m_left);
+	add_data_node(node, "Match", m_match);
+	add_data_node(node, "RightContext", m_right);
+	add_data_node(node, "File", path);
+
+//	std::ostringstream start;
+//	start << std::setprecision(6) << std::fixed;
+
+	add_data_node(node, "Layer", utils::format("%", m_layer).data());
+	add_data_node(node, "Start", utils::format("%", m_start).data());
+	add_data_node(node, "End", utils::format("%", m_end).data());
+}
+} // namespace phonometrica

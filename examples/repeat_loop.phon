@@ -1,0 +1,8 @@
+var x = 1
+
+# The block is evaluted until the condition is true. 
+# It is always executed at least once.
+repeat
+	print(x)
+	x++ # increment x
+until x >= 10 

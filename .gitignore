@@ -1,0 +1,12 @@
+test
+.vs
+.vscode
+.idea
+.directory
+out
+docs/_build
+CMakeLists.txt.user
+phonometrica_manual.pdf
+cmake-build-debug
+cmake-build-release
+Output

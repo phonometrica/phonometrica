@@ -1,0 +1,18 @@
+
+# Read a file line by line. If no second argument is given, 
+# it is assumed to be the string "r" (read mode)
+var f = new File("/home/julien/some_file.txt")
+
+# Read one line (trimming white space at the end) 
+# until we reach the end of the file.
+while not f.eof() do
+    print(f.read_line(true))
+end 
+
+f.close()
+
+
+# Write text to a file
+f = new File("/home/julien/test.txt", "w")
+f.write_line("hello world!")
+f.close()

@@ -1,0 +1,90 @@
+#######################################################################################################################
+# Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            #
+#                                                                                                                     #
+# This software is governed by the CeCILL license under French law and abiding by the rules of distribution of free   #
+# software. You can use, modify and/or redistribute the software under the terms of the CeCILL license as circulated  #
+# by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".                                               #
+#                                                                                                                     #
+# As a counterpart to the access to the source code and  rights to copy, modify and redistribute granted by the       #
+# license, users are provided only with a limited warranty and the software's author, the holder of the economic      #
+# rights, and the successive licensors have only limited liability.                                                   #
+#                                                                                                                     #
+# In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or        #
+# developing or reproducing the software by the user in light of its specific status of free software, that may mean  #
+# that it is complicated to manipulate, and that also therefore means that it is reserved for developers and          #
+# experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the   #
+# software's suitability as regards their requirements in conditions enabling the security of their systems and/or    #
+# data to be ensured and, more generally, to use and operate it in the same conditions as regards security.           #
+#                                                                                                                     #
+#                                                                                                                     #
+# The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   #
+# accept its terms.                                                                                                   #
+#                                                                                                                     #
+# Created: 13/03/2019                                                                                                 #
+#                                                                                                                     #
+# Purpose: Add PFC metadata to annotations in a project.                                                              #
+#                                                                                                                     #
+#######################################################################################################################
+
+
+!*
+PFC files annotations follow the following naming convention: xxxyyyzg.TextGrid, where xxx is the survey code, yyy is
+the speaker code, and z is the task code. The corresponding sound file is named xxxyyyzw.wav. 
+This script extracts these metadata from an annotation's file name, and tries to bind it to the corresponding sound
+file if it exists. For convenience, we allow other common sound extensions such as FLAC and MP3.
+*!
+
+
+# Add your own extensions here if you use something more exotic
+var sound_extensions = [".wav", ".flac", ".mp3"]
+
+# Pattern to find metadata in a TextGrid file
+var re = new Regex("^(...)(...)(.)g\\.[tT]ext[gG]rid$")
+
+# PFC tasks
+var tasks = {
+	g: "Guided conversation",
+	l:"Free conversation",
+	t: "Text",
+	m: "Word list"
+}
+
+# Add metadata to a single annotation
+function add_metadata(annot)
+	print("adding metadata to '" + annot.path + "'")
+
+	# Set properties
+	var file = system.get_base_name(annot.path)
+	if re.match(file) then
+		var survey = re.group(1).to_upper()
+		var speaker = re.group(2).to_upper()
+
+		var task = tasks[re.group(3)]
+		annot.add_property("Survey", survey)
+		annot.add_property("Task", task)
+		annot.add_property("Speaker", speaker)
+	end
+
+	# Try to bind the annotation to a sound file
+	var base = system.strip_extension(annot.path)
+	base = base.left(base.length - 1) + "w"
+	foreach var ext in sound_extensions do
+		var sound = base + ext
+		if system.exists(sound) then
+			annot.bind_to_sound(sound)
+			break
+		end
+	end
+end
+
+# Process all the annotations in the current project
+function tag_annotations()
+	var annots = phon.get_annotations()
+	foreach var annot in annots do
+		add_metadata(annot)
+	end
+	phon.project.refresh()
+end
+
+tag_annotations()
+#event.connect(event.annotation_loaded, add_metadata)

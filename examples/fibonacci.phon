@@ -1,0 +1,16 @@
+function fibonacci(num)
+  var a = 1, b = 0, temp
+
+  while num >= 0 do
+    temp = a
+    a = a + b
+    b = temp
+    num--
+  end
+
+  return b
+end
+
+for i = 1 to 10 do
+    print(fibonacci(i))
+end

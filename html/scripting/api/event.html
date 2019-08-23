@@ -1,0 +1,229 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Event handling &#8212; Phonometrica 0.2.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="File manipulation" href="file.html" />
+    <link rel="prev" title="Advanced notions" href="../tutorial/advanced.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="file.html" title="File manipulation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../tutorial/advanced.html" title="Advanced notions"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Event handling</a><ul>
+<li><a class="reference internal" href="#general-concepts">General concepts</a></li>
+<li><a class="reference internal" href="#module-event">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../tutorial/advanced.html"
+                        title="previous chapter">Advanced notions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="file.html"
+                        title="next chapter">File manipulation</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="event-handling">
+<h1>Event handling<a class="headerlink" href="#event-handling" title="Permalink to this headline">¶</a></h1>
+<p>This page documents the <code class="docutils literal"><span class="pre">event</span></code> module, which is responsible for
+event handling in Phonometrica.</p>
+<div class="section" id="general-concepts">
+<h2>General concepts<a class="headerlink" href="#general-concepts" title="Permalink to this headline">¶</a></h2>
+<p>Phonometrica provides an event handling mechanism which allows you to connect events to <em>callback</em> function.
+An event is a unique identifier which can be triggered anywhere, for instance when a button is clicked. It
+can be bound to any number of callback functions, which may or may
+not return a value. Whenever an event is <em>emitted</em>, all the callbacks connected to it are executed
+(in an unspecified order).</p>
+<p>This mechanism is used throughout Phonometrica, as it provides hooks that can be used by
+plugins to react to events triggered by the program. For
+example, an event is emitted whenever a file is loaded, which can be
+used to add custom metadata to each file, among other things.</p>
+</div>
+<div class="section" id="module-event">
+<span id="functions"></span><h2>Functions<a class="headerlink" href="#module-event" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="event.create">
+<code class="descclassname">event.</code><code class="descname">create</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#event.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Create and return a new event identifier (id). Each id is guaranteed to
+be unique, such that two different calls to <code class="docutils literal"><span class="pre">create</span></code> will never yield the
+same id.</p>
+<p>If you need to store an id for subsequent use, store it in a variable.</p>
+<div class="code phon highlight-phon"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">my_event</span> <span class="o">=</span> <span class="n">event</span><span class="p">.</span><span class="n">create</span><span class="p">()</span>
+<span class="c1"># Do something with my_event...</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<dl class="function">
+<dt id="event.connect">
+<code class="descclassname">event.</code><code class="descname">connect</code><span class="sig-paren">(</span><em>id</em>, <em>callback</em><span class="sig-paren">)</span><a class="headerlink" href="#event.connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Connect event <code class="docutils literal"><span class="pre">id</span></code> to function <code class="docutils literal"><span class="pre">callback</span></code>. The callback can take one argument and can return a value.</p>
+<div class="code phon highlight-phon"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">e</span> <span class="o">=</span> <span class="n">event</span><span class="p">.</span><span class="n">create</span><span class="p">()</span>
+
+<span class="kr">function</span> <span class="n">f</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">&quot;Hold the door, &quot;</span> <span class="p">..</span> <span class="n">name</span><span class="p">)</span>
+<span class="kr">end</span>
+
+<span class="n">event</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># Print &quot;Hold the door, Hodor&quot; to the standard output</span>
+<span class="n">event</span><span class="p">.</span><span class="n">emit</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s">&quot;Hodor&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See also: <a class="reference internal" href="#event.disconnect" title="event.disconnect"><code class="xref lua lua-func docutils literal"><span class="pre">disconnect()</span></code></a>, <a class="reference internal" href="#event.emit" title="event.emit"><code class="xref lua lua-func docutils literal"><span class="pre">emit()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="event.disconnect">
+<code class="descclassname">event.</code><code class="descname">disconnect</code><span class="sig-paren">(</span><em>id</em>, <em>callback</em><span class="sig-paren">)</span><a class="headerlink" href="#event.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Disconnect event <code class="docutils literal"><span class="pre">id</span></code> from function <code class="docutils literal"><span class="pre">callback</span></code>. If <code class="docutils literal"><span class="pre">id</span></code> and <code class="docutils literal"><span class="pre">callback</span></code>
+are not connected, this function does nothing.</p>
+<div class="code phon highlight-phon"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">e</span> <span class="o">=</span> <span class="n">event</span><span class="p">.</span><span class="n">create</span><span class="p">()</span>
+
+<span class="kr">function</span> <span class="n">f</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">&quot;Hold the door, &quot;</span> <span class="p">..</span> <span class="n">name</span><span class="p">)</span>
+<span class="kr">end</span>
+
+<span class="n">event</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># Print &quot;Hold the door, Hodor&quot; to the standard output</span>
+<span class="n">event</span><span class="p">.</span><span class="n">emit</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s">&quot;Hodor&quot;</span><span class="p">)</span>
+
+<span class="n">event</span><span class="p">.</span><span class="n">disconnect</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># Do nothing since e and f are no longer connected</span>
+<span class="n">event</span><span class="p">.</span><span class="n">emit</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s">&quot;Hodor&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See also: <a class="reference internal" href="#event.connect" title="event.connect"><code class="xref lua lua-func docutils literal"><span class="pre">connect()</span></code></a>, <a class="reference internal" href="#event.emit" title="event.emit"><code class="xref lua lua-func docutils literal"><span class="pre">emit()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="event.emit">
+<code class="descclassname">event.</code><code class="descname">emit</code><span class="sig-paren">(</span><em>id</em>, <em>...</em><span class="sig-paren">)</span><a class="headerlink" href="#event.emit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Emit event <code class="docutils literal"><span class="pre">id</span></code>, followed by an optional argument. The argument
+is forwarded to all the callbacks which are connected to this event (if
+any). If no argument is provided, the value <code class="docutils literal"><span class="pre">null</span></code> is passed instead. If more than one argument are given,
+additional arguments are discarded.</p>
+<p>This function collects all the return values from the callbacks it called
+into a list which is returned to the caller. (Keep in mind that if a
+callback doesn’t explicitly return a value, its return value is <code class="docutils literal"><span class="pre">null</span></code>.)</p>
+<div class="code phon highlight-phon"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">e</span> <span class="o">=</span> <span class="n">event</span><span class="p">.</span><span class="n">create</span><span class="p">()</span>
+
+<span class="kr">function</span> <span class="n">f1</span><span class="p">(</span><span class="n">arg1</span><span class="p">)</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">&quot;f1 received a &quot;</span> <span class="p">..</span> <span class="kr">typeof</span> <span class="n">arg1</span><span class="p">)</span>
+<span class="kr">end</span>
+
+<span class="kr">function</span> <span class="n">f2</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">)</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">&quot;f2 received a &quot;</span> <span class="o">+</span> <span class="kr">typeof</span> <span class="n">arg1</span> <span class="o">+</span> <span class="s">&quot; and a &quot;</span> <span class="o">+</span> <span class="kr">typeof</span> <span class="n">arg2</span><span class="p">)</span>
+<span class="kr">end</span>
+
+<span class="n">event</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">f1</span><span class="p">)</span>
+<span class="n">event</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">f2</span><span class="p">)</span>
+
+<span class="c1"># Print &quot;f1 received a number&quot; and &quot;f2 received a number and a string&quot;</span>
+<span class="kr">var</span> <span class="n">args</span> <span class="o">=</span> <span class="o">[</span><span class="mf">3.14</span><span class="p">,</span> <span class="s">&quot;pi&quot;</span><span class="o">]</span>
+<span class="n">event</span><span class="p">.</span><span class="n">emit</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note: the order in which callbacks are called is unspecified. In general, it
+will correspond to the order in which they were registered, but this
+should not be relied upon.</p>
+<p>See also: <a class="reference internal" href="#event.connect" title="event.connect"><code class="xref lua lua-func docutils literal"><span class="pre">connect()</span></code></a>, <a class="reference internal" href="#event.disconnect" title="event.disconnect"><code class="xref lua lua-func docutils literal"><span class="pre">disconnect()</span></code></a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="file.html" title="File manipulation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../tutorial/advanced.html" title="Advanced notions"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
+      </ul>
+    </div>
+    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Léa Courdès-Murphy &amp; Julien Eychenne.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.7.
+    </div>
+    
+
+  </body>
+</html>

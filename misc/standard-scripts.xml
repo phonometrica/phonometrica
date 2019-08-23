@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<Phonometrica class="Project">
+	<Metadata>
+		<UUID>bc52a2b0-6ffe-417a-a07a-7cc2736ac06a</UUID>
+		<ProgramVersion major="0" minor="1" micro="5" />
+		<Changelog />
+	</Metadata>
+	<Corpus size="0" />
+	<Scripts>
+		<VFile class="Script">$HOME/Devel/phonometrica/std/event.phon</VFile>
+		<VFile class="Script">$HOME/Devel/phonometrica/std/initialize.phon</VFile>
+		<VFile class="Script">$HOME/Devel/phonometrica/std/menu.phon</VFile>
+		<VFile class="Script">$HOME/Devel/phonometrica/std/read_settings.phon</VFile>
+		<VFile class="Script">$HOME/Devel/phonometrica/std/write_settings.phon</VFile>
+	</Scripts>
+	<Data />
+	<Bookmarks />
+</Phonometrica>

@@ -1,0 +1,8 @@
+# This is a single line comment
+
+!*
+This is a multiline comment.
+We call the function print() to display the string "hello world!".
+*!
+
+print("hello world!")

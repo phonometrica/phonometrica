@@ -1,0 +1,17 @@
+# Create a list containing 5 strings.
+var letters = ["a", "b", "c", "d", "e"]
+
+# Display each letter in the list, preceded by its index.
+foreach letter in letters do
+	print(i, letter)
+end
+
+print("----------")
+
+# Create an object
+var person = { name: "John", surname: "Smith", age: 39 }
+
+# Iterate over the key/value pairs in the object (in an unspecified order)
+foreach key in person do
+	print(key, "=", person[key])
+end

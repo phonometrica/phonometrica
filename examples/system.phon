@@ -1,0 +1,39 @@
+# test system module
+
+# Get user directory
+var home = system.user_directory
+print(home)
+
+# Get/set working directory
+print(system.current_directory)
+system.current_directory = "/home/julien/Devel"
+print(system.current_directory)
+
+# Path routines
+print(system.get_full_path("~/Devel"))
+print("separator = '", system.separator, "'")
+print(system.join_path("/home/julien", "Documents"))
+var f = "/home/julien/test.json"
+print(system.get_base_name(f))
+print(system.get_directory(f))
+
+
+# List content of directory, including hidden files (on UNIX systems)
+var files = system.list_directory(home, true)
+foreach i in files do 
+    var path = system.join_path(home, files[i])
+    print(path)
+end
+
+# Check that a file or directory exists
+print(system.exists(home)) 
+print(system.is_file(home))
+print(system.is_directory(home))
+
+# Split file name and extension
+var pieces = system.split_extension(f)
+print(pieces[1], " ", pieces[2])
+
+# Get file extension, converting it to lower case
+var tgd = "test.TextGrid"
+assert(system.get_extension(tgd, true) == ".textgrid")

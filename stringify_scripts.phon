@@ -1,0 +1,58 @@
+#!/usr/bin/env phonometrica
+
+var blacklist = []
+var root = system.get_full_path('.')
+var stdlib = system.join_path(root, 'std')
+var outdir = system.join_path(root, 'phon', 'include')
+var dirs = system.list_directory(stdlib, false)
+
+foreach var name in dirs do
+	if not name.ends_with('.phon') or blacklist.contains(name) then
+		continue
+	end
+		
+	var f = system.join_path(stdlib, name)
+	var infile = new File(f)
+	var content = []
+	var multiline_comment = false
+	var previous_empty = false # don't include multiple empty lines
+	
+	# Get lines, stripping comments
+	var lines = infile.read_lines()
+	foreach var line in lines do
+		simple_comment = false
+		var ln = line.trim()
+
+		if ln.starts_with('#') then
+			simple_comment = true
+		elsif ln.starts_with('!*') then
+			multiline_comment = true
+		elsif ln.ends_with('*!') then
+			simple_comment = true # make sure the line is not included
+			multiline_comment = false
+		end
+		
+		var empty = ln.is_empty()
+				
+		if not simple_comment and not multiline_comment and not (empty and previous_empty) then
+			content.append(line)
+		end
+			
+		previous_empty = empty
+	end
+			
+	var base = system.strip_extension(name)
+	var outname = system.join_path(outdir, base + '_phon.hpp')
+	var include = base.to_upper() + '_PHON_SCRIPT_INCLUDE'
+	var outfile = new File(outname, 'w')
+	
+	
+	outfile.write('#ifndef ' + include + '\n')
+	outfile.write('#define ' + include + '\n\n')
+	outfile.write('const char *' + base + '_script = R"_(')
+	outfile.write_lines(content)
+	outfile.write(')_";\n\n')
+	outfile.write('#endif /* ' + include + ' */')
+	outfile.close()
+end
+	

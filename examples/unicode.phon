@@ -1,0 +1,5 @@
+ 
+var hangeul = "안녕하세요"
+assert(hangeul.left(2) == "안녕")
+assert(hangeul.right(3) == "하세요")
+assert(hangeul.mid(3, 2) == "하세")
