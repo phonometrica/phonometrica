@@ -28,7 +28,7 @@
 
 namespace phonometrica {
 
-class Environment;
+class Runtime;
 
 class PitchSettings final : public QDialog
 {
@@ -36,7 +36,7 @@ class PitchSettings final : public QDialog
 
 public:
 
-    PitchSettings(Environment &env, QWidget *parent = nullptr);
+    PitchSettings(Runtime &rt, QWidget *parent = nullptr);
 
     double min_pitch, max_pitch, time_step, voicing_threshold;
 
@@ -50,7 +50,7 @@ private:
 
     void displayValues();
 
-    Environment &env;
+    Runtime &rt;
 
     QLineEdit *min_edit, *max_edit, *step_edit, *threshold_edit;
 };

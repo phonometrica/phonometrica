@@ -21,7 +21,7 @@
 
 #include <phon/application/settings.hpp>
 #include <phon/file.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 #include <phon/runtime/object.hpp>
 #include <phon/utils/print.hpp>
 #include <phon/utils/file_system.hpp>
@@ -81,7 +81,7 @@ String Settings::config_path()
 	return path;
 }
 
-void Settings::read(Environment &env)
+void Settings::read(Runtime &rt)
 {
     // `read_settings_script` must always be embedded because we need to resources directory
     // to be set before we can load a script from disk.
@@ -100,112 +100,112 @@ void Settings::read(Environment &env)
 	{
 		content = read_settings_script;
 	}
-	env.do_string(content);
+	rt.do_string(content);
 
 	// Sanity check
-	env.do_string(R"__(
+	rt.do_string(R"__(
 if (not phon.contains("settings")) then
     error("Settings could not be initialized properly: check the file '" + phon.config.path + "'")
 end)__");
 }
 
-void Settings::write(Environment &env)
+void Settings::write(Runtime &rt)
 {
-	run_script(env, write_settings);
+	run_script(rt, write_settings);
 }
 
-void Settings::initialize(Environment &env)
+void Settings::initialize(Runtime &rt)
 {
 	static String res("resources_directory");
 
-	auto get_settings_directory = [](Environment &env) {
-		env.push(Settings::settings_directory());
+	auto get_settings_directory = [](Runtime &rt) {
+		rt.push(Settings::settings_directory());
 	};
 
-	auto get_metadata_directory = [](Environment &env) {
-		env.push(Settings::metadata_directory());
+	auto get_metadata_directory = [](Runtime &rt) {
+		rt.push(Settings::metadata_directory());
 	};
 
-	auto get_plugin_directory = [](Environment &env) {
-		env.push(Settings::plugin_directory());
+	auto get_plugin_directory = [](Runtime &rt) {
+		rt.push(Settings::plugin_directory());
 	};
 
-	auto get_script_directory = [](Environment &env) {
-		env.push(Settings::user_script_directory());
+	auto get_script_directory = [](Runtime &rt) {
+		rt.push(Settings::user_script_directory());
 	};
 
-	auto get_config_path = [](Environment &env) {
-		env.push(Settings::config_path());
+	auto get_config_path = [](Runtime &rt) {
+		rt.push(Settings::config_path());
 	};
 
-	auto get_documentation_directory = [](Environment &env) {
-		auto dir = get_string(env, res);
-		env.push(filesystem::join(dir, "html"));
+	auto get_documentation_directory = [](Runtime &rt) {
+		auto dir = get_string(rt, res);
+		rt.push(filesystem::join(dir, "html"));
 	};
 
-	env.push(new Object(env, PHON_COBJECT, env.object_meta));
+	rt.push(new Object(rt, PHON_COBJECT, rt.object_meta));
 	{
-		env.add_accessor("settings_directory", get_settings_directory);
-		env.add_accessor("metadata_directory", get_metadata_directory);
-		env.add_accessor("plugin_directory", get_plugin_directory);
-		env.add_accessor("script_directory", get_script_directory);
-		env.add_accessor("path", get_config_path);
-		env.add_accessor("documentation_directory", get_documentation_directory);
+		rt.add_accessor("settings_directory", get_settings_directory);
+		rt.add_accessor("metadata_directory", get_metadata_directory);
+		rt.add_accessor("plugin_directory", get_plugin_directory);
+		rt.add_accessor("script_directory", get_script_directory);
+		rt.add_accessor("path", get_config_path);
+		rt.add_accessor("documentation_directory", get_documentation_directory);
 	}
-	env.set_field(-2, "config");
+	rt.set_field(-2, "config");
 }
 
-String Settings::get_string(Environment &env, const String &name)
+String Settings::get_string(Runtime &rt, const String &name)
 {
 	// Get "phon.settings.name"
-	env.get_global(phon_key);
-	env.get_field(-1, settings_key);
-	env.get_field(-1, name);
-	auto value = env.to_string(-1);
-	env.pop(3);
+	rt.get_global(phon_key);
+	rt.get_field(-1, settings_key);
+	rt.get_field(-1, name);
+	auto value = rt.to_string(-1);
+	rt.pop(3);
 
 	return value;
 }
 
-bool Settings::get_boolean(Environment &env, const String &name)
+bool Settings::get_boolean(Runtime &rt, const String &name)
 {
     // Get "phon.settings.name"
-    env.get_global(phon_key);
-    env.get_field(-1, settings_key);
-    env.get_field(-1, name);
-    auto value = env.to_boolean(-1);
-    env.pop(3);
+    rt.get_global(phon_key);
+    rt.get_field(-1, settings_key);
+    rt.get_field(-1, name);
+    auto value = rt.to_boolean(-1);
+    rt.pop(3);
 
     return value;
 }
 
-double Settings::get_number(Environment &env, const String &name)
+double Settings::get_number(Runtime &rt, const String &name)
 {
     // Get "phon.settings.name"
-    env.get_global(phon_key);
-    env.get_field(-1, settings_key);
-    env.get_field(-1, name);
-    auto value = env.to_number(-1);
-    env.pop(3);
+    rt.get_global(phon_key);
+    rt.get_field(-1, settings_key);
+    rt.get_field(-1, name);
+    auto value = rt.to_number(-1);
+    rt.pop(3);
 
     return value;
 }
 
-Array<Variant> &Settings::get_list(Environment &env, const String &name)
+Array<Variant> &Settings::get_list(Runtime &rt, const String &name)
 {
     // Get "phon.settings.name"
-    env.get_global(phon_key);
-    env.get_field(-1, settings_key);
-    env.get_field(-1, name);
-    auto &value = env.to_list(-1);
-    env.pop(3);
+    rt.get_global(phon_key);
+    rt.get_field(-1, settings_key);
+    rt.get_field(-1, name);
+    auto &value = rt.to_list(-1);
+    rt.pop(3);
 
     return value;
 }
 
-String Settings::get_std_script(Environment &env, String name)
+String Settings::get_std_script(Runtime &rt, String name)
 {
-	auto path = Settings::get_string(env, "resources_directory");
+	auto path = Settings::get_string(rt, "resources_directory");
 	filesystem::append(path, "std");
 	filesystem::nativize(name);
 	name.append(".phon");
@@ -214,93 +214,93 @@ String Settings::get_std_script(Environment &env, String name)
 	return path;
 }
 
-String Settings::get_last_directory(Environment &env)
+String Settings::get_last_directory(Runtime &rt)
 {
-    return get_string(env, last_dir_key);
+    return get_string(rt, last_dir_key);
 }
 
-void Settings::set_value(Environment &env, const String &key, String value)
+void Settings::set_value(Runtime &rt, const String &key, String value)
 {
-    env.get_global(phon_key);
-	env.get_field(-1, settings_key);
+    rt.get_global(phon_key);
+	rt.get_field(-1, settings_key);
 	{
-		env.push(std::move(value));
+		rt.push(std::move(value));
 	}
-	env.set_field(-2, key);
-    env.pop(2);
+	rt.set_field(-2, key);
+    rt.pop(2);
 }
 
-void Settings::set_value(Environment &env, const String &key, Array<Variant> value)
+void Settings::set_value(Runtime &rt, const String &key, Array<Variant> value)
 {
-    env.get_global(phon_key);
-	env.get_field(-1, settings_key);
+    rt.get_global(phon_key);
+	rt.get_field(-1, settings_key);
 	{
-		env.push(std::move(value));
+		rt.push(std::move(value));
 	}
-	env.set_field(-2, key);
-    env.pop(2);
+	rt.set_field(-2, key);
+    rt.pop(2);
 }
 
 
-void Settings::set_last_directory(Environment &env, const String &path)
+void Settings::set_last_directory(Runtime &rt, const String &path)
 {
 	if (!path.empty()) {
-		set_value(env, last_dir_key, filesystem::directory_name(path));
+		set_value(rt, last_dir_key, filesystem::directory_name(path));
 	}
 }
 
-void Settings::set_value(Environment &env, const String &key, bool value)
+void Settings::set_value(Runtime &rt, const String &key, bool value)
 {
-	env.get_global(phon_key);
-	env.get_field(-1, settings_key);
+	rt.get_global(phon_key);
+	rt.get_field(-1, settings_key);
 	{
-		env.push_boolean(value);
+		rt.push_boolean(value);
 	}
-	env.set_field(-2, key);
-	env.pop(2);
+	rt.set_field(-2, key);
+	rt.pop(2);
 }
 
-void Settings::set_value(Environment &env, const String &key, double value)
+void Settings::set_value(Runtime &rt, const String &key, double value)
 {
-	env.get_global(phon_key);
-	env.get_field(-1, settings_key);
+	rt.get_global(phon_key);
+	rt.get_field(-1, settings_key);
 	{
-		env.push(value);
+		rt.push(value);
 	}
-	env.set_field(-2, key);
-	env.pop(2);
+	rt.set_field(-2, key);
+	rt.pop(2);
 }
 
-int Settings::get_int(Environment &env, const String &name)
+int Settings::get_int(Runtime &rt, const String &name)
 {
-	return int(get_number(env, name));
+	return int(get_number(rt, name));
 }
 
-double Settings::get_number(Environment &env, const String &category, const String &name)
+double Settings::get_number(Runtime &rt, const String &category, const String &name)
 {
     // Get "phon.settings.category.name"
-    env.get_global(phon_key);
-    env.get_field(-1, settings_key);
-    env.get_field(-1, category);
-    env.get_field(-1, name);
-    auto value = env.to_number(-1);
-    env.pop(4);
+    rt.get_global(phon_key);
+    rt.get_field(-1, settings_key);
+    rt.get_field(-1, category);
+    rt.get_field(-1, name);
+    auto value = rt.to_number(-1);
+    rt.pop(4);
 
     return value;
 }
 
-void Settings::set_value(Environment &env, const String &category, const String &key, double value)
+void Settings::set_value(Runtime &rt, const String &category, const String &key, double value)
 {
-    env.get_global(phon_key);
-    env.get_field(-1, settings_key);
+    rt.get_global(phon_key);
+    rt.get_field(-1, settings_key);
     {
-        env.get_field(-1, category);
+        rt.get_field(-1, category);
         {
-            env.push(value);
+            rt.push(value);
         }
-        env.set_field(-2, key);
+        rt.set_field(-2, key);
     }
-    env.pop(3);
+    rt.pop(3);
 }
 
 

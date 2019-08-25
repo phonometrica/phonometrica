@@ -24,7 +24,7 @@
 
 #include <QMainWindow>
 #include <QSplitter>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 #include <phon/gui/file_manager.hpp>
 #include <phon/gui/main_area.hpp>
 #include <phon/gui/splitter.hpp>
@@ -37,7 +37,7 @@ class MainWindow final : public QMainWindow
 
 public:
 
-    MainWindow(Environment &env, QWidget *parent = nullptr);
+    MainWindow(Runtime &rt, QWidget *parent = nullptr);
 
     ~MainWindow();
 
@@ -85,7 +85,7 @@ private:
 
     Splitter *splitter;
 
-    Environment &env;
+    Runtime &rt;
 
     FileManager *file_manager;
 

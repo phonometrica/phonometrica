@@ -16,20 +16,19 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/toplevel.hpp>
 #include <phon/runtime/lex.hpp>
 #include <phon/runtime/object.hpp>
-#include <phon/runtime/toplevel.hpp>
 #include <phon/third_party/utf8/utf8.h>
 
 namespace phonometrica {
 
-static void jsonnext(Environment *J)
+static void jsonnext(Runtime *J)
 {
     J->lookahead = lex_json(J);
 }
 
-static int jsonaccept(Environment *J, int t)
+static int jsonaccept(Runtime *J, int t)
 {
     if (J->lookahead == t)
     {
@@ -39,14 +38,14 @@ static int jsonaccept(Environment *J, int t)
     return 0;
 }
 
-static void jsonexpect(Environment *J, int t)
+static void jsonexpect(Runtime *J, int t)
 {
     if (!jsonaccept(J, t))
         throw J->raise("Syntax error", "JSON: unexpected token: %s (expected %s)",
                        get_token_string(J->lookahead), get_token_string(t));
 }
 
-static void jsonvalue(Environment *J)
+static void jsonvalue(Runtime *J)
 {
     int i;
 
@@ -117,7 +116,7 @@ static void jsonvalue(Environment *J)
     }
 }
 
-static void jsonrevive(Environment *J, const String &name)
+static void jsonrevive(Runtime *J, const String &name)
 {
     const char *key;
     char buf[32];
@@ -181,29 +180,29 @@ static void jsonrevive(Environment *J, const String &name)
     js_rot2pop1(J); /* pop old value, leave new value on stack */
 }
 
-static void JSON_parse(Environment &env)
+static void JSON_parse(Runtime &rt)
 {
-    auto source = env.to_string(1);
-    init_lex(&env, "json", source);
-    jsonnext(&env);
+    auto source = rt.to_string(1);
+    init_lex(&rt, "json", source);
+    jsonnext(&rt);
 
-    if (env.is_callable(2))
+    if (rt.is_callable(2))
     {
-        env.new_object();
-        jsonvalue(&env);
-        env.def_field(-2, "", 0);
-        jsonrevive(&env, "");
+        rt.new_object();
+        jsonvalue(&rt);
+        rt.def_field(-2, "", 0);
+        jsonrevive(&rt, "");
     }
     else
     {
-        jsonvalue(&env);
+        jsonvalue(&rt);
     }
 }
 
-static void fmtnum(Environment *J, String &buffer, double n)
+static void fmtnum(Runtime *J, String &buffer, double n)
 {
-    if (isnan(n)) buffer.append(J->null_string);
-    else if (isinf(n)) buffer.append(J->null_string);
+    if (std::isnan(n)) buffer.append(J->null_string);
+    else if (std::isinf(n)) buffer.append(J->null_string);
     else if (n == 0) buffer.append('0');
     else
     {
@@ -212,7 +211,7 @@ static void fmtnum(Environment *J, String &buffer, double n)
     }
 }
 
-static void fmtstr(Environment *J, String &buffer, const char *s)
+static void fmtstr(Runtime *J, String &buffer, const char *s)
 {
     static const char *HEX = "0123456789ABCDEF";
     char32_t c;
@@ -262,16 +261,16 @@ static void fmtstr(Environment *J, String &buffer, const char *s)
     buffer.append('"');
 }
 
-static void fmtindent(Environment *J, String &buffer, std::string_view gap, int level)
+static void fmtindent(Runtime *J, String &buffer, std::string_view gap, int level)
 {
     buffer.append('\n');
     while (level--)
         buffer.append(gap);
 }
 
-static int fmtvalue(Environment *J, String &buffer, const String &key, const char *gap, int level);
+static int fmtvalue(Runtime *J, String &buffer, const String &key, const char *gap, int level);
 
-static void fmtobject(Environment *J, String &buffer, Object *obj, const char *gap, int level)
+static void fmtobject(Runtime *J, String &buffer, Object *obj, const char *gap, int level)
 {
     int save;
     int i, n;
@@ -314,7 +313,7 @@ static void fmtobject(Environment *J, String &buffer, Object *obj, const char *g
     buffer.append('}');
 }
 
-static void fmtlist(Environment *J, String &buffer, const char *gap, int level)
+static void fmtlist(Runtime *J, String &buffer, const char *gap, int level)
 {
     intptr_t n, i;
     char buf[32];
@@ -340,7 +339,7 @@ static void fmtlist(Environment *J, String &buffer, const char *gap, int level)
     buffer.append(']');
 }
 
-static int fmtvalue(Environment *J, String &buffer, const String &key, const char *gap, int level)
+static int fmtvalue(Runtime *J, String &buffer, const String &key, const char *gap, int level)
 {
     /* replacer is in 2 */
     /* holder is in -1 */
@@ -416,7 +415,7 @@ static int fmtvalue(Environment *J, String &buffer, const String &key, const cha
     return 1;
 }
 
-static void JSON_stringify(Environment &env)
+static void JSON_stringify(Runtime &rt)
 {
     char buf[12];
     const char *gap;
@@ -424,18 +423,18 @@ static void JSON_stringify(Environment &env)
 
     gap = nullptr;
 
-    if (env.is_number(3))
+    if (rt.is_number(3))
     {
-        n = env.to_integer(3);
+        n = rt.to_integer(3);
         if (n < 0) n = 0;
         if (n > 10) n = 10;
         memset(buf, ' ', n);
         buf[n] = 0;
         if (n > 0) gap = buf;
     }
-    else if (env.is_string(3))
+    else if (rt.is_string(3))
     {
-        auto s = env.to_string(3);
+        auto s = rt.to_string(3);
         n = s.size();
         if (n > 10) n = 10;
         memcpy(buf, s.data(), n);
@@ -443,23 +442,23 @@ static void JSON_stringify(Environment &env)
         if (n > 0) gap = buf;
     }
 
-    env.new_object(); /* wrapper */
-    env.copy(1);
-    env.def_field(-2, String(), 0);
+    rt.new_object(); /* wrapper */
+    rt.copy(1);
+    rt.def_field(-2, String(), 0);
     String result;
-    env.get_field(-1, String());
-    if (!fmtvalue(&env, result, String(), gap, 0))
+    rt.get_field(-1, String());
+    if (!fmtvalue(&rt, result, String(), gap, 0))
     {
-        env.push_null();
+        rt.push_null();
     }
     else
     {
-        env.push(std::move(result));
-        js_rot2pop1(&env);
+        rt.push(std::move(result));
+        js_rot2pop1(&rt);
     }
 }
 
-void Environment::init_json()
+void Runtime::init_json()
 {
     push(new Object(*this, PHON_CJSON, object_meta));
     {

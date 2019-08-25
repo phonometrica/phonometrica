@@ -27,7 +27,7 @@
 #include <phon/gui/highlighter.hpp>
 #include <phon/gui/code_editor.hpp>
 #include <phon/application/script.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 
 class QToolBar;
 
@@ -42,7 +42,7 @@ class ScriptView final : public View
 
 public:
 
-    explicit ScriptView(Environment &env, std::shared_ptr<Script> script, QWidget *parent = nullptr);
+    explicit ScriptView(Runtime &rt, std::shared_ptr<Script> script, QWidget *parent = nullptr);
 
     void save() override;
 
@@ -68,7 +68,7 @@ private:
 
     std::shared_ptr<Script> m_script;
 
-    Environment &env;
+    Runtime &rt;
 
     CodeEditor *m_editor;
 

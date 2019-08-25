@@ -25,7 +25,7 @@ namespace phonometrica {
 
 class Field;
 class Object;
-class Environment;
+class Runtime;
 struct Variant;
 
 
@@ -35,21 +35,21 @@ struct Variant;
 /* run.cpp */
 
 
-Variant *get_variant(Environment *J, int idx);
+Variant *get_variant(Runtime *J, int idx);
 
-void var_to_primitive(Environment *J, int idx, int hint);
+void var_to_primitive(Runtime *J, int idx, int hint);
 
-Object *var_to_object(Environment *J, int idx);
+Object *var_to_object(Runtime *J, int idx);
 
 
 /* variant.cpp */
 
 
-String var_to_string(Environment *J, Variant *v);
+String var_to_string(Runtime *J, Variant *v);
 
-Object *var_to_object(Environment *J, Variant *v);
+Object *var_to_object(Runtime *J, Variant *v);
 
-void var_to_primitive(Environment *J, Variant *v, int preferred);
+void var_to_primitive(Runtime *J, Variant *v, int preferred);
 
 const char *int_to_str(char *buf, int a);
 
@@ -65,15 +65,15 @@ short number_to_int16(double n);
 
 unsigned short number_to_uint16(double n);
 
-String number_to_string(Environment *J, char *buf, double number);
+String number_to_string(Runtime *J, char *buf, double number);
 
-double string_to_number(Environment *J, const String &string);
+double string_to_number(Runtime *J, const String &string);
 
 
 /* dump.cpp */
-void dump_object(Environment *J, Object *obj);
+void dump_object(Runtime *J, Object *obj);
 
-void dump_variant(Environment *J, const Variant &v);
+void dump_variant(Runtime *J, const Variant &v);
 
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -187,7 +187,7 @@ struct Variant final
 
     double to_number() const;
 
-    String to_string(Environment &env) { return var_to_string(&env, this); }
+    String to_string(Runtime &rt) { return var_to_string(&rt, this); }
 
     const String &as_string() const { return as.string; }
 
@@ -243,7 +243,7 @@ class Value final
 {
 public:
 
-    explicit Value(Environment &env, int idx = -1);
+    explicit Value(Runtime &rt, int idx = -1);
 
     Value(const Value &other);
 
@@ -267,7 +267,7 @@ private:
 
     Variant variant;
     String handle;
-    Environment *env;
+    Runtime *rt;
 };
 
 

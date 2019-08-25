@@ -27,7 +27,7 @@
 
 namespace phonometrica {
 
-class Environment;
+class Runtime;
 
 
 class Settings final
@@ -36,9 +36,9 @@ public:
 
     Settings() = delete;
 
-    static void read(Environment &env);
+    static void read(Runtime &rt);
 
-    static void write(Environment &env);
+    static void write(Runtime &rt);
 
     static String settings_directory();
 
@@ -50,36 +50,36 @@ public:
 
     static String config_path();
 
-    static String get_string(Environment &env, const String &name);
+    static String get_string(Runtime &rt, const String &name);
 
-    static bool get_boolean(Environment &env, const String &name);
+    static bool get_boolean(Runtime &rt, const String &name);
 
-    static double get_number(Environment &env, const String &name);
+    static double get_number(Runtime &rt, const String &name);
 
-    static double get_number(Environment &env, const String &category, const String &name);
+    static double get_number(Runtime &rt, const String &category, const String &name);
 
-    static int get_int(Environment &env, const String &name);
+    static int get_int(Runtime &rt, const String &name);
 
-    static Array<Variant> &get_list(Environment &env, const String &name);
+    static Array<Variant> &get_list(Runtime &rt, const String &name);
 
-    static void set_value(Environment &env, const String &key, String value);
+    static void set_value(Runtime &rt, const String &key, String value);
 
-    static void set_value(Environment &env, const String &key, bool value);
+    static void set_value(Runtime &rt, const String &key, bool value);
 
-    static void set_value(Environment &env, const String &key, double value);
+    static void set_value(Runtime &rt, const String &key, double value);
 
-    static void set_value(Environment &env, const String &key, Array<Variant> value);
+    static void set_value(Runtime &rt, const String &key, Array<Variant> value);
 
-    static void set_value(Environment &env, const String &category, const String &key, double value);
+    static void set_value(Runtime &rt, const String &category, const String &key, double value);
 
 
-    static void initialize(Environment &env);
+    static void initialize(Runtime &rt);
 
-    static String get_std_script(Environment &env, String name);
+    static String get_std_script(Runtime &rt, String name);
 
-    static String get_last_directory(Environment &env);
+    static String get_last_directory(Runtime &rt);
 
-    static void set_last_directory(Environment &env, const String &path);
+    static void set_last_directory(Runtime &rt, const String &path);
 };
 
 } // namespace phonometrica

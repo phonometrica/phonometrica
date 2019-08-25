@@ -28,7 +28,7 @@
 
 namespace phonometrica {
 
-class Environment;
+class Runtime;
 
 class SpeechPlot : public SpeechWidget
 {
@@ -36,7 +36,7 @@ class SpeechPlot : public SpeechWidget
 
 public:
 
-    SpeechPlot(Environment &env, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
+    SpeechPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
 
     void zoomIn();
 
@@ -125,7 +125,7 @@ protected:
     // Subclasses must draw the plot in this method
     virtual void renderPlot(QPaintEvent *event) = 0;
 
-    Environment &env;
+    Runtime &rt;
 
     std::shared_ptr<AudioData> m_data;
 

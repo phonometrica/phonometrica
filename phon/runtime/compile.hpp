@@ -154,13 +154,13 @@ struct Function
     int gcmark = 0;
 };
 
-Function *jsC_compilefunction(Environment *J, Ast *prog);
+Function *jsC_compilefunction(Runtime *J, Ast *prog);
 
-Function *jsC_compilescript(Environment *J, Ast *prog, int default_strict);
+Function *jsC_compilescript(Runtime *J, Ast *prog, int default_strict);
 
 const char *jsC_opcodestring(enum js_OpCode opcode);
 
-void jsC_dumpfunction(Environment *J, Function *fun);
+void jsC_dumpfunction(Runtime *J, Function *fun);
 
 } // namespace phonometrica
 

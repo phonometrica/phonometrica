@@ -32,8 +32,8 @@
 
 namespace phonometrica {
 
-Viewer::Viewer(Environment &env, QWidget *parent) :
-    QTabWidget(parent), env(env)
+Viewer::Viewer(Runtime &rt, QWidget *parent) :
+    QTabWidget(parent), rt(rt)
 {
     setTabsClosable(true);
     setMovable(true);
@@ -44,9 +44,9 @@ Viewer::Viewer(Environment &env, QWidget *parent) :
 
 void Viewer::setStartView()
 {
-    if (!env.is_text_mode())
+    if (!rt.is_text_mode())
     {
-        addView(new StartView(nullptr, env), tr("Start"));
+        addView(new StartView(nullptr, rt), tr("Start"));
     }
 }
 
@@ -121,7 +121,7 @@ void Viewer::showDocumentation(const String &page)
 void Viewer::openScriptView(std::shared_ptr<Script> script)
 {
     auto label = script->label();
-    auto view = new ScriptView(env, std::move(script));
+    auto view = new ScriptView(rt, std::move(script));
     addView(view, label);
 }
 
@@ -175,7 +175,7 @@ void Viewer::view(const std::shared_ptr<VFile> &file)
     {
         auto sound = downcast<Sound>(file);
         auto label = sound->label();
-        addView(new SoundView(env, std::move(sound)), label);
+        addView(new SoundView(rt, std::move(sound)), label);
     }
     else if (file->is_annotation())
     {
@@ -184,7 +184,7 @@ void Viewer::view(const std::shared_ptr<VFile> &file)
         if (annot->has_sound())
         {
             auto label = annot->label();
-            addView(new AnnotationView(env, std::move(annot)), label);
+            addView(new AnnotationView(rt, std::move(annot)), label);
         }
         else
         {

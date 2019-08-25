@@ -28,14 +28,14 @@
 
 namespace phonometrica {
 
-MainArea::MainArea(Environment &env, QWidget *parent) :
-    QWidget(parent), env(env)
+MainArea::MainArea(Runtime &rt, QWidget *parent) :
+    QWidget(parent), rt(rt)
 {
     hsplitter = new Splitter(Qt::Horizontal);
     vsplitter = new Splitter(Qt::Vertical);
-    m_info_panel = new InfoPanel(env);
-    m_console = new Console(env);
-    m_viewer = new Viewer(env);
+    m_info_panel = new InfoPanel(rt);
+    m_console = new Console(rt);
+    m_viewer = new Viewer(rt);
 
     vsplitter->addWidget(m_viewer);
     vsplitter->addWidget(m_console);
@@ -53,14 +53,14 @@ void MainArea::toggleConsole()
 {
     bool new_state = !m_console->isVisible();
     m_console->setVisible(new_state);
-    Settings::set_value(env, "hide_console", !new_state);
+    Settings::set_value(rt, "hide_console", !new_state);
 }
 
 void MainArea::toggleInfo()
 {
     bool new_state = !m_info_panel->isVisible();
     m_info_panel->setVisible(new_state);
-    Settings::set_value(env, "hide_info", !new_state);
+    Settings::set_value(rt, "hide_info", !new_state);
 }
 
 void MainArea::setDefaultLayout()
@@ -100,8 +100,8 @@ void MainArea::focusConsole()
 
 void MainArea::adjustSplitters()
 {
-    auto info_ratio = Settings::get_number(env, "info_ratio");
-    auto console_ratio = Settings::get_number(env, "console_ratio");
+    auto info_ratio = Settings::get_number(rt, "info_ratio");
+    auto console_ratio = Settings::get_number(rt, "console_ratio");
     layout(info_ratio, console_ratio);
 }
 

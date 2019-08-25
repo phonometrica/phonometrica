@@ -16,20 +16,16 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/toplevel.hpp>
 #include <phon/runtime/compile.hpp>
 #include <phon/runtime/object.hpp>
-#include <phon/runtime/run.hpp>
-#include <phon/runtime/environment.hpp>
-#include "object.hpp"
-
 
 namespace phonometrica {
 
-static void mark_object(Environment *J, int mark, Object *obj);
+static void mark_object(Runtime *J, int mark, Object *obj);
 
 
-static void mark_function(Environment *J, int mark, Function *fun)
+static void mark_function(Runtime *J, int mark, Function *fun)
 {
     fun->gcmark = mark;
     for (auto f : fun->funtab)
@@ -37,18 +33,18 @@ static void mark_function(Environment *J, int mark, Function *fun)
             mark_function(J, mark, f);
 }
 
-static void mark_namespace(Environment *J, int mark, Namespace *ns)
+static void mark_environment(Runtime *J, int mark, Environment *env)
 {
     do
     {
-        ns->gcmark = mark;
-        if (ns->variables->gcmark != mark)
-            mark_object(J, mark, ns->variables);
-        ns = ns->outer;
-    } while (ns && ns->gcmark != mark);
+	    env->gcmark = mark;
+        if (env->variables->gcmark != mark)
+            mark_object(J, mark, env->variables);
+	    env = env->outer;
+    } while (env && env->gcmark != mark);
 }
 
-static void mark_object(Environment *J, int mark, Object *obj)
+static void mark_object(Runtime *J, int mark, Object *obj)
 {
     obj->gcmark = mark;
 
@@ -73,13 +69,13 @@ static void mark_object(Environment *J, int mark, Object *obj)
     if (obj->type == PHON_CFUNCTION || obj->type == PHON_CSCRIPT)
     {
         if (obj->as.f.scope && obj->as.f.scope->gcmark != mark)
-            mark_namespace(J, mark, obj->as.f.scope);
+	        mark_environment(J, mark, obj->as.f.scope);
         if (obj->as.f.function && obj->as.f.function->gcmark != mark)
             mark_function(J, mark, obj->as.f.function);
     }
 }
 
-static void mark_stack(Environment *J, int mark)
+static void mark_stack(Runtime *J, int mark)
 {
     Variant *v = J->stack;
     auto n = J->top;
@@ -91,17 +87,17 @@ static void mark_stack(Environment *J, int mark)
     }
 }
 
-Environment::~Environment()
+Runtime::~Runtime()
 {
     Function *fun, *nextfun;
     Object *obj, *nextobj;
-    Namespace *ns, *nextns;
+    Environment *env, *nextenv;
 
     // Run final collection.
     collect();
 
-    for (ns = this->gcenv; ns; ns = nextns)
-        nextns = ns->gcnext, delete ns;
+    for (env = this->gcenv; env; env = nextenv)
+	    nextenv = env->gcnext, delete env;
     for (fun = this->gcfun; fun; fun = nextfun)
         nextfun = fun->gcnext, delete fun;
     for (obj = this->gcobj; obj; obj = nextobj)
@@ -110,11 +106,11 @@ Environment::~Environment()
     utils::free(this->stack);
 }
 
-void Environment::collect(bool report)
+void Runtime::collect(bool report)
 {
     Function *fun, *nextfun, **prevnextfun;
     Object *obj, *nextobj, **prevnextobj;
-    Namespace *ns, *nextns, **prevnextns;
+    Environment *env, *nextenv, **prevnextenv;
     int nenv = 0, nfun = 0, nobj = 0, nstr = 0;
     int genv = 0, gfun = 0, gobj = 0, gstr = 0;
     int mark;
@@ -149,24 +145,24 @@ void Environment::collect(bool report)
 
     mark_stack(this, mark);
 
-    mark_namespace(this, mark, this->E);
-    mark_namespace(this, mark, this->GE);
+	mark_environment(this, mark, this->E);
+	mark_environment(this, mark, this->GE);
     for (i = 0; i < this->nstop; ++i)
-        mark_namespace(this, mark, this->nsstack[i]);
+	    mark_environment(this, mark, this->nsstack[i]);
 
-    prevnextns = &this->gcenv;
-    for (ns = this->gcenv; ns; ns = nextns)
+	prevnextenv = &this->gcenv;
+    for (env = this->gcenv; env; env = nextenv)
     {
-        nextns = ns->gcnext;
-        if (ns->gcmark != mark)
+	    nextenv = env->gcnext;
+        if (env->gcmark != mark)
         {
-            *prevnextns = nextns;
-            delete ns;
+            *prevnextenv = nextenv;
+            delete env;
             ++genv;
         }
         else
         {
-            prevnextns = &ns->gcnext;
+	        prevnextenv = &env->gcnext;
         }
         ++nenv;
     }

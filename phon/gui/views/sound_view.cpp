@@ -24,8 +24,8 @@
 namespace phonometrica {
 
 
-SoundView::SoundView(Environment &env, std::shared_ptr<Sound> sound, QWidget *parent) :
-    SpeechView(env, sound->data(), parent),  m_sound(std::move(sound))
+SoundView::SoundView(Runtime &rt, std::shared_ptr<Sound> sound, QWidget *parent) :
+    SpeechView(rt, sound->data(), parent),  m_sound(std::move(sound))
 {
 
 }

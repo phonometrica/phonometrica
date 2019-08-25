@@ -28,7 +28,6 @@
 #include <unistd.h>
 #endif
 #include <phon/file.hpp>
-#include <phon/runtime/runtime.hpp>
 #include <phon/runtime/toplevel.hpp>
 #include <phon/utils/print.hpp>
 
@@ -120,73 +119,73 @@ std::optional<String> readline(const char *prompt)
 
 #define PS1 "> "
 
-static void builtin_gc(Environment &env)
+static void builtin_gc(Runtime &rt)
 {
-    auto report = env.to_boolean(1);
-    env.collect(report);
-    env.push_null();
+    auto report = rt.to_boolean(1);
+    rt.collect(report);
+    rt.push_null();
 }
 
-static void builtin_load(Environment &env)
+static void builtin_load(Runtime &rt)
 {
-    int i, n = env.top_count();
+    int i, n = rt.top_count();
     for (i = 1; i < n; ++i)
     {
-        env.load_file(env.to_string(i));
-        env.push_null();
-        env.call(0);
-        env.pop(1);
+        rt.load_file(rt.to_string(i));
+        rt.push_null();
+        rt.call(0);
+        rt.pop(1);
     }
-    env.push_null();
+    rt.push_null();
 }
 
-static void builtin_readline(Environment &env)
+static void builtin_readline(Runtime &rt)
 {
     auto line = readline("");
     if (!line)
     {
-        env.push_null();
+        rt.push_null();
         return;
     }
-    env.push(*line);
+    rt.push(*line);
     if (!line->empty())
         add_history(*line);
 }
 
 
-static void builtin_compile(Environment &env)
+static void builtin_compile(Runtime &rt)
 {
-    auto source = env.to_string(1);
-    auto filename = env.is_defined(2) ? env.to_string(2) : "[string]";
-    env.load_string(filename, source);
+    auto source = rt.to_string(1);
+    auto filename = rt.is_defined(2) ? rt.to_string(2) : "[string]";
+    rt.load_string(filename, source);
 }
 
 // TODO: set print handler in environment from print() and system.write()
-static void builtin_print(Environment &env)
+static void builtin_print(Runtime &rt)
 {
-    int i, top = env.top_count();
+    int i, top = rt.top_count();
     for (i = 1; i < top; ++i)
     {
-        auto s = env.to_string(i);
-        env.print(s);
+        auto s = rt.to_string(i);
+        rt.print(s);
     }
-    if (env.is_text_mode())
+    if (rt.is_text_mode())
     {
-        env.print("\n");
+        rt.print("\n");
     }
-    env.push_null();
+    rt.push_null();
 }
 
-static void builtin_quit(Environment &env)
+static void builtin_quit(Runtime &rt)
 {
-    exit(env.to_number(1));
+    exit(rt.to_number(1));
 }
 
-static void builtin_error(Environment &env)
+static void builtin_error(Runtime &rt)
 {
-    auto msg = env.to_string(1);
-    env.pop();
-    throw env.raise("Error", "%s\n", msg.data());
+    auto msg = rt.to_string(1);
+    rt.pop();
+    throw rt.raise("Error", "%s\n", msg.data());
 }
 
 static auto require_script = R"__(
@@ -215,7 +214,7 @@ function assert(cond, msg)
 end
 )__";
 
-static int eval_print(Environment *J, const String &source)
+static int eval_print(Runtime *J, const String &source)
 {
     try
     {
@@ -282,34 +281,34 @@ static int show_version()
     return 0;
 }
 
-void initialize(Environment &env)
+void initialize(Runtime &rt)
 {
-    env.new_native_function(builtin_gc, "gc", 0);
-    env.set_global("gc");
+    rt.new_native_function(builtin_gc, "gc", 0);
+    rt.set_global("gc");
 
-    env.new_native_function(builtin_load, "load", 1);
-    env.set_global("load");
+    rt.new_native_function(builtin_load, "load", 1);
+    rt.set_global("load");
 
-    env.new_native_function(builtin_compile, "compile", 2);
-    env.set_global("compile");
+    rt.new_native_function(builtin_compile, "compile", 2);
+    rt.set_global("compile");
 
-    env.new_native_function(builtin_print, "print", 0);
-    env.set_global("print");
+    rt.new_native_function(builtin_print, "print", 0);
+    rt.set_global("print");
 
-    env.new_native_function(builtin_readline, "read_line", 0);
-    env.set_global("read_line");
+    rt.new_native_function(builtin_readline, "read_line", 0);
+    rt.set_global("read_line");
 
-    env.new_native_function(builtin_quit, "quit", 1);
-    env.set_global("quit");
+    rt.new_native_function(builtin_quit, "quit", 1);
+    rt.set_global("quit");
 
-    env.new_native_function(builtin_error, "error", 1);
-    env.set_global("error");
+    rt.new_native_function(builtin_error, "error", 1);
+    rt.set_global("error");
 
-    env.do_string(require_script);
-    env.do_string(assert_script);
+    rt.do_string(require_script);
+    rt.do_string(assert_script);
 }
 
-int interpret(Environment &env, int argc, char **argv)
+int interpret(Runtime &rt, int argc, char **argv)
 {
 
     std::optional<String> input;
@@ -334,8 +333,8 @@ int interpret(Environment &env, int argc, char **argv)
     }
 
     // 'J' stands for 'Javascript'. This is carried over from MuJS.
-    auto J = &env;
-    initialize(env);
+    auto J = &rt;
+    initialize(rt);
 
     if (xoptind == argc)
     {
@@ -352,7 +351,7 @@ int interpret(Environment &env, int argc, char **argv)
             J->push(argv[xoptind++]);
             js_setindex(J, -2, i++);
         }
-        env.set_global("script_args");
+        rt.set_global("script_args");
 
         if (J->do_file(argv[c]))
             status = 1;

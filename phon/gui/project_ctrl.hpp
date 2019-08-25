@@ -45,7 +45,7 @@ class ProjectCtrl : public QTreeWidget
 
 public:
 
-    explicit ProjectCtrl(Environment &env, QWidget *parent = nullptr);
+    explicit ProjectCtrl(Runtime &rt, QWidget *parent = nullptr);
 
     void resetLabel();
 
@@ -93,7 +93,7 @@ private:
 
     VFileList get_vfiles(const QList<QTreeWidgetItem*> &items);
 
-    Environment &env;
+    Runtime &rt;
 
     QTreeWidgetItem *corpus,*data, *scripts, *bookmarks;
 

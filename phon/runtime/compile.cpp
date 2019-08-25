@@ -17,7 +17,7 @@
  **************************************************************************************/
 
 #include <math.h>
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/toplevel.hpp>
 #include <phon/runtime/lex.hpp>
 #include <phon/runtime/parse.hpp>
 #include <phon/runtime/compile.hpp>
@@ -26,12 +26,12 @@
 
 #define cexp jsC_cexp /* collision with math.h */
 
-#define JF Environment *J, Function *F
+#define JF Runtime *J, Function *F
 
 namespace phonometrica {
 
 
-PHON_NORETURN void jsC_error(Environment *J, Ast *node, const char *fmt, ...) PHON_PRINTFLIKE(3, 4);
+PHON_NORETURN void jsC_error(Runtime *J, Ast *node, const char *fmt, ...) PHON_PRINTFLIKE(3, 4);
 
 static void cfunbody(JF, Ast *name, Ast *params, Ast *body);
 
@@ -41,7 +41,7 @@ static void cstmlist(JF, Ast *list);
 
 static void cstm(JF, Ast *stm);
 
-void jsC_error(Environment *J, Ast *node, const char *fmt, ...)
+void jsC_error(Runtime *J, Ast *node, const char *fmt, ...)
 {
     va_list ap;
     char buf[512];
@@ -78,7 +78,7 @@ static void checkfutureword(JF, Ast *exp)
     }
 }
 
-static Function *newfun(Environment *J, Ast *name, Ast *params, Ast *body, int script, int default_strict)
+static Function *newfun(Runtime *J, Ast *name, Ast *params, Ast *body, int script, int default_strict)
 {
     auto F = new Function;
     F->gcmark = 0;
@@ -1463,12 +1463,12 @@ static void cfunbody(JF, Ast *name, Ast *params, Ast *body)
     }
 }
 
-Function *jsC_compilefunction(Environment *J, Ast *prog)
+Function *jsC_compilefunction(Runtime *J, Ast *prog)
 {
     return newfun(J, prog->a, prog->b, prog->c, 0, J->default_strict);
 }
 
-Function *jsC_compilescript(Environment *J, Ast *prog, int default_strict)
+Function *jsC_compilescript(Runtime *J, Ast *prog, int default_strict)
 {
     return newfun(J, nullptr, nullptr, prog, 1, default_strict);
 }

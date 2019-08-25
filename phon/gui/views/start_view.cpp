@@ -21,12 +21,12 @@
 
 #include <QGridLayout>
 #include <phon/gui/views/start_view.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 
 namespace phonometrica {
 
-StartView::StartView(QWidget *parent, Environment &env) :
-    View(parent), env(env)
+StartView::StartView(QWidget *parent, Runtime &rt) :
+    View(parent), rt(rt)
 {
     auto layout = new QVBoxLayout;
     auto grid = new QGridLayout;
@@ -56,22 +56,22 @@ StartView::StartView(QWidget *parent, Environment &env) :
 
 void StartView::onAddFiles()
 {
-    env.do_string("phon.add_files()");
+    rt.do_string("phon.add_files()");
 }
 
 void StartView::onOpenProject()
 {
-    env.do_string("phon.open_project()");
+    rt.do_string("phon.open_project()");
 }
 
 void StartView::onOpenSettings()
 {
-    env.do_string("phon.edit_settings()");
+    rt.do_string("phon.edit_settings()");
 }
 
 void StartView::onOpenDoc()
 {
-    env.do_string("phon.show_help()");
+    rt.do_string("phon.show_help()");
 }
 
 void StartView::save()

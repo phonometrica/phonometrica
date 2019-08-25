@@ -34,7 +34,7 @@ class AnnotationView final : public SpeechView
 
 public:
 
-    AnnotationView(Environment &env, std::shared_ptr<Annotation> annot, QWidget *parent = nullptr);
+    AnnotationView(Runtime &rt, std::shared_ptr<Annotation> annot, QWidget *parent = nullptr);
 
     void save() override;
 

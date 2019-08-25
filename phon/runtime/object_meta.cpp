@@ -16,240 +16,239 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
-#include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
+#include <phon/runtime/object.hpp>
 
 namespace phonometrica {
 
-static void jsB_new_Object(Environment &env)
+static void jsB_new_Object(Runtime &rt)
 {
-    if (env.is_null(1))
-        env.new_object();
+    if (rt.is_null(1))
+        rt.new_object();
     else
-        env.push(env.to_object(1));
+        rt.push(rt.to_object(1));
 }
 
-static void jsB_Object(Environment &env)
+static void jsB_Object(Runtime &rt)
 {
-    if (env.is_null(1))
-        env.new_object();
+    if (rt.is_null(1))
+        rt.new_object();
     else
-        env.push(env.to_object(1));
+        rt.push(rt.to_object(1));
 }
 
-static void object_to_string(Environment &env)
+static void object_to_string(Runtime &rt)
 {
-    if (env.is_null(0))
-        env.push("[object Undefined]");
-    else if (env.is_null(0))
-        env.push("[object Null]");
+    if (rt.is_null(0))
+        rt.push("[object Undefined]");
+    else if (rt.is_null(0))
+        rt.push("[object Null]");
     else
     {
-        Object *self = env.to_object(0);
+        Object *self = rt.to_object(0);
         switch (self->type)
         {
         case PHON_COBJECT:
-            env.push("[object Object]");
+            rt.push("[object Object]");
             break;
         case PHON_CLIST:
-            env.push("[object List]");
+            rt.push("[object List]");
             break;
         case PHON_CFUNCTION:
-            env.push("[object Function]");
+            rt.push("[object Function]");
             break;
         case PHON_CSCRIPT:
-            env.push("[object Function]");
+            rt.push("[object Function]");
             break;
         case PHON_CCFUNCTION:
-            env.push("[object Function]");
+            rt.push("[object Function]");
             break;
         case PHON_CERROR:
-            env.push("[object Error]");
+            rt.push("[object Error]");
             break;
         case PHON_CBOOLEAN:
-            env.push("[object Boolean]");
+            rt.push("[object Boolean]");
             break;
         case PHON_CNUMBER:
-            env.push("[object Number]");
+            rt.push("[object Number]");
             break;
         case PHON_CSTRING:
-            env.push("[object String]");
+            rt.push("[object String]");
             break;
         case PHON_CREGEX:
-            env.push("[object Regex]");
+            rt.push("[object Regex]");
             break;
         case PHON_CFILE:
-            env.push("[object File]");
+            rt.push("[object File]");
             break;
         case PHON_CDATE:
-            env.push("[object Date]");
+            rt.push("[object Date]");
             break;
         case PHON_CMATH:
-            env.push("[module math]");
+            rt.push("[module math]");
             break;
         case PHON_CJSON:
-            env.push("[module json]");
+            rt.push("[module json]");
         case PHON_CSYSTEM:
-            env.push("[module system]");
+            rt.push("[module system]");
             break;
         case PHON_CITERATOR:
-            env.push("[Iterator]");
+            rt.push("[Iterator]");
             break;
         case PHON_CUSERDATA:
-            env.push("[object ");
-            env.push(self->as.user.tag);
-            js_concat(&env);
-            env.push("]");
-            js_concat(&env);
+            rt.push("[object ");
+            rt.push(self->as.user.tag);
+            js_concat(&rt);
+            rt.push("]");
+            js_concat(&rt);
             break;
         }
     }
 }
 
-static void object_to_value(Environment &env)
+static void object_to_value(Runtime &rt)
 {
-    env.copy(0);
+    rt.copy(0);
 }
 
-static void object_has_field(Environment &env)
+static void object_has_field(Runtime &rt)
 {
-    Object *self = env.to_object(0);
-    auto name = env.to_string(1);
-    Field *ref = self->get_own_field(env, name);
-    env.push_boolean(ref != nullptr);
+    Object *self = rt.to_object(0);
+    auto name = rt.to_string(1);
+    Field *ref = self->get_own_field(rt, name);
+    rt.push_boolean(ref != nullptr);
 }
 
-static void object_is_prototype_of(Environment &env)
+static void object_is_prototype_of(Runtime &rt)
 {
-    Object *self = env.to_object(0);
-    if (env.is_object(1))
+    Object *self = rt.to_object(0);
+    if (rt.is_object(1))
     {
-        Object *V = env.to_object(1);
+        Object *V = rt.to_object(1);
         do
         {
             V = V->prototype;
             if (V == self)
             {
-                env.push_boolean(true);
+                rt.push_boolean(true);
                 return;
             }
         } while (V);
     }
-    env.push_boolean(false);
+    rt.push_boolean(false);
 }
 
-static void object_field_is_enumerable(Environment &env)
+static void object_field_is_enumerable(Runtime &rt)
 {
-    Object *self = env.to_object(0);
-    auto name = env.to_string(1);
-    Field *ref = self->get_own_field(env, name);
-    env.push_boolean(ref && !(ref->atts & PHON_DONTENUM));
+    Object *self = rt.to_object(0);
+    auto name = rt.to_string(1);
+    Field *ref = self->get_own_field(rt, name);
+    rt.push_boolean(ref && !(ref->atts & PHON_DONTENUM));
 }
 
-static void object_get_prototype_of(Environment &env)
+static void object_get_prototype_of(Runtime &rt)
 {
     Object *obj;
-    if (!env.is_object(1))
-        throw env.raise("Type error", "not an object");
-    obj = env.to_object(1);
+    if (!rt.is_object(1))
+        throw rt.raise("Type error", "not an object");
+    obj = rt.to_object(1);
     if (obj->prototype)
-        env.push(obj->prototype);
+        rt.push(obj->prototype);
     else
-        env.push_null();
+        rt.push_null();
 }
 
-static void object_get_own_field_descriptor(Environment &env)
+static void object_get_own_field_descriptor(Runtime &rt)
 {
     Object *obj;
     Field *ref;
-    if (!env.is_object(1))
-        throw env.raise("Type error", "not an object");
-    obj = env.to_object(1);
-    ref = obj->get_field(env, env.to_string(2));
+    if (!rt.is_object(1))
+        throw rt.raise("Type error", "not an object");
+    obj = rt.to_object(1);
+    ref = obj->get_field(rt, rt.to_string(2));
     if (!ref)
-        env.push_null();
+        rt.push_null();
     else
     {
-        env.new_object();
+        rt.new_object();
         if (!ref->getter && !ref->setter)
         {
-            env.push(ref->value);
-            env.set_field(-2, "value");
-            env.push_boolean(!(ref->atts & PHON_READONLY));
-            env.set_field(-2, "writable");
+            rt.push(ref->value);
+            rt.set_field(-2, "value");
+            rt.push_boolean(!(ref->atts & PHON_READONLY));
+            rt.set_field(-2, "writable");
         }
         else
         {
             if (ref->getter)
-                env.push(ref->getter);
+                rt.push(ref->getter);
             else
-                env.push_null();
-            env.set_field(-2, "get");
+                rt.push_null();
+            rt.set_field(-2, "get");
             if (ref->setter)
-                env.push(ref->setter);
+                rt.push(ref->setter);
             else
-                env.push_null();
-            env.set_field(-2, "set");
+                rt.push_null();
+            rt.set_field(-2, "set");
         }
-        env.push_boolean(!(ref->atts & PHON_DONTENUM));
-        env.set_field(-2, "enumerable");
-        env.push_boolean(!(ref->atts & PHON_DONTCONF));
-        env.set_field(-2, "configurable");
+        rt.push_boolean(!(ref->atts & PHON_DONTENUM));
+        rt.set_field(-2, "enumerable");
+        rt.push_boolean(!(ref->atts & PHON_DONTCONF));
+        rt.set_field(-2, "configurable");
     }
 }
 
-static void object_get_own_field_names(Environment &env)
+static void object_get_own_field_names(Runtime &rt)
 {
     Object *obj;
     int k;
 
-    if (!env.is_object(1))
-        throw env.raise("Type error", "not an object");
-    obj = env.to_object(1);
+    if (!rt.is_object(1))
+        throw rt.raise("Type error", "not an object");
+    obj = rt.to_object(1);
 
-    env.new_list();
+    rt.new_list();
     int i = 0;
 
     for (auto &f : obj->fields)
     {
-        env.push(f.second.name);
-        js_setindex(&env, -2, i++);
+        rt.push(f.second.name);
+        js_setindex(&rt, -2, i++);
     }
 
     if (obj->type == PHON_CLIST)
     {
-        env.push("length");
-        js_setindex(&env, -2, i++);
+        rt.push("length");
+        js_setindex(&rt, -2, i++);
     }
 
     if (obj->type == PHON_CSTRING)
     {
-        env.push("length");
-        js_setindex(&env, -2, i++);
+        rt.push("length");
+        js_setindex(&rt, -2, i++);
         for (k = 0; k < obj->as.string.size(); ++k)
         {
-            env.push(k);
-            js_setindex(&env, -2, i++);
+            rt.push(k);
+            js_setindex(&rt, -2, i++);
         }
     }
 
     if (obj->type == PHON_CREGEX)
     {
-        env.push("source");
-        js_setindex(&env, -2, i++);
-        env.push("global");
-        js_setindex(&env, -2, i++);
-        env.push("ignoreCase");
-        js_setindex(&env, -2, i++);
-        env.push("multiline");
-        js_setindex(&env, -2, i++);
-        env.push("lastIndex");
-        js_setindex(&env, -2, i++);
+        rt.push("source");
+        js_setindex(&rt, -2, i++);
+        rt.push("global");
+        js_setindex(&rt, -2, i++);
+        rt.push("ignoreCase");
+        js_setindex(&rt, -2, i++);
+        rt.push("multiline");
+        js_setindex(&rt, -2, i++);
+        rt.push("lastIndex");
+        js_setindex(&rt, -2, i++);
     }
 }
 
-static void ToFieldDescriptor(Environment *J, Object *obj, const String &name, Object *desc)
+static void ToFieldDescriptor(Runtime *J, Object *obj, const String &name, Object *desc)
 {
     int haswritable = 0;
     int hasvalue = 0;
@@ -311,57 +310,57 @@ static void ToFieldDescriptor(Environment *J, Object *obj, const String &name, O
     J->pop(2);
 }
 
-static void object_define_field(Environment &env)
+static void object_define_field(Runtime &rt)
 {
-    if (!env.is_object(1)) throw env.raise("Type error", "not an object");
-    if (!env.is_object(3)) throw env.raise("Type error", "not an object");
-    ToFieldDescriptor(&env, env.to_object(1), env.to_string(2), env.to_object(3));
-    env.copy(1);
+    if (!rt.is_object(1)) throw rt.raise("Type error", "not an object");
+    if (!rt.is_object(3)) throw rt.raise("Type error", "not an object");
+    ToFieldDescriptor(&rt, rt.to_object(1), rt.to_string(2), rt.to_object(3));
+    rt.copy(1);
 }
 
-static void object_define_fields(Environment &env)
+static void object_define_fields(Runtime &rt)
 {
     Object *props;
 
-    if (!env.is_object(1)) throw env.raise("Type error", "not an object");
-    if (!env.is_object(2)) throw env.raise("Type error", "not an object");
+    if (!rt.is_object(1)) throw rt.raise("Type error", "not an object");
+    if (!rt.is_object(2)) throw rt.raise("Type error", "not an object");
 
-    props = env.to_object(2);
+    props = rt.to_object(2);
     for (auto &f : props->fields)
     {
         auto ref = &f.second;
         if (!(ref->atts & PHON_DONTENUM))
         {
-            env.push(ref->value);
-            ToFieldDescriptor(&env, env.to_object(1), ref->name, env.to_object(-1));
-            env.pop(1);
+            rt.push(ref->value);
+            ToFieldDescriptor(&rt, rt.to_object(1), ref->name, rt.to_object(-1));
+            rt.pop(1);
         }
     }
 
-    env.copy(1);
+    rt.copy(1);
 }
 
-static void object_create(Environment &env)
+static void object_create(Runtime &rt)
 {
     Object *obj;
     Object *proto;
     Object *props;
 
-    if (env.is_object(1))
-        proto = env.to_object(1);
-    else if (env.is_null(1))
+    if (rt.is_object(1))
+        proto = rt.to_object(1);
+    else if (rt.is_null(1))
         proto = nullptr;
     else
-        throw env.raise("Type error", "not an object or null");
+        throw rt.raise("Type error", "not an object or null");
 
-    obj = new Object(env, PHON_COBJECT, proto);
-    env.push(obj);
+    obj = new Object(rt, PHON_COBJECT, proto);
+    rt.push(obj);
 
-    if (env.is_defined(2))
+    if (rt.is_defined(2))
     {
-        if (!env.is_object(2))
-            throw env.raise("Type error", "not an object");
-        props = env.to_object(2);
+        if (!rt.is_object(2))
+            throw rt.raise("Type error", "not an object");
+        props = rt.to_object(2);
 
         for (auto &f : props->fields)
         {
@@ -369,19 +368,19 @@ static void object_create(Environment &env)
             if (!(ref->atts & PHON_DONTENUM))
             {
                 if (ref->value.type != PHON_TOBJECT)
-                    throw env.raise("Type error", "not an object");
-                ToFieldDescriptor(&env, obj, ref->name, ref->value.as.object);
+                    throw rt.raise("Type error", "not an object");
+                ToFieldDescriptor(&rt, obj, ref->name, ref->value.as.object);
             }
         }
     }
 }
 
-static void object_keys(Environment &env)
+static void object_keys(Runtime &rt)
 {
-    if (!env.is_object(0))
-        throw env.raise("Type error", "not an object");
+    if (!rt.is_object(0))
+        throw rt.raise("Type error", "not an object");
 
-    auto obj = env.to_object(0);
+    auto obj = rt.to_object(0);
     Array<Variant> keys;
     keys.reserve(obj->fields.size());
 
@@ -389,82 +388,82 @@ static void object_keys(Environment &env)
     {
         keys.append(val.first);
     }
-    env.push(std::move(keys));
+    rt.push(std::move(keys));
 }
 
-static void object_values(Environment &env)
+static void object_values(Runtime &rt)
 {
-    if (!env.is_object(0))
-        throw env.raise("Type error", "not an object");
+    if (!rt.is_object(0))
+        throw rt.raise("Type error", "not an object");
 
-    auto obj = env.to_object(0);
+    auto obj = rt.to_object(0);
     Array<Variant> values;
     values.reserve(obj->fields.size());
 
     for (auto &val : obj->fields)
     {
-        env.get_field(obj, val.first);
-        values.emplace_back(std::move(env.get(-1)));
-        env.pop();
+        rt.get_field(obj, val.first);
+        values.emplace_back(std::move(rt.get(-1)));
+        rt.pop();
     }
-    env.push(std::move(values));
+    rt.push(std::move(values));
 }
 
-static void object_get(Environment &env)
+static void object_get(Runtime &rt)
 {
-    if (!env.is_object(0))
-        throw env.raise("Type error", "not an object");
+    if (!rt.is_object(0))
+        throw rt.raise("Type error", "not an object");
 
-    auto key = env.to_string(1);
+    auto key = rt.to_string(1);
 
-    if (env.has_field(0, key))
+    if (rt.has_field(0, key))
     {
         return; // leave value on top of the stack
     }
 
-    if (env.arg_count() > 1)
+    if (rt.arg_count() > 1)
     {
-        env.copy(-1);
+        rt.copy(-1);
     }
     else
     {
-        env.push_null();
+        rt.push_null();
     }
 }
 
-static void object_contains(Environment &env)
+static void object_contains(Runtime &rt)
 {
-    if (!env.is_object(0))
-        throw env.raise("Type error", "not an object");
-    auto obj = env.to_object(0);
-    auto key = env.to_string(1);
+    if (!rt.is_object(0))
+        throw rt.raise("Type error", "not an object");
+    auto obj = rt.to_object(0);
+    auto key = rt.to_string(1);
     auto it = obj->fields.find(key);
-    env.push_boolean(it != obj->fields.end());
+    rt.push_boolean(it != obj->fields.end());
 }
 
-static void object_prevent_extensions(Environment &env)
+static void object_prevent_extensions(Runtime &rt)
 {
-    if (!env.is_object(1))
-        throw env.raise("Type error", "not an object");
-    env.to_object(1)->extensible = false;
-    env.copy(1);
+    if (!rt.is_object(1))
+        throw rt.raise("Type error", "not an object");
+    rt.to_object(1)->extensible = false;
+    rt.copy(1);
 }
 
-static void object_is_extensible(Environment &env)
+static void object_is_extensible(Runtime &rt)
 {
-    if (!env.is_object(1))
-        throw env.raise("Type error", "not an object");
-    env.push_boolean(env.to_object(1)->extensible);
+    if (!rt.is_object(1))
+        throw rt.raise("Type error", "not an object");
+    rt.push_boolean(rt.to_object(1)->extensible);
 }
 
-static void object_seal(Environment &env)
+static void object_seal(Runtime &rt)
 {
     Object *obj;
 
-    if (!env.is_object(1))
-        throw env.raise("Type error", "not an object");
+    if (!rt.is_object(1))
+        throw rt.raise("Type error", "not an object");
 
-    obj = env.to_object(1);
+    obj = rt.to_object(1);
     obj->extensible = false;
 
     for (auto &f : obj->fields)
@@ -472,20 +471,20 @@ static void object_seal(Environment &env)
         f.second.atts |= PHON_DONTCONF;
     }
 
-    env.copy(1);
+    rt.copy(1);
 }
 
-static void object_is_sealed(Environment &env)
+static void object_is_sealed(Runtime &rt)
 {
     Object *obj;
 
-    if (!env.is_object(1))
-        throw env.raise("Type error", "not an object");
+    if (!rt.is_object(1))
+        throw rt.raise("Type error", "not an object");
 
-    obj = env.to_object(1);
+    obj = rt.to_object(1);
     if (obj->extensible)
     {
-        env.push_boolean(false);
+        rt.push_boolean(false);
         return;
     }
 
@@ -493,22 +492,22 @@ static void object_is_sealed(Environment &env)
     {
         if (!(f.second.atts & PHON_DONTCONF))
         {
-            env.push_boolean(false);
+            rt.push_boolean(false);
             return;
         }
     }
 
-    env.push_boolean(true);
+    rt.push_boolean(true);
 }
 
-static void object_freeze(Environment &env)
+static void object_freeze(Runtime &rt)
 {
     Object *obj;
 
-    if (!env.is_object(1))
-        throw env.raise("Type error", "not an object");
+    if (!rt.is_object(1))
+        throw rt.raise("Type error", "not an object");
 
-    obj = env.to_object(1);
+    obj = rt.to_object(1);
     obj->extensible = false;
 
     for (auto &f : obj->fields)
@@ -516,38 +515,38 @@ static void object_freeze(Environment &env)
         f.second.atts |= PHON_READONLY | PHON_DONTCONF;
     }
 
-    env.copy(1);
+    rt.copy(1);
 }
 
-static void object_is_frozen(Environment &env)
+static void object_is_frozen(Runtime &rt)
 {
     Object *obj;
 
-    if (!env.is_object(1))
-        throw env.raise("Type error", "not an object");
+    if (!rt.is_object(1))
+        throw rt.raise("Type error", "not an object");
 
-    obj = env.to_object(1);
+    obj = rt.to_object(1);
 
     for (auto &f : obj->fields)
     {
         auto ref = &f.second;
         if (!(ref->atts & PHON_READONLY) || !(ref->atts & PHON_DONTCONF))
         {
-            env.push_boolean(false);
+            rt.push_boolean(false);
             return;
         }
     }
 
-    env.push_boolean(!obj->extensible);
+    rt.push_boolean(!obj->extensible);
 }
 
-static void object_is_empty(Environment &env)
+static void object_is_empty(Runtime &rt)
 {
-    auto obj = env.to_object(0);
-    env.push_boolean(obj->fields.empty());
+    auto obj = rt.to_object(0);
+    rt.push_boolean(obj->fields.empty());
 }
 
-void Environment::init_object()
+void Runtime::init_object()
 {
     push(object_meta);
     {

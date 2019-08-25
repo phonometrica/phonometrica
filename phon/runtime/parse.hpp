@@ -150,17 +150,17 @@ struct Ast
     Ast *gcnext; /* next in alloc list */
 };
 
-Ast *parse_function(Environment *J, const char *filename, const char *params, const String &body);
+Ast *parse_function(Runtime *J, const char *filename, const char *params, const String &body);
 
-Ast *parse(Environment *J, const String &filename, const String &source);
+Ast *parse(Runtime *J, const String &filename, const String &source);
 
-void free_parse(Environment *J);
+void free_parse(Runtime *J);
 
 const char *get_ast_string(enum AstType type);
 
-void dump_syntax(Environment *J, Ast *prog, int minify);
+void dump_syntax(Runtime *J, Ast *prog, int minify);
 
-void dump_list(Environment *J, Ast *prog);
+void dump_list(Runtime *J, Ast *prog);
 
 } // namespace phonometrica
 

@@ -18,7 +18,7 @@
 
 /* Locale-independent implementations of string <-> double conversions. */
 
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/toplevel.hpp>
 
 #if defined(_MSC_VER) && (_MSC_VER < 1700) /* VS2012 has stdint.h */
 typedef unsigned int uint32_t;

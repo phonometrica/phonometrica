@@ -36,8 +36,8 @@
 
 namespace phonometrica {
 
-ScriptView::ScriptView(Environment &env, std::shared_ptr<Script> script, QWidget *parent) :
-    View(parent), m_script(std::move(script)), env(env)
+ScriptView::ScriptView(Runtime &rt, std::shared_ptr<Script> script, QWidget *parent) :
+    View(parent), m_script(std::move(script)), rt(rt)
 {
     auto font = get_monospace_font();
     QFontMetrics metrics(font);
@@ -74,7 +74,7 @@ void ScriptView::runScript(bool)
     try
     {
         QString text = cursor.hasSelection() ? cursor.selection().toPlainText() : m_editor->toPlainText();
-        env.console->runCommand(text, true);
+        rt.console->runCommand(text, true);
     }
     catch (std::exception &e)
     {
@@ -113,7 +113,7 @@ void ScriptView::saveScript(bool)
 {
     if (!m_script->has_path())
     {
-        QString dir = Settings::get_string(env, "last_directory");
+        QString dir = Settings::get_string(rt, "last_directory");
         auto path = QFileDialog::getSaveFileName(this, tr("Save script..."), dir, tr("Scripts (*.phon)"));
 
         if (path.isEmpty()) {

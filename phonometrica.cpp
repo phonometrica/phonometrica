@@ -26,15 +26,15 @@
 #endif
 
 #include <clocale>
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/toplevel.hpp>
 #include <phon/utils/helpers.hpp>
 
 using namespace phonometrica;
 
 int main(int argc, char *argv[])
 {
-    Environment env;
-    initialize(env);
+    Runtime rt;
+    initialize(rt);
 
     try
     {
@@ -47,9 +47,9 @@ int main(int argc, char *argv[])
 #if PHON_WINDOWS
 		QCoreApplication::addLibraryPath("./");
 #endif
-        env.set_text_mode(text_mode);
+        rt.set_text_mode(text_mode);
         setlocale(LC_NUMERIC, "C"); // for proper floating point conversion
-        MainWindow win(env);
+        MainWindow win(rt);
         auto version = utils::get_version();
 
         app.setOrganizationDomain("phonometrica.github.io");
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
         if (argc > 1)
         {
-            return interpret(env, argc, argv);
+            return interpret(rt, argc, argv);
         }
         else
         {
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
             return app.exec();
         }
 #else
-        return interpret(env, argc, argv);
+        return interpret(rt, argc, argv);
 #endif
     }
     catch (std::bad_alloc &)

@@ -16,13 +16,12 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
-#include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
+#include <phon/runtime/object.hpp>
 
 namespace phonometrica {
 
-void Environment::new_regex(const String &pattern, int flags)
+void Runtime::new_regex(const String &pattern, int flags)
 {
     auto obj = new Object(*this, PHON_CREGEX, regex_meta);
 
@@ -42,66 +41,66 @@ void Environment::new_regex(const String &pattern, int flags)
     push(obj);
 }
 
-static void regex_match(Environment &env)
+static void regex_match(Runtime &rt)
 {
     // TODO: add optional position for Regex.match()
-    auto &re = to_regexp(&env, 0);
-    auto str = env.to_string(1);
+    auto &re = rt.to_regex(0);
+    auto str = rt.to_string(1);
     bool result = re.match(str);
-    env.push_boolean(result);
+    rt.push_boolean(result);
 }
 
-static void regex_group(Environment &env)
+static void regex_group(Runtime &rt)
 {
-    auto &re = to_regexp(&env, 0);
-    auto i = env.to_integer(1);
-    env.push(re.capture(i));
+    auto &re = rt.to_regex(0);
+    auto i = rt.to_integer(1);
+    rt.push(re.capture(i));
 }
 
-static void regex_first(Environment &env)
+static void regex_first(Runtime &rt)
 {
-    auto &re = to_regexp(&env, 0);
-    auto i = env.to_integer(1);
-    env.push(re.capture_start(i));
+    auto &re = rt.to_regex(0);
+    auto i = rt.to_integer(1);
+    rt.push(re.capture_start(i));
 }
 
-static void regex_last(Environment &env)
+static void regex_last(Runtime &rt)
 {
-    auto &re = to_regexp(&env, 0);
-    auto i = env.to_integer(1);
-    env.push(re.capture_end(i) - 1);
+    auto &re = rt.to_regex(0);
+    auto i = rt.to_integer(1);
+    rt.push(re.capture_end(i) - 1);
 }
 
-static void jsB_new_Regex(Environment &env)
+static void jsB_new_Regex(Runtime &rt)
 {
     String pattern;
     int flags;
 
-    if (env.is_regex(1))
+    if (rt.is_regex(1))
     {
-        if (env.is_defined(2))
-            throw env.raise("Type error", "cannot supply flags when creating one Regex from another");
-        auto &old = to_regexp(&env, 1);
+        if (rt.is_defined(2))
+            throw rt.raise("Type error", "cannot supply flags when creating one Regex from another");
+        auto &old = rt.to_regex(1);
         pattern = old.pattern();
         flags = old.flags();
     }
-    else if (env.is_null(1))
+    else if (rt.is_null(1))
     {
         pattern = "(?:)";
         flags = 0;
     }
     else
     {
-        pattern = env.to_string(1);
+        pattern = rt.to_string(1);
         flags = 0;
     }
 
     if (pattern.empty())
         pattern = "(?:)";
 
-    if (env.is_defined(2))
+    if (rt.is_defined(2))
     {
-        auto str = env.to_string(2);
+        auto str = rt.to_string(2);
         auto s = str.data();
         int g = 0, i = 0, m = 0;
         while (*s)
@@ -109,40 +108,40 @@ static void jsB_new_Regex(Environment &env)
             if (*s == 'g') ++g;
             else if (*s == 'i') ++i;
             else if (*s == 'm') ++m;
-            else throw env.raise("Syntax error", "invalid regular expression flag: '%c'", *s);
+            else throw rt.raise("Syntax error", "invalid regular expression flag: '%c'", *s);
             ++s;
         }
-        if (g > 1) throw env.raise("Syntax error", "invalid regular expression flag: 'g'");
-        if (i > 1) throw env.raise("Syntax error", "invalid regular expression flag: 'i'");
-        if (m > 1) throw env.raise("Syntax error", "invalid regular expression flag: 'm'");
+        if (g > 1) throw rt.raise("Syntax error", "invalid regular expression flag: 'g'");
+        if (i > 1) throw rt.raise("Syntax error", "invalid regular expression flag: 'i'");
+        if (m > 1) throw rt.raise("Syntax error", "invalid regular expression flag: 'm'");
         if (g) flags |= PHON_REGEXP_G;
         if (i) flags |= PHON_REGEXP_I;
         if (m) flags |= PHON_REGEXP_M;
     }
 
-    env.new_regex(pattern, flags);
+    rt.new_regex(pattern, flags);
 }
 
-static void jsB_Regex(Environment &env)
+static void jsB_Regex(Runtime &rt)
 {
-    if (env.is_regex(1))
+    if (rt.is_regex(1))
         return;
-    jsB_new_Regex(env);
+    jsB_new_Regex(rt);
 }
 
-static void regex_to_string(Environment &env)
+static void regex_to_string(Runtime &rt)
 {
-    auto &re = to_regexp(&env, 0);
-    env.push(re.pattern());
+    auto &re = rt.to_regex(0);
+    rt.push(re.pattern());
 }
 
-static void regex_get_length(Environment &env)
+static void regex_get_length(Runtime &rt)
 {
-    auto &re = to_regexp(&env, 0);
-    env.push(re.count());
+    auto &re = rt.to_regex(0);
+    rt.push(re.count());
 }
 
-void Environment::init_regexp()
+void Runtime::init_regexp()
 {
     push(regex_meta);
     {

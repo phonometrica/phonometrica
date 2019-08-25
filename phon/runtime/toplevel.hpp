@@ -19,95 +19,131 @@
 #ifndef PHONOMETRICA_TOPLEVEL_HPP
 #define PHONOMETRICA_TOPLEVEL_HPP
 
-// On macOS 10.13, we get the following error
-// "call to unavailable function 'any_cast': introduced in macOS 10.14"
-#if PHON_MACOS
-#include <phon/third_party/any.hpp>
-namespace std {
-    using namespace linb;
-}
-#else
-#include <any>
-#endif
-#include <functional>
-#include <phon/string.hpp>
+#include <phon/runtime/common.hpp>
 
-/* noreturn is a GCC extension */
-#ifdef __GNUC__
-#define PHON_NORETURN __attribute__((noreturn))
-#else
+#include <cstdio>
+#include <cstdlib>
+#include <cstddef>
+#include <cstdarg>
+#include <cstring>
+#include <cmath>
+#include <cfloat>
+#include <climits>
+
+/* Microsoft Visual C */
 #ifdef _MSC_VER
-#define PHON_NORETURN __declspec(noreturn)
-#else
-#define PHON_NORETURN
+#pragma warning(disable:4996) /* _CRT_SECURE_NO_WARNINGS */
+#pragma warning(disable:4244) /* implicit conversion from double to int */
+#pragma warning(disable:4267) /* implicit conversion of int to smaller int */
+#define inline __inline
+#if _MSC_VER < 1900 /* MSVC 2015 */
+#define snprintf jsW_snprintf
+#define vsnprintf jsW_vsnprintf
+static int jsW_vsnprintf(char *str, size_t size, const char *fmt, va_list ap)
+{
+    int n;
+    n = _vsnprintf(str, size, fmt, ap);
+    str[size-1] = 0;
+    return n;
+}
+static int jsW_snprintf(char *str, size_t size, const char *fmt, ...)
+{
+    int n;
+    va_list ap;
+    va_start(ap, fmt);
+    n = jsW_vsnprintf(str, size, fmt, ap);
+    va_end(ap);
+    return n;
+}
+#endif
+#if _MSC_VER <= 1700 /* <= MSVC 2012 */
+#define isnan(x) _isnan(x)
+#define isinf(x) (!_finite(x))
+#define isfinite(x) _finite(x)
+static __inline int signbit(double x) { __int64 i; memcpy(&i, &x, 8); return i>>63; }
+#define INFINITY (DBL_MAX+DBL_MAX)
+#define NAN (INFINITY-INFINITY)
 #endif
 #endif
 
-/* GCC can do type checking of printf strings */
-#ifdef __printflike
-#define PHON_PRINTFLIKE __printflike
+#define soffsetof(x, y) ((int)offsetof(x,y))
+#define nelem(a) (int)(sizeof (a) / sizeof (a)[0])
+
+#ifdef __GNUC__
+#   define likely(x) __builtin_expect((x),1)
+#   define unlikely(x) __builtin_expect((x),0)
 #else
-#if __GNUC__ > 2 || __GNUC__ == 2 && __GNUC_MINOR__ >= 7
-#define PHON_PRINTFLIKE(fmtarg, firstvararg) \
-    __attribute__((__format__ (__printf__, fmtarg, firstvararg)))
-#else
-#define PHON_PRINTFLIKE(fmtarg, firstvararg)
+#   define likely(x) (x)
+#   define unlikely(x) (x)
 #endif
-#endif
+
+/* Limits */
+
+#define PHON_STACKSIZE 1024      /* value stack size */
+#define PHON_ENVLIMIT  64        /* environment stack size */
+#define PHON_GCLIMIT   10000     /* run gc cycle every N allocations */
+#define PHON_ASTLIMIT  100       /* max nested expressions */
+
 
 namespace phonometrica {
 
-class Environment;
 
-using native_callback_t = std::function<void(Environment &J)>;
-typedef void *(*alloc_callback_t)(void *memctx, void *ptr, int size);
-typedef void (*panic_callback_t)(Environment *J);
-typedef void (*finalize_callback_t)(Environment *J, std::any &any);
-typedef int (*has_field_callback_t)(Environment *J, std::any &any, const String &name);
-typedef int (*put_callback_t)(Environment *J, std::any &any, const String &name);
-typedef int (*delete_callback_t)(Environment *J, std::any &any, const String &name);
-typedef void (*report_callback_t)(Environment *J, const String &message);
+struct Variant;
+class Object;
+struct Ast;
+struct Function;
+struct Environment;
+struct StackTrace;
+class Runtime;
 
 
-/* Regex flags */
-enum
+struct StackTrace
 {
-    PHON_REGEXP_G = 1,
-    PHON_REGEXP_I = 2,
-    PHON_REGEXP_M = 4,
-};
+    StackTrace() = default;
+    ~StackTrace() = default;
 
-/* Field attribute flags */
-enum
-{
-    PHON_READONLY = 1,
-    PHON_DONTENUM = 2,
-    PHON_DONTCONF = 4,
+    String name;
+    String file;
+    int line = 0;
 };
 
 
-int js_getlength(Environment *J, int idx);
-void js_setlength(Environment *J, int idx, int len);
-int js_hasindex(Environment *J, int idx, int i);
-void js_getindex(Environment *J, int idx, int i);
-void js_setindex(Environment *J, int idx, int i);
-void js_delindex(Environment *J, int idx, int i);
+int interpret(Runtime &rt, int argc, char **argv);
+
+void initialize(Runtime &rt);
 
 
+/* instruction size -- change to int if you get integer overflow syntax errors */
+typedef unsigned short instruction_t;
 
-void js_dup(Environment *J);
-void js_dup2(Environment *J);
-void js_rot2(Environment *J);
-void js_rot3(Environment *J);
-void js_rot4(Environment *J);
-void js_rot2pop1(Environment *J);
-void js_rot3pop2(Environment *J);
 
-void js_concat(Environment *J);
-int js_compare(Environment *J, int *okay);
-int js_equal(Environment *J);
-int js_instanceof(Environment *J);
+void dump_strings(Runtime *J);
+
+
+/* Portable strtod and printf float formatting */
+
+void fmt_exp(char *p, int e);
+
+int grisu2(double v, char *buffer, int *K);
+
+double str_to_double(const char *as, char **aas);
+
+/* Private stack functions */
+
+void create_function(Runtime *J, Function *function, Environment *scope);
+
+void create_script(Runtime *J, Function *function, Environment *scope);
+
+void load_eval(Runtime *J, const String &filename, const String &source);
+
+int is_array_index(Runtime *J, const String &str, int *idx);
+
+
+void trap(Runtime *J, int pc); /* dump stack and environment to stdout */
+
 
 } // namespace phonometrica
 
 #endif // PHONOMETRICA_TOPLEVEL_HPP
+
+#include "runtime.hpp"

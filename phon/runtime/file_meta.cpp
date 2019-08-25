@@ -20,23 +20,22 @@
  ***********************************************************************************************************************/
 
 #include <phon/runtime/variant.hpp>
-#include <phon/runtime/toplevel.hpp>
 #include <phon/runtime/object.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/toplevel.hpp>
 
 namespace phonometrica {
 
-static void new_file(Environment &env)
+static void new_file(Runtime &rt)
 {
-    String mode = env.is_string(2) ? env.to_string(2) : "r";
-    String path = env.to_string(1);
+    String mode = rt.is_string(2) ? rt.to_string(2) : "r";
+    String path = rt.to_string(1);
 
     // Get prototype
-    env.current_function();
-    env.get_field(-1, "meta");
-    auto meta = env.to_object(-1);
+    rt.current_function();
+    rt.get_field(-1, "meta");
+    auto meta = rt.to_object(-1);
 
-    auto obj = new Object(env, PHON_CFILE, meta);
+    auto obj = new Object(rt, PHON_CFILE, meta);
 
     try
     {
@@ -45,54 +44,54 @@ static void new_file(Environment &env)
     catch (std::runtime_error &e)
     {
         delete obj;
-        throw env.raise("Input/Output error", e);
+        throw rt.raise("Input/Output error", e);
     }
 
-    env.push(obj);
+    rt.push(obj);
 }
 
-static void file_close(Environment &env)
+static void file_close(Runtime &rt)
 {
-    auto &file = env.to_file(0);
+    auto &file = rt.to_file(0);
     file.close();
 }
 
-static void file_to_string(Environment &env)
+static void file_to_string(Runtime &rt)
 {
-    auto &file = env.to_file(0);
-    env.push(file.path());
+    auto &file = rt.to_file(0);
+    rt.push(file.path());
 }
 
-static void file_eof(Environment &env)
+static void file_eof(Runtime &rt)
 {
-    auto &file = env.to_file(0);
-    env.push_boolean(file.at_end());
+    auto &file = rt.to_file(0);
+    rt.push_boolean(file.at_end());
 }
 
-static void file_rewind(Environment &env)
+static void file_rewind(Runtime &rt)
 {
-    auto &file = env.to_file(0);
+    auto &file = rt.to_file(0);
     file.rewind();
-    env.push_null();
+    rt.push_null();
 }
 
-static void file_read_line(Environment &env)
+static void file_read_line(Runtime &rt)
 {
-    auto &file = env.to_file(0);
+    auto &file = rt.to_file(0);
     auto ln = file.read_line();
 
     // Optional argument: if true, trim white space (and new line) at the end
-    if (env.to_boolean(1))
+    if (rt.to_boolean(1))
     {
         ln.rtrim();
     }
-    env.push(std::move(ln));
+    rt.push(std::move(ln));
 }
 
-static void file_write_line(Environment &env)
+static void file_write_line(Runtime &rt)
 {
-    auto &file = env.to_file(0);
-    auto ln = env.to_string(1);
+    auto &file = rt.to_file(0);
+    auto ln = rt.to_string(1);
 
     if (file.writable())
     {
@@ -100,35 +99,35 @@ static void file_write_line(Environment &env)
     }
     else
     {
-        throw env.raise("Error", "%s", "cannot write to read-only file");
+        throw rt.raise("Error", "%s", "cannot write to read-only file");
     }
 
-    env.push_null();
+    rt.push_null();
 }
 
-static void file_write_lines(Environment &env)
+static void file_write_lines(Runtime &rt)
 {
-    auto &file = env.to_file(0);
+    auto &file = rt.to_file(0);
     if (!file.writable())
     {
-        throw env.raise("Error", "%s", "cannot write to read-only file");
+        throw rt.raise("Error", "%s", "cannot write to read-only file");
     }
 
-    auto lst = env.to_list(1);
+    auto lst = rt.to_list(1);
 
     for (auto &v : lst)
     {
-        auto s = v.to_string(env);
+        auto s = v.to_string(rt);
         file.write(s);
     }
 
-    env.push_null();
+    rt.push_null();
 }
 
-static void file_write(Environment &env)
+static void file_write(Runtime &rt)
 {
-    auto &file = env.to_file(0);
-    auto txt = env.to_string(1);
+    auto &file = rt.to_file(0);
+    auto txt = rt.to_string(1);
 
     if (file.writable())
     {
@@ -136,15 +135,15 @@ static void file_write(Environment &env)
     }
     else
     {
-        throw env.raise("Error", "%s", "cannot write to read-only file");
+        throw rt.raise("Error", "%s", "cannot write to read-only file");
     }
 
-    env.push_null();
+    rt.push_null();
 }
 
-static void file_read_all(Environment &env)
+static void file_read_all(Runtime &rt)
 {
-    auto &file = env.to_file(0);
+    auto &file = rt.to_file(0);
     String text;
 
     while (!file.at_end())
@@ -152,26 +151,26 @@ static void file_read_all(Environment &env)
         text.append(file.read_line());
     }
 
-    env.push(std::move(text));
+    rt.push(std::move(text));
 }
 
-static void file_read_byte(Environment &env)
+static void file_read_byte(Runtime &rt)
 {
-    auto &file = env.to_file(0);
-    env.push(file.read_byte());
+    auto &file = rt.to_file(0);
+    rt.push(file.read_byte());
 }
 
-static void file_write_byte(Environment &env)
+static void file_write_byte(Runtime &rt)
 {
-    auto &file = env.to_file(0);
-    auto b = env.to_number(1);
+    auto &file = rt.to_file(0);
+    auto b = rt.to_number(1);
     file.write_byte((int)b);
-    env.push_null();
+    rt.push_null();
 }
 
-static void file_read_lines(Environment &env)
+static void file_read_lines(Runtime &rt)
 {
-    auto &file = env.to_file(0);
+    auto &file = rt.to_file(0);
     Array<Variant> result;
 
     for (auto &ln : file.read_lines())
@@ -179,10 +178,10 @@ static void file_read_lines(Environment &env)
         result.emplace_back(std::move(ln));
     }
 
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-void Environment::init_file()
+void Runtime::init_file()
 {
     push(file_meta);
     {

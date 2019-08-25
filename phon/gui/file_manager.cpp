@@ -26,11 +26,11 @@
 
 namespace phonometrica {
 
-FileManager::FileManager(Environment &env, QWidget *parent) :
-    QFrame(parent), env(env)
+FileManager::FileManager(Runtime &rt, QWidget *parent) :
+    QFrame(parent), rt(rt)
 {
     auto layout = new QVBoxLayout;
-    project_ctrl = new ProjectCtrl(env);
+    project_ctrl = new ProjectCtrl(rt);
 #ifdef Q_OS_MAC
     label = new QLabel;
     label->setContentsMargins(5, 5, 0, 0);

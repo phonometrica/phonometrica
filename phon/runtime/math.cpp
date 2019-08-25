@@ -16,85 +16,84 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
-#include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
+#include <phon/runtime/object.hpp>
 
 #include <time.h>
 
 namespace phonometrica {
 
-static void Math_abs(Environment &env)
+static void Math_abs(Runtime &rt)
 {
-    env.push(fabs(env.to_number(1)));
+    rt.push(fabs(rt.to_number(1)));
 }
 
-static void Math_acos(Environment &env)
+static void Math_acos(Runtime &rt)
 {
-    env.push(acos(env.to_number(1)));
+    rt.push(acos(rt.to_number(1)));
 }
 
-static void Math_asin(Environment &env)
+static void Math_asin(Runtime &rt)
 {
-    env.push(asin(env.to_number(1)));
+    rt.push(asin(rt.to_number(1)));
 }
 
-static void Math_atan(Environment &env)
+static void Math_atan(Runtime &rt)
 {
-    env.push(atan(env.to_number(1)));
+    rt.push(atan(rt.to_number(1)));
 }
 
-static void Math_atan2(Environment &env)
+static void Math_atan2(Runtime &rt)
 {
-    double y = env.to_number(1);
-    double x = env.to_number(2);
-    env.push(atan2(y, x));
+    double y = rt.to_number(1);
+    double x = rt.to_number(2);
+    rt.push(atan2(y, x));
 }
 
-static void Math_ceil(Environment &env)
+static void Math_ceil(Runtime &rt)
 {
-    env.push(ceil(env.to_number(1)));
+    rt.push(ceil(rt.to_number(1)));
 }
 
-static void Math_cos(Environment &env)
+static void Math_cos(Runtime &rt)
 {
-    env.push(cos(env.to_number(1)));
+    rt.push(cos(rt.to_number(1)));
 }
 
-static void Math_exp(Environment &env)
+static void Math_exp(Runtime &rt)
 {
-    env.push(exp(env.to_number(1)));
+    rt.push(exp(rt.to_number(1)));
 }
 
-static void Math_floor(Environment &env)
+static void Math_floor(Runtime &rt)
 {
-    env.push(floor(env.to_number(1)));
+    rt.push(floor(rt.to_number(1)));
 }
 
-static void Math_log(Environment &env)
+static void Math_log(Runtime &rt)
 {
-    env.push(log(env.to_number(1)));
+    rt.push(log(rt.to_number(1)));
 }
 
-static void Math_pow(Environment &env)
+static void Math_pow(Runtime &rt)
 {
-    double x = env.to_number(1);
-    double y = env.to_number(2);
-    if (!isfinite(y) && fabs(x) == 1)
-        env.push(NAN);
+    double x = rt.to_number(1);
+    double y = rt.to_number(2);
+    if (!std::isfinite(y) && fabs(x) == 1)
+        rt.push(NAN);
     else
-        env.push(pow(x, y));
+        rt.push(pow(x, y));
 }
 
-static void Math_random(Environment &env)
+static void Math_random(Runtime &rt)
 {
-    env.push(rand() / (RAND_MAX + 1.0));
+    rt.push(rand() / (RAND_MAX + 1.0));
 }
 
 static double do_round(double x)
 {
-    if (isnan(x)) return x;
-    if (isinf(x)) return x;
+    if (std::isnan(x)) return x;
+    if (std::isinf(x)) return x;
     if (x == 0) return x;
     if (x > 0 && x < 0.5) return 0;
     if (x < 0 && x >= -0.5) return -0;
@@ -104,83 +103,83 @@ static double do_round(double x)
 static double do_round(double x, int n)
 {
     auto p = pow(10, n);
-    if (isnan(x)) return x;
-    if (isinf(x)) return x;
+    if (std::isnan(x)) return x;
+    if (std::isinf(x)) return x;
     if (x == 0) return x;
 
     return round(x * p) / p;
 }
 
-static void Math_round(Environment &env)
+static void Math_round(Runtime &rt)
 {
-    double x = env.to_number(1);
-    if (env.arg_count() > 1)
+    double x = rt.to_number(1);
+    if (rt.arg_count() > 1)
     {
-        auto n = (int) env.to_integer(2);
-        env.push(do_round(x, n));
+        auto n = (int) rt.to_integer(2);
+        rt.push(do_round(x, n));
     }
     else
     {
-        env.push(do_round(x));
+        rt.push(do_round(x));
     }
 }
 
-static void Math_sin(Environment &env)
+static void Math_sin(Runtime &rt)
 {
-    env.push(sin(env.to_number(1)));
+    rt.push(sin(rt.to_number(1)));
 }
 
-static void Math_sqrt(Environment &env)
+static void Math_sqrt(Runtime &rt)
 {
-    env.push(sqrt(env.to_number(1)));
+    rt.push(sqrt(rt.to_number(1)));
 }
 
-static void Math_tan(Environment &env)
+static void Math_tan(Runtime &rt)
 {
-    env.push(tan(env.to_number(1)));
+    rt.push(tan(rt.to_number(1)));
 }
 
-static void Math_max(Environment &env)
+static void Math_max(Runtime &rt)
 {
-    int i, n = env.top_count();
+    int i, n = rt.top_count();
     double x = -INFINITY;
     for (i = 1; i < n; ++i)
     {
-        double y = env.to_number(i);
-        if (isnan(y))
+        double y = rt.to_number(i);
+        if (std::isnan(y))
         {
             x = y;
             break;
         }
-        if (signbit(x) == signbit(y))
+        if (std::signbit(x) == std::signbit(y))
             x = x > y ? x : y;
-        else if (signbit(x))
+        else if (std::signbit(x))
             x = y;
     }
-    env.push(x);
+    rt.push(x);
 }
 
-static void Math_min(Environment &env)
+static void Math_min(Runtime &rt)
 {
-    int i, n = env.top_count();
+    int i, n = rt.top_count();
     double x = INFINITY;
     for (i = 1; i < n; ++i)
     {
-        double y = env.to_number(i);
-        if (isnan(y))
+        double y = rt.to_number(i);
+        if (std::isnan(y))
         {
             x = y;
             break;
         }
-        if (signbit(x) == signbit(y))
+        if (std::signbit(x) == std::signbit(y))
             x = x < y ? x : y;
-        else if (signbit(y))
+        else if (std::signbit(y))
             x = y;
     }
-    env.push(x);
+    rt.push(x);
 }
 
-void Environment::init_math()
+void Runtime::init_math()
 {
     srand(time(nullptr));
 

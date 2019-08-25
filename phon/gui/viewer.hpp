@@ -23,7 +23,7 @@
 #define VIEWER_HPP
 
 #include <QTabWidget>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 #include <phon/gui/views/script_view.hpp>
 
 namespace phonometrica {
@@ -36,7 +36,7 @@ class Viewer final : public QTabWidget
 
 public:
 
-    explicit Viewer(Environment &env, QWidget *parent = nullptr);
+    explicit Viewer(Runtime &rt, QWidget *parent = nullptr);
 
 signals:
 
@@ -72,7 +72,7 @@ private:
 
     void addView(View *view, const QString &label);
 
-    Environment &env;
+    Runtime &rt;
 };
 
 

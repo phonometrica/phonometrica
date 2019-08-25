@@ -29,8 +29,8 @@
 
 namespace phonometrica {
 
-AnnotationView::AnnotationView(Environment &env, std::shared_ptr<Annotation> annot, QWidget *parent) :
-    SpeechView(env, annot->sound()->data(), parent), annot(std::move(annot))
+AnnotationView::AnnotationView(Runtime &rt, std::shared_ptr<Annotation> annot, QWidget *parent) :
+    SpeechView(rt, annot->sound()->data(), parent), annot(std::move(annot))
 {
     this->annot->open();
 }
@@ -84,7 +84,7 @@ void AnnotationView::save()
     {
         if (!annot->has_path())
         {
-            QString dir = Settings::get_string(env, "last_directory");
+            QString dir = Settings::get_string(rt, "last_directory");
             auto path = QFileDialog::getSaveFileName(this, tr("Save annotation..."), dir, tr("Annotation (*.annot)"));
 
             if (path.isEmpty()) {

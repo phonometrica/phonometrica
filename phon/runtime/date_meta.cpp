@@ -18,9 +18,8 @@
 
 #include <math.h>
 #include <time.h>
-#include <phon/runtime/runtime.hpp>
-#include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
+#include <phon/runtime/object.hpp>
 
 #if defined(__unix__) || defined(__APPLE__)
 
@@ -411,7 +410,7 @@ static const char *fmtdatetime(char *buf, double t, double tza)
 
 /* Date functions */
 
-static double js_todate(Environment *J, int idx)
+static double js_todate(Runtime *J, int idx)
 {
     Object *self = J->to_object(idx);
     if (self->type != PHON_CDATE)
@@ -419,7 +418,7 @@ static double js_todate(Environment *J, int idx)
     return self->as.number;
 }
 
-static void js_setdate(Environment *J, int idx, double t)
+static void js_setdate(Runtime *J, int idx, double t)
 {
     Object *self = J->to_object(idx);
     if (self->type != PHON_CDATE)
@@ -428,42 +427,42 @@ static void js_setdate(Environment *J, int idx, double t)
     J->push(self->as.number);
 }
 
-static void D_parse(Environment &env)
+static void D_parse(Runtime &rt)
 {
-    double t = parseDateTime(env.to_string(1));
-    env.push(t);
+    double t = parseDateTime(rt.to_string(1));
+    rt.push(t);
 }
 
-static void D_UTC(Environment &env)
+static void D_UTC(Runtime &rt)
 {
     double y, m, d, H, M, S, ms, t;
-    y = env.to_number(1);
+    y = rt.to_number(1);
     if (y < 100) y += 1900;
-    m = env.to_number(2);
-    d = js_optnumber(env, 3, 1);
-    H = js_optnumber(env, 4, 0);
-    M = js_optnumber(env, 5, 0);
-    S = js_optnumber(env, 6, 0);
-    ms = js_optnumber(env, 7, 0);
+    m = rt.to_number(2);
+    d = js_optnumber(rt, 3, 1);
+    H = js_optnumber(rt, 4, 0);
+    M = js_optnumber(rt, 5, 0);
+    S = js_optnumber(rt, 6, 0);
+    ms = js_optnumber(rt, 7, 0);
     t = MakeDate(MakeDay(y, m, d), MakeTime(H, M, S, ms));
     t = TimeClip(t);
-    env.push(t);
+    rt.push(t);
 }
 
-static void D_now(Environment &env)
+static void D_now(Runtime &rt)
 {
-    env.push(Now());
+    rt.push(Now());
 }
 
-static void jsB_Date(Environment &env)
+static void jsB_Date(Runtime &rt)
 {
     char buf[64];
-    env.push(fmtdatetime(buf, LocalTime(Now()), LocalTZA()));
+    rt.push(fmtdatetime(buf, LocalTime(Now()), LocalTZA()));
 }
 
-static void jsB_new_Date(Environment &env)
+static void jsB_new_Date(Runtime &rt)
 {
-    int top = env.top_count();
+    int top = rt.top_count();
     Object *obj;
     double t;
 
@@ -471,336 +470,336 @@ static void jsB_new_Date(Environment &env)
         t = Now();
     else if (top == 2)
     {
-        var_to_primitive(&env, 1, PHON_HINT_NONE);
-        if (env.is_string(1))
-            t = parseDateTime(env.to_string(1));
+        var_to_primitive(&rt, 1, PHON_HINT_NONE);
+        if (rt.is_string(1))
+            t = parseDateTime(rt.to_string(1));
         else
-            t = TimeClip(env.to_number(1));
+            t = TimeClip(rt.to_number(1));
     }
     else
     {
         double y, m, d, H, M, S, ms;
-        y = env.to_number(1);
+        y = rt.to_number(1);
         if (y < 100) y += 1900;
-        m = env.to_number(2);
-        d = js_optnumber(env, 3, 1);
-        H = js_optnumber(env, 4, 0);
-        M = js_optnumber(env, 5, 0);
-        S = js_optnumber(env, 6, 0);
-        ms = js_optnumber(env, 7, 0);
+        m = rt.to_number(2);
+        d = js_optnumber(rt, 3, 1);
+        H = js_optnumber(rt, 4, 0);
+        M = js_optnumber(rt, 5, 0);
+        S = js_optnumber(rt, 6, 0);
+        ms = js_optnumber(rt, 7, 0);
         t = MakeDate(MakeDay(y, m, d), MakeTime(H, M, S, ms));
         t = TimeClip(UTC(t));
     }
 
-    obj = new Object(env, PHON_CDATE, env.date_meta);
+    obj = new Object(rt, PHON_CDATE, rt.date_meta);
     obj->as.number = t;
 
-    env.push(obj);
+    rt.push(obj);
 }
 
-static void Dp_to_value(Environment &env)
+static void Dp_to_value(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(t);
+    double t = js_todate(&rt, 0);
+    rt.push(t);
 }
 
-static void Dp_toString(Environment &env)
-{
-    char buf[64];
-    double t = js_todate(&env, 0);
-    env.push(fmtdatetime(buf, LocalTime(t), LocalTZA()));
-}
-
-static void Dp_to_date_string(Environment &env)
+static void Dp_toString(Runtime &rt)
 {
     char buf[64];
-    double t = js_todate(&env, 0);
-    env.push(fmtdate(buf, LocalTime(t)));
+    double t = js_todate(&rt, 0);
+    rt.push(fmtdatetime(buf, LocalTime(t), LocalTZA()));
 }
 
-static void Dp_to_time_string(Environment &env)
+static void Dp_to_date_string(Runtime &rt)
 {
     char buf[64];
-    double t = js_todate(&env, 0);
-    env.push(fmttime(buf, LocalTime(t), LocalTZA()));
+    double t = js_todate(&rt, 0);
+    rt.push(fmtdate(buf, LocalTime(t)));
 }
 
-static void Dp_to_utc_string(Environment &env)
+static void Dp_to_time_string(Runtime &rt)
 {
     char buf[64];
-    double t = js_todate(&env, 0);
-    env.push(fmtdatetime(buf, t, 0));
+    double t = js_todate(&rt, 0);
+    rt.push(fmttime(buf, LocalTime(t), LocalTZA()));
 }
 
-static void Dp_to_iso_string(Environment &env)
+static void Dp_to_utc_string(Runtime &rt)
 {
     char buf[64];
-    double t = js_todate(&env, 0);
+    double t = js_todate(&rt, 0);
+    rt.push(fmtdatetime(buf, t, 0));
+}
+
+static void Dp_to_iso_string(Runtime &rt)
+{
+    char buf[64];
+    double t = js_todate(&rt, 0);
     if (!isfinite(t))
-        throw env.raise("Range error","invalid date");
-    env.push(fmtdatetime(buf, t, 0));
+        throw rt.raise("Range error","invalid date");
+    rt.push(fmtdatetime(buf, t, 0));
 }
 
-static void Dp_get_full_year(Environment &env)
+static void Dp_get_full_year(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(YearFromTime(LocalTime(t)));
+    double t = js_todate(&rt, 0);
+    rt.push(YearFromTime(LocalTime(t)));
 }
 
-static void Dp_get_month(Environment &env)
+static void Dp_get_month(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(MonthFromTime(LocalTime(t)));
+    double t = js_todate(&rt, 0);
+    rt.push(MonthFromTime(LocalTime(t)));
 }
 
-static void Dp_get_date(Environment &env)
+static void Dp_get_date(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(DateFromTime(LocalTime(t)));
+    double t = js_todate(&rt, 0);
+    rt.push(DateFromTime(LocalTime(t)));
 }
 
-static void Dp_get_day(Environment &env)
+static void Dp_get_day(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(WeekDay(LocalTime(t)));
+    double t = js_todate(&rt, 0);
+    rt.push(WeekDay(LocalTime(t)));
 }
 
-static void Dp_get_hours(Environment &env)
+static void Dp_get_hours(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(HourFromTime(LocalTime(t)));
+    double t = js_todate(&rt, 0);
+    rt.push(HourFromTime(LocalTime(t)));
 }
 
-static void Dp_get_minutes(Environment &env)
+static void Dp_get_minutes(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(MinFromTime(LocalTime(t)));
+    double t = js_todate(&rt, 0);
+    rt.push(MinFromTime(LocalTime(t)));
 }
 
-static void Dp_get_seconds(Environment &env)
+static void Dp_get_seconds(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(SecFromTime(LocalTime(t)));
+    double t = js_todate(&rt, 0);
+    rt.push(SecFromTime(LocalTime(t)));
 }
 
-static void Dp_get_milliseconds(Environment &env)
+static void Dp_get_milliseconds(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(msFromTime(LocalTime(t)));
+    double t = js_todate(&rt, 0);
+    rt.push(msFromTime(LocalTime(t)));
 }
 
-static void Dp_get_utc_full_year(Environment &env)
+static void Dp_get_utc_full_year(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(YearFromTime(t));
+    double t = js_todate(&rt, 0);
+    rt.push(YearFromTime(t));
 }
 
-static void Dp_get_utc_month(Environment &env)
+static void Dp_get_utc_month(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(MonthFromTime(t));
+    double t = js_todate(&rt, 0);
+    rt.push(MonthFromTime(t));
 }
 
-static void Dp_get_utc_date(Environment &env)
+static void Dp_get_utc_date(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(DateFromTime(t));
+    double t = js_todate(&rt, 0);
+    rt.push(DateFromTime(t));
 }
 
-static void Dp_get_utc_day(Environment &env)
+static void Dp_get_utc_day(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(WeekDay(t));
+    double t = js_todate(&rt, 0);
+    rt.push(WeekDay(t));
 }
 
-static void Dp_get_utc_hours(Environment &env)
+static void Dp_get_utc_hours(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(HourFromTime(t));
+    double t = js_todate(&rt, 0);
+    rt.push(HourFromTime(t));
 }
 
-static void Dp_get_utc_minutes(Environment &env)
+static void Dp_get_utc_minutes(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(MinFromTime(t));
+    double t = js_todate(&rt, 0);
+    rt.push(MinFromTime(t));
 }
 
-static void Dp_get_utc_seconds(Environment &env)
+static void Dp_get_utc_seconds(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(SecFromTime(t));
+    double t = js_todate(&rt, 0);
+    rt.push(SecFromTime(t));
 }
 
-static void Dp_get_utc_milliseconds(Environment &env)
+static void Dp_get_utc_milliseconds(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push(msFromTime(t));
+    double t = js_todate(&rt, 0);
+    rt.push(msFromTime(t));
 }
 
-static void Dp_get_time_zone_offset(Environment &env)
+static void Dp_get_time_zone_offset(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    env.push((t - LocalTime(t)) / msPerMinute);
+    double t = js_todate(&rt, 0);
+    rt.push((t - LocalTime(t)) / msPerMinute);
 }
 
-static void Dp_set_time(Environment &env)
+static void Dp_set_time(Runtime &rt)
 {
-    js_setdate(&env, 0, env.to_number(1));
+    js_setdate(&rt, 0, rt.to_number(1));
 }
 
-static void Dp_set_milliseconds(Environment &env)
+static void Dp_set_milliseconds(Runtime &rt)
 {
-    double t = LocalTime(js_todate(&env, 0));
+    double t = LocalTime(js_todate(&rt, 0));
     double h = HourFromTime(t);
     double m = MinFromTime(t);
     double s = SecFromTime(t);
-    double ms = env.to_number(1);
-    js_setdate(&env, 0, UTC(MakeDate(Day(t), MakeTime(h, m, s, ms))));
+    double ms = rt.to_number(1);
+    js_setdate(&rt, 0, UTC(MakeDate(Day(t), MakeTime(h, m, s, ms))));
 }
 
-static void Dp_set_seconds(Environment &env)
+static void Dp_set_seconds(Runtime &rt)
 {
-    double t = LocalTime(js_todate(&env, 0));
+    double t = LocalTime(js_todate(&rt, 0));
     double h = HourFromTime(t);
     double m = MinFromTime(t);
-    double s = env.to_number(1);
-    double ms = js_optnumber(env, 2, msFromTime(t));
-    js_setdate(&env, 0, UTC(MakeDate(Day(t), MakeTime(h, m, s, ms))));
+    double s = rt.to_number(1);
+    double ms = js_optnumber(rt, 2, msFromTime(t));
+    js_setdate(&rt, 0, UTC(MakeDate(Day(t), MakeTime(h, m, s, ms))));
 }
 
-static void Dp_set_minutes(Environment &env)
+static void Dp_set_minutes(Runtime &rt)
 {
-    double t = LocalTime(js_todate(&env, 0));
+    double t = LocalTime(js_todate(&rt, 0));
     double h = HourFromTime(t);
-    double m = env.to_number(1);
-    double s = js_optnumber(env, 2, SecFromTime(t));
-    double ms = js_optnumber(env, 3, msFromTime(t));
-    js_setdate(&env, 0, UTC(MakeDate(Day(t), MakeTime(h, m, s, ms))));
+    double m = rt.to_number(1);
+    double s = js_optnumber(rt, 2, SecFromTime(t));
+    double ms = js_optnumber(rt, 3, msFromTime(t));
+    js_setdate(&rt, 0, UTC(MakeDate(Day(t), MakeTime(h, m, s, ms))));
 }
 
-static void Dp_set_hours(Environment &env)
+static void Dp_set_hours(Runtime &rt)
 {
-    double t = LocalTime(js_todate(&env, 0));
-    double h = env.to_number(1);
-    double m = js_optnumber(env, 2, MinFromTime(t));
-    double s = js_optnumber(env, 3, SecFromTime(t));
-    double ms = js_optnumber(env, 4, msFromTime(t));
-    js_setdate(&env, 0, UTC(MakeDate(Day(t), MakeTime(h, m, s, ms))));
+    double t = LocalTime(js_todate(&rt, 0));
+    double h = rt.to_number(1);
+    double m = js_optnumber(rt, 2, MinFromTime(t));
+    double s = js_optnumber(rt, 3, SecFromTime(t));
+    double ms = js_optnumber(rt, 4, msFromTime(t));
+    js_setdate(&rt, 0, UTC(MakeDate(Day(t), MakeTime(h, m, s, ms))));
 }
 
-static void Dp_set_date(Environment &env)
+static void Dp_set_date(Runtime &rt)
 {
-    double t = LocalTime(js_todate(&env, 0));
+    double t = LocalTime(js_todate(&rt, 0));
     double y = YearFromTime(t);
     double m = MonthFromTime(t);
-    double d = env.to_number(1);
-    js_setdate(&env, 0, UTC(MakeDate(MakeDay(y, m, d), TimeWithinDay(t))));
+    double d = rt.to_number(1);
+    js_setdate(&rt, 0, UTC(MakeDate(MakeDay(y, m, d), TimeWithinDay(t))));
 }
 
-static void Dp_set_month(Environment &env)
+static void Dp_set_month(Runtime &rt)
 {
-    double t = LocalTime(js_todate(&env, 0));
+    double t = LocalTime(js_todate(&rt, 0));
     double y = YearFromTime(t);
-    double m = env.to_number(1);
-    double d = js_optnumber(env, 3, DateFromTime(t));
-    js_setdate(&env, 0, UTC(MakeDate(MakeDay(y, m, d), TimeWithinDay(t))));
+    double m = rt.to_number(1);
+    double d = js_optnumber(rt, 3, DateFromTime(t));
+    js_setdate(&rt, 0, UTC(MakeDate(MakeDay(y, m, d), TimeWithinDay(t))));
 }
 
-static void Dp_set_full_year(Environment &env)
+static void Dp_set_full_year(Runtime &rt)
 {
-    double t = LocalTime(js_todate(&env, 0));
-    double y = env.to_number(1);
-    double m = js_optnumber(env, 2, MonthFromTime(t));
-    double d = js_optnumber(env, 3, DateFromTime(t));
-    js_setdate(&env, 0, UTC(MakeDate(MakeDay(y, m, d), TimeWithinDay(t))));
+    double t = LocalTime(js_todate(&rt, 0));
+    double y = rt.to_number(1);
+    double m = js_optnumber(rt, 2, MonthFromTime(t));
+    double d = js_optnumber(rt, 3, DateFromTime(t));
+    js_setdate(&rt, 0, UTC(MakeDate(MakeDay(y, m, d), TimeWithinDay(t))));
 }
 
-static void Dp_set_utc_milliseconds(Environment &env)
+static void Dp_set_utc_milliseconds(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
+    double t = js_todate(&rt, 0);
     double h = HourFromTime(t);
     double m = MinFromTime(t);
     double s = SecFromTime(t);
-    double ms = env.to_number(1);
-    js_setdate(&env, 0, MakeDate(Day(t), MakeTime(h, m, s, ms)));
+    double ms = rt.to_number(1);
+    js_setdate(&rt, 0, MakeDate(Day(t), MakeTime(h, m, s, ms)));
 }
 
-static void Dp_set_utc_seconds(Environment &env)
+static void Dp_set_utc_seconds(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
+    double t = js_todate(&rt, 0);
     double h = HourFromTime(t);
     double m = MinFromTime(t);
-    double s = env.to_number(1);
-    double ms = js_optnumber(env, 2, msFromTime(t));
-    js_setdate(&env, 0, MakeDate(Day(t), MakeTime(h, m, s, ms)));
+    double s = rt.to_number(1);
+    double ms = js_optnumber(rt, 2, msFromTime(t));
+    js_setdate(&rt, 0, MakeDate(Day(t), MakeTime(h, m, s, ms)));
 }
 
-static void Dp_set_utc_minutes(Environment &env)
+static void Dp_set_utc_minutes(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
+    double t = js_todate(&rt, 0);
     double h = HourFromTime(t);
-    double m = env.to_number(1);
-    double s = js_optnumber(env, 2, SecFromTime(t));
-    double ms = js_optnumber(env, 3, msFromTime(t));
-    js_setdate(&env, 0, MakeDate(Day(t), MakeTime(h, m, s, ms)));
+    double m = rt.to_number(1);
+    double s = js_optnumber(rt, 2, SecFromTime(t));
+    double ms = js_optnumber(rt, 3, msFromTime(t));
+    js_setdate(&rt, 0, MakeDate(Day(t), MakeTime(h, m, s, ms)));
 }
 
-static void Dp_set_utc_hours(Environment &env)
+static void Dp_set_utc_hours(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    double h = env.to_number(1);
-    double m = js_optnumber(env, 2, HourFromTime(t));
-    double s = js_optnumber(env, 3, SecFromTime(t));
-    double ms = js_optnumber(env, 4, msFromTime(t));
-    js_setdate(&env, 0, MakeDate(Day(t), MakeTime(h, m, s, ms)));
+    double t = js_todate(&rt, 0);
+    double h = rt.to_number(1);
+    double m = js_optnumber(rt, 2, HourFromTime(t));
+    double s = js_optnumber(rt, 3, SecFromTime(t));
+    double ms = js_optnumber(rt, 4, msFromTime(t));
+    js_setdate(&rt, 0, MakeDate(Day(t), MakeTime(h, m, s, ms)));
 }
 
-static void Dp_set_utc_date(Environment &env)
+static void Dp_set_utc_date(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
+    double t = js_todate(&rt, 0);
     double y = YearFromTime(t);
     double m = MonthFromTime(t);
-    double d = env.to_number(1);
-    js_setdate(&env, 0, MakeDate(MakeDay(y, m, d), TimeWithinDay(t)));
+    double d = rt.to_number(1);
+    js_setdate(&rt, 0, MakeDate(MakeDay(y, m, d), TimeWithinDay(t)));
 }
 
-static void Dp_set_utc_month(Environment &env)
+static void Dp_set_utc_month(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
+    double t = js_todate(&rt, 0);
     double y = YearFromTime(t);
-    double m = env.to_number(1);
-    double d = js_optnumber(env, 3, DateFromTime(t));
-    js_setdate(&env, 0, MakeDate(MakeDay(y, m, d), TimeWithinDay(t)));
+    double m = rt.to_number(1);
+    double d = js_optnumber(rt, 3, DateFromTime(t));
+    js_setdate(&rt, 0, MakeDate(MakeDay(y, m, d), TimeWithinDay(t)));
 }
 
-static void Dp_set_utc_full_year(Environment &env)
+static void Dp_set_utc_full_year(Runtime &rt)
 {
-    double t = js_todate(&env, 0);
-    double y = env.to_number(1);
-    double m = js_optnumber(env, 2, MonthFromTime(t));
-    double d = js_optnumber(env, 3, DateFromTime(t));
-    js_setdate(&env, 0, MakeDate(MakeDay(y, m, d), TimeWithinDay(t)));
+    double t = js_todate(&rt, 0);
+    double y = rt.to_number(1);
+    double m = js_optnumber(rt, 2, MonthFromTime(t));
+    double d = js_optnumber(rt, 3, DateFromTime(t));
+    js_setdate(&rt, 0, MakeDate(MakeDay(y, m, d), TimeWithinDay(t)));
 }
 
-static void Dp_to_json(Environment &env)
+static void Dp_to_json(Runtime &rt)
 {
-    env.copy(0);
-    var_to_primitive(&env, -1, PHON_HINT_NUMBER);
-    if (env.is_number(-1) && !isfinite(env.to_number(-1)))
+    rt.copy(0);
+    var_to_primitive(&rt, -1, PHON_HINT_NUMBER);
+    if (rt.is_number(-1) && !isfinite(rt.to_number(-1)))
     {
-        env.push_null();
+        rt.push_null();
         return;
     }
-    env.pop(1);
+    rt.pop(1);
 
-    env.get_field(0, "to_iso_string");
-    if (!env.is_callable(-1))
-        throw env.raise("Type error", "Date.meta.to_json: this.to_iso_string not a function");
-    env.copy(0);
-    env.call(0);
+    rt.get_field(0, "to_iso_string");
+    if (!rt.is_callable(-1))
+        throw rt.raise("Type error", "Date.meta.to_json: this.to_iso_string not a function");
+    rt.copy(0);
+    rt.call(0);
 }
 
-void Environment::init_date()
+void Runtime::init_date()
 {
     date_meta->as.number = 0;
 

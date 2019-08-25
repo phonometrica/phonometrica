@@ -28,7 +28,7 @@
 
 namespace phonometrica {
 
-class Environment;
+class Runtime;
 
 
 class StartView final : public View
@@ -36,7 +36,7 @@ class StartView final : public View
 Q_OBJECT
 
 public:
-    StartView(QWidget *parent, Environment &env);
+    StartView(QWidget *parent, Runtime &rt);
 
     void save() override;
 
@@ -54,7 +54,7 @@ private:
 
     QToolButton *makeButton(QWidget *parent, const QIcon &icon, const QString &text);
 
-    Environment &env;
+    Runtime &rt;
 
 };
 

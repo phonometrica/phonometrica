@@ -24,7 +24,7 @@
 
 #include <QWidget>
 #include <QSplitter>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 #include <phon/gui/viewer.hpp>
 #include <phon/gui/console.hpp>
 #include <phon/gui/info_panel.hpp>
@@ -42,7 +42,7 @@ class MainArea final : public QWidget
 
 public:
 
-    explicit MainArea(Environment &env, QWidget *parent = nullptr);
+    explicit MainArea(Runtime &rt, QWidget *parent = nullptr);
 
     Console *console() const { return m_console; }
 
@@ -70,7 +70,7 @@ public slots:
 
 private:
 
-    Environment &env;
+    Runtime &rt;
 
     Splitter *vsplitter, *hsplitter;
 

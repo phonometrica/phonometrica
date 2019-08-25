@@ -26,7 +26,7 @@
 
 namespace phonometrica {
 
-class Environment;
+class Runtime;
 
 
 class PitchPlot final : public SpeechPlot
@@ -35,7 +35,7 @@ class PitchPlot final : public SpeechPlot
 
 public:
 
-    PitchPlot(Environment &env, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
+    PitchPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
 
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;
 

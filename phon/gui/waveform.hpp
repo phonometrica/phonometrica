@@ -34,7 +34,7 @@ class Waveform final : public SpeechPlot
 
 public:
 
-    Waveform(Environment &env, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
+    Waveform(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
 
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;
 

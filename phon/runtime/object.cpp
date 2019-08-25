@@ -17,14 +17,14 @@
  **************************************************************************************/
 
 #include <phon/runtime/object.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 #include "object.hpp"
 
 
 namespace phonometrica {
 
 
-static Field *jsV_getenumfield(Environment *J, Object *obj, const String &name)
+static Field *jsV_getenumfield(Runtime *J, Object *obj, const String &name)
 {
     do
     {
@@ -36,16 +36,16 @@ static Field *jsV_getenumfield(Environment *J, Object *obj, const String &name)
     return nullptr;
 }
 
-Object::Object(Environment &env, ClassTag type, Object *prototype)
+Object::Object(Runtime &rt, ClassTag type, Object *prototype)
 {
     memset(&this->as, 0, sizeof(Storage));
     this->gcmark = 0;
     // Attach to GC chain.
-    this->gcnext = env.gcobj;
-    //if (env.gcobj) env.gcobj->gcprev = this;
-    env.gcobj = this;
-    ++env.gccounter;
-    //this->env = &env;
+    this->gcnext = rt.gcobj;
+    //if (rt.gcobj) rt.gcobj->gcprev = this;
+    rt.gcobj = this;
+    ++rt.gccounter;
+    //this->rt = &rt;
 
     this->type = type;
     this->prototype = prototype;
@@ -72,8 +72,8 @@ Object::~Object()
     }
 
     // Detach object from the GC chain.
-//    if (this == env->gcobj) {
-//        env->gcobj = this->gcnext;
+//    if (this == rt->gcobj) {
+//        rt->gcobj = this->gcnext;
 //    }
 //
 //    if (this->gcprev) {
@@ -84,13 +84,13 @@ Object::~Object()
 //    }
 }
 
-Field *Object::get_own_field(Environment &, const String &name)
+Field *Object::get_own_field(Runtime &, const String &name)
 {
     auto it = fields.find(name);
     return (it == fields.end()) ? nullptr : &it->second;
 }
 
-Field *Object::get_field(Environment &, const String &name, bool *own)
+Field *Object::get_field(Runtime &, const String &name, bool *own)
 {
     *own = true;
     auto obj = this;
@@ -108,7 +108,7 @@ Field *Object::get_field(Environment &, const String &name, bool *own)
     return nullptr;
 }
 
-Field *Object::get_field(Environment &, const String &name)
+Field *Object::get_field(Runtime &, const String &name)
 {
     auto obj = this;
 
@@ -124,13 +124,13 @@ Field *Object::get_field(Environment &, const String &name)
     return nullptr;
 }
 
-Field *Object::set_field(Environment &env, const String &name)
+Field *Object::set_field(Runtime &rt, const String &name)
 {
     if (!this->extensible)
     {
-        auto result = this->get_own_field(env, name);
-        if (env.strict && !result)
-            throw env.raise("Type error", "object is non-extensible");
+        auto result = this->get_own_field(rt, name);
+        if (rt.strict && !result)
+            throw rt.raise("Type error", "object is non-extensible");
         return result;
     }
 
@@ -140,20 +140,20 @@ Field *Object::set_field(Environment &env, const String &name)
     return &r.first->second;
 }
 
-void Object::del_field(Environment &env, const String &name)
+void Object::del_field(Runtime &rt, const String &name)
 {
     fields.erase(name);
     version++;
 }
 
-Object *Object::new_iterator(Environment &env)
+Object *Object::new_iterator(Runtime &rt)
 {
     if (type == PHON_CSTRING)
     {
-        throw env.raise("Error", "%s", "cannot iterate string");
+        throw rt.raise("Error", "%s", "cannot iterate string");
     }
 
-    auto io = new Object(env, PHON_CITERATOR, nullptr);
+    auto io = new Object(rt, PHON_CITERATOR, nullptr);
     io->as.iter.target = this;
 
     if (type == PHON_CLIST || type == PHON_CSTRING)
@@ -170,12 +170,12 @@ Object *Object::new_iterator(Environment &env)
     return io;
 }
 
-std::optional<Variant> Object::next_iterator(Environment &env)
+std::optional<Variant> Object::next_iterator(Runtime &rt)
 {
     assert(as.iter.target->type != PHON_CSTRING);
 
     if (this->type != PHON_CITERATOR)
-        throw env.raise("Type error", "not an iterator");
+        throw rt.raise("Type error", "not an iterator");
 
     if (as.iter.target->type == PHON_CLIST)
     {
@@ -194,7 +194,7 @@ std::optional<Variant> Object::next_iterator(Environment &env)
     {
         if (this->version != as.iter.target->version)
         {
-            throw env.raise("Error", "%s", "object iterator has been invalidated by a mutating operation");
+            throw rt.raise("Error", "%s", "object iterator has been invalidated by a mutating operation");
         }
         auto &it = std::any_cast<FieldMap::iterator&>(as.iter.data);
 
@@ -210,7 +210,7 @@ std::optional<Variant> Object::next_iterator(Environment &env)
     return std::optional<Variant>(); // done
 }
 
-void Object::resize_list(Environment &env, int new_size)
+void Object::resize_list(Runtime &rt, int new_size)
 {
     as.list.resize(new_size);
 }

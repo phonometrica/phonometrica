@@ -28,7 +28,7 @@
 #include <QLabel>
 #include <QTextEdit>
 #include <phon/application/vfs.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 
 namespace phonometrica {
 
@@ -38,7 +38,7 @@ class InfoPanel final : public QFrame
 
 public:
 
-    InfoPanel(Environment &env, QWidget *parent = nullptr);
+    InfoPanel(Runtime &rt, QWidget *parent = nullptr);
 
 signals:
 
@@ -80,7 +80,7 @@ private:
 
     QTabWidget *m_tabs;
 
-    Environment &env;
+    Runtime &rt;
 
     VFileList m_files;
 

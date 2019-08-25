@@ -23,14 +23,14 @@
 #include <unordered_map>
 #include <phon/regex.hpp>
 #include <phon/file.hpp>
-#include <phon/runtime/toplevel.hpp>
+#include <phon/runtime/common.hpp>
 #include <phon/runtime/variant.hpp>
 
 namespace phonometrica {
 
-class Environment;
+class Runtime;
 struct Function;
-struct Namespace;
+struct Environment;
 
 class Field final
 {
@@ -56,25 +56,25 @@ class Object final /* : public Countable<Object, int32_t> */
 {
 public:
 
-    Object(Environment &env, ClassTag type, Object *prototype);
+    Object(Runtime &rt, ClassTag type, Object *prototype);
 
     ~Object();
 
-    Field *get_own_field(Environment &, const String &name);
+    Field *get_own_field(Runtime &, const String &name);
 
-    Field *get_field(Environment &, const String &name, bool *own);
+    Field *get_field(Runtime &, const String &name, bool *own);
 
-    Field *get_field(Environment &, const String &name);
+    Field *get_field(Runtime &, const String &name);
 
-    Field *set_field(Environment &env, const String &name);
+    Field *set_field(Runtime &rt, const String &name);
 
-    void del_field(Environment &env, const String &name);
+    void del_field(Runtime &rt, const String &name);
 
-    Object *new_iterator(Environment &env);
+    Object *new_iterator(Runtime &rt);
 
-    std::optional<Variant> next_iterator(Environment &env);
+    std::optional<Variant> next_iterator(Runtime &rt);
 
-    void resize_list(Environment &env, int new_size);
+    void resize_list(Runtime &rt, int new_size);
 
 public:
 
@@ -84,7 +84,7 @@ public:
     uint32_t version = 0;
     FieldMap fields;
     Object *gcnext; // *gcprev;
-    //Environment *env; // environment the object was created from (for destruction)
+    //Environment *rt; // environment the object was created from (for destruction)
     Object *prototype;
 
     union Storage
@@ -98,7 +98,7 @@ public:
         struct
         {
             Function *function;
-            Namespace *scope;
+            Environment *scope;
         } f;
         struct
         {

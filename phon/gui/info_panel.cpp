@@ -32,8 +32,8 @@
 
 namespace phonometrica {
 
-InfoPanel::InfoPanel(Environment &env, QWidget *parent) :
-    QFrame(parent), env(env)
+InfoPanel::InfoPanel(Runtime &rt, QWidget *parent) :
+    QFrame(parent), rt(rt)
 {
     setupUi();
 }
@@ -278,14 +278,14 @@ void InfoPanel::refresh()
 
 void InfoPanel::importMetadata()
 {
-    QString dir = Settings::get_string(env, "last_directory");
+    QString dir = Settings::get_string(rt, "last_directory");
     auto p = QFileDialog::getOpenFileName(this, "Import metadata from CSV file...", dir, "CSV (*.csv)");
 
     if (!p.isNull())
     {
         String path = p;
         String dir = filesystem::directory_name(path);
-        Settings::set_value(env, "last_directory", dir);
+        Settings::set_value(rt, "last_directory", dir);
         Project::instance()->import_metadata(path);
     }
 }

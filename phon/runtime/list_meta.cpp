@@ -18,9 +18,8 @@
 
 #include <algorithm>
 #include <random>
-#include <phon/runtime/runtime.hpp>
-#include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
+#include <phon/runtime/object.hpp>
 
 namespace phonometrica {
 
@@ -29,7 +28,7 @@ static bool is_sorted(const Array<Variant> &lst)
     return std::is_sorted(lst.begin(), lst.end());
 }
 
-int js_getlength(Environment *J, int idx)
+int js_getlength(Runtime *J, int idx)
 {
     int len;
     J->get_field(idx, "length");
@@ -38,163 +37,163 @@ int js_getlength(Environment *J, int idx)
     return len;
 }
 
-void js_setlength(Environment *J, int idx, int len)
+void js_setlength(Runtime *J, int idx, int len)
 {
     J->push(len);
     J->set_field(idx < 0 ? idx - 1 : idx, "length");
 }
 
-int js_hasindex(Environment *J, int idx, int i)
+int js_hasindex(Runtime *J, int idx, int i)
 {
     char buf[32];
     return J->has_field(idx, int_to_str(buf, i));
 }
 
-void js_getindex(Environment *J, int idx, int i)
+void js_getindex(Runtime *J, int idx, int i)
 {
     char buf[32];
     J->get_field(idx, int_to_str(buf, i));
 }
 
-void js_setindex(Environment *J, int idx, int i)
+void js_setindex(Runtime *J, int idx, int i)
 {
     char buf[32];
     J->set_field(idx, int_to_str(buf, i));
 }
 
-void js_delindex(Environment *J, int idx, int i)
+void js_delindex(Runtime *J, int idx, int i)
 {
     char buf[32];
     J->del_field(idx, int_to_str(buf, i));
 }
 
-static void list_ctor(Environment &env)
+static void list_ctor(Runtime &rt)
 {
-    int top = env.top_count();
+    int top = rt.top_count();
 
-    env.new_list();
-    auto &list = env.to_list(-1);
+    rt.new_list();
+    auto &list = rt.to_list(-1);
 
     for (int i = 1; i < top; ++i)
     {
-        list.append(env.get(i));
+        list.append(rt.get(i));
     }
 }
 
-static void list_concat(Environment &env)
+static void list_concat(Runtime &rt)
 {
-    int top = env.top_count();
-    Array<Variant> result = env.to_list(-1);
+    int top = rt.top_count();
+    Array<Variant> result = rt.to_list(-1);
 
     for (int i = 0; i < top; ++i)
     {
-        auto &lst = env.to_list(i);
+        auto &lst = rt.to_list(i);
 
         for (auto &item : lst) {
             result.append(item);
         }
     }
 
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void list_join(Environment &env)
+static void list_join(Runtime &rt)
 {
     String sep;
     String result;
 
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
 
-    if (env.is_defined(1))
+    if (rt.is_defined(1))
     {
-        sep = env.to_string(1);
+        sep = rt.to_string(1);
     }
 
     for (intptr_t i = 1; i <= lst.size(); i++)
     {
-        auto s = var_to_string(&env, &lst[i]);
+        auto s = var_to_string(&rt, &lst[i]);
         result.append(s);
         if (i < lst.size()) result.append(sep);
     }
 
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void list_append(Environment &env)
+static void list_append(Runtime &rt)
 {
-    int top = env.top_count();
-    auto &lst = env.to_list(0);
+    int top = rt.top_count();
+    auto &lst = rt.to_list(0);
     auto size = lst.size();
 
     for (int i = 1; i < top; ++i)
     {
-        lst.append(env.get(i));
+        lst.append(rt.get(i));
     }
 
-    env.push(size + 1);
+    rt.push(size + 1);
 }
 
-static void list_reverse(Environment &env)
+static void list_reverse(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
     std::reverse(lst.begin(), lst.end());
-    env.copy(0);
+    rt.copy(0);
 }
 
-static void list_sort(Environment &env)
+static void list_sort(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
     std::sort(lst.begin(), lst.end());
-    env.copy(0);
+    rt.copy(0);
 }
 
-static void list_is_sorted(Environment &env)
+static void list_is_sorted(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    env.push_boolean(std::is_sorted(lst.begin(), lst.end()));
+    auto &lst = rt.to_list(0);
+    rt.push_boolean(std::is_sorted(lst.begin(), lst.end()));
 }
 
-static void list_shift(Environment &env)
+static void list_shift(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    env.push(lst.take_first());
+    auto &lst = rt.to_list(0);
+    rt.push(lst.take_first());
 }
 
-static void list_shuffle(Environment &env)
+static void list_shuffle(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(lst.begin(), lst.end(), g);
 }
 
-static void list_sample(Environment &env)
+static void list_sample(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    auto n = env.to_integer(1);
+    auto &lst = rt.to_list(0);
+    auto n = rt.to_integer(1);
     Array<Variant> result;
     std::random_device rd;
     std::mt19937 g(rd());
     std::sample(lst.begin(), lst.end(), std::back_inserter(result), n, g);
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void list_pop(Environment &env)
+static void list_pop(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    env.push(lst.take_last());
+    auto &lst = rt.to_list(0);
+    rt.push(lst.take_last());
 }
 
-static void Ap_slice(Environment &env)
+static void Ap_slice(Runtime &rt)
 {
     int len, s, e, n;
     double sv, ev;
 
-    env.new_list();
+    rt.new_list();
 
-    len = js_getlength(&env, 0);
-    sv = env.to_integer(1);
-    ev = env.is_defined(2) ? env.to_integer(2) : len;
+    len = js_getlength(&rt, 0);
+    sv = rt.to_integer(1);
+    ev = rt.is_defined(2) ? rt.to_integer(2) : len;
 
     if (sv < 0) sv = sv + len;
     if (ev < 0) ev = ev + len;
@@ -203,14 +202,14 @@ static void Ap_slice(Environment &env)
     e = ev < 0 ? 0 : ev > len ? len : ev;
 
     for (n = 0; s < e; ++s, ++n)
-        if (js_hasindex(&env, 0, s))
-            js_setindex(&env, -2, n);
+        if (js_hasindex(&rt, 0, s))
+            js_setindex(&rt, -2, n);
 }
 
 struct sortslot
 {
     Variant v;
-    Environment *J;
+    Runtime *J;
 };
 
 static int sortcmp(const void *avoid, const void *bvoid)
@@ -218,7 +217,7 @@ static int sortcmp(const void *avoid, const void *bvoid)
     auto aslot = reinterpret_cast<const sortslot *>(avoid);
     auto bslot = reinterpret_cast<const sortslot *>(bvoid);
     const Variant *a = &aslot->v, *b = &bslot->v;
-    Environment *J = aslot->J;
+    Runtime *J = aslot->J;
     int c;
 
     bool unx = a->is_null();
@@ -248,48 +247,48 @@ static int sortcmp(const void *avoid, const void *bvoid)
     return c;
 }
 
-static void list_remove(Environment &env)
+static void list_remove(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    auto &value = env.get(1);
+    auto &lst = rt.to_list(0);
+    auto &value = rt.get(1);
     lst.remove(value);
-    env.push_null();
+    rt.push_null();
 }
 
-static void list_remove_at(Environment &env)
+static void list_remove_at(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    auto pos = env.to_integer(1);
+    auto &lst = rt.to_list(0);
+    auto pos = rt.to_integer(1);
     lst.remove_at(pos);
-    env.push_null();
+    rt.push_null();
 }
 
-static void list_prepend(Environment &env)
+static void list_prepend(Runtime &rt)
 {
-    int top = env.top_count();
-    auto &lst = env.to_list(0);
+    int top = rt.top_count();
+    auto &lst = rt.to_list(0);
 
     for (int i = top - 1; i > 0; --i)
     {
-        lst.prepend(env.get(i));
+        lst.prepend(rt.get(i));
     }
 
-    env.copy(0);
+    rt.copy(0);
 }
 
-static void list_to_string(Environment &env)
+static void list_to_string(Runtime &rt)
 {
-    int top = env.top_count();
-    env.pop(top - 1);
-    env.push(",");
-    list_join(env);
+    int top = rt.top_count();
+    rt.pop(top - 1);
+    rt.push(",");
+    list_join(rt);
 }
 
-static void list_find(Environment &env)
+static void list_find(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    auto &value = env.get(1);
-    auto from = env.is_defined(2) ? env.to_integer(2) : 1;
+    auto &lst = rt.to_list(0);
+    auto &value = rt.get(1);
+    auto from = rt.is_defined(2) ? rt.to_integer(2) : 1;
     intptr_t idx;
 
     try
@@ -298,16 +297,16 @@ static void list_find(Environment &env)
     }
     catch (std::runtime_error &e)
     {
-        throw env.raise("Index error", e);
+        throw rt.raise("Index error", e);
     }
-    env.push(idx);
+    rt.push(idx);
 }
 
-static void list_rfind(Environment &env)
+static void list_rfind(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    auto &value = env.get(1);
-    auto from = env.is_defined(2) ? env.to_integer(2) : -1;
+    auto &lst = rt.to_list(0);
+    auto &value = rt.get(1);
+    auto from = rt.is_defined(2) ? rt.to_integer(2) : -1;
     intptr_t idx;
 
     try
@@ -316,278 +315,278 @@ static void list_rfind(Environment &env)
     }
     catch (std::runtime_error &e)
     {
-        throw env.raise("Index error", e);
+        throw rt.raise("Index error", e);
     }
-    env.push(idx);
+    rt.push(idx);
 }
 
-static void list_sorted_find(Environment &env)
+static void list_sorted_find(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    auto &value = env.get(1);
+    auto &lst = rt.to_list(0);
+    auto &value = rt.get(1);
     auto it = std::lower_bound(lst.begin(), lst.end(), value);
     intptr_t pos = 0; // not found
     if (it != lst.end()) pos = (it - lst.begin()) + 1;
-    env.push(pos);
+    rt.push(pos);
 }
 
-static void list_contains(Environment &env)
+static void list_contains(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    auto &value = env.get(1);
-    env.push_boolean(lst.contains(value));
+    auto &lst = rt.to_list(0);
+    auto &value = rt.get(1);
+    rt.push_boolean(lst.contains(value));
 }
 
-static void list_every(Environment &env)
+static void list_every(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
 
-    if (!env.is_callable(1))
-        throw env.raise("Type error", "callback is not a function");
+    if (!rt.is_callable(1))
+        throw rt.raise("Type error", "callback is not a function");
 
     for (auto &v : lst)
     {
-        env.copy(1);
-        env.push_null();
-        env.push(v);
-        env.call(1);
-        if (!env.to_boolean(-1))
+        rt.copy(1);
+        rt.push_null();
+        rt.push(v);
+        rt.call(1);
+        if (!rt.to_boolean(-1))
             return;
-        env.pop(1);
+        rt.pop(1);
     }
 
-    env.push_boolean(true);
+    rt.push_boolean(true);
 }
 
-static void list_some(Environment &env)
+static void list_some(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
 
-    if (!env.is_callable(1))
-        throw env.raise("Type error", "callback is not a function");
+    if (!rt.is_callable(1))
+        throw rt.raise("Type error", "callback is not a function");
 
     for (auto &v : lst)
     {
-        env.copy(1);
-        env.push_null();
-        env.push(v);
-        env.call(1);
-        if (env.to_boolean(-1))
+        rt.copy(1);
+        rt.push_null();
+        rt.push(v);
+        rt.call(1);
+        if (rt.to_boolean(-1))
             return;
-        env.pop(1);
+        rt.pop(1);
     }
 
-    env.push_boolean(false);
+    rt.push_boolean(false);
 }
 
-static void list_apply(Environment &env)
+static void list_apply(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
 
-    if (!env.is_callable(1))
-        throw env.raise("Type error", "callback is not a function");
+    if (!rt.is_callable(1))
+        throw rt.raise("Type error", "callback is not a function");
 
     for (auto &v : lst)
     {
-        env.copy(1);
-        env.push_null();
-        env.push(v);
-        env.call(1);
-        env.pop(1);
+        rt.copy(1);
+        rt.push_null();
+        rt.push(v);
+        rt.call(1);
+        rt.pop(1);
     }
 
-    env.push_null();
+    rt.push_null();
 }
 
-static void list_map(Environment &env)
+static void list_map(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
     Array<Variant> result;
 
-    if (!env.is_callable(1))
-        throw env.raise("Type error", "callback is not a function");
+    if (!rt.is_callable(1))
+        throw rt.raise("Type error", "callback is not a function");
 
     for (auto &v : lst)
     {
-        env.copy(1);
-        env.push_null();
-        env.push(v);
-        env.call(1);
-        result.append(std::move(env.get(-1)));
-        env.pop(1);
+        rt.copy(1);
+        rt.push_null();
+        rt.push(v);
+        rt.call(1);
+        result.append(std::move(rt.get(-1)));
+        rt.pop(1);
     }
 
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void list_filter(Environment &env)
+static void list_filter(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
     Array<Variant> result;
 
-    if (!env.is_callable(1))
-        throw env.raise("Type error", "callback is not a function");
+    if (!rt.is_callable(1))
+        throw rt.raise("Type error", "callback is not a function");
 
     for (auto &v : lst)
     {
-        env.copy(1);
-        env.push_null();
-        env.push(v);
-        env.call(1);
-        if (env.to_boolean(-1))
+        rt.copy(1);
+        rt.push_null();
+        rt.push(v);
+        rt.call(1);
+        if (rt.to_boolean(-1))
         {
             result.append(v);
         }
-        env.pop(1);
+        rt.pop(1);
     }
 
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void list_reduce(Environment &env)
+static void list_reduce(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
 
     if (lst.empty())
-        throw env.raise("Type error", "no initial value");
+        throw rt.raise("Type error", "no initial value");
 
-    if (!env.is_callable(1))
-        throw env.raise("Type error", "callback is not a function");
+    if (!rt.is_callable(1))
+        throw rt.raise("Type error", "callback is not a function");
 
     Variant result = lst.front();
 
     for (intptr_t i = 2; i <= lst.size(); i++)
     {
-        env.copy(1);
-        env.push_null();
-        env.push(result);
-        env.push(lst[i]);
-        env.call(2);
-        result = std::move(env.get(-1));
-        env.pop(1);
+        rt.copy(1);
+        rt.push_null();
+        rt.push(result);
+        rt.push(lst[i]);
+        rt.call(2);
+        result = std::move(rt.get(-1));
+        rt.pop(1);
     }
 
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void list_reduce_back(Environment &env)
+static void list_reduce_back(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
 
     if (lst.empty())
-        throw env.raise("Type error", "no initial value");
+        throw rt.raise("Type error", "no initial value");
 
-    if (!env.is_callable(1))
-        throw env.raise("Type error", "callback is not a function");
+    if (!rt.is_callable(1))
+        throw rt.raise("Type error", "callback is not a function");
 
     Variant result = lst.back();
 
     for (intptr_t i = lst.size() - 1; i > 0; i--)
     {
-        env.copy(1);
-        env.push_null();
-        env.push(result);
-        env.push(lst[i]);
-        env.call(2);
-        result = std::move(env.get(-1));
-        env.pop(1);
+        rt.copy(1);
+        rt.push_null();
+        rt.push(result);
+        rt.push(lst[i]);
+        rt.call(2);
+        result = std::move(rt.get(-1));
+        rt.pop(1);
     }
 
-    env.push(std::move(result));
+    rt.push(std::move(result));
 
 }
 
-static void list_is_list(Environment &env)
+static void list_is_list(Runtime &rt)
 {
-    if (env.is_object(1))
+    if (rt.is_object(1))
     {
-        Object *T = env.to_object(1);
-        env.push_boolean(T->type == PHON_CLIST);
+        Object *T = rt.to_object(1);
+        rt.push_boolean(T->type == PHON_CLIST);
     }
     else
     {
-        env.push_boolean(false);
+        rt.push_boolean(false);
     }
 }
 
-static void list_sorted_insert(Environment &env)
+static void list_sorted_insert(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    auto &v = env.get(1);
+    auto &lst = rt.to_list(0);
+    auto &v = rt.get(1);
     auto i = std::lower_bound(lst.begin(), lst.end(), v);
     if (i == lst.end() || v < *i)
         lst.insert(i, v);
 }
 
-static void list_insert(Environment &env)
+static void list_insert(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    auto pos = env.to_integer(1);
-    auto &v = env.get(2);
+    auto &lst = rt.to_list(0);
+    auto pos = rt.to_integer(1);
+    auto &v = rt.get(2);
     lst.insert(pos, v);
 }
 
-static void list_copy(Environment &env)
+static void list_copy(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    env.push(lst);
+    auto &lst = rt.to_list(0);
+    rt.push(lst);
 }
 
-static void list_union(Environment &env)
+static void list_union(Runtime &rt)
 {
-    auto &lst1 = env.to_list(0);
-    auto &lst2 = env.to_list(1);
+    auto &lst1 = rt.to_list(0);
+    auto &lst2 = rt.to_list(1);
     Array<Variant> result;
     std::set_union(lst1.begin(), lst1.end(), lst2.begin(), lst2.end(), std::back_inserter(result));
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void list_intersect(Environment &env)
+static void list_intersect(Runtime &rt)
 {
-    auto &lst1 = env.to_list(0);
-    auto &lst2 = env.to_list(1);
+    auto &lst1 = rt.to_list(0);
+    auto &lst2 = rt.to_list(1);
     Array<Variant> result;
     std::set_intersection(lst1.begin(), lst1.end(), lst2.begin(), lst2.end(), std::back_inserter(result));
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void list_difference(Environment &env)
+static void list_difference(Runtime &rt)
 {
-    auto &lst1 = env.to_list(0);
-    auto &lst2 = env.to_list(1);
+    auto &lst1 = rt.to_list(0);
+    auto &lst2 = rt.to_list(1);
     Array<Variant> result;
     std::set_difference(lst1.begin(), lst1.end(), lst2.begin(), lst2.end(), std::back_inserter(result));
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void list_includes(Environment &env)
+static void list_includes(Runtime &rt)
 {
-    auto &lst1 = env.to_list(0);
-    auto &lst2 = env.to_list(1);
+    auto &lst1 = rt.to_list(0);
+    auto &lst2 = rt.to_list(1);
     bool result = std::includes(lst1.begin(), lst1.end(), lst2.begin(), lst2.end());
-    env.push_boolean(result);
+    rt.push_boolean(result);
 }
 
-static void list_get_length(Environment &env)
+static void list_get_length(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    env.push(lst.size());
+    auto &lst = rt.to_list(0);
+    rt.push(lst.size());
 }
 
-static void list_is_empty(Environment &env)
+static void list_is_empty(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
-    env.push(lst.empty());
+    auto &lst = rt.to_list(0);
+    rt.push(lst.empty());
 }
 
-static void list_clear(Environment &env)
+static void list_clear(Runtime &rt)
 {
-    auto &lst = env.to_list(0);
+    auto &lst = rt.to_list(0);
     lst.clear();
-    env.push_null();
+    rt.push_null();
 }
 
-void Environment::init_list()
+void Runtime::init_list()
 {
     push(list_meta);
     {

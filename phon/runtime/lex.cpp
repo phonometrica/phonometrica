@@ -16,14 +16,14 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/toplevel.hpp>
 #include <phon/runtime/lex.hpp>
 
 namespace phonometrica {
 
-PHON_NORETURN static void jsY_error(Environment *J, const char *fmt, ...) PHON_PRINTFLIKE(2, 3);
+PHON_NORETURN static void jsY_error(Runtime *J, const char *fmt, ...) PHON_PRINTFLIKE(2, 3);
 
-static void jsY_error(Environment *J, const char *fmt, ...)
+static void jsY_error(Runtime *J, const char *fmt, ...)
 {
     va_list ap;
     char buf[512];
@@ -115,7 +115,7 @@ int find_word(const String &s, const String *list, int num)
     return -1;
 }
 
-static int jsY_findkeyword(Environment *J, const String &s)
+static int jsY_findkeyword(Runtime *J, const String &s)
 {
     int i = find_word(s, keywords, nelem(keywords));
     if (i >= 0)
@@ -169,7 +169,7 @@ int to_hex(char32_t c)
     return 0;
 }
 
-static void jsY_next(Environment *J)
+static void jsY_next(Runtime *J)
 {
     char32_t c = J->read_char();
 
@@ -189,7 +189,7 @@ static void jsY_next(Environment *J)
 
 #define jsY_expect(J, x) if (!jsY_accept(J, x)) jsY_error(J, "[Syntax error] expected '%c'", x)
 
-static void jsY_unescape(Environment *J)
+static void jsY_unescape(Runtime *J)
 {
     if (jsY_accept(J, '\\'))
     {
@@ -219,18 +219,18 @@ static void jsY_unescape(Environment *J)
     }
 }
 
-static void textpush(Environment *J, char32_t c)
+static void textpush(Runtime *J, char32_t c)
 {
     J->lexbuf.append(c);
 }
 
-static void lexlinecomment(Environment *J)
+static void lexlinecomment(Runtime *J)
 {
     while (J->lexchar && J->lexchar != '\n')
         jsY_next(J);
 }
 
-static int lexcomment(Environment *J)
+static int lexcomment(Runtime *J)
 {
     /* already consumed initial '!' '*' sequence */
     while (J->lexchar != 0)
@@ -248,7 +248,7 @@ static int lexcomment(Environment *J)
     return -1;
 }
 
-static double lexhex(Environment *J)
+static double lexhex(Runtime *J)
 {
     double n = 0;
     if (!is_hex(J->lexchar))
@@ -339,7 +339,7 @@ static int lexnumber(State *J)
 
 #else
 
-static int lexnumber(Environment *J)
+static int lexnumber(Runtime *J)
 {
     const char *s = J->pos - 1;
 
@@ -396,7 +396,7 @@ static int lexnumber(Environment *J)
 
 #endif
 
-static int lexescape(Environment *J)
+static int lexescape(Runtime *J)
 {
     int x = 0;
 
@@ -500,7 +500,7 @@ static int lexescape(Environment *J)
     return 0;
 }
 
-static int lexstring(Environment *J)
+static int lexstring(Runtime *J)
 {
     int q = J->lexchar;
     jsY_next(J);
@@ -549,7 +549,7 @@ static int isregexpcontext(int last)
     }
 }
 
-static int lexregexp(Environment *J)
+static int lexregexp(Runtime *J)
 {
     int g, m, i;
     int inclass = 0;
@@ -628,7 +628,7 @@ static int isnlthcontext(int last)
     }
 }
 
-static int jsY_lexx(Environment *J)
+static int jsY_lexx(Runtime *J)
 {
     J->newline = 0;
 
@@ -849,7 +849,7 @@ static int jsY_lexx(Environment *J)
     }
 }
 
-void init_lex(Environment *J, const String &filename, const String &source)
+void init_lex(Runtime *J, const String &filename, const String &source)
 {
     J->filename = filename;
     J->source = source;
@@ -859,12 +859,12 @@ void init_lex(Environment *J, const String &filename, const String &source)
     jsY_next(J); /* load first lookahead character */
 }
 
-int lex(Environment *J)
+int lex(Runtime *J)
 {
     return J->lasttoken = jsY_lexx(J);
 }
 
-static int lexjsonnumber(Environment *J)
+static int lexjsonnumber(Runtime *J)
 {
     const char *s = J->pos - 1;
 
@@ -903,7 +903,7 @@ static int lexjsonnumber(Environment *J)
     return TK_NUMBER;
 }
 
-static int lexjsonescape(Environment *J)
+static int lexjsonescape(Runtime *J)
 {
     int x = 0;
 
@@ -977,7 +977,7 @@ static int lexjsonescape(Environment *J)
     return 0;
 }
 
-static int lexjsonstring(Environment *J)
+static int lexjsonstring(Runtime *J)
 {
     J->lexbuf.clear();
 
@@ -1001,7 +1001,7 @@ static int lexjsonstring(Environment *J)
     return TK_STRING;
 }
 
-int lex_json(Environment *J)
+int lex_json(Runtime *J)
 {
     while (1)
     {

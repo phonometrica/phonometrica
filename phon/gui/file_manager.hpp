@@ -37,7 +37,7 @@ class FileManager final : public QFrame
 
 public:
 
-    explicit FileManager(Environment &env, QWidget *parent = nullptr);
+    explicit FileManager(Runtime &rt, QWidget *parent = nullptr);
 
     QPushButton *console_button, *info_button;
 
@@ -71,7 +71,7 @@ private:
 
     void setProjectLabel(const QString &name);
 
-    Environment &env;
+    Runtime &rt;
 
     ProjectCtrl *project_ctrl;
 

@@ -33,7 +33,7 @@ class SoundView : public SpeechView
 
 public:
 
-    SoundView(Environment &env, std::shared_ptr<Sound> sound, QWidget *parent = nullptr);
+    SoundView(Runtime &rt, std::shared_ptr<Sound> sound, QWidget *parent = nullptr);
 
     void save() override;
 

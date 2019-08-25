@@ -18,21 +18,30 @@
 
 #include <cstring>
 #include <limits>
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/toplevel.hpp>
 #include <phon/runtime/lex.hpp>
 #include <phon/runtime/compile.hpp>
 #include <phon/runtime/object.hpp>
-#include "environment.hpp"
+#include "runtime.hpp"
 #include "variant.hpp"
 #include "object.hpp"
 
 
 namespace phonometrica {
 
+static inline
+bool equal(double x, double y)
+{
+	// Comparison method by Christer Ericson. See http://doubletimecollisiondetection.net/blog/?p=89
+	double scale = std::max<double>(1.0, std::max<double>(std::fabs(x), std::fabs(y)));
+	return std::fabs(x - y) <= std::numeric_limits<double>::epsilon() * scale;
+}
+
+
 intptr_t number_to_integer(double n)
 {
     if (n == 0) return 0;
-    if (isnan(n)) return 0;
+    if (std::isnan(n)) return 0;
     n = (n < 0) ? -floor(-n) : floor(n);
     if constexpr (sizeof(intptr_t) < sizeof(double))
     {
@@ -47,7 +56,7 @@ int number_to_int32(double n)
     double two32 = 4294967296.0;
     double two31 = 2147483648.0;
 
-    if (!isfinite(n) || n == 0)
+    if (!std::isfinite(n) || n == 0)
         return 0;
 
     n = fmod(n, two32);
@@ -74,7 +83,7 @@ unsigned short number_to_uint16(double n)
 }
 
 /* obj.toString() */
-static int jsV_toString(Environment *J, Object *obj)
+static int jsV_toString(Runtime *J, Object *obj)
 {
     J->push(obj);
     J->get_field(-1, "to_string");
@@ -92,7 +101,7 @@ static int jsV_toString(Environment *J, Object *obj)
 }
 
 /* obj.to_value() */
-static int jsV_to_value(Environment *J, Object *obj)
+static int jsV_to_value(Runtime *J, Object *obj)
 {
     J->push(obj);
     J->get_field(-1, "to_value");
@@ -110,7 +119,7 @@ static int jsV_to_value(Environment *J, Object *obj)
 }
 
 /* ToPrimitive() on a value */
-void var_to_primitive(Environment *J, Variant *v, int preferred)
+void var_to_primitive(Runtime *J, Variant *v, int preferred)
 {
     Object *obj;
 
@@ -158,7 +167,7 @@ bool Variant::to_boolean() const
     case PHON_TBOOLEAN:
         return as.boolean;
     case PHON_TNUMBER:
-        return as.number != 0 && !isnan(as.number);
+        return as.number != 0 && !std::isnan(as.number);
     case PHON_TSTRING: // the empty string is also true
     default:
         return true;
@@ -227,7 +236,7 @@ double string_to_float(const char *s, char **ep)
 }
 
 /* ToNumber() on a string */
-double string_to_number(Environment *J, const String &str)
+double string_to_number(Runtime *J, const String &str)
 {
     char *e;
     double n;
@@ -250,14 +259,14 @@ double string_to_number(Environment *J, const String &str)
 
 
 /* ToString() on a number */
-String number_to_string(Environment *J, char *buf, double f)
+String number_to_string(Runtime *J, char *buf, double f)
 {
     char digits[32], *p = buf, *s = digits;
     int exp, ndigits, point;
 
     if (f == 0) return "0";
-    if (isnan(f)) return J->undef_string;
-    if (isinf(f)) return f < 0 ? "-Infinity" : "Infinity";
+    if (std::isnan(f)) return J->undef_string;
+    if (std::isinf(f)) return f < 0 ? "-Infinity" : "Infinity";
 
     /* Fast case for integers. This only works assuming all integers can be
      * exactly represented by a float. This is true for 32-bit integers and
@@ -272,7 +281,7 @@ String number_to_string(Environment *J, char *buf, double f)
     ndigits = grisu2(f, digits, &exp);
     point = ndigits + exp;
 
-    if (signbit(f))
+    if (std::signbit(f))
         *p++ = '-';
 
     if (point < -5 || point > 21)
@@ -316,7 +325,7 @@ String number_to_string(Environment *J, char *buf, double f)
 }
 
 /* to_string() on a value */
-String var_to_string(Environment *J, Variant *v)
+String var_to_string(Runtime *J, Variant *v)
 {
     switch (v->type)
     {
@@ -340,21 +349,21 @@ String var_to_string(Environment *J, Variant *v)
 
 /* Objects */
 
-static Object *jsV_newboolean(Environment *J, bool v)
+static Object *jsV_newboolean(Runtime *J, bool v)
 {
     Object *obj = new Object(*J, PHON_CBOOLEAN, J->boolean_meta);
     obj->as.boolean = v;
     return obj;
 }
 
-static Object *jsV_newnumber(Environment *J, double v)
+static Object *jsV_newnumber(Runtime *J, double v)
 {
     Object *obj = new Object(*J, PHON_CNUMBER, J->number_meta);
     obj->as.number = v;
     return obj;
 }
 
-static Object *jsV_newstring(Environment *J, const String &v)
+static Object *jsV_newstring(Runtime *J, const String &v)
 {
     Object *obj = new Object(*J, PHON_CSTRING, J->string_meta);
     new(&obj->as.string) String(std::move(J->internalize(v)));
@@ -363,7 +372,7 @@ static Object *jsV_newstring(Environment *J, const String &v)
 }
 
 /* ToObject() on a value */
-Object *Environment::to_object(Variant *v)
+Object *Runtime::to_object(Variant *v)
 {
     switch (v->type)
     {
@@ -381,41 +390,41 @@ Object *Environment::to_object(Variant *v)
     }
 }
 
-void Environment::new_objectx()
+void Runtime::new_objectx()
 {
     Object *prototype = to_object(-1);
     pop(1);
     push(new Object(*this, PHON_COBJECT, prototype));
 }
 
-void Environment::new_object()
+void Runtime::new_object()
 {
     push(new Object(*this, PHON_COBJECT, object_meta));
 }
 
-void Environment::new_list(intptr_t size)
+void Runtime::new_list(intptr_t size)
 {
     auto obj = new Object(*this, PHON_CLIST, list_meta);
     new (&obj->as.list) Array<Variant>(size, Variant());
     push(obj);
 }
 
-void Environment::new_boolean(bool v)
+void Runtime::new_boolean(bool v)
 {
     push(jsV_newboolean(this, v));
 }
 
-void Environment::new_number(double v)
+void Runtime::new_number(double v)
 {
     push(jsV_newnumber(this, v));
 }
 
-void Environment::new_string(const String &v)
+void Runtime::new_string(const String &v)
 {
     push(jsV_newstring(this, v));
 }
 
-void create_function(Environment *J, Function *fun, Namespace *scope)
+void create_function(Runtime *J, Function *fun, Environment *scope)
 {
     Object *obj = new Object(*J, PHON_CFUNCTION, J->function_meta);
     obj->as.f.function = fun;
@@ -433,7 +442,7 @@ void create_function(Environment *J, Function *fun, Namespace *scope)
     }
 }
 
-void create_script(Environment *J, Function *fun, Namespace *scope)
+void create_script(Runtime *J, Function *fun, Environment *scope)
 {
     Object *obj = new Object(*J, PHON_CSCRIPT, nullptr);
     obj->as.f.function = fun;
@@ -441,7 +450,7 @@ void create_script(Environment *J, Function *fun, Namespace *scope)
     J->push(obj);
 }
 
-void Environment::new_native_function(native_callback_t fun, const String &name, int length)
+void Runtime::new_native_function(native_callback_t fun, const String &name, int length)
 {
     Object *obj = new Object(*this, PHON_CCFUNCTION, function_meta);
     new (&obj->as.c.name) String(name);
@@ -461,7 +470,7 @@ void Environment::new_native_function(native_callback_t fun, const String &name,
 }
 
 /* prototype -- constructor */
-void Environment::new_native_constructor(native_callback_t fun, native_callback_t con, const String &name, int length)
+void Runtime::new_native_constructor(native_callback_t fun, native_callback_t con, const String &name, int length)
 {
     Object *obj = new Object(*this, PHON_CCFUNCTION, function_meta);
     new (&obj->as.c.name) String(name);
@@ -479,8 +488,8 @@ void Environment::new_native_constructor(native_callback_t fun, native_callback_
     }
 }
 
-void Environment::new_user_data(const char *tag, std::any data, has_field_callback_t has, put_callback_t put,
-                                delete_callback_t destroy)
+void Runtime::new_user_data(const char *tag, std::any data, has_field_callback_t has, put_callback_t put,
+                            delete_callback_t destroy)
 {
     Object *prototype = nullptr;
     Object *obj;
@@ -498,12 +507,12 @@ void Environment::new_user_data(const char *tag, std::any data, has_field_callba
     push(obj);
 }
 
-void Environment::new_user_data(const char *tag, std::any data)
+void Runtime::new_user_data(const char *tag, std::any data)
 {
     new_user_data(tag, std::move(data), nullptr, nullptr, nullptr);
 }
 
-void Environment::new_user_data(Object *meta, const char *tag, std::any data)
+void Runtime::new_user_data(Object *meta, const char *tag, std::any data)
 {
     push(meta);
     new_user_data(tag, std::move(data));
@@ -512,7 +521,7 @@ void Environment::new_user_data(Object *meta, const char *tag, std::any data)
 
 /* Non-trivial operations on values. These are implemented using the stack. */
 
-int js_instanceof(Environment *J)
+int js_instanceof(Runtime *J)
 {
     Object *O, *V;
 
@@ -539,7 +548,7 @@ int js_instanceof(Environment *J)
     return 0;
 }
 
-void js_concat(Environment *J)
+void js_concat(Runtime *J)
 {
     var_to_primitive(J, -2, PHON_HINT_NONE);
     var_to_primitive(J, -1, PHON_HINT_NONE);
@@ -560,7 +569,7 @@ void js_concat(Environment *J)
     }
 }
 
-int js_compare(Environment *J, int *okay)
+int js_compare(Runtime *J, int *okay)
 {
     var_to_primitive(J, -2, PHON_HINT_NUMBER);
     var_to_primitive(J, -1, PHON_HINT_NUMBER);
@@ -574,13 +583,13 @@ int js_compare(Environment *J, int *okay)
     {
         double x = J->to_number(-2);
         double y = J->to_number(-1);
-        if (isnan(x) || isnan(y))
+        if (std::isnan(x) || std::isnan(y))
             *okay = 0;
         return x < y ? -1 : x > y ? 1 : 0;
     }
 }
 
-int js_equal(Environment *J)
+int js_equal(Runtime *J)
 {
     Variant *x = get_variant(J, -2);
     Variant *y = get_variant(J, -1);
@@ -736,7 +745,7 @@ bool Variant::operator==(const Variant &other) const
         auto n1 = this->as.number;
         auto n2 = other.as.number;
         // (undefined == undefined) is true
-        return (isnan(n1) && isnan(n2)) || n1 == n2;
+        return (std::isnan(n1) && std::isnan(n2)) || equal(n1, n2);
     }
         return as.number == other.as.number;
     case PHON_TSTRING:
@@ -769,39 +778,39 @@ void Variant::Storage::swap(Variant::Storage &other)
 
 //---------------------------------------------------------------------------------------------------------------------
 
-Value::Value(Environment &env, int idx) :
-    variant(env.get(idx))
+Value::Value(Runtime &rt, int idx) :
+    variant(rt.get(idx))
 {
     // Don't register primitive types.
     if (variant.is_object())
     {
-        env.copy(idx);
-        this->handle = env.ref();
-        this->env = &env;
+        rt.copy(idx);
+        this->handle = rt.ref();
+        this->rt = &rt;
     }
     else
     {
-        this->env = nullptr;
+        this->rt = nullptr;
     }
 }
 
 Value::Value(Value &&other) noexcept :
-    variant(std::move(other.variant)), handle(std::move(other.handle)), env(other.env)
+    variant(std::move(other.variant)), handle(std::move(other.handle)), rt(other.rt)
 {
-    other.env = nullptr;
+    other.rt = nullptr;
 }
 
 Value::Value(const Value &other) :
-    variant(other.variant), handle(other.handle), env(other.env)
+    variant(other.variant), handle(other.handle), rt(other.rt)
 {
 
 }
 
 Value::~Value()
 {
-    if (env)
+    if (rt)
     {
-        env->unref(handle);
+        rt->unref(handle);
     }
 }
 

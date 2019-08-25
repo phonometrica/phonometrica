@@ -26,12 +26,12 @@
 #include <QMessageBox>
 #include <phon/gui/pitch_settings.hpp>
 #include <phon/application/settings.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 
 namespace phonometrica {
 
-PitchSettings::PitchSettings(Environment &env, QWidget *parent) :
-    QDialog(parent), env(env)
+PitchSettings::PitchSettings(Runtime &rt, QWidget *parent) :
+    QDialog(parent), rt(rt)
 {
     setWindowTitle("Change pitch settings...");
     setMinimumWidth(300);
@@ -78,7 +78,7 @@ void PitchSettings::validate()
         QMessageBox::critical(this, "Error", "Invalid minimum pitch");
         return;
     }
-    Settings::set_value(env, category, "minimum_pitch", value);
+    Settings::set_value(rt, category, "minimum_pitch", value);
 
     value = max_edit->text().toDouble(&ok);
     if (!ok)
@@ -86,7 +86,7 @@ void PitchSettings::validate()
         QMessageBox::critical(this, "Error", "Invalid maximum pitch");
         return;
     }
-    Settings::set_value(env, category, "maximum_pitch", value);
+    Settings::set_value(rt, category, "maximum_pitch", value);
 
     value = step_edit->text().toDouble(&ok);
     if (!ok || value <= 0)
@@ -94,7 +94,7 @@ void PitchSettings::validate()
         QMessageBox::critical(this, "Error", "Invalid time step");
         return;
     }
-    Settings::set_value(env, category, "time_step", value);
+    Settings::set_value(rt, category, "time_step", value);
 
     value = threshold_edit->text().toDouble(&ok);
     if (!ok || value > 0.5 || value < 0.2)
@@ -102,14 +102,14 @@ void PitchSettings::validate()
         QMessageBox::critical(this, "Error", "Invalid voicing threshold");
         return;
     }
-    Settings::set_value(env, category, "voicing_threshold", value);
+    Settings::set_value(rt, category, "voicing_threshold", value);
 
     accept();
 }
 
 void PitchSettings::reset(bool)
 {
-    env.do_string(R"__(
+    rt.do_string(R"__(
 phon.settings.pitch_tracking = {
     minimum_pitch: 70,
     maximum_pitch: 500,
@@ -124,16 +124,16 @@ phon.settings.pitch_tracking = {
 void PitchSettings::displayValues()
 {
     String category("pitch_tracking");
-    auto minimum = Settings::get_number(env, category, "minimum_pitch");
+    auto minimum = Settings::get_number(rt, category, "minimum_pitch");
     min_edit->setText(QString::number(minimum));
 
-    auto maximum = Settings::get_number(env, category, "maximum_pitch");
+    auto maximum = Settings::get_number(rt, category, "maximum_pitch");
     max_edit->setText(QString::number(maximum));
 
-    auto step = Settings::get_number(env, category, "time_step");
+    auto step = Settings::get_number(rt, category, "time_step");
     step_edit->setText(QString::number(step));
 
-    auto thres = Settings::get_number(env, category, "voicing_threshold");
+    auto thres = Settings::get_number(rt, category, "voicing_threshold");
     threshold_edit->setText(QString::number(thres));
 }
 } // namespace phonometrica

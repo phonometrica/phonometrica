@@ -70,8 +70,8 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ProjectCtrl::ProjectCtrl(Environment &env, QWidget *parent) :
-    QTreeWidget(parent), env(env)
+ProjectCtrl::ProjectCtrl(Runtime &rt, QWidget *parent) :
+    QTreeWidget(parent), rt(rt)
 {
 #ifdef Q_OS_MAC // color the sidebar (as in Mail or Finder)
     QPalette p(this->palette());
@@ -417,7 +417,7 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
                     {
                         try
                         {
-                            env.do_file(path);
+                            rt.do_file(path);
                         }
                         catch (std::exception &e)
                         {

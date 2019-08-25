@@ -33,7 +33,7 @@ class IntensityPlot final : public SpeechPlot
 
 public:
 
-    IntensityPlot(Environment &env, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
+    IntensityPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
 
 
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;

@@ -27,25 +27,25 @@ namespace phonometrica {
 
 static const size_t COMMAND_MAX = 30;
 
-Console::Console(Environment &env, QWidget *parent) :
-    QPlainTextEdit(parent), env(env), prompt(">> ")
+Console::Console(Runtime &rt, QWidget *parent) :
+    QPlainTextEdit(parent), rt(rt), prompt(">> ")
 {
     auto font = get_monospace_font();
     setFont(font);
 
     // Redirect stdout to console.
-    if (!env.is_text_mode())
+    if (!rt.is_text_mode())
     {
-        env.print = [&](const String &s) {
+        rt.print = [&](const String &s) {
             this->print(s);
         };
 
         // Clear console.
-        auto clear = [=](Environment &) { this->clear(); };
-        env.new_native_function(clear, "clear", 0);
-        env.def_global("clear", PHON_DONTENUM);
+        auto clear = [=](Runtime &) { this->clear(); };
+        rt.new_native_function(clear, "clear", 0);
+        rt.def_global("clear", PHON_DONTENUM);
     }
-    env.console = this;
+    rt.console = this;
     setPrompt();
 }
 
@@ -69,14 +69,14 @@ void Console::interpretCommand(const QString &command, bool from_script)
     {
         auto s = command.toStdString();
 
-        env.load_string("[string]", command);
-        env.push_null();
-        env.call(0);
-        if (env.is_defined(-1))
+        rt.load_string("[string]", command);
+        rt.push_null();
+        rt.call(0);
+        if (rt.is_defined(-1))
         {
-            print(env.to_string(-1));
+            print(rt.to_string(-1));
         }
-        env.pop(1);
+        rt.pop(1);
     }
     catch (std::exception &e)
     {

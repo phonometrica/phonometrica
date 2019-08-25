@@ -28,7 +28,7 @@
 
 namespace phonometrica {
 
-class Environment;
+class Runtime;
 class Object;
 
 class Annotation final : public VFile
@@ -62,7 +62,7 @@ public:
 
 	bool is_native() const { return m_type == Native; }
 
-	static void initialize(Environment &env);
+	static void initialize(Runtime &rt);
 
 	static Object *meta() { return metaobject; }
 

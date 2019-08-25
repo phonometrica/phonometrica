@@ -20,7 +20,7 @@
  **********************************************************************************************************************/
 
 #include "annotation.hpp"
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 #include <phon/runtime/object.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>
@@ -134,53 +134,53 @@ bool Annotation::uses_external_metadata() const
 	return m_type != Native;
 }
 
-void Annotation::initialize(Environment &env)
+void Annotation::initialize(Runtime &rt)
 {
-    metaobject = new Object(env, PHON_CUSERDATA, env.object_meta);
-    env.permanent_objects.append(metaobject);
+    metaobject = new Object(rt, PHON_CUSERDATA, rt.object_meta);
+    rt.permanent_objects.append(metaobject);
 
-    auto new_annot = [](Environment &env) {
-        env.push_null(); // TODO: Annotation ctor
+    auto new_annot = [](Runtime &rt) {
+        rt.push_null(); // TODO: Annotation ctor
     };
 
-    auto annot_path = [](Environment &env) {
-        auto annot = env.cast_user_data<std::shared_ptr<Annotation>>(0);
-        env.push(annot->path());
+    auto annot_path = [](Runtime &rt) {
+        auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
+        rt.push(annot->path());
     };
 
-    auto add_property = [](Environment &env) {
-    	auto annot = env.cast_user_data<std::shared_ptr<Annotation>>(0);
-    	auto category = env.to_string(1);
+    auto add_property = [](Runtime &rt) {
+    	auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
+    	auto category = rt.to_string(1);
     	std::any value;
-    	if (env.is_boolean(2))
-    		value = env.to_boolean(2);
-    	else if (env.is_number(2))
-    		value = env.to_number(2);
+    	if (rt.is_boolean(2))
+    		value = rt.to_boolean(2);
+    	else if (rt.is_number(2))
+    		value = rt.to_number(2);
 		else
-			value = env.to_string(2);
+			value = rt.to_string(2);
 
 		annot->add_property(Property(std::move(category), std::move(value)));
-		env.push_null();
+		rt.push_null();
     };
 
-    auto bind_to_sound = [](Environment &env) {
-    	auto annot = env.cast_user_data<std::shared_ptr<Annotation>>(0);
-    	auto path = env.to_string(1);
+    auto bind_to_sound = [](Runtime &rt) {
+    	auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
+    	auto path = rt.to_string(1);
     	auto project = Project::instance();
     	project->import_file(path);
     	auto snd = downcast<Sound>(project->get(path));
     	if (snd) annot->set_sound(snd);
-    	env.push_null();
+    	rt.push_null();
     };
 
-    env.push(metaobject);
+    rt.push(metaobject);
     {
-        env.add_accessor("path", annot_path);
-        env.add_method("Annotation.meta.add_property", add_property, 2);
-        env.add_method("Annotation.meta.bind_to_sound", bind_to_sound, 1);
+        rt.add_accessor("path", annot_path);
+        rt.add_method("Annotation.meta.add_property", add_property, 2);
+        rt.add_method("Annotation.meta.bind_to_sound", bind_to_sound, 1);
     }
-    env.new_native_constructor(new_annot, new_annot, "Annotation", 1);
-    env.def_global("Annotation", PHON_DONTENUM);
+    rt.new_native_constructor(new_annot, new_annot, "Annotation", 1);
+    rt.def_global("Annotation", PHON_DONTENUM);
 
 
 }

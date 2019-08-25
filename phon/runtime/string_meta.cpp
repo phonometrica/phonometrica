@@ -17,188 +17,187 @@
  **************************************************************************************/
 
 #include <phon/error.hpp>
-#include <phon/runtime/runtime.hpp>
-#include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
+#include <phon/runtime/object.hpp>
 
 namespace phonometrica {
 
-static String checkstring(Environment *J, int idx)
+static String checkstring(Runtime *J, int idx)
 {
     if (!J->is_coercible(idx))
         throw J->raise("Type error", "string function called on null or undefined");
     return J->to_string(idx);
 }
 
-static void jsB_new_String(Environment &env)
+static void jsB_new_String(Runtime &rt)
 {
-    env.new_string(env.top_count() > 1 ? env.to_string(1) : String());
+    rt.new_string(rt.top_count() > 1 ? rt.to_string(1) : String());
 }
 
-static void jsB_String(Environment &env)
+static void jsB_String(Runtime &rt)
 {
-    env.push(env.top_count() > 1 ? env.to_string(1) : String());
+    rt.push(rt.top_count() > 1 ? rt.to_string(1) : String());
 }
 
-static void string_to_string(Environment &env)
+static void string_to_string(Runtime &rt)
 {
-    Object *self = env.to_object(0);
-    if (self->type != PHON_CSTRING) throw env.raise("Type error", "not a string");
-    env.push(self->as.string);
+    Object *self = rt.to_object(0);
+    if (self->type != PHON_CSTRING) throw rt.raise("Type error", "not a string");
+    rt.push(self->as.string);
 }
 
-static void string_to_value(Environment &env)
+static void string_to_value(Runtime &rt)
 {
-    Object *self = env.to_object(0);
-    if (self->type != PHON_CSTRING) throw env.raise("Type error", "not a string");
-    env.push(self->as.string);
+    Object *self = rt.to_object(0);
+    if (self->type != PHON_CSTRING) throw rt.raise("Type error", "not a string");
+    rt.push(self->as.string);
 }
 
-static void string_char_at(Environment &env)
+static void string_char_at(Runtime &rt)
 {
-    auto s = checkstring(&env, 0);
-    auto pos = env.to_integer(1);
+    auto s = checkstring(&rt, 0);
+    auto pos = rt.to_integer(1);
 
     try
     {
 	    String grapheme = s.next_grapheme(pos);
-	    env.push(std::move(grapheme));
+	    rt.push(std::move(grapheme));
     }
     catch (std::exception &e)
     {
-        throw env.raise("Index error", e);
+        throw rt.raise("Index error", e);
     }
 }
 
-static void string_concat(Environment &env)
+static void string_concat(Runtime &rt)
 {
-    auto top = env.top_count();
+    auto top = rt.top_count();
     int n;
 
     if (top == 1)
         return;
 
-    String result = checkstring(&env, 0);
+    String result = checkstring(&rt, 0);
 
     for (int i = 1; i < top; ++i)
     {
-        auto s = env.to_string(i);
+        auto s = rt.to_string(i);
         result.append(s);
     }
 
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void string_find(Environment &env)
+static void string_find(Runtime &rt)
 {
-    auto haystack = checkstring(&env, 0);
-    auto needle = env.to_string(1);
+    auto haystack = checkstring(&rt, 0);
+    auto needle = rt.to_string(1);
     auto index = haystack.find(needle);
-    env.push(index);
+    rt.push(index);
 }
 
-static void string_rfind(Environment &env)
+static void string_rfind(Runtime &rt)
 {
-    auto haystack = checkstring(&env, 0);
-    auto needle = env.to_string(1);
+    auto haystack = checkstring(&rt, 0);
+    auto needle = rt.to_string(1);
     auto index = haystack.rfind(needle);
-    env.push(index);
+    rt.push(index);
 }
 
-static void string_compare(Environment &env)
+static void string_compare(Runtime &rt)
 {
-    auto a = checkstring(&env, 0);
-    auto b = env.to_string(1);
-    env.push(a.compare(b));
+    auto a = checkstring(&rt, 0);
+    auto b = rt.to_string(1);
+    rt.push(a.compare(b));
 }
 
-static void string_mid(Environment &env)
+static void string_mid(Runtime &rt)
 {
-    auto str = checkstring(&env, 0);
-    auto from = env.to_integer(1);
-    auto count = env.is_defined(2) ? env.to_integer(2) : -1;
+    auto str = checkstring(&rt, 0);
+    auto from = rt.to_integer(1);
+    auto count = rt.is_defined(2) ? rt.to_integer(2) : -1;
 
     try
     {
         auto result = str.mid(from, count);
-        env.push(std::move(result));
+        rt.push(std::move(result));
     }
     catch (std::exception &e)
     {
-        throw env.raise("Index error", e);
+        throw rt.raise("Index error", e);
     }
 }
 
-static void string_left(Environment &env)
+static void string_left(Runtime &rt)
 {
-    auto str = checkstring(&env, 0);
-    auto count = env.to_integer(1);
+    auto str = checkstring(&rt, 0);
+    auto count = rt.to_integer(1);
 
     try
     {
         auto result = str.left(count);
-        env.push(std::move(result));
+        rt.push(std::move(result));
     }
     catch (std::exception &e)
     {
-        throw env.raise("Index error", e);
+        throw rt.raise("Index error", e);
     }
 }
 
-static void string_right(Environment &env)
+static void string_right(Runtime &rt)
 {
-    auto str = checkstring(&env, 0);
-    auto count = env.to_integer(1);
+    auto str = checkstring(&rt, 0);
+    auto count = rt.to_integer(1);
 
     try
     {
         auto result = str.right(count);
-        env.push(std::move(result));
+        rt.push(std::move(result));
     }
     catch (std::exception &e)
     {
-        throw env.raise("Index error", e);
+        throw rt.raise("Index error", e);
     }
 }
 
-static void string_to_lower(Environment &env)
+static void string_to_lower(Runtime &rt)
 {
-    auto src = checkstring(&env, 0);
-    env.push(src.to_lower());
+    auto src = checkstring(&rt, 0);
+    rt.push(src.to_lower());
 }
 
-static void string_starts_with(Environment &env)
+static void string_starts_with(Runtime &rt)
 {
-    auto self = checkstring(&env, 0);
-    auto prefix = env.to_string(1);
-    env.push_boolean(self.starts_with(prefix));
+    auto self = checkstring(&rt, 0);
+    auto prefix = rt.to_string(1);
+    rt.push_boolean(self.starts_with(prefix));
 }
 
-static void string_ends_with(Environment &env)
+static void string_ends_with(Runtime &rt)
 {
-    auto self = checkstring(&env, 0);
-    auto suffix = env.to_string(1);
-    env.push_boolean(self.ends_with(suffix));
+    auto self = checkstring(&rt, 0);
+    auto suffix = rt.to_string(1);
+    rt.push_boolean(self.ends_with(suffix));
 }
 
-static void string_contains(Environment &env)
+static void string_contains(Runtime &rt)
 {
-    auto self = checkstring(&env, 0);
-    auto infix = env.to_string(1);
-    env.push_boolean(self.contains(infix));
+    auto self = checkstring(&rt, 0);
+    auto infix = rt.to_string(1);
+    rt.push_boolean(self.contains(infix));
 }
 
-static void string_count(Environment &env)
+static void string_count(Runtime &rt)
 {
-    auto self = checkstring(&env, 0);
-    auto substring = env.to_string(1);
-    env.push(self.count(substring));
+    auto self = checkstring(&rt, 0);
+    auto substring = rt.to_string(1);
+    rt.push(self.count(substring));
 }
 
-static void string_to_upper(Environment &env)
+static void string_to_upper(Runtime &rt)
 {
-    auto src = checkstring(&env, 0);
-    env.push(src.to_upper());
+    auto src = checkstring(&rt, 0);
+    rt.push(src.to_upper());
 }
 
 static int istrim(int c)
@@ -207,115 +206,115 @@ static int istrim(int c)
            c == 0xA || c == 0xD || c == 0x2028 || c == 0x2029;
 }
 
-static void string_trim(Environment &env)
+static void string_trim(Runtime &rt)
 {
-    auto s = checkstring(&env, 0);
-    env.push(s.trim());
+    auto s = checkstring(&rt, 0);
+    rt.push(s.trim());
 }
 
-static void string_ltrim(Environment &env)
+static void string_ltrim(Runtime &rt)
 {
-    auto s = checkstring(&env, 0);
-    env.push(s.ltrim());
+    auto s = checkstring(&rt, 0);
+    rt.push(s.ltrim());
 }
 
-static void string_rtrim(Environment &env)
+static void string_rtrim(Runtime &rt)
 {
-    auto s = checkstring(&env, 0);
-    env.push(s.rtrim());
+    auto s = checkstring(&rt, 0);
+    rt.push(s.rtrim());
 }
 
-static void string_from_codepoint(Environment &env)
+static void string_from_codepoint(Runtime &rt)
 {
-    auto top = env.top_count();
+    auto top = rt.top_count();
     String result;
 
     for (int i = 1; i < top; ++i)
     {
-        char32_t c = env.to_uint32(i);
+        char32_t c = rt.to_uint32(i);
         result.append(String::encode(c).data);
     }
 
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void string_replace(Environment &env)
+static void string_replace(Runtime &rt)
 {
-    auto source = checkstring(&env, 0);
-    auto before = env.to_string(1);
-    auto after = env.to_string(2);
-    env.push(source.replace(before, after));
+    auto source = checkstring(&rt, 0);
+    auto before = rt.to_string(1);
+    auto after = rt.to_string(2);
+    rt.push(source.replace(before, after));
 }
 
-static void string_replace_first(Environment &env)
+static void string_replace_first(Runtime &rt)
 {
-    auto source = checkstring(&env, 0);
-    auto before = env.to_string(1);
-    auto after = env.to_string(2);
-    env.push(source.replace_first(before, after));
+    auto source = checkstring(&rt, 0);
+    auto before = rt.to_string(1);
+    auto after = rt.to_string(2);
+    rt.push(source.replace_first(before, after));
 }
 
-static void string_replace_last(Environment &env)
+static void string_replace_last(Runtime &rt)
 {
-    auto source = checkstring(&env, 0);
-    auto before = env.to_string(1);
-    auto after = env.to_string(2);
-    env.push(source.replace_last(before, after));
+    auto source = checkstring(&rt, 0);
+    auto before = rt.to_string(1);
+    auto after = rt.to_string(2);
+    rt.push(source.replace_last(before, after));
 }
 
-static void string_replace_at(Environment &env)
+static void string_replace_at(Runtime &rt)
 {
-    auto source = checkstring(&env, 0);
-    auto pos = env.to_integer(1);
-    auto count = env.to_integer(2);
-    auto after = env.to_string(3);
-    env.push(source.replace(pos, count, after));
+    auto source = checkstring(&rt, 0);
+    auto pos = rt.to_integer(1);
+    auto count = rt.to_integer(2);
+    auto after = rt.to_string(3);
+    rt.push(source.replace(pos, count, after));
 }
 
-static void string_remove(Environment &env)
+static void string_remove(Runtime &rt)
 {
-    auto source = checkstring(&env, 0);
-    auto substring = env.to_string(1);
-    env.push(source.remove(substring));
+    auto source = checkstring(&rt, 0);
+    auto substring = rt.to_string(1);
+    rt.push(source.remove(substring));
 }
 
-static void string_remove_first(Environment &env)
+static void string_remove_first(Runtime &rt)
 {
-    auto source = checkstring(&env, 0);
-    auto substring = env.to_string(1);
-    env.push(source.remove_first(substring));
+    auto source = checkstring(&rt, 0);
+    auto substring = rt.to_string(1);
+    rt.push(source.remove_first(substring));
 }
 
-static void string_remove_last(Environment &env)
+static void string_remove_last(Runtime &rt)
 {
-    auto source = checkstring(&env, 0);
-    auto substring = env.to_string(1);
-    env.push(source.remove_last(substring));
+    auto source = checkstring(&rt, 0);
+    auto substring = rt.to_string(1);
+    rt.push(source.remove_last(substring));
 }
 
-static void string_remove_at(Environment &env)
+static void string_remove_at(Runtime &rt)
 {
-    auto source = checkstring(&env, 0);
-    auto pos = env.to_integer(1);
-    auto count = env.to_integer(2);
-    env.push(source.remove(pos, count));
+    auto source = checkstring(&rt, 0);
+    auto pos = rt.to_integer(1);
+    auto count = rt.to_integer(2);
+    rt.push(source.remove(pos, count));
 }
 
-static void string_insert(Environment &env)
+static void string_insert(Runtime &rt)
 {
-    auto source = checkstring(&env, 0);
-    auto pos = env.to_integer(1);
-    auto s = env.to_string(2);
-    env.push(source.insert(pos, s));
+    auto source = checkstring(&rt, 0);
+    auto pos = rt.to_integer(1);
+    auto s = rt.to_string(2);
+    rt.push(source.insert(pos, s));
 }
 
-static void string_reverse(Environment &env)
+static void string_reverse(Runtime &rt)
 {
-    auto self = checkstring(&env, 0);
-    env.push(self.reverse());
+    auto self = checkstring(&rt, 0);
+    rt.push(self.reverse());
 }
 
-static void split_with_regex(Environment &env)
+static void split_with_regex(Runtime &rt)
 {
     throw error("split regex not implemented");
 #if 0
@@ -324,11 +323,11 @@ static void split_with_regex(Environment &env)
     const char *p, *a, *b, *c, *e;
     Resub m;
 
-    auto &text = checkstring(&env, 0);
-    re = js_toregexp(&env, 1);
-    limit = env.is_defined(2) ? env.to_integer(2) : 1 << 30;
+    auto &text = checkstring(&rt, 0);
+    re = js_toregexp(&rt, 1);
+    limit = rt.is_defined(2) ? rt.to_integer(2) : 1 << 30;
 
-    env.new_list();
+    rt.new_list();
     len = 0;
 
     e = text.end();
@@ -339,8 +338,8 @@ static void split_with_regex(Environment &env)
         if (js_regexec((Reprog *) re->prog, text, &m, 0))
         {
             if (len == limit) return;
-            env.push_literal("");
-            js_setindex(&env, -2, 0);
+            rt.push_literal("");
+            js_setindex(&rt, -2, 0);
         }
         return;
     }
@@ -362,64 +361,64 @@ static void split_with_regex(Environment &env)
         }
 
         if (len == limit) return;
-        env.push_lstring(p, b - p);
-        js_setindex(&env, -2, len++);
+        rt.push_lstring(p, b - p);
+        js_setindex(&rt, -2, len++);
 
         for (k = 1; k < m.nsub; ++k)
         {
             if (len == limit) return;
-            env.push_lstring(m.sub[k].sp, m.sub[k].ep - m.sub[k].sp);
-            js_setindex(&env, -2, len++);
+            rt.push_lstring(m.sub[k].sp, m.sub[k].ep - m.sub[k].sp);
+            js_setindex(&rt, -2, len++);
         }
 
         a = p = c;
     }
 
     if (len == limit) return;
-    env.push_string(p);
-    js_setindex(&env, -2, len);
+    rt.push_string(p);
+    js_setindex(&rt, -2, len);
 #endif
 }
 
-static void split_with_string(Environment &env)
+static void split_with_string(Runtime &rt)
 {
-    auto str = checkstring(&env, 0);
-    auto sep = env.to_string(1);
+    auto str = checkstring(&rt, 0);
+    auto sep = rt.to_string(1);
     auto pieces = str.split(sep);
-    env.new_list();
+    rt.new_list();
 
     for (int i = 1; i <= pieces.size(); i++)
     {
-        env.push(std::move(pieces[i]));
-        js_setindex(&env, -2, i-1); // TODO: changes indices to base 1 in split() and everywhere
+        rt.push(std::move(pieces[i]));
+        js_setindex(&rt, -2, i-1); // TODO: changes indices to base 1 in split() and everywhere
     }
 }
 
-static void string_split(Environment &env)
+static void string_split(Runtime &rt)
 {
-    if (env.is_null(1))
+    if (rt.is_null(1))
     {
-        env.new_list();
-        env.copy(0);
-        js_setindex(&env, -2, 0);
+        rt.new_list();
+        rt.copy(0);
+        js_setindex(&rt, -2, 0);
     }
-    else if (env.is_regex(1))
+    else if (rt.is_regex(1))
     {
-        split_with_regex(env);
+        split_with_regex(rt);
     }
     else
     {
-        split_with_string(env);
+        split_with_string(rt);
     }
 }
 
-static void string_is_empty(Environment &env)
+static void string_is_empty(Runtime &rt)
 {
-    auto s = checkstring(&env, 0);
-    env.push_boolean(s.empty());
+    auto s = checkstring(&rt, 0);
+    rt.push_boolean(s.empty());
 }
 
-void Environment::init_string()
+void Runtime::init_string()
 {
     new (&string_meta->as.string) String;
 

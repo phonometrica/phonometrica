@@ -20,184 +20,184 @@
  ***********************************************************************************************************************/
 
 #include <phon/runtime/object.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 #include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
 
 namespace fs = filesystem;
 
-static void system_user_directory(Environment &env)
+static void system_user_directory(Runtime &rt)
 {
-    env.push(fs::user_directory());
+    rt.push(fs::user_directory());
 }
 
-static void system_current_directory(Environment &env)
+static void system_current_directory(Runtime &rt)
 {
-    env.push(fs::current_directory());
+    rt.push(fs::current_directory());
 }
 
-static void system_set_current_directory(Environment &env)
+static void system_set_current_directory(Runtime &rt)
 {
-    auto path = env.to_string(-1);
+    auto path = rt.to_string(-1);
     fs::set_current_directory(path);
-    env.push_null();
+    rt.push_null();
 }
 
-static void system_full_path(Environment &env)
+static void system_full_path(Runtime &rt)
 {
-    auto path = env.to_string(-1);
+    auto path = rt.to_string(-1);
     try
     {
-        env.push(fs::full_path(path));
+        rt.push(fs::full_path(path));
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 }
 
-static void system_separator(Environment &env)
+static void system_separator(Runtime &rt)
 {
-    env.push(fs::separator());
+    rt.push(fs::separator());
 }
 
-static void system_name(Environment &env)
+static void system_name(Runtime &rt)
 {
 #if PHON_WINDOWS
-    env.push("windows");
+    rt.push("windows");
 #elif PHON_MACOS
-    env.push("macos");
+    rt.push("macos");
 #elif PHON_LINUX
-    env.push("linux");
+    rt.push("linux");
 #else
-    env.push("generic");
+    rt.push("generic");
 #endif
 }
 
-static void system_join(Environment &env)
+static void system_join(Runtime &rt)
 {
-    auto top = env.top_count();
-    String result = env.to_string(1);
+    auto top = rt.top_count();
+    String result = rt.to_string(1);
 
     for (int i = 2; i < top; i++)
     {
-        auto chunk = env.to_string(i);
+        auto chunk = rt.to_string(i);
         fs::append(result, chunk);
     }
-    env.push(std::move(result));
+    rt.push(std::move(result));
 }
 
-static void system_write(Environment &env)
+static void system_write(Runtime &rt)
 {
-    int top = env.top_count();
+    int top = rt.top_count();
 
     for (int i = 1; i < top; ++i)
     {
-        auto s = env.to_string(i);
-        env.print(s);
+        auto s = rt.to_string(i);
+        rt.print(s);
     }
-    env.push_null();
+    rt.push_null();
 }
 
-static void system_temp_directory(Environment &env)
+static void system_temp_directory(Runtime &rt)
 {
-    env.push(fs::temp_directory());
+    rt.push(fs::temp_directory());
 }
 
-static void system_temp_name(Environment &env)
+static void system_temp_name(Runtime &rt)
 {
-    env.push(fs::temp_filename());
+    rt.push(fs::temp_filename());
 }
 
-static void system_base_name(Environment &env)
+static void system_base_name(Runtime &rt)
 {
-    auto path = env.to_string(-1);
+    auto path = rt.to_string(-1);
     try
     {
-        env.push(fs::base_name(path));
+        rt.push(fs::base_name(path));
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 }
 
-static void system_get_directory(Environment &env)
+static void system_get_directory(Runtime &rt)
 {
-    auto path = env.to_string(-1);
-    env.push(fs::directory_name(path));
+    auto path = rt.to_string(-1);
+    rt.push(fs::directory_name(path));
 }
 
-static void system_create_directory(Environment &env)
+static void system_create_directory(Runtime &rt)
 {
-    auto path = env.to_string(-1);
+    auto path = rt.to_string(-1);
     try
     {
         fs::create_directory(path);
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 
-    env.push_null();
+    rt.push_null();
 }
 
-static void system_remove_directory(Environment &env)
+static void system_remove_directory(Runtime &rt)
 {
-    auto path = env.to_string(-1);
+    auto path = rt.to_string(-1);
     try
     {
         fs::remove_directory(path);
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 
-    env.push_null();
+    rt.push_null();
 }
 
-static void system_remove_file(Environment &env)
+static void system_remove_file(Runtime &rt)
 {
-    auto path = env.to_string(-1);
+    auto path = rt.to_string(-1);
     try
     {
         fs::remove_file(path);
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 
-    env.push_null();
+    rt.push_null();
 }
 
-static void system_remove(Environment &env)
+static void system_remove(Runtime &rt)
 {
-    auto path = env.to_string(-1);
+    auto path = rt.to_string(-1);
     try
     {
         fs::remove(path);
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 
-    env.push_null();
+    rt.push_null();
 }
 
-static void system_list_directory(Environment &env)
+static void system_list_directory(Runtime &rt)
 {
-    auto argc = env.arg_count();
-    auto path = env.to_string(1);
+    auto argc = rt.arg_count();
+    auto path = rt.to_string(1);
     bool hidden = false;
 
     if (argc > 1)
     {
-        hidden = env.to_boolean(2);
+        hidden = rt.to_boolean(2);
     }
     try
     {
@@ -207,90 +207,90 @@ static void system_list_directory(Environment &env)
         {
             files.emplace_back(std::move(f));
         }
-        env.push(std::move(files));
+        rt.push(std::move(files));
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 }
 
-static void system_exists(Environment &env)
+static void system_exists(Runtime &rt)
 {
-    auto path = env.to_string(1);
+    auto path = rt.to_string(1);
 
     try
     {
-        env.push_boolean(fs::exists(path));
+        rt.push_boolean(fs::exists(path));
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 }
 
-static void system_is_file(Environment &env)
+static void system_is_file(Runtime &rt)
 {
-    auto path = env.to_string(1);
+    auto path = rt.to_string(1);
 
     try
     {
-        env.push_boolean(fs::is_file(path));
+        rt.push_boolean(fs::is_file(path));
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 }
 
-static void system_is_directory(Environment &env)
+static void system_is_directory(Runtime &rt)
 {
-    auto path = env.to_string(1);
+    auto path = rt.to_string(1);
 
     try
     {
-        env.push_boolean(fs::is_directory(path));
+        rt.push_boolean(fs::is_directory(path));
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 }
 
-static void system_clear_directory(Environment &env)
+static void system_clear_directory(Runtime &rt)
 {
-    auto path = env.to_string(1);
+    auto path = rt.to_string(1);
 
     try
     {
         fs::clear_directory(path);
-        env.push_null();
+        rt.push_null();
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 }
 
-static void system_rename(Environment &env)
+static void system_rename(Runtime &rt)
 {
-    auto old_name = env.to_string(1);
-    auto new_name = env.to_string(2);
+    auto old_name = rt.to_string(1);
+    auto new_name = rt.to_string(2);
 
     try
     {
         fs::rename(old_name, new_name);
-        env.push_null();
+        rt.push_null();
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 }
 
-static void system_split_extension(Environment &env)
+static void system_split_extension(Runtime &rt)
 {
-    auto path = env.to_string(1);
+    auto path = rt.to_string(1);
 
     try
     {
@@ -298,54 +298,54 @@ static void system_split_extension(Environment &env)
         Array<Variant> result;
         result.emplace_back(std::move(pieces.first));
         result.emplace_back(std::move(pieces.second));
-        env.push(std::move(result));
+        rt.push(std::move(result));
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 }
 
-static void system_strip_extension(Environment &env)
+static void system_strip_extension(Runtime &rt)
 {
-    auto path = env.to_string(1);
+    auto path = rt.to_string(1);
 
     try
     {
-        env.push(fs::strip_ext(path));
+        rt.push(fs::strip_ext(path));
     }
     catch (std::exception &e)
     {
-        throw env.raise("System error", e);
+        throw rt.raise("System error", e);
     }
 }
 
-static void system_get_extension(Environment &env)
+static void system_get_extension(Runtime &rt)
 {
-    auto argc = env.arg_count();
-    auto path = env.to_string(1);
+    auto argc = rt.arg_count();
+    auto path = rt.to_string(1);
     bool lower = false;
 
     if (argc > 1)
     {
-        lower = env.to_boolean(2);
+        lower = rt.to_boolean(2);
     }
 
-    env.push(fs::ext(path, lower));
+    rt.push(fs::ext(path, lower));
 }
 
-static void system_read(Environment &env)
+static void system_read(Runtime &rt)
 {
-    auto filename = env.to_string(1);
+    auto filename = rt.to_string(1);
 
     try
     {
         auto content = File::read_all(filename);
-        env.push(std::move(content));
+        rt.push(std::move(content));
     }
     catch (std::exception &e)
     {
-        throw env.raise("Intput/Output error", e);
+        throw rt.raise("Intput/Output error", e);
     }
 }
 
@@ -373,17 +373,17 @@ static std::optional<String> find_module(const String &dir, String name)
     return std::optional<String>();
 }
 
-static void system_find_module(Environment &env)
+static void system_find_module(Runtime &rt)
 {
-    auto name = env.to_string(1);
+    auto name = rt.to_string(1);
     String cwd;
     // First look in the same directory as the current script.
-    auto dir = fs::directory_name(env.filename);
+    auto dir = fs::directory_name(rt.filename);
     auto path = find_module(dir, name);
 
     if (path)
     {
-        env.push(*path);
+        rt.push(*path);
         return;
     }
 
@@ -394,38 +394,38 @@ static void system_find_module(Environment &env)
         path = find_module(fs::current_directory(), name);
         if (path)
         {
-            env.push(*path);
+            rt.push(*path);
             return;
         }
     }
 
-    for (auto &dir : env.import_directories)
+    for (auto &dir : rt.import_directories)
     {
         path = find_module(dir, name);
         if (path)
         {
-            env.push(*path);
+            rt.push(*path);
             return;
         }
     }
 
-    throw env.raise("Error", "Cannot find module \"%s\"", name.data());
+    throw rt.raise("Error", "Cannot find module \"%s\"", name.data());
 }
 
-static void system_genericize(Environment &env)
+static void system_genericize(Runtime &rt)
 {
-    auto path = env.to_string(1);
-    env.push(fs::genericize(path));
+    auto path = rt.to_string(1);
+    rt.push(fs::genericize(path));
 }
 
-static void system_nativize(Environment &env)
+static void system_nativize(Runtime &rt)
 {
-    auto path = env.to_string(1);
-    env.push(fs::nativize(path));
+    auto path = rt.to_string(1);
+    rt.push(fs::nativize(path));
 }
 
 
-void Environment::init_system()
+void Runtime::init_system()
 {
     push(new Object(*this, PHON_CSYSTEM, object_meta));
     {

@@ -17,7 +17,7 @@
  **************************************************************************************/
 
 #include <cassert>
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/toplevel.hpp>
 #include <phon/runtime/parse.hpp>
 #include <phon/runtime/compile.hpp>
 #include <phon/runtime/object.hpp>
@@ -942,7 +942,7 @@ static void pstmlist(int d, Ast *list)
     }
 }
 
-void dump_syntax(Environment *J, Ast *prog, int dominify)
+void dump_syntax(Runtime *J, Ast *prog, int dominify)
 {
     minify = dominify;
     if (prog->type == AST_LIST)
@@ -1081,7 +1081,7 @@ static void sblock(int d, Ast *list)
     pc(']');
 }
 
-void dump_list(Environment *J, Ast *prog)
+void dump_list(Runtime *J, Ast *prog)
 {
     minify = 0;
     if (prog->type == AST_LIST)
@@ -1093,7 +1093,7 @@ void dump_list(Environment *J, Ast *prog)
 
 /* Compiled code */
 
-void jsC_dumpfunction(Environment *J, Function *F)
+void jsC_dumpfunction(Runtime *J, Function *F)
 {
     auto p = F->code.data();
     instruction_t *end = F->code.data() + F->code.size();
@@ -1181,7 +1181,7 @@ void jsC_dumpfunction(Environment *J, Function *F)
 
 /* Runtime values */
 
-void dump_variant(Environment *J, const Variant &v)
+void dump_variant(Runtime *J, const Variant &v)
 {
     minify = 0;
     switch (v.type)
@@ -1251,7 +1251,7 @@ void dump_variant(Environment *J, const Variant &v)
     }
 }
 
-void dump_object(Environment *J, Object *obj)
+void dump_object(Runtime *J, Object *obj)
 {
     minify = 0;
     utils::printf("{\n");
@@ -1264,7 +1264,7 @@ void dump_object(Environment *J, Object *obj)
     utils::printf("}\n");
 }
 
-void dump_strings(Environment *J)
+void dump_strings(Runtime *J)
 {
     utils::printf("interned strings {\n");
     for (auto &s : J->strings)

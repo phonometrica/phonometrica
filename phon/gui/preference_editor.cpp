@@ -24,8 +24,8 @@
 
 namespace phonometrica {
 
-PreferenceEditor::PreferenceEditor(QWidget *parent, Environment &env) :
-		QDialog(parent), env(env)
+PreferenceEditor::PreferenceEditor(QWidget *parent, Runtime &rt) :
+		QDialog(parent), rt(rt)
 {
 	this->setupUi();
 }
@@ -68,7 +68,7 @@ void PreferenceEditor::setupGeneralTab()
     auto hbox_resources = new QHBoxLayout;
     auto resources_btn = new QPushButton("Choose...");
     edit_resources = new QLineEdit;
-    edit_resources->setText(Settings::get_string(env, "resources_directory"));
+    edit_resources->setText(Settings::get_string(rt, "resources_directory"));
     connect(resources_btn, SIGNAL(clicked()), this, SLOT(setResourcesPath()));
     hbox_resources->addWidget(edit_resources);
     hbox_resources->addWidget(resources_btn);
@@ -77,7 +77,7 @@ void PreferenceEditor::setupGeneralTab()
     auto hbox_praat = new QHBoxLayout;
     auto praat_path_btn = new QPushButton("Choose...");
     edit_praat = new QLineEdit;
-    edit_praat->setText(Settings::get_string(env, "praat_path"));
+    edit_praat->setText(Settings::get_string(rt, "praat_path"));
     hbox_praat->addWidget(edit_praat);
     hbox_praat->addWidget(praat_path_btn);
     connect(praat_path_btn, SIGNAL(clicked()), this, SLOT(setPraatPath()));
@@ -88,7 +88,7 @@ void PreferenceEditor::setupGeneralTab()
     spinbox_match_context_window = new QSpinBox;
     spinbox_match_context_window->setRange(10, 100);
     spinbox_match_context_window->setSingleStep(1);
-    int len = Settings::get_int(env, "match_window_length");
+    int len = Settings::get_int(rt, "match_window_length");
     spinbox_match_context_window->setValue(len);
 
     hbox_context->addWidget(contextLabel);
@@ -96,9 +96,9 @@ void PreferenceEditor::setupGeneralTab()
 
     // Autoload/autosave
     checkbox_autoload = new QCheckBox(tr("Load most recent project on startup"));
-    checkbox_autoload->setChecked(Settings::get_boolean(env, "autoload"));
+    checkbox_autoload->setChecked(Settings::get_boolean(rt, "autoload"));
     checkbox_autosave = new QCheckBox(tr("Automatically save project on exit"));
-    checkbox_autosave->setChecked(Settings::get_boolean(env, "autosave"));
+    checkbox_autosave->setChecked(Settings::get_boolean(rt, "autosave"));
 
     gen_layout->addWidget(new QLabel(tr("Resources folder:")));
     gen_layout->addLayout(hbox_resources);
@@ -115,13 +115,13 @@ void PreferenceEditor::setupGeneralTab()
 void PreferenceEditor::setupSoundTab()
 {
     checkbox_mouse_tracking = new QCheckBox(tr("Enable mouse tracking in sound and annotation views"));
-    checkbox_mouse_tracking->setChecked(Settings::get_boolean(env, "enable_mouse_tracking"));
+    checkbox_mouse_tracking->setChecked(Settings::get_boolean(rt, "enable_mouse_tracking"));
 
     sound_layout->addWidget(checkbox_mouse_tracking);
     auto quality_layout = new QHBoxLayout;
     quality_layout->addWidget(new QLabel("Resampling quality (0 = worst, 10 = best)"));
     edit_quality = new QLineEdit;
-    edit_quality->setText(QString::number(Settings::get_int(env, "resampling_quality")));
+    edit_quality->setText(QString::number(Settings::get_int(rt, "resampling_quality")));
     quality_layout->addWidget(edit_quality);
     sound_layout->addLayout(quality_layout);
     sound_layout->addStretch(0);
@@ -131,27 +131,27 @@ void PreferenceEditor::accept()
 {
 	// General tab
 
-	Settings::set_value(env, "resources_directory", edit_resources->text());
-    Settings::set_value(env, "praat_path", edit_praat->text());
+	Settings::set_value(rt, "resources_directory", edit_resources->text());
+    Settings::set_value(rt, "praat_path", edit_praat->text());
 
 	double len = spinbox_match_context_window->value();
-    Settings::set_value(env, "match_window_length", len);
+    Settings::set_value(rt, "match_window_length", len);
 
     bool autoload = checkbox_autoload->isChecked();
-    Settings::set_value(env, "autoload", autoload);
+    Settings::set_value(rt, "autoload", autoload);
     bool autosave = checkbox_autosave->isChecked();
-    Settings::set_value(env, "autosave", autosave);
+    Settings::set_value(rt, "autosave", autosave);
 
 	// Sound tab
 
     bool tracking = checkbox_mouse_tracking->isChecked();
-    Settings::set_value(env, "enable_mouse_tracking", tracking);
+    Settings::set_value(rt, "enable_mouse_tracking", tracking);
     bool ok;
     auto quality = edit_quality->text().toInt(&ok);
     if (!ok) quality = 5;
     if (quality < 0) quality = 0;
     if (quality > 10) quality = 10;
-    Settings::set_value(env, "resampling_quality", double(quality));
+    Settings::set_value(rt, "resampling_quality", double(quality));
 
 	QDialog::accept();
 }
@@ -168,7 +168,7 @@ void PreferenceEditor::setResourcesPath()
 
 void PreferenceEditor::setLineEditFolder(QLineEdit *line)
 {
-    auto dir = Settings::get_string(env, "last_directory");
+    auto dir = Settings::get_string(rt, "last_directory");
 	QString path = QFileDialog::getExistingDirectory(this->parentWidget(), tr("Choose folder..."), dir);
 
 	if (!path.isEmpty())
@@ -177,7 +177,7 @@ void PreferenceEditor::setLineEditFolder(QLineEdit *line)
 
 void PreferenceEditor::setLineEditFile(QLineEdit *line)
 {
-    auto dir = Settings::get_string(env, "last_directory");
+    auto dir = Settings::get_string(rt, "last_directory");
     QString path = QFileDialog::getOpenFileName(this->parentWidget(), tr("Choose file..."), path);
 
 	if (!path.isEmpty())

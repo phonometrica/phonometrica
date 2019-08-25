@@ -16,9 +16,8 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
-#include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
+#include <phon/runtime/object.hpp>
 
 #if defined(_MSC_VER) && (_MSC_VER < 1700) /* VS2012 has stdint.h */
 typedef unsigned __int64 uint64_t;
@@ -31,37 +30,37 @@ typedef unsigned __int64 uint64_t;
 namespace phonometrica {
 
 
-static void jsB_new_Number(Environment &env)
+static void jsB_new_Number(Runtime &rt)
 {
-    env.new_number(env.top_count() > 1 ? env.to_number(1) : 0);
+    rt.new_number(rt.top_count() > 1 ? rt.to_number(1) : 0);
 }
 
-static void jsB_Number(Environment &env)
+static void jsB_Number(Runtime &rt)
 {
-    env.push(env.top_count() > 1 ? env.to_number(1) : 0);
+    rt.push(rt.top_count() > 1 ? rt.to_number(1) : 0);
 }
 
-static void Np_to_value(Environment &env)
+static void Np_to_value(Runtime &rt)
 {
-    Object *self = env.to_object(0);
-    if (self->type != PHON_CNUMBER) throw env.raise("Type error", "not a number");
-    env.push(self->as.number);
+    Object *self = rt.to_object(0);
+    if (self->type != PHON_CNUMBER) throw rt.raise("Type error", "not a number");
+    rt.push(self->as.number);
 }
 
-static void Np_toString(Environment &env)
+static void Np_toString(Runtime &rt)
 {
     char buf[32];
-    Object *self = env.to_object(0);
-    int radix = env.is_null(1) ? 10 : env.to_integer(1);
+    Object *self = rt.to_object(0);
+    int radix = rt.is_null(1) ? 10 : rt.to_integer(1);
     if (self->type != PHON_CNUMBER)
-        throw env.raise("Type error", "not a number");
+        throw rt.raise("Type error", "not a number");
     if (radix == 10)
     {
-        env.push(number_to_string(&env, buf, self->as.number));
+        rt.push(number_to_string(&rt, buf, self->as.number));
         return;
     }
     if (radix < 2 || radix > 36)
-        throw env.raise("Range error","invalid radix");
+        throw rt.raise("Range error","invalid radix");
 
     /* lame number to string conversion for any radix from 2 to 36 */
     {
@@ -76,17 +75,17 @@ static void Np_toString(Environment &env)
 
         if (number == 0)
         {
-            env.push("0");
+            rt.push("0");
             return;
         }
-        if (isnan(number))
+        if (std::isnan(number))
         {
-            env.push(env.undef_string);
+            rt.push(rt.undef_string);
             return;
         }
-        if (isinf(number))
+        if (std::isinf(number))
         {
-            env.push(sign ? "-Infinity" : "Infinity");
+            rt.push(sign ? "-Infinity" : "Infinity");
             return;
         }
 
@@ -141,12 +140,12 @@ static void Np_toString(Environment &env)
                 buffer.append('0');
         }
 
-        env.push(std::move(buffer));
+        rt.push(std::move(buffer));
     }
 }
 
 /* Customized ToString() on a number */
-static void numtostr(Environment *J, const char *fmt, int w, double n)
+static void numtostr(Runtime *J, const char *fmt, int w, double n)
 {
     char buf[32], *e;
     sprintf(buf, fmt, w, n);
@@ -159,55 +158,55 @@ static void numtostr(Environment *J, const char *fmt, int w, double n)
     J->push(buf);
 }
 
-static void Np_toFixed(Environment &env)
+static void Np_toFixed(Runtime &rt)
 {
-    Object *self = env.to_object(0);
-    int width = env.to_integer(1);
+    Object *self = rt.to_object(0);
+    int width = rt.to_integer(1);
     char buf[32];
     double x;
-    if (self->type != PHON_CNUMBER) throw env.raise("Type error", "not a number");
-    if (width < 0) throw env.raise("Range error","precision %d out of range", width);
-    if (width > 20) throw env.raise("Range error","precision %d out of range", width);
+    if (self->type != PHON_CNUMBER) throw rt.raise("Type error", "not a number");
+    if (width < 0) throw rt.raise("Range error","precision %d out of range", width);
+    if (width > 20) throw rt.raise("Range error","precision %d out of range", width);
     x = self->as.number;
-    if (isnan(x) || isinf(x) || x <= -1e21 || x >= 1e21)
-        env.push(number_to_string(&env, buf, x));
+    if (std::isnan(x) || std::isinf(x) || x <= -1e21 || x >= 1e21)
+        rt.push(number_to_string(&rt, buf, x));
     else
-        numtostr(&env, "%.*f", width, x);
+        numtostr(&rt, "%.*f", width, x);
 }
 
-static void Np_toExponential(Environment &env)
+static void Np_toExponential(Runtime &rt)
 {
-    Object *self = env.to_object(0);
-    int width = env.to_integer(1);
+    Object *self = rt.to_object(0);
+    int width = rt.to_integer(1);
     char buf[32];
     double x;
-    if (self->type != PHON_CNUMBER) throw env.raise("Type error", "not a number");
-    if (width < 0) throw env.raise("Range error","precision %d out of range", width);
-    if (width > 20) throw env.raise("Range error","precision %d out of range", width);
+    if (self->type != PHON_CNUMBER) throw rt.raise("Type error", "not a number");
+    if (width < 0) throw rt.raise("Range error","precision %d out of range", width);
+    if (width > 20) throw rt.raise("Range error","precision %d out of range", width);
     x = self->as.number;
-    if (isnan(x) || isinf(x))
-        env.push(number_to_string(&env, buf, x));
+    if (std::isnan(x) || std::isinf(x))
+        rt.push(number_to_string(&rt, buf, x));
     else
-        numtostr(&env, "%.*e", width, self->as.number);
+        numtostr(&rt, "%.*e", width, self->as.number);
 }
 
-static void Np_toPrecision(Environment &env)
+static void Np_toPrecision(Runtime &rt)
 {
-    Object *self = env.to_object(0);
-    int width = env.to_integer(1);
+    Object *self = rt.to_object(0);
+    int width = rt.to_integer(1);
     char buf[32];
     double x;
-    if (self->type != PHON_CNUMBER) throw env.raise("Type error", "not a number");
-    if (width < 1) throw env.raise("Range error","precision %d out of range", width);
-    if (width > 21) throw env.raise("Range error","precision %d out of range", width);
+    if (self->type != PHON_CNUMBER) throw rt.raise("Type error", "not a number");
+    if (width < 1) throw rt.raise("Range error","precision %d out of range", width);
+    if (width > 21) throw rt.raise("Range error","precision %d out of range", width);
     x = self->as.number;
-    if (isnan(x) || isinf(x))
-        env.push(number_to_string(&env, buf, x));
+    if (std::isnan(x) || std::isinf(x))
+        rt.push(number_to_string(&rt, buf, x));
     else
-        numtostr(&env, "%.*g", width, self->as.number);
+        numtostr(&rt, "%.*g", width, self->as.number);
 }
 
-void Environment::init_number()
+void Runtime::init_number()
 {
     number_meta->as.number = 0;
 

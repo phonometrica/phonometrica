@@ -16,40 +16,39 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
-#include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
+#include <phon/runtime/object.hpp>
 
 #define QQ(X) #X
 #define Q(X) QQ(X)
 
 namespace phonometrica {
 
-static void Ep_toString(Environment &env)
+static void Ep_toString(Runtime &rt)
 {
     String message, name("Error");
 
-    if (!env.is_object(-1))
-        throw env.raise("Type error", "not an object");
+    if (!rt.is_object(-1))
+        throw rt.raise("Type error", "not an object");
 
-    if (env.has_field(0, "name"))
-        name = env.to_string(-1);
-    if (env.has_field(0, "message"))
-        message = env.to_string(-1);
+    if (rt.has_field(0, "name"))
+        name = rt.to_string(-1);
+    if (rt.has_field(0, "message"))
+        message = rt.to_string(-1);
 
     if (name.empty())
-        env.push(message);
+        rt.push(message);
     else if (message.empty())
-        env.push(name);
+        rt.push(name);
     else
     {
         name.append(": ");
         name.append(message);
-        env.push(name);
+        rt.push(name);
     }
 }
 
-static int jsB_ErrorX(Environment *J, Object *prototype)
+static int jsB_ErrorX(Runtime *J, Object *prototype)
 {
     int top = J->top_count();
     J->push(new Object(*J, PHON_CERROR, prototype));
@@ -63,7 +62,7 @@ static int jsB_ErrorX(Environment *J, Object *prototype)
     return 1;
 }
 
-static void js_newerrorx(Environment *J, const char *message, Object *prototype)
+static void js_newerrorx(Runtime *J, const char *message, Object *prototype)
 {
     J->push(new Object(*J, PHON_CERROR, prototype));
     J->push(message);

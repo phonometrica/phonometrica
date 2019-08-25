@@ -16,7 +16,7 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/toplevel.hpp>
 #include <phon/runtime/lex.hpp>
 #include <phon/runtime/parse.hpp>
 
@@ -35,24 +35,24 @@
 
 namespace phonometrica {
 
-static Ast *expression(Environment *J, int notin);
+static Ast *expression(Runtime *J, int notin);
 
-static Ast *assignment(Environment *J, int notin);
+static Ast *assignment(Runtime *J, int notin);
 
-static Ast *memberexp(Environment *J);
+static Ast *memberexp(Runtime *J);
 
-static Ast *statement(Environment *J);
+static Ast *statement(Runtime *J);
 
-static Ast *funbody(Environment *J);
+static Ast *funbody(Runtime *J);
 
-PHON_NORETURN static void parse_error(Environment *J, const char *fmt, ...) PHON_PRINTFLIKE(2, 3);
+PHON_NORETURN static void parse_error(Runtime *J, const char *fmt, ...) PHON_PRINTFLIKE(2, 3);
 
 #define INCREC() if (++J->astdepth > PHON_ASTLIMIT) parse_error(J, "[Syntax error] too much recursion")
 #define DECREC() --J->astdepth
 #define SAVEREC() int SAVE=J->astdepth
 #define POPREC() J->astdepth=SAVE
 
-static void parse_error(Environment *J, const char *fmt, ...)
+static void parse_error(Runtime *J, const char *fmt, ...)
 {
     va_list ap;
     char buf[512];
@@ -67,7 +67,7 @@ static void parse_error(Environment *J, const char *fmt, ...)
     throw std::runtime_error(buf);
 }
 
-static void jsP_warning(Environment *J, const char *fmt, ...)
+static void jsP_warning(Runtime *J, const char *fmt, ...)
 {
     va_list ap;
     char buf[512];
@@ -81,7 +81,7 @@ static void jsP_warning(Environment *J, const char *fmt, ...)
     J->report(buf);
 }
 
-static Ast *jsP_newnode(Environment *J, enum AstType type, Ast *a, Ast *b, Ast *c, Ast *d)
+static Ast *jsP_newnode(Runtime *J, enum AstType type, Ast *a, Ast *b, Ast *c, Ast *d)
 {
     auto node = new Ast;
 
@@ -121,21 +121,21 @@ static Ast *jsP_list(Ast *head)
     return head;
 }
 
-static Ast *jsP_newstrnode(Environment *J, enum AstType type, const String &s)
+static Ast *jsP_newstrnode(Runtime *J, enum AstType type, const String &s)
 {
     Ast *node = jsP_newnode(J, type, 0, 0, 0, 0);
     node->string = s;
     return node;
 }
 
-static Ast *jsP_newnumnode(Environment *J, enum AstType type, double n)
+static Ast *jsP_newnumnode(Runtime *J, enum AstType type, double n)
 {
     Ast *node = jsP_newnode(J, type, 0, 0, 0, 0);
     node->number = n;
     return node;
 }
 
-static void jsP_freejumps(Environment *J, JumpList *node)
+static void jsP_freejumps(Runtime *J, JumpList *node)
 {
     while (node)
     {
@@ -145,7 +145,7 @@ static void jsP_freejumps(Environment *J, JumpList *node)
     }
 }
 
-void free_parse(Environment *J)
+void free_parse(Runtime *J)
 {
     Ast *node = J->gcast;
     while (node)
@@ -160,7 +160,7 @@ void free_parse(Environment *J)
 
 /* Lookahead */
 
-static void jsP_next(Environment *J)
+static void jsP_next(Runtime *J)
 {
     J->lookahead = lex(J);
     J->astline = J->lexline;
@@ -170,7 +170,7 @@ static void jsP_next(Environment *J)
 
 #define jsP_expect(J, x) if (!jsP_accept(J, x)) parse_error(J, "[Syntax error] unexpected token: %s (expected %s)", get_token_string(J->lookahead), get_token_string(x))
 
-static void semicolon(Environment *J)
+static void semicolon(Runtime *J)
 {
     if (J->lookahead == ';')
     {
@@ -184,7 +184,7 @@ static void semicolon(Environment *J)
 
 /* Literals */
 
-static Ast *identifier(Environment *J)
+static Ast *identifier(Runtime *J)
 {
     Ast *a;
     if (J->lookahead == TK_IDENTIFIER)
@@ -196,14 +196,14 @@ static Ast *identifier(Environment *J)
     parse_error(J, "[Syntax error] unexpected token: %s (expected identifier)", get_token_string(J->lookahead));
 }
 
-static Ast *identifieropt(Environment *J)
+static Ast *identifieropt(Runtime *J)
 {
     if (J->lookahead == TK_IDENTIFIER)
         return identifier(J);
     return nullptr;
 }
 
-static Ast *identifiername(Environment *J)
+static Ast *identifiername(Runtime *J)
 {
     if (J->lookahead == TK_IDENTIFIER || J->lookahead >= TK_BREAK)
     {
@@ -214,14 +214,14 @@ static Ast *identifiername(Environment *J)
     parse_error(J, "[Syntax error] unexpected token: %s (expected identifier or keyword)", get_token_string(J->lookahead));
 }
 
-static Ast *arrayelement(Environment *J)
+static Ast *arrayelement(Runtime *J)
 {
     if (J->lookahead == ',')
         return EXP0(UNDEF);
     return assignment(J, 0);
 }
 
-static Ast *arrayliteral(Environment *J)
+static Ast *arrayliteral(Runtime *J)
 {
     Ast *head, *tail;
     if (J->lookahead == ']')
@@ -235,7 +235,7 @@ static Ast *arrayliteral(Environment *J)
     return jsP_list(head);
 }
 
-static Ast *propname(Environment *J)
+static Ast *propname(Runtime *J)
 {
     Ast *name;
     if (J->lookahead == TK_NUMBER)
@@ -255,7 +255,7 @@ static Ast *propname(Environment *J)
     return name;
 }
 
-static Ast *propassign(Environment *J)
+static Ast *propassign(Runtime *J)
 {
     Ast *name, *value, *arg, *body;
 
@@ -287,7 +287,7 @@ static Ast *propassign(Environment *J)
     return EXP2(PROP_VAL, name, value);
 }
 
-static Ast *objectliteral(Environment *J)
+static Ast *objectliteral(Runtime *J)
 {
     Ast *head, *tail;
     if (J->lookahead == '}')
@@ -304,7 +304,7 @@ static Ast *objectliteral(Environment *J)
 
 /* Functions */
 
-static Ast *parameters(Environment *J)
+static Ast *parameters(Runtime *J)
 {
     Ast *head, *tail;
     if (J->lookahead == ')')
@@ -317,7 +317,7 @@ static Ast *parameters(Environment *J)
     return jsP_list(head);
 }
 
-static Ast *fundec(Environment *J)
+static Ast *fundec(Runtime *J)
 {
     Ast *a, *b, *c;
     a = identifier(J);
@@ -328,7 +328,7 @@ static Ast *fundec(Environment *J)
     return jsP_newnode(J, AST_FUNDEC, a, b, c, 0);
 }
 
-static Ast *funstm(Environment *J)
+static Ast *funstm(Runtime *J)
 {
     Ast *a, *b, *c;
     a = identifier(J);
@@ -340,7 +340,7 @@ static Ast *funstm(Environment *J)
     return STM1(VAR, LIST(EXP2(VAR, a, EXP3(FUN, a, b, c))));
 }
 
-static Ast *funexp(Environment *J)
+static Ast *funexp(Runtime *J)
 {
     Ast *a, *b, *c;
     a = identifieropt(J);
@@ -353,7 +353,7 @@ static Ast *funexp(Environment *J)
 
 /* Expressions */
 
-static Ast *primary(Environment *J)
+static Ast *primary(Runtime *J)
 {
     Ast *a;
 
@@ -409,7 +409,7 @@ static Ast *primary(Environment *J)
     parse_error(J, "[Syntax error] unexpected token in expression: %s", get_token_string(J->lookahead));
 }
 
-static Ast *arguments(Environment *J)
+static Ast *arguments(Runtime *J)
 {
     Ast *head, *tail;
     if (J->lookahead == ')')
@@ -422,7 +422,7 @@ static Ast *arguments(Environment *J)
     return jsP_list(head);
 }
 
-static Ast *newexp(Environment *J)
+static Ast *newexp(Runtime *J)
 {
     Ast *a, *b;
 
@@ -444,7 +444,7 @@ static Ast *newexp(Environment *J)
     return primary(J);
 }
 
-static Ast *memberexp(Environment *J)
+static Ast *memberexp(Runtime *J)
 {
     Ast *a = newexp(J);
     SAVEREC();
@@ -465,7 +465,7 @@ static Ast *memberexp(Environment *J)
     return a;
 }
 
-static Ast *callexp(Environment *J)
+static Ast *callexp(Runtime *J)
 {
     Ast *a = newexp(J);
     SAVEREC();
@@ -492,7 +492,7 @@ static Ast *callexp(Environment *J)
     return a;
 }
 
-static Ast *postfix(Environment *J)
+static Ast *postfix(Runtime *J)
 {
     Ast *a = callexp(J);
     if (!J->newline && jsP_accept(J, TK_INC)) return EXP1(POSTINC, a);
@@ -500,7 +500,7 @@ static Ast *postfix(Environment *J)
     return a;
 }
 
-static Ast *unary(Environment *J)
+static Ast *unary(Runtime *J)
 {
     Ast *a;
     INCREC();
@@ -518,7 +518,7 @@ static Ast *unary(Environment *J)
     return a;
 }
 
-static Ast *multiplicative(Environment *J)
+static Ast *multiplicative(Runtime *J)
 {
     Ast *a = unary(J);
     SAVEREC();
@@ -543,7 +543,7 @@ static Ast *multiplicative(Environment *J)
     return a;
 }
 
-static Ast *additive(Environment *J)
+static Ast *additive(Runtime *J)
 {
     Ast *a = multiplicative(J);
     SAVEREC();
@@ -563,7 +563,7 @@ static Ast *additive(Environment *J)
     return a;
 }
 
-static Ast *shift(Environment *J)
+static Ast *shift(Runtime *J)
 {
     Ast *a = additive(J);
     SAVEREC();
@@ -588,7 +588,7 @@ static Ast *shift(Environment *J)
     return a;
 }
 
-static Ast *relational(Environment *J, int notin)
+static Ast *relational(Runtime *J, int notin)
 {
     Ast *a = shift(J);
     SAVEREC();
@@ -628,7 +628,7 @@ static Ast *relational(Environment *J, int notin)
     return a;
 }
 
-static Ast *equality(Environment *J, int notin)
+static Ast *equality(Runtime *J, int notin)
 {
     Ast *a = relational(J, notin);
     SAVEREC();
@@ -648,7 +648,7 @@ static Ast *equality(Environment *J, int notin)
     return a;
 }
 
-static Ast *js_bitand(Environment *J, int notin)
+static Ast *js_bitand(Runtime *J, int notin)
 {
     Ast *a = equality(J, notin);
     SAVEREC();
@@ -661,7 +661,7 @@ static Ast *js_bitand(Environment *J, int notin)
     return a;
 }
 
-static Ast *js_bitxor(Environment *J, int notin)
+static Ast *js_bitxor(Runtime *J, int notin)
 {
     Ast *a = js_bitand(J, notin);
     SAVEREC();
@@ -674,7 +674,7 @@ static Ast *js_bitxor(Environment *J, int notin)
     return a;
 }
 
-static Ast *js_bitor(Environment *J, int notin)
+static Ast *js_bitor(Runtime *J, int notin)
 {
     Ast *a = js_bitxor(J, notin);
     SAVEREC();
@@ -687,7 +687,7 @@ static Ast *js_bitor(Environment *J, int notin)
     return a;
 }
 
-static Ast *logand(Environment *J, int notin)
+static Ast *logand(Runtime *J, int notin)
 {
     Ast *a = js_bitor(J, notin);
     if (jsP_accept(J, TK_AND))
@@ -699,7 +699,7 @@ static Ast *logand(Environment *J, int notin)
     return a;
 }
 
-static Ast *logor(Environment *J, int notin)
+static Ast *logor(Runtime *J, int notin)
 {
     Ast *a = logand(J, notin);
     if (jsP_accept(J, TK_OR))
@@ -711,7 +711,7 @@ static Ast *logor(Environment *J, int notin)
     return a;
 }
 
-static Ast *conditional(Environment *J, int notin)
+static Ast *conditional(Runtime *J, int notin)
 {
     Ast *a = logor(J, notin);
     if (jsP_accept(J, '?'))
@@ -727,7 +727,7 @@ static Ast *conditional(Environment *J, int notin)
     return a;
 }
 
-static Ast *assignment(Environment *J, int notin)
+static Ast *assignment(Runtime *J, int notin)
 {
     Ast *a = conditional(J, notin);
     INCREC();
@@ -747,7 +747,7 @@ static Ast *assignment(Environment *J, int notin)
     return a;
 }
 
-static Ast *expression(Environment *J, int notin)
+static Ast *expression(Runtime *J, int notin)
 {
     Ast *a = assignment(J, notin);
     SAVEREC();
@@ -762,7 +762,7 @@ static Ast *expression(Environment *J, int notin)
 
 /* Statements */
 
-static Ast *vardec(Environment *J, int notin)
+static Ast *vardec(Runtime *J, int notin)
 {
     Ast *a = identifier(J);
     if (jsP_accept(J, '='))
@@ -770,7 +770,7 @@ static Ast *vardec(Environment *J, int notin)
     return EXP1(VAR, a);
 }
 
-static Ast *vardeclist(Environment *J, int notin)
+static Ast *vardeclist(Runtime *J, int notin)
 {
     Ast *head, *tail;
     head = tail = LIST(vardec(J, notin));
@@ -794,7 +794,7 @@ bool is_end_block(int t)
     }
 }
 
-static Ast *statementlist(Environment *J)
+static Ast *statementlist(Runtime *J)
 {
     Ast *head, *tail;
 
@@ -806,7 +806,7 @@ static Ast *statementlist(Environment *J)
     return jsP_list(head);
 }
 
-static Ast *block(Environment *J)
+static Ast *block(Runtime *J)
 {
     Ast *a;
     jsP_expect(J, '{');
@@ -815,14 +815,14 @@ static Ast *block(Environment *J)
     return STM1(BLOCK, a);
 }
 
-static Ast *block_with_end(Environment *J)
+static Ast *block_with_end(Runtime *J)
 {
     Ast *a;
     a = statementlist(J);
     return STM1(BLOCK, a);
 }
 
-static Ast *importstatement(Environment *J)
+static Ast *importstatement(Runtime *J)
 {
     // Rewrite "import module" as "var module = require('module')". This corresponds to the following AST:
     // (stm_var [(exp_var (identifier module) (exp_call (exp_identifier require) [(exp_string "module")]))])
@@ -835,7 +835,7 @@ static Ast *importstatement(Environment *J)
     return STM1(VAR, jsP_list(LIST(var)));
 }
 
-static Ast *exportstatement(Environment *J)
+static Ast *exportstatement(Runtime *J)
 {
     // TODO: add multiple exports
     // The statement:
@@ -867,7 +867,7 @@ static Ast *exportstatement(Environment *J)
 //    return STM1(VAR, jsP_list(head));
 }
 
-static Ast *forstatement(Environment *J)
+static Ast *forstatement(Runtime *J)
 {
     Ast *a, *b, *c, *d;
 
@@ -916,7 +916,7 @@ static Ast *forstatement(Environment *J)
     return declared ? STM4(FOR_VAR, a, b, c, d) : STM4(FOR, a, b, c, d);
 }
 
-static Ast *foreachstatement(Environment *J)
+static Ast *foreachstatement(Runtime *J)
 {
     Ast *a, *b, *c;
 
@@ -946,7 +946,7 @@ static Ast *foreachstatement(Environment *J)
     return STM3(FOR_IN, a, b, c);
 }
 
-static Ast *ifstatement(Environment *J, bool elsif = false)
+static Ast *ifstatement(Runtime *J, bool elsif = false)
 {
     Ast *a, *b, *c;
 
@@ -966,7 +966,7 @@ static Ast *ifstatement(Environment *J, bool elsif = false)
     return STM3(IF, a, b, c);
 }
 
-static Ast *statement(Environment *J)
+static Ast *statement(Runtime *J)
 {
     Ast *a, *b, *c, *d;
     Ast *stm;
@@ -1084,14 +1084,14 @@ static Ast *statement(Environment *J)
 
 /* Program */
 
-static Ast *scriptelement(Environment *J)
+static Ast *scriptelement(Runtime *J)
 {
     if (jsP_accept(J, TK_FUNCTION))
         return fundec(J);
     return statement(J);
 }
 
-static Ast *script(Environment *J, int terminator)
+static Ast *script(Runtime *J, int terminator)
 {
     Ast *head, *tail;
     if (J->lookahead == terminator)
@@ -1102,7 +1102,7 @@ static Ast *script(Environment *J, int terminator)
     return jsP_list(head);
 }
 
-static Ast *funbody(Environment *J)
+static Ast *funbody(Runtime *J)
 {
     Ast *a;
     a = script(J, TK_END);
@@ -1118,7 +1118,7 @@ static int toint32(double d)
     double two32 = 4294967296.0;
     double two31 = 2147483648.0;
 
-    if (!isfinite(d) || d == 0)
+    if (!std::isfinite(d) || d == 0)
         return 0;
 
     d = fmod(d, two32);
@@ -1218,7 +1218,7 @@ static int jsP_foldconst(Ast *node)
 
 /* Main entry point */
 
-Ast *parse(Environment *J, const String &filename, const String &source)
+Ast *parse(Runtime *J, const String &filename, const String &source)
 {
     Ast *p;
 
@@ -1232,7 +1232,7 @@ Ast *parse(Environment *J, const String &filename, const String &source)
     return p;
 }
 
-Ast *parse_function(Environment *J, const char *filename, const char *params, const String &body)
+Ast *parse_function(Runtime *J, const char *filename, const char *params, const String &body)
 {
     Ast *p = nullptr;
     if (params)

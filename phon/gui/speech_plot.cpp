@@ -28,8 +28,8 @@
 
 namespace phonometrica {
 
-SpeechPlot::SpeechPlot(Environment &env, std::shared_ptr<AudioData> data, QWidget *parent) :
-    SpeechWidget(parent), env(env), m_data(std::move(data))
+SpeechPlot::SpeechPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
+    SpeechWidget(parent), rt(rt), m_data(std::move(data))
 {
     setMouseTracking(true);
 }

@@ -101,11 +101,11 @@ const char *get_token_string(int token);
 
 int find_word(const String &s, const String *list, int num);
 
-void init_lex(Environment *J, const String &filename, const String &source);
+void init_lex(Runtime *J, const String &filename, const String &source);
 
-int lex(Environment *J);
+int lex(Runtime *J);
 
-int lex_json(Environment *J);
+int lex_json(Runtime *J);
 
 } // namespace phonometrica
 

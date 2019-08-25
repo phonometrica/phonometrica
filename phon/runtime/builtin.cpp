@@ -16,19 +16,18 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/toplevel.hpp>
 #include <phon/runtime/lex.hpp>
 #include <phon/runtime/compile.hpp>
 #include <phon/runtime/object.hpp>
-#include <phon/runtime/toplevel.hpp>
 
 namespace phonometrica {
 
-static void jsB_parse_int(Environment &env)
+static void jsB_parse_int(Runtime &rt)
 {
-    auto str = env.to_string(1);
+    auto str = rt.to_string(1);
     auto s = str.data();
-    int radix = env.is_defined(2) ? env.to_integer(2) : 10;
+    int radix = rt.is_defined(2) ? rt.to_integer(2) : 10;
     double sign = 1;
     double n;
     char *e;
@@ -55,53 +54,53 @@ static void jsB_parse_int(Environment &env)
     }
     else if (radix < 2 || radix > 36)
     {
-        env.push(NAN);
+        rt.push(NAN);
         return;
     }
     n = strtol(s, &e, radix);
     if (s == e)
-        env.push(NAN);
+        rt.push(NAN);
     else
-        env.push(n * sign);
+        rt.push(n * sign);
 }
 
-static void jsB_parse_float(Environment &env)
+static void jsB_parse_float(Runtime &rt)
 {
-    auto str = env.to_string(1);
+    auto str = rt.to_string(1);
     auto s = str.data();
     char *e;
     double n;
 
     while (is_white(*s) || is_new_line(*s)) ++s;
     if (!strncmp(s, "Infinity", 8))
-        env.push(INFINITY);
+        rt.push(INFINITY);
     else if (!strncmp(s, "+Infinity", 9))
-        env.push(INFINITY);
+        rt.push(INFINITY);
     else if (!strncmp(s, "-Infinity", 9))
-        env.push(-INFINITY);
+        rt.push(-INFINITY);
     else
     {
         n = string_to_float(s, &e);
         if (e == s)
-            env.push(NAN);
+            rt.push(NAN);
         else
-            env.push(n);
+            rt.push(n);
     }
 }
 
-static void jsB_is_nan(Environment &env)
+static void jsB_is_nan(Runtime &rt)
 {
-    double n = env.to_number(1);
-    env.push_boolean(isnan(n));
+    double n = rt.to_number(1);
+    rt.push_boolean(std::isnan(n));
 }
 
-static void jsB_is_finite(Environment &env)
+static void jsB_is_finite(Runtime &rt)
 {
-    double n = env.to_number(1);
-    env.push_boolean(isfinite(n));
+    double n = rt.to_number(1);
+    rt.push_boolean(std::isfinite(n));
 }
 
-static void Encode(Environment *J, const String &s, const char *unescaped)
+static void Encode(Runtime *J, const String &s, const char *unescaped)
 {
     String buffer;
     auto str = s.data();
@@ -122,7 +121,7 @@ static void Encode(Environment *J, const String &s, const char *unescaped)
     J->push(std::move(buffer));
 }
 
-static void Decode(Environment *J, const String &s, const char *reserved)
+static void Decode(Runtime *J, const String &s, const char *reserved)
 {
     String buffer;
     int a, b;
@@ -162,27 +161,27 @@ static void Decode(Environment *J, const String &s, const char *reserved)
 #define URIMARK "-_.!~*`()"
 #define URIUNESCAPED URIALPHA URIDIGIT URIMARK
 
-static void jsB_decode_uri(Environment &env)
+static void jsB_decode_uri(Runtime &rt)
 {
-    Decode(&env, env.to_string(1), URIRESERVED "#");
+    Decode(&rt, rt.to_string(1), URIRESERVED "#");
 }
 
-static void jsB_decode_uri_component(Environment &env)
+static void jsB_decode_uri_component(Runtime &rt)
 {
-    Decode(&env, env.to_string(1), "");
+    Decode(&rt, rt.to_string(1), "");
 }
 
-static void jsB_encode_uri(Environment &env)
+static void jsB_encode_uri(Runtime &rt)
 {
-    Encode(&env, env.to_string(1), URIUNESCAPED URIRESERVED "#");
+    Encode(&rt, rt.to_string(1), URIUNESCAPED URIRESERVED "#");
 }
 
-static void jsB_encode_uri_component(Environment &env)
+static void jsB_encode_uri_component(Runtime &rt)
 {
-    Encode(&env, env.to_string(1), URIUNESCAPED);
+    Encode(&rt, rt.to_string(1), URIUNESCAPED);
 }
 
-void Environment::initialize()
+void Runtime::initialize()
 {
     /* Create the prototype objects here, before the constructors */
     object_meta = new Object(*this, PHON_COBJECT, nullptr);

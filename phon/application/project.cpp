@@ -50,8 +50,8 @@ void Project::open(String path)
     load();
 }
 
-Project::Project(Environment &env, String path) :
-		env(env),
+Project::Project(Runtime &rt, String path) :
+		rt(rt),
 		m_corpus(std::make_shared<VFolder>(nullptr, "Corpus")),
 		m_bookmarks(std::make_shared<VFolder>(nullptr, "Bookmarks")),
 		m_scripts(std::make_shared<VFolder>(nullptr, "Scripts")),
@@ -848,104 +848,104 @@ void Project::remove_empty_script()
 	}
 }
 
-void Project::initialize(Environment &env)
+void Project::initialize(Runtime &rt)
 {
-	auto open_project = [](Environment &env)
+	auto open_project = [](Runtime &rt)
 	{
-		auto path = env.to_string(1);
+		auto path = rt.to_string(1);
 		Project::instance()->open(path);
-        env.push_null();
+        rt.push_null();
 	};
 
-	auto close_project = [](Environment &env)
+	auto close_project = [](Runtime &rt)
 	{
 		Project::instance()->close();
-		env.push_null();
+		rt.push_null();
 	};
 
-	auto add_folder = [](Environment &env)
+	auto add_folder = [](Runtime &rt)
     {
-	    auto path = env.to_string(1);
+	    auto path = rt.to_string(1);
 	    Project::instance()->import_folder(path);
-	    env.push_null();
+	    rt.push_null();
     };
 
-    auto add_file = [](Environment &env)
+    auto add_file = [](Runtime &rt)
     {
-        auto path = env.to_string(1);
+        auto path = rt.to_string(1);
         Project::instance()->import_file(path);
-        env.push_null();
+        rt.push_null();
     };
 
-    auto refresh_project = [](Environment &env)
+    auto refresh_project = [](Runtime &rt)
 	{
     	Project::updated();
-    	env.push_null();
+    	rt.push_null();
 	};
 
-    auto project_has_path = [](Environment &env) {
-        env.push_boolean(Project::instance()->has_path());
+    auto project_has_path = [](Runtime &rt) {
+        rt.push_boolean(Project::instance()->has_path());
     };
 
-    auto save_project = [](Environment &env) {
-        if (env.arg_count() > 0)
+    auto save_project = [](Runtime &rt) {
+        if (rt.arg_count() > 0)
         {
-            auto path = env.to_string(1);
+            auto path = rt.to_string(1);
             Project::instance()->save(std::move(path));
         }
         else
         {
             Project::instance()->save();
         }
-        env.push_null();
+        rt.push_null();
     };
 
-    auto get_annotations = [&](Environment &env) {
+    auto get_annotations = [&](Runtime &rt) {
     	Array<Variant> result;
     	auto &files = Project::instance()->m_files;
     	for (auto &pair : files)
 		{
     		if (pair.second->is_annotation())
 			{
-    		    env.new_user_data(Annotation::meta(), "Annotation", downcast<Annotation>(pair.second));
-    			result.append(std::move(env.get(-1)));
+    		    rt.new_user_data(Annotation::meta(), "Annotation", downcast<Annotation>(pair.second));
+    			result.append(std::move(rt.get(-1)));
 			}
 		}
 
-    	env.push(std::move(result));
+    	rt.push(std::move(result));
     };
 
-    auto is_empty = [](Environment &env) {
-        env.push_boolean(Project::instance()->empty());
+    auto is_empty = [](Runtime &rt) {
+        rt.push_boolean(Project::instance()->empty());
     };
 
-    auto import_metadata = [](Environment &env) {
-    	auto path = env.to_string(1);
+    auto import_metadata = [](Runtime &rt) {
+    	auto path = rt.to_string(1);
     	Project::instance()->import_metadata(path);
-    	env.push_null();
+    	rt.push_null();
     };
 
-	env.get_global("phon");
+	rt.get_global("phon");
 	{
-		env.add_method("get_annotations", get_annotations, 0);
+		rt.add_method("get_annotations", get_annotations, 0);
 
-        env.push(new Object(env, PHON_COBJECT, env.object_meta));
+        rt.push(new Object(rt, PHON_COBJECT, rt.object_meta));
         {
-            env.add_method("open", open_project, 1);
-            env.add_method("close", close_project, 0);
-            env.add_method("add_folder", add_folder, 1);
-            env.add_method("add_file", add_file, 1);
-            env.add_method("refresh", refresh_project, 0);
-            env.add_method("has_path", project_has_path, 0);
-            env.add_method("save", save_project, 0);
-            env.add_method("is_empty", is_empty, 0);
-            env.add_method("import_metadata", import_metadata, 1);
+            rt.add_method("open", open_project, 1);
+            rt.add_method("close", close_project, 0);
+            rt.add_method("add_folder", add_folder, 1);
+            rt.add_method("add_file", add_file, 1);
+            rt.add_method("refresh", refresh_project, 0);
+            rt.add_method("has_path", project_has_path, 0);
+            rt.add_method("save", save_project, 0);
+            rt.add_method("is_empty", is_empty, 0);
+            rt.add_method("import_metadata", import_metadata, 1);
         }
-        env.set_field(-2, "project");
+        rt.set_field(-2, "project");
 	}
-	env.pop();
+	rt.pop();
 
-    Annotation::initialize(env);
+    Annotation::initialize(rt);
 }
 
 void Project::clear()
@@ -982,9 +982,9 @@ void Project::modify()
 	m_modified = true;
 }
 
-void Project::create(Environment &env)
+void Project::create(Runtime &rt)
 {
-    the_instance = std::make_unique<Project>(env, String());
+    the_instance = std::make_unique<Project>(rt, String());
 }
 
 void Project::updated()
@@ -1029,23 +1029,23 @@ bool Project::is_root(const std::shared_ptr<VFolder> &folder) const
 
 void Project::trigger(const String &event, const char *tag, std::any value)
 {
-    env.get_global(event_module_name);
-    env.get_field(-1, emit_name);
-    env.push_null();
-    env.push(event);
-    env.new_user_data(Annotation::meta(), tag, std::move(value));
-    env.call(2);
-    env.pop();
+    rt.get_global(event_module_name);
+    rt.get_field(-1, emit_name);
+    rt.push_null();
+    rt.push(event);
+    rt.new_user_data(Annotation::meta(), tag, std::move(value));
+    rt.call(2);
+    rt.pop();
 }
 
 void Project::trigger(const String &event)
 {
-    env.get_global(event_module_name);
-    env.get_field(-1, emit_name);
-    env.push_null();
-    env.push(event);
-    env.call(1);
-    env.pop();
+    rt.get_global(event_module_name);
+    rt.get_field(-1, emit_name);
+    rt.push_null();
+    rt.push(event);
+    rt.call(1);
+    rt.pop();
 }
 
 void Project::import_metadata(const String &path)

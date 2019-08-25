@@ -32,7 +32,7 @@
 
 namespace phonometrica {
 
-class Environment;
+class Runtime;
 
 class AudioPlayer final : public QThread
 {
@@ -40,7 +40,7 @@ class AudioPlayer final : public QThread
 
 public:
 
-    AudioPlayer(Environment &env, QObject *parent, std::shared_ptr<AudioData> data);
+    AudioPlayer(Runtime &rt, QObject *parent, std::shared_ptr<AudioData> data);
 
     AudioPlayer(const AudioPlayer &) = delete;
 
@@ -87,7 +87,7 @@ private:
 
     static void error_callback(RtAudioError::Type type, const std::string &msg);
 
-    Environment &env;
+    Runtime &rt;
 
     RtAudio::StreamParameters m_params;
 

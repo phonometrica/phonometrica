@@ -39,8 +39,8 @@
 
 namespace phonometrica {
 
-AudioPlayer::AudioPlayer(Environment &env, QObject *parent, std::shared_ptr<AudioData> data) :
-    QThread(parent), env(env), m_stream(SOUND_API), data(std::move(data))
+AudioPlayer::AudioPlayer(Runtime &rt, QObject *parent, std::shared_ptr<AudioData> data) :
+    QThread(parent), rt(rt), m_stream(SOUND_API), data(std::move(data))
 {
     connect(this, &QThread::finished, this, &AudioPlayer::close);
     prepare();
@@ -161,7 +161,7 @@ void AudioPlayer::initialize_resampling(uint32_t output_rate)
 
     int error = 0;
     auto input_rate = (uint32_t) data->sample_rate();
-    auto quality = int(Settings::get_number(env, "resampling_quality"));
+    auto quality = int(Settings::get_number(rt, "resampling_quality"));
     resampler = speex_resampler_init(data->channels(), input_rate, output_rate, quality, &error);
 
     if (error != 0 && resampler)

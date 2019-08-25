@@ -32,8 +32,8 @@
 
 namespace phonometrica {
 
-SpeechView::SpeechView(Environment &env, const std::shared_ptr<AudioData> &data, QWidget *parent) :
-    View(parent), m_data(data), player(env, this, data), env(env)
+SpeechView::SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWidget *parent) :
+    View(parent), m_data(data), player(rt, this, data), rt(rt)
 {
     // We can't set up the UI in the constructor because we need to call virtual methods. Instead, we do it
     // in post_initialize(), which is called by the viewer after the view is created and has its vtable set.
@@ -42,19 +42,19 @@ SpeechView::SpeechView(Environment &env, const std::shared_ptr<AudioData> &data,
 void SpeechView::post_initialize()
 {
     // Create objects first so that we can connect them to signals
-    waveform = new Waveform(env, m_data, this);
+    waveform = new Waveform(rt, m_data, this);
 
-    pitch_plot = new PitchPlot(env, m_data, this);
+    pitch_plot = new PitchPlot(rt, m_data, this);
     pitch_plot->setMaximumHeight(100);
 
-    intensity_plot = new IntensityPlot(env, m_data, this);
+    intensity_plot = new IntensityPlot(rt, m_data, this);
     intensity_plot->setMaximumHeight(100);
 
     auto zoom = new SoundZoom(this);
     wavebar = new WaveBar(m_data, this);
     waveform->setMagnitude(wavebar->magnitude());
 
-    bool track = Settings::get_boolean(env, "enable_mouse_tracking");
+    bool track = Settings::get_boolean(rt, "enable_mouse_tracking");
     waveform->enableMouseTracking(track);
     pitch_plot->enableMouseTracking(track);
     intensity_plot->enableMouseTracking(track);
@@ -166,7 +166,7 @@ QToolBar *SpeechView::makeToolbar()
 
     auto action_enable_tracking = new QAction(tr("Enable mouse tracking"), this);
     action_enable_tracking->setCheckable(true);
-    action_enable_tracking->setChecked(Settings::get_boolean(env, "enable_mouse_tracking"));
+    action_enable_tracking->setChecked(Settings::get_boolean(rt, "enable_mouse_tracking"));
     options_menu->addAction(action_enable_tracking);
 
     //    auto action_spectrogram = new QAction(tr("Spectrogram"), this);
@@ -384,7 +384,7 @@ void SpeechView::setPauseIcon()
 
 void SpeechView::enableMouseTracking(bool enable)
 {
-    Settings::set_value(env, "enable_mouse_tracking", enable);
+    Settings::set_value(rt, "enable_mouse_tracking", enable);
     waveform->enableMouseTracking(enable);
     pitch_plot->enableMouseTracking(enable);
     intensity_plot->enableMouseTracking(enable);
@@ -401,7 +401,7 @@ void SpeechView::showPitch(bool checked)
 
 void SpeechView::changePitchSettings(bool)
 {
-    PitchSettings dlg(env, this);
+    PitchSettings dlg(rt, this);
 
     if (dlg.exec() == QDialog::Accepted)
     {

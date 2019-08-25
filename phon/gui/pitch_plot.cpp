@@ -22,14 +22,14 @@
 #include <QDebug>
 #include <phon/gui/pitch_plot.hpp>
 #include <phon/application/settings.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 #include <phon/third_party/swipe/swipe.h>
 
 namespace phonometrica {
 
 
-PitchPlot::PitchPlot(Environment &env, std::shared_ptr<AudioData> data, QWidget *parent) :
-    SpeechPlot(env, std::move(data), parent)
+PitchPlot::PitchPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
+    SpeechPlot(rt, std::move(data), parent)
 {
     readSettings();
 }
@@ -162,10 +162,10 @@ void PitchPlot::updateSettings()
 void PitchPlot::readSettings()
 {
     String cat("pitch_tracking");
-    min_pitch = Settings::get_number(env, cat, "minimum_pitch");
-    max_pitch = Settings::get_number(env, cat, "maximum_pitch");
-    time_step = Settings::get_number(env, cat, "time_step");
-    voicing_threshold = Settings::get_number(env, cat, "voicing_threshold");
+    min_pitch = Settings::get_number(rt, cat, "minimum_pitch");
+    max_pitch = Settings::get_number(rt, cat, "maximum_pitch");
+    time_step = Settings::get_number(rt, cat, "time_step");
+    voicing_threshold = Settings::get_number(rt, cat, "voicing_threshold");
 }
 
 double PitchPlot::findValueAtTime(double time)

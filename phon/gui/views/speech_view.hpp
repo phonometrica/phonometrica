@@ -36,7 +36,7 @@
 #include <phon/gui/y_axis_widget.hpp>
 #include <phon/application/audio_player.hpp>
 #include <phon/application/audio_data.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 
 class QToolBar;
 
@@ -48,7 +48,7 @@ class SpeechView : public View
 
 public:
 
-    SpeechView(Environment &env, const std::shared_ptr<AudioData> &data, QWidget *parent = nullptr);
+    SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWidget *parent = nullptr);
 
     void post_initialize() override;
 
@@ -100,7 +100,7 @@ protected:
 
     void setInitialWindow();
 
-    Environment &env;
+    Runtime &rt;
 
     std::shared_ptr<AudioData> m_data;
 

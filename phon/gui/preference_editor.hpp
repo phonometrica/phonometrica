@@ -38,7 +38,7 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QCheckBox>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 
 namespace phonometrica {
 
@@ -48,7 +48,7 @@ class PreferenceEditor final : public QDialog
 Q_OBJECT
 
 public:
-    PreferenceEditor(QWidget *parent, Environment &env);
+    PreferenceEditor(QWidget *parent, Runtime &rt);
 
 public slots:
 
@@ -62,7 +62,7 @@ private slots:
 
 private:
 
-    Environment &env;
+    Runtime &rt;
     QDialogButtonBox *box_buttons;
     QVBoxLayout *main_layout, *gen_layout, *sound_layout;
     QTabWidget *tabs;

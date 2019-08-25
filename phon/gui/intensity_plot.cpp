@@ -25,8 +25,8 @@
 
 namespace phonometrica {
 
-IntensityPlot::IntensityPlot(Environment &env, std::shared_ptr<AudioData> data, QWidget *parent) :
-    SpeechPlot(env, std::move(data), parent)
+IntensityPlot::IntensityPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
+    SpeechPlot(rt, std::move(data), parent)
 {
 
 }

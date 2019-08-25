@@ -23,7 +23,7 @@
 #define CONSOLE_HPP
 
 #include <QPlainTextEdit>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 
 namespace phonometrica {
 
@@ -32,7 +32,7 @@ class Console final : public QPlainTextEdit
     Q_OBJECT
 
 public:
-    explicit Console(Environment &env, QWidget *parent = nullptr);
+    explicit Console(Runtime &rt, QWidget *parent = nullptr);
 
     void runCommand(QString cmd, bool from_script);
 
@@ -64,7 +64,7 @@ private:
 
     void moveToEnd();
 
-    Environment &env;
+    Runtime &rt;
 
     const QString prompt;
 

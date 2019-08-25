@@ -16,37 +16,36 @@
  *                                                                                    *
  **************************************************************************************/
 
-#include <phon/runtime/runtime.hpp>
-#include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
+#include <phon/runtime/object.hpp>
 
 namespace phonometrica {
 
-static void jsB_boolean(Environment &env)
+static void jsB_boolean(Runtime &rt)
 {
-	env.push_boolean(env.to_boolean(1));
+	rt.push_boolean(rt.to_boolean(1));
 }
 
-static void boolean_ctor(Environment &env)
+static void boolean_ctor(Runtime &rt)
 {
-	env.new_boolean(env.to_boolean(1));
+	rt.new_boolean(rt.to_boolean(1));
 }
 
-static void boolean_to_string(Environment &env)
+static void boolean_to_string(Runtime &rt)
 {
-	Object *self = env.to_object(0);
-	if (self->type != PHON_CBOOLEAN) throw env.raise("Type error", "not a boolean");
-    env.push(self->as.boolean ? env.true_string : env.false_string);
+	Object *self = rt.to_object(0);
+	if (self->type != PHON_CBOOLEAN) throw rt.raise("Type error", "not a boolean");
+    rt.push(self->as.boolean ? rt.true_string : rt.false_string);
 }
 
-static void boolean_to_value(Environment &env)
+static void boolean_to_value(Runtime &rt)
 {
-	Object *self = env.to_object(0);
-	if (self->type != PHON_CBOOLEAN) throw env.raise("Type error", "not a boolean");
-	env.push_boolean(self->as.boolean);
+	Object *self = rt.to_object(0);
+	if (self->type != PHON_CBOOLEAN) throw rt.raise("Type error", "not a boolean");
+	rt.push_boolean(self->as.boolean);
 }
 
-void Environment::init_boolean()
+void Runtime::init_boolean()
 {
 	boolean_meta->as.boolean = false;
 

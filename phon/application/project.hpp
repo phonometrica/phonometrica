@@ -31,7 +31,7 @@
 #include <phon/application/dataset.hpp>
 #include <phon/application/metadata.hpp>
 #include <phon/application/database.hpp>
-#include <phon/runtime/environment.hpp>
+#include <phon/runtime/runtime.hpp>
 #include <phon/error.hpp>
 #include <phon/dictionary.hpp>
 
@@ -44,13 +44,13 @@ class Project final : public QObject
 public:
 
 	// This must not be called directly. It is only public for the benefit of std::make_unique<Project>().
-	Project(Environment &env, String path);
+	Project(Runtime &rt, String path);
 
 	~Project();
 
-	static void create(Environment &env);
+	static void create(Runtime &rt);
 
-	static void initialize(Environment &env);
+	static void initialize(Runtime &rt);
 
 	static Project* instance();
 
@@ -186,7 +186,7 @@ private:
 
     static std::unique_ptr<Project> the_instance;
 
-	Environment &env;
+	Runtime &rt;
 
 	// Path on disk.
 	String m_path;
