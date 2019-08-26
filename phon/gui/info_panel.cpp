@@ -185,7 +185,6 @@ void InfoPanel::setWidgets(bool showTimes)
     samplerate_label = new QLabel;
     channels_label = new QLabel;
     duration_label = new QLabel;
-    connect(desc_edit, SIGNAL(textChanged()), this, SLOT(setFileDescription()));
     vl->addWidget(file_label);
     vl->addWidget(soundRef_label);
     vl->addWidget(duration_label);
@@ -219,18 +218,20 @@ void InfoPanel::setWidgets(bool showTimes)
     hl2->addStretch();
     hl2->setSpacing(0);
     vl->addLayout(hl2);
-
-
+    
     vl->addWidget(new QLabel(tr("<b>Description:<b>")));
     vl->addWidget(desc_edit);
-
-    vl->addStretch();
+    save_desc_btn = new QPushButton(tr("Save description"));
+	connect(save_desc_btn, &QPushButton::clicked, this, &InfoPanel::setFileDescription);
+    vl->addSpacing(5);
+    vl->addWidget(save_desc_btn);
+    vl->addSpacing(10);
     info_tab->setLayout(vl);
 }
 
-void InfoPanel::setFileDescription()
+void InfoPanel::setFileDescription(bool)
 {
-    bool modified;
+    bool first_modification;
 
     if (description_is_editable)
     {
@@ -239,10 +240,10 @@ void InfoPanel::setFileDescription()
         if (!m_files.empty())
         {
             auto file = m_files.front();
-            modified = file->modified();
+	        first_modification = !file->modified();
             file->set_description(desc);
 
-            if (!modified) {
+            if (first_modification) {
                 emit Project::updated();
             }
         }
