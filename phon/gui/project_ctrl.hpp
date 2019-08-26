@@ -95,7 +95,7 @@ private:
 
     Runtime &rt;
 
-    QTreeWidgetItem *corpus,*data, *scripts, *bookmarks;
+    QTreeWidgetItem *corpus,*data, *queries, *scripts, *bookmarks;
 
     // intercept items being moved in the tree
     std::queue<std::unique_ptr<Movement>> mv_buffer;

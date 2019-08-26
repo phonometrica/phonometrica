@@ -84,6 +84,8 @@ public:
 
 	const std::shared_ptr<VFolder> & data() const;
 
+	const std::shared_ptr<VFolder> & queries() const;
+
 	const String &directory() const;
 
 	void import_folder(String path);
@@ -210,6 +212,8 @@ private:
 	std::shared_ptr<VFolder> m_scripts;
 
 	std::shared_ptr<VFolder> m_data;
+
+	std::shared_ptr<VFolder> m_queries;
 
 	// UUID for the project, so that it can be uniquely identified in the metadata database.
 	String m_uuid;

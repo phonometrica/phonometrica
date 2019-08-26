@@ -223,9 +223,7 @@ void InfoPanel::setWidgets(bool showTimes)
     vl->addWidget(desc_edit);
     save_desc_btn = new QPushButton(tr("Save description"));
 	connect(save_desc_btn, &QPushButton::clicked, this, &InfoPanel::setFileDescription);
-    vl->addSpacing(5);
     vl->addWidget(save_desc_btn);
-    vl->addSpacing(10);
     info_tab->setLayout(vl);
 }
 

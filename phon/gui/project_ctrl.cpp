@@ -111,6 +111,7 @@ void ProjectCtrl::refresh()
     auto project = Project::instance();
     auto corpus_folder = project ? project->corpus().get() : nullptr;
     auto data_folder = project ? project->data().get() : nullptr;
+    auto query_folder = project ? project->queries().get() : nullptr;
     auto scripts_folder = project ? project->scripts().get() : nullptr;
     auto bookmarks_folder = project ? project->bookmarks().get() : nullptr;
 
@@ -118,7 +119,10 @@ void ProjectCtrl::refresh()
     corpus = new TreeItem(this, corpus_folder);
     corpus->setText(0, tr("Corpus"));
     corpus->setIcon(0, QIcon(":/icons/corpus.png"));
-    data = new TreeItem(this, corpus, data_folder);
+	queries = new TreeItem(this, corpus, query_folder);
+	queries->setText(0, tr("Queries"));
+	queries->setIcon(0, QIcon(":/icons/search.png"));
+    data = new TreeItem(this, queries, data_folder);
     data->setText(0, tr("Datasets"));
     data->setIcon(0, QIcon(":/icons/data.png"));
     scripts = new TreeItem(this, data, scripts_folder);
@@ -131,6 +135,7 @@ void ProjectCtrl::refresh()
     resetLabel();
     fillFolder(corpus, *project->corpus());
     fillFolder(data, *project->data());
+    fillFolder(queries, *project->queries());
     fillFolder(scripts, *project->scripts());
     fillFolder(bookmarks, *project->bookmarks());
     corpus->setExpanded(true);
@@ -144,13 +149,13 @@ void ProjectCtrl::fillFolder(QTreeWidgetItem *item, VFolder &folder)
 {
     QFileIconProvider provider;
     QIcon file_icon = provider.icon(QFileIconProvider::File);
+	QIcon dir_icon = provider.icon(QFileIconProvider::Folder);
     QIcon annot_icon(":/icons/annotation.png");
     QIcon sound_icon(":/icons/sound.png");
     QIcon script_icon(":/icons/script.png");
     QIcon bookmark_icon(":/icons/bookmark.png");
     QIcon data_icon(":/icons/dataset.png");
     QIcon doc_icon(":/icons/document.png");
-    QIcon dir_icon(":/icons/folder.png");
 
     for (int i = 1; i <= folder.size(); i++)
     {

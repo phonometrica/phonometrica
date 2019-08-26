@@ -55,7 +55,8 @@ Project::Project(Runtime &rt, String path) :
 		m_corpus(std::make_shared<VFolder>(nullptr, "Corpus")),
 		m_bookmarks(std::make_shared<VFolder>(nullptr, "Bookmarks")),
 		m_scripts(std::make_shared<VFolder>(nullptr, "Scripts")),
-		m_data(std::make_shared<VFolder>(nullptr, "Data"))
+		m_data(std::make_shared<VFolder>(nullptr, "Data")),
+		m_queries(std::make_shared<VFolder>(nullptr, "Queries"))
 {
 	if (path.empty())
 	{
@@ -81,7 +82,7 @@ Project *Project::instance()
 
 bool Project::modified() const
 {
-	return m_modified || m_corpus->modified() || m_scripts->modified() || m_bookmarks->modified() || m_data->modified();
+	return m_modified || m_corpus->modified() || m_scripts->modified() || m_bookmarks->modified() || m_data->modified() || m_queries->modified();
 }
 
 void Project::discard_database()
@@ -769,6 +770,12 @@ const std::shared_ptr<VFolder> & Project::data() const
 	return m_data;
 }
 
+const std::shared_ptr<VFolder> &Project::queries() const
+{
+	return m_queries;
+}
+
+
 void Project::create_uuid()
 {
 	if (! has_uuid()) {
@@ -1131,6 +1138,5 @@ bool Project::empty() const
 {
     return m_corpus->empty() && m_data->empty() && m_scripts->empty() && m_bookmarks->empty();
 }
-
 
 } // namespace phonometrica
