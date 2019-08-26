@@ -218,7 +218,7 @@ void InfoPanel::setWidgets(bool showTimes)
     hl2->addStretch();
     hl2->setSpacing(0);
     vl->addLayout(hl2);
-    
+
     vl->addWidget(new QLabel(tr("<b>Description:<b>")));
     vl->addWidget(desc_edit);
     save_desc_btn = new QPushButton(tr("Save description"));
