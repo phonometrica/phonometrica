@@ -62,6 +62,8 @@ private slots:
 
     void importMetadata();
 
+	void enableSaveDescription();
+
 private:
 
     void setupUi();

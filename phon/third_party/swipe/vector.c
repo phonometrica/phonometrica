@@ -24,12 +24,55 @@
  * Kyle Gorman
  */
 
+/* ----------------------------------------------------------------- */
+/*             The Speech Signal Processing Toolkit (SPTK)           */
+/*             developed by SPTK Working Group                       */
+/*             http://sp-tk.sourceforge.net/                         */
+/* ----------------------------------------------------------------- */
+/*                                                                   */
+/*  Copyright (c) 1984-2007  Tokyo Institute of Technology           */
+/*                           Interdisciplinary Graduate School of    */
+/*                           Science and Engineering                 */
+/*                                                                   */
+/*                1996-2017  Nagoya Institute of Technology          */
+/*                           Department of Computer Science          */
+/*                                                                   */
+/* All rights reserved.                                              */
+/*                                                                   */
+/* Redistribution and use in source and binary forms, with or        */
+/* without modification, are permitted provided that the following   */
+/* conditions are met:                                               */
+/*                                                                   */
+/* - Redistributions of source code must retain the above copyright  */
+/*   notice, this list of conditions and the following disclaimer.   */
+/* - Redistributions in binary form must reproduce the above         */
+/*   copyright notice, this list of conditions and the following     */
+/*   disclaimer in the documentation and/or other materials provided */
+/*   with the distribution.                                          */
+/* - Neither the name of the SPTK working group nor the names of its */
+/*   contributors may be used to endorse or promote products derived */
+/*   from this software without specific prior written permission.   */
+/*                                                                   */
+/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND            */
+/* CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,       */
+/* INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF          */
+/* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          */
+/* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS */
+/* BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,          */
+/* EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED   */
+/* TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,     */
+/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON */
+/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,   */
+/* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    */
+/* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */
+/* POSSIBILITY OF SUCH DAMAGE.                                       */
+/* ----------------------------------------------------------------- */
+
 #include <math.h>
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
-
 
 #include "vector.h"
 
@@ -332,7 +375,11 @@ intmatrix makeim(int xSz, int ySz) {
     intmatrix nw_matrix;
     nw_matrix.x = xSz;
     nw_matrix.y = ySz;
+#if 0
     nw_matrix.m = malloc(sizeof(int) * xSz);
+#else
+    nw_matrix.m = malloc(sizeof(int*) * xSz);
+#endif
     int i;
     for (i = 0; i < nw_matrix.x; i++)
         nw_matrix.m[i] = malloc(sizeof(int) * ySz);
@@ -462,18 +509,96 @@ double splinv(vector x, vector y, vector y2, double val, int hi) {
                          (b * b * b - b) * y2.v[hi]) * (h * h) / 6.);
 }
 
+#if 1
+/* LU decomposition */
+static void LU(int n, double **A)
+{
+  int i, j, k;
+  double q;
+  
+  for (k = 0; k < n - 1; k++) {
+    for (i = k + 1; i < n; i++) {
+      q = A[i][k] / A[k][k];
+      for (j = k + 1; j < n; j++) {
+	A[i][j] -= q * A[k][j];
+      }
+      A[i][k] = q;
+    }
+  }
+}
+
+/* solve linear equation Ax = b via LU decomposition */
+static void SOLVE(int n, double **A, double *b)
+{
+  int i, j;
+
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < i; j++) {
+      b[i] -= A[i][j] * b[j];
+    }
+  }
+
+  for (i = n - 1; i >= 0; i--) {
+    for (j = i + 1; j < n; j++) {
+      b[i] -= A[i][j] * b[j];
+    }
+    b[i] /= A[i][i];
+  }
+}
+
+static void dgels(int n, vector Ap, vector bp)
+{
+  int i;
+  double x1 = 0.0, x2 = 0.0, x3 = 0.0, x4 = 0.0, x1y1 = 0.0, x2y1 = 0.0, y1 = 0.0;
+  matrix a = makem(n, n);
+  for(i = 0; i < n; i++) {
+    x1 += pow(Ap.v[i], 1.0);
+    x2 += pow(Ap.v[i], 2.0);
+    x3 += pow(Ap.v[i], 3.0);
+    x4 += pow(Ap.v[i], 4.0);
+    x1y1 += pow(Ap.v[i], 1.0) * pow(bp.v[i], 1.0);
+    x2y1 += pow(Ap.v[i], 2.0) * pow(bp.v[i], 1.0);
+    y1 += pow(bp.v[i], 1.0);
+  }
+  a.m[0][0] = x4;
+  a.m[0][1] = x3;
+  a.m[0][2] = x2;
+  a.m[1][0] = x3;
+  a.m[1][1] = x2;
+  a.m[1][2] = x1;
+  a.m[2][0] = x2;
+  a.m[2][1] = x1;
+  a.m[2][2] = n;
+  bp.v[0] = x2y1;
+  bp.v[1] = x1y1;
+  bp.v[2] = y1;
+  /* LU decomposition */
+  LU(n, a.m);
+  /* solve linear equation via LU decomposition */
+  SOLVE(n, a.m, bp.v);
+  freem(a);
+}
+#endif
+
 // polynomial fitting with CLAPACK: solves poly(A, m) * X = B
 vector polyfit(vector A, vector B, int degree) {
+#if 0
     int info;
+#endif
     degree++; // I find it intuitive this way...
+#if 0
     double* Ap = malloc(sizeof(double) * degree * A.x);
     int i, j;
     for (i = 0; i < degree; i++)
         for (j = 0; j < A.x; j++)
             Ap[i * A.x + j] = pow(A.v[j], degree - i - 1); // mimics MATLAB
+#else
+    int i;
+#endif
     vector Bp = makev(degree >= B.x ? degree : B.x);
     for (i = 0; i < B.x; i++)
         Bp.v[i] = B.v[i];
+#if 0
     i = 1; // nrhs, j is info
     j = A.x + degree; // lwork
     double* work = malloc(sizeof(double) * j);
@@ -486,6 +611,9 @@ vector polyfit(vector A, vector B, int degree) {
                                                                 info);
         exit(EXIT_FAILURE);
     }
+#else
+    dgels(degree, A, Bp);
+#endif
     return(Bp);
 }
 

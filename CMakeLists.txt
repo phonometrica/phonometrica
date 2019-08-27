@@ -182,7 +182,6 @@ if (BUILD_GUI)
 
     # FFTW
     add_subdirectory(phon/third_party/fftw)
-    #include_directories(${PROJECT_BINARY_DIR}/phon/third_party/ffts)
     include_directories(phon/third_party/fftw/api)
     link_directories(${PROJECT_BINARY_DIR}/phon/third_party/fftw)
 
@@ -194,21 +193,19 @@ if (BUILD_GUI)
         link_directories("C:/Lib/libsndfile")
         #add_subdirectory("${PROJECT_SOURCE_DIR}/libsndfile")
         target_link_libraries(
-                ${PROJECT_NAME} phon-runtime onig fftw3 
-				C:/Lib/libs/libblas.lib 
-				C:/Lib/libs/liblapack.lib 
+                ${PROJECT_NAME} phon-runtime onig fftw3
 				C:/Lib/libsndfile/libsndfile-1.lib
                 Qt5::Core Qt5::Gui Qt5::Widgets
         )
     elseif (APPLE)
         target_link_libraries(
-                ${PROJECT_NAME} phon-runtime onig fftw3 blas lapack pthread dl sndfile
+                ${PROJECT_NAME} phon-runtime onig fftw3 pthread dl sndfile
                 Qt5::Core Qt5::Gui Qt5::Widgets
                 "-framework Foundation" "-framework Cocoa" objc
         )
     else()
         target_link_libraries(
-                ${PROJECT_NAME} phon-runtime onig fftw3 blas lapack pthread dl asound sndfile
+                ${PROJECT_NAME} phon-runtime onig fftw3 pthread dl asound sndfile
                 Qt5::Core Qt5::Gui Qt5::Widgets
                 ${GTK2_LIBRARIES}
         )

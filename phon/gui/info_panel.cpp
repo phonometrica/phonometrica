@@ -161,6 +161,8 @@ void InfoPanel::showSingleSelection(const std::shared_ptr<VFile> &file)
     }
 
     desc_edit->setText(file->description());
+	connect(desc_edit, SIGNAL(textChanged()), this, SLOT(enableSaveDescription()));
+
     description_is_editable = true;
 }
 
@@ -222,6 +224,7 @@ void InfoPanel::setWidgets(bool showTimes)
     vl->addWidget(new QLabel(tr("<b>Description:<b>")));
     vl->addWidget(desc_edit);
     save_desc_btn = new QPushButton(tr("Save description"));
+    save_desc_btn->setEnabled(false);
 	connect(save_desc_btn, &QPushButton::clicked, this, &InfoPanel::setFileDescription);
     vl->addWidget(save_desc_btn);
     info_tab->setLayout(vl);
@@ -240,6 +243,7 @@ void InfoPanel::setFileDescription(bool)
             auto file = m_files.front();
 	        first_modification = !file->modified();
             file->set_description(desc);
+            save_desc_btn->setEnabled(false);
 
             if (first_modification) {
                 emit Project::updated();
@@ -292,6 +296,11 @@ void InfoPanel::importMetadata()
 void InfoPanel::reset()
 {
     displaySelection();
+}
+
+void InfoPanel::enableSaveDescription()
+{
+	save_desc_btn->setEnabled(true);
 }
 
 

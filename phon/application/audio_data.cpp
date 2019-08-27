@@ -67,4 +67,5 @@ Array<double> AudioData::real_data(intptr_t first_frame, intptr_t last_frame)
 
     return result;
 }
+
 } // namespace phonometrica

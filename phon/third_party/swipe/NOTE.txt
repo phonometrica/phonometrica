@@ -1,0 +1,2 @@
+This is Kyle Gorman's original implementation of the SWIPE algorithm, but we use the modified version of vector.c provided by SPTK,
+so that polynomial fitting doesn't require linking against LAPACK.
