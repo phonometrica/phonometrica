@@ -1,0 +1,25 @@
+{
+    "name": "Phonometrica",
+    "displayName": "phonometrica",
+    "description": "Syntax highlighting for phonometrica",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.36.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "phonometrica",
+            "aliases": ["phonometrica", "phonometrica"],
+            "extensions": [".phon"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "phonometrica",
+            "scopeName": "source.phon",
+            "path": "./syntaxes/phonometrica.tmLanguage.json"
+        }]
+    }
+}

@@ -1,0 +1,78 @@
+{
+
+	"name": "phonometrica",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#strings2"
+		},
+		{
+			"include": "#comments"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.phon",
+				"match": "\\b(and|as|do|downto|else|elsif|end|field|for|foreach|function|if|in|new|not|or|pass|return|then|throw|var|while)\\b"
+			},
+			{
+				"name": "constant.numeric.phon",
+				"match": "\\b(-)?[0-9.]+\\b"
+			},
+			{
+				"name": "constant.language.phon",
+				"match": "\\b(false|nan|null|true|undefined)\\b"
+			},
+			{
+				"match": "\\b(Array|Boolean|Date|File|Function|List|Number|Object|Regex|String|Table)\\b",
+				"name": "support.type.sys-types.phon"
+			},
+			{
+			  	"match": "\\b([A-Z][a-zA-Z0-9_]+)\\b",
+				"name": "constant.character.phon"
+			},
+			{
+				"name": "comment.line.number-sign.phon",
+				"match": "#.*?\\n"
+			},
+			{
+				"name": "variable.language.phon",
+				"match": "\\bthis\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.phon",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.phon",
+					"match": "\\\\."
+				}
+			]
+		},
+		"strings2": {
+			"name": "string.quoted.single.phon",
+			"begin": "'",
+			"end": "'",
+			"patterns": [
+				{
+					"name": "constant.character.escape.phon",
+					"match": "\\\\."
+				}
+			]
+		},
+		"comments": {
+			"name": "comment.block.phon",
+			"begin": "!\\*",
+			"end": "\\*!"
+		}
+	},
+	"scopeName": "source.phon"
+}
