@@ -193,7 +193,7 @@ CSCOPE = cscope
 DIST_SUBDIRS = $(SUBDIRS)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/onig-config.in \
 	AUTHORS COPYING ChangeLog INSTALL NEWS README compile \
-	config.guess config.sub depcomp install-sh ltmain.sh missing
+	config.guess config.sub install-sh ltmain.sh missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -920,6 +920,12 @@ oniguruma.pc: $(srcdir)/oniguruma.pc.in Makefile
 
 all-test:
 	cd test; make test
+
+sanitize:
+	make clean
+	./configure CC=clang CFLAGS="-O -g -fsanitize=address"
+	make
+	make all-test
 
 cov:
 	make lcov-clear
