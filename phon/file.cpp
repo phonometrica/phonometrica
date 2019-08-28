@@ -123,22 +123,22 @@ std::array<char, 4> File::mode_to_string(File::Mode mode) const
 	switch (mode)
 	{
 		case Read:
-			m = {'r', '\0'};
+			m = {'r', 'b', '\0'};
 			break;
 		case Write:
-			m = {'w', '\0'};
+			m = {'w', 'b', '\0'};
 			break;
 		case Append:
-			m = {'a', '\0'};
+			m = {'a', 'b', '\0'};
 			break;
 		case ReadPlus:
-			m = {'r', '+', '\0'};
+			m = {'r', 'b', '+', '\0'};
 			break;
 		case WritePlus:
-			m = {'w', '+', '\0'};
+			m = {'w', 'b', '+', '\0'};
 			break;
 		case AppendPlus:
-			m = {'a', '+', '\0'};
+			m = {'a', 'b', '+', '\0'};
 			break;
 		default:
 			throw error("Invalid file mode");
@@ -311,7 +311,7 @@ char16_t File::get_char_utf16()
 {
 	char16_t c = 0;
 
-	if (fread(&c, 2, 1, m_handle) != 1 || at_end())
+	if (fread(&c, 2, 1, m_handle) != 1 || feof(m_handle))
 	{
 		return Eof;
 	}
@@ -323,7 +323,7 @@ char32_t File::get_char_utf32()
 {
 	char32_t c = 0;
 
-	if (fread(&c, 4, 1, m_handle) != 1 && feof(m_handle))
+	if (fread(&c, 4, 1, m_handle) != 1 || feof(m_handle))
 	{
 		return Eof;
 	}
@@ -383,12 +383,28 @@ String File::read_line_utf16()
 
 	do
 	{
-		char16_t *end = buffer + 1;
-		buffer[0] = needs_swap ? PHON_BYTESWAP16(get_char_utf16()) : get_char_utf16();
-
+		char16_t* end = buffer + 1;
+		if (needs_swap)
+		{
+			auto cu = get_char_utf16();
+			buffer[0] = PHON_BYTESWAP16(cu);
+		}
+		else
+		{
+			buffer[0] = get_char_utf16();
+		}
+			
 		if (is_high_surrogate(buffer[0]))
 		{
-			buffer[1] = needs_swap ? PHON_BYTESWAP16(get_char_utf16()) : get_char_utf16();
+			if (needs_swap)
+			{
+				auto cu = get_char_utf16();
+				buffer[1] = PHON_BYTESWAP16(cu);
+			}
+			else
+			{
+				buffer[1] = get_char_utf16();
+			}
 			end++;
 		}
 
@@ -420,7 +436,15 @@ String File::read_line_utf32()
 
 	do
 	{
-		ch = needs_swap ? PHON_BYTESWAP32(get_char_utf32()) : get_char_utf32();
+		if (needs_swap)
+		{
+			ch = get_char_utf32();
+			ch = PHON_BYTESWAP32(ch);
+		}
+		else
+		{
+			ch = get_char_utf32();
+		}
 		str.append(ch);
 
 		if (ch == Eol)

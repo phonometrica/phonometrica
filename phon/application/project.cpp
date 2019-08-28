@@ -113,6 +113,7 @@ bool Project::has_path() const
 
 void Project::set_path(String value)
 {
+	filesystem::nativize(value);
 	m_directory = filesystem::directory_name(value);
 	m_path = std::move(value);
 }
@@ -691,6 +692,7 @@ void Project::import_folder(String path)
 
 void Project::import_file(String path)
 {
+	filesystem::nativize(path);
 	// Assume that the file will be added to the corpus. add_file() will change the parent if necessary.
 	if (add_file(std::move(path), m_corpus)) {
         m_modified = true;

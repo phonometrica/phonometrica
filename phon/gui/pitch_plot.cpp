@@ -73,7 +73,6 @@ void PitchPlot::renderPlot(QPaintEvent *)
 
     QPainterPath path;
     QPen pen(Qt::blue);
-    pen.setCapStyle(Qt::RoundCap);
     pen.setWidth(3);
     painter.setRenderHint(QPainter::Antialiasing,true);
     painter.setPen(pen);

@@ -582,7 +582,11 @@ VFileList ProjectCtrl::get_vfiles(const QList<QTreeWidgetItem *> &items)
 void ProjectCtrl::resetLabel()
 {
     auto project = Project::instance();
-    auto label = project->label();
+    String label = project->label();
+	if (label.empty())
+		label = "Untitled project";
+	else
+		label.prepend("Project ");
     if (project->modified()) label.append('*');
     setProjectLabel(label);
 }

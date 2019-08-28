@@ -1448,7 +1448,7 @@ double String::to_float(std::string_view str, bool *ok)
 		{
 			do {
 				ch++;
-			} while (isdigit(*ch));
+			} while (ch != str.end());
 
 			if (ch != str.end())
 			{
