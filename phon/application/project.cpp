@@ -683,6 +683,7 @@ const String &Project::uuid() const
 
 void Project::import_folder(String path)
 {
+	filesystem::nativize(path);
 	add_folder(std::move(path), m_corpus);
 	bind_annotations();
 	m_modified = true;

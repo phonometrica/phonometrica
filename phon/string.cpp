@@ -34,6 +34,12 @@
 
 #define MAX_FORMAT_BUFFER 256
 
+#define USE_WINDOWS_NATIVE_UTF 1
+
+#if USE_WINDOWS_NATIVE_UTF
+#include <Windows.h>
+#endif
+
 namespace phonometrica {
 
 Handle<String::Data> String::empty_string()
@@ -78,7 +84,7 @@ void String::reserve(intptr_t requested)
 {
 	if (this->shared() || !check_capacity(requested))
 	{
-		auto new_capacity = std::max(utils::find_capacity(requested), this->capacity());
+		auto new_capacity = utils::find_capacity(requested, this->capacity());
 		String tmp(new_capacity);
 		std::copy(this->begin(), this->end(), tmp.begin());
 		tmp.adjust(this->size());
@@ -94,6 +100,7 @@ bool String::check_capacity(intptr_t requested) const
 void String::adjust(intptr_t new_size)
 {
 	impl->end = impl->data + new_size;
+	*impl->end = 0;
 	impl->reset();
 }
 
@@ -558,12 +565,20 @@ String String::from_utf32(const std::u32string &s)
 
 std::wstring String::to_wide(std::string_view s)
 {
-	std::wstring result;
 
 #if PHON_WINDOWS
+#	if USE_WINDOWS_NATIVE_UTF
+	int count = MultiByteToWideChar(CP_UTF8, 0, s.data(), (int)s.size(), NULL, 0);
+	std::wstring result(count + 1, 0);
+	MultiByteToWideChar(CP_UTF8, 0, s.data(), (int)s.size(), result.data(), count);
+	result.resize(count);
+#	else
+	std::wstring result;
 	utf8::utf8to16(s.begin(), s.end(), std::back_inserter(result));
+#	endif
 #else
 	static_assert(sizeof(wchar_t) == 4, "wide string <-> UTF-8 conversion is not supported on this platform");
+	std::wstring result;
 	utf8::utf8to32(s.begin(), s.end(), std::back_inserter(result));
 #endif
 
@@ -572,28 +587,31 @@ std::wstring String::to_wide(std::string_view s)
 
 String String::from_wide(const std::wstring &s)
 {
-	String result(intptr_t(s.size() + 1));
-
-#if PHON_WINDOWS
-	utf8::utf16to8(s.begin(), s.end(), std::back_inserter(result));
-#else
-	utf8::utf32to8(s.begin(), s.end(), std::back_inserter(result));
-#endif
-
-	return result;
+	return from_wide(s.data(), intptr_t(s.size()));
 }
 
 String String::from_wide(const wchar_t *s, intptr_t len)
 {
-	String result(len + 1);
-	auto end = s + len;
+
 
 #if PHON_WINDOWS
+#	if USE_WINDOWS_NATIVE_UTF
+	int utf8_size = WideCharToMultiByte(CP_UTF8, 0, s, len, NULL, 0, NULL, NULL);
+	String result(utf8_size + 1);
+	WideCharToMultiByte(CP_UTF8, 0, s, len, result.impl->data, utf8_size, NULL, NULL);
+	result.impl->data[utf8_size] = '\0';
+	result.adjust(utf8_size);
+#	else
+	String result(len + 1);
+	auto end = s + len;
 	utf8::utf16to8(s, end, std::back_inserter(result));
+#	endif
 #else
+	String result(len + 1);
+	auto end = s + len;
 	utf8::utf32to8(s, end, std::back_inserter(result));
 #endif
-
+	
 	return result;
 }
 
@@ -1069,7 +1087,7 @@ String &String::replace(Substring before, Substring after, intptr_t ntimes)
 	auto pos = begin();
 	intptr_t counter = 0;
 
-	if (ntimes < 0) ntimes = std::numeric_limits<intptr_t>::max();
+	if (ntimes < 0) ntimes = (std::numeric_limits<intptr_t>::max)();
 
 	while (pos < end() && counter < ntimes)
 	{

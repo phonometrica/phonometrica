@@ -376,7 +376,7 @@ static void read_dir_entries(const String &path, std::function<void(String)> fun
 {
 #if PHON_WINDOWS
 	WIN32_FIND_DATA ffd;
-	TCHAR szDir[MAX_PATH];
+	//TCHAR szDir[MAX_PATH];
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	DWORD dwError=0;
 
@@ -384,11 +384,12 @@ static void read_dir_entries(const String &path, std::function<void(String)> fun
 	// Prepare String for use with FindFile functions.  First, copy the
 	// String to a buffer, then append '\*' to the directory name.
 	auto utf16 = path.to_wide();
-	wcscpy(szDir, utf16.data());
-	wcscat(szDir, L"\\*");
+	utf16.append(L"\\*");
+//	wcscpy(szDir, utf16.data());
+//	wcscat(szDir, L"\\*");
 //    stringCchCopy(szDir, MAX_PATH, (LPCWSTR)utf16.data());
 //    stringCchCat(szDir, MAX_PATH, TEXT("\\*"));
-	hFind = FindFirstFile(szDir, &ffd);
+	hFind = FindFirstFile(utf16.data(), &ffd);
 
 	if (INVALID_HANDLE_VALUE == hFind) {
 		throw error("problem with FindFirstFile()");
@@ -396,8 +397,11 @@ static void read_dir_entries(const String &path, std::function<void(String)> fun
 	}
 
 	do  {
-		std::u16string utf16((char16_t*)ffd.cFileName, (size_t) wcslen(ffd.cFileName));
-		func(String(utf16));
+		std::wstring utf16(ffd.cFileName, (size_t) wcslen(ffd.cFileName));
+		if (utf16 != L"." && utf16 != L"..")
+		{
+			func(String(utf16));
+		}
 	}
 	while (FindNextFile(hFind, &ffd) != 0);
 
