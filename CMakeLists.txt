@@ -64,7 +64,9 @@ if (EMBED_SCRIPTS)
     add_definitions(-DPHON_EMBED_SCRIPTS=1)
 endif()
 
-add_definitions(-DPHON_WITH_QT)
+if (NOT BUILD_UNIT_TEST)
+    add_definitions(-DPHON_WITH_QT)
+endif()
 
 if (BUILD_GUI)
     add_definitions(-DPHON_GUI=1)

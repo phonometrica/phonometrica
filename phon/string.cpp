@@ -36,8 +36,10 @@
 
 #define USE_WINDOWS_NATIVE_UTF 1
 
-#if USE_WINDOWS_NATIVE_UTF
-#include <Windows.h>
+#if PHON_WINDOWS
+#   if USE_WINDOWS_NATIVE_UTF
+#       include <Windows.h>
+#   endif
 #endif
 
 namespace phonometrica {

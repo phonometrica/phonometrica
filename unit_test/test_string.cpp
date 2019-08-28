@@ -133,7 +133,6 @@ TEST_CASE("Test string transformation", "[string]")
 	REQUIRE(noel.reverse() == "lëon");
 }
 
-
 TEST_CASE("Test string replacement", "[string]")
 {
 	String s1("c'étXXXit çXXX");
