@@ -141,6 +141,9 @@ signals:
 	// Inform the UI that the project has been modified.
 	void notify_update();
 
+	// Infor the UI that the project has been closed.
+	void notify_closed();
+
 	// Send when only the metadata has been changed.
 	void metadata_updated();
 

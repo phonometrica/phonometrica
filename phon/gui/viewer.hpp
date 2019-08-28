@@ -60,6 +60,8 @@ public slots:
 
     void view(const std::shared_ptr<VFile> &file);
 
+    void closeAll();
+
 private:
 
     void setStartView();

@@ -293,6 +293,7 @@ void SpeechPlot::moveWindow(double t1, double t2)
 {
     window_start = t1;
     window_end = t2;
+    emit windowHasChanged(t1, t2);
 }
 
 std::pair<double, double> SpeechPlot::times() const

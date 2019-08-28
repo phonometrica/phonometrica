@@ -1,0 +1,257 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Plugins &#8212; Phonometrica 0.3.0 documentation</title>
+    <link rel="stylesheet" href="../_static/yeen.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="License" href="../about/license.html" />
+    <link rel="prev" title="Operating System" href="api/system.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../about/license.html" title="License"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api/system.html" title="Operating System"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Plugins</a><ul>
+<li><a class="reference internal" href="#structure-of-a-plugin">Structure of a plugin</a></li>
+<li><a class="reference internal" href="#defining-search-grammars">Defining search grammars</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api/system.html"
+                        title="previous chapter">Operating System</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../about/license.html"
+                        title="next chapter">License</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="plugins">
+<span id="page-plugins"></span><h1>Plugins<a class="headerlink" href="#plugins" title="Permalink to this headline">¶</a></h1>
+<p>Dolmen can be extended with plugins, which are written in JSON and the <a class="reference external" href="http://www.lua.org">Lua</a> scripting language.
+When it starts up, Dolmen loads all plugins which are located in the
+system plugin directory or in the user plugin directory. Plugins can be
+redistributed as ZIP files (the <code class="docutils literal notranslate"><span class="pre">.zip</span></code> extension is compulsory). To
+install a plugin, go to <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Install</span> <span class="pre">plugin...</span></code> and choose the ZIP
+file. It will be installed in the current user’s plugin directory.</p>
+<p>See <a class="reference internal" href="index.html#page-scripting"><span class="std std-ref">Scripting</span></a> to learn more about scripting.</p>
+<div class="section" id="structure-of-a-plugin">
+<h2>Structure of a plugin<a class="headerlink" href="#structure-of-a-plugin" title="Permalink to this headline">¶</a></h2>
+<p>To be valid, a plugin must adhere to a number of conventions: if they
+are not respected, Dolmen will silently ignore the plugin. The root
+directory of the plugin must contain the following:</p>
+<ul class="simple">
+<li>a description file, named description.json (compulsory)</li>
+<li>a <code class="docutils literal notranslate"><span class="pre">Scripts</span></code> sub-directory, which contains all your scripts
+(optional).</li>
+<li>a <code class="docutils literal notranslate"><span class="pre">Grammars</span></code> sub-directory, which contains all your</li>
+<li>a <code class="docutils literal notranslate"><span class="pre">Resources</span></code> sub-directory, which may contain anything (optional).</li>
+</ul>
+<p>The description file contains all the information necessary to
+initialize the plugin. All declarative aspects of the plugin are written
+in the JSON format and must bear the extension <code class="docutils literal notranslate"><span class="pre">.json</span></code>. Scripts are
+written in Lua and must bear the extension <code class="docutils literal notranslate"><span class="pre">.lua</span></code>.</p>
+<p>Here is an example of a basic <code class="docutils literal notranslate"><span class="pre">description.json</span></code> file:</p>
+<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s">&quot;PluginInfo&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&quot;Name&quot;</span><span class="p">:</span> <span class="s">&quot;My first plugin&quot;</span><span class="p">,</span>
+        <span class="s">&quot;Version&quot;</span><span class="p">:</span> <span class="s">&quot;0.1&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+
+    <span class="s">&quot;Menu&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;Custom menu&quot;</span><span class="p">,</span> <span class="s">&quot;Actions&quot;</span><span class="p">:</span>
+        <span class="o">[</span>
+            <span class="p">{</span><span class="s">&quot;Type&quot;</span><span class="p">:</span> <span class="s">&quot;Action&quot;</span><span class="p">,</span> <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;Test script&quot;</span><span class="p">,</span> <span class="s">&quot;Script&quot;</span><span class="p">:</span> <span class="s">&quot;test.lua&quot;</span><span class="p">,</span> <span class="s">&quot;Shortcut&quot;</span><span class="p">:</span> <span class="s">&quot;Ctrl+T&quot;</span><span class="p">}</span>
+        <span class="o">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The header <code class="docutils literal notranslate"><span class="pre">PluginInfo</span></code> is the only part that is compulsory. It
+contains essential information about the plugin. The <code class="docutils literal notranslate"><span class="pre">Menu</span></code> key lets
+you create a custom menu: each menu entry (called “action”) is
+associated with a script which must be located in the <code class="docutils literal notranslate"><span class="pre">Scripts</span></code>
+sub-directory. When you click on an action in the menu, the
+corresponding script is executed. It is also possible to assign a
+shortcut to a given action.</p>
+</div>
+<div class="section" id="defining-search-grammars">
+<h2>Defining search grammars<a class="headerlink" href="#defining-search-grammars" title="Permalink to this headline">¶</a></h2>
+<p>If you have devised a coding scheme for your data, Dolmen lets you
+define a “search grammar”. A search grammar is a description of your
+coding scheme which offers a user-friendly interface for querying your
+data; it tells Dolmen what to look for and how to present the
+information to the user. Dolmen will automatically load all valid search
+grammars that are located in the <code class="docutils literal notranslate"><span class="pre">Grammars</span></code> sub-directory of your
+plugin. It will create a submenu in the <code class="docutils literal notranslate"><span class="pre">Conc</span></code> menu, whose name is the
+name of your plugins. All search grammars will be be available as tabs
+in that submenu.</p>
+<p>A search grammar defines a number of fields which can take on a number
+of values. The user is presented with a number of checkboxes for each
+field, and Dolmen converts the query to the corresponding regular
+expression, as defined by the grammar. Here is a simple yet realistic
+example, drawn from the PFC project:</p>
+<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s">&quot;Header&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s">&quot;Object&quot;</span> <span class="p">:</span> <span class="s">&quot;SearchGrammar&quot;</span><span class="p">,</span>
+        <span class="s">&quot;DisplayName&quot;</span><span class="p">:</span> <span class="s">&quot;Schwa&quot;</span><span class="p">,</span>
+        <span class="s">&quot;Version&quot;</span><span class="p">:</span> <span class="s">&quot;0.9&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+
+    <span class="s">&quot;Separator&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
+    <span class="s">&quot;FileType&quot;</span><span class="p">:</span> <span class="s">&quot;Annotation&quot;</span><span class="p">,</span>
+    <span class="s">&quot;Tier&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s">&quot;FieldsPerRow&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+
+    <span class="s">&quot;Fields&quot;</span> <span class="p">:</span> <span class="o">[</span>
+
+        <span class="p">{</span><span class="s">&quot;Name&quot;</span><span class="p">:</span> <span class="s">&quot;Schwa&quot;</span><span class="p">,</span> <span class="s">&quot;MatchAll&quot;</span><span class="p">:</span> <span class="s">&quot;[0-2]&quot;</span><span class="p">,</span>
+         <span class="s">&quot;Values&quot;</span><span class="p">:</span> <span class="o">[</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;0&quot;</span><span class="p">,</span> <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;Absent&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span> <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;Present&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span> <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;Uncertain&quot;</span><span class="p">},</span>
+         <span class="o">]</span>
+        <span class="p">},</span>
+
+        <span class="p">{</span><span class="s">&quot;Name&quot;</span><span class="p">:</span> <span class="s">&quot;Position&quot;</span><span class="p">,</span> <span class="s">&quot;MatchAll&quot;</span><span class="p">:</span> <span class="s">&quot;[1-5]&quot;</span><span class="p">,</span>
+         <span class="s">&quot;Values&quot;</span><span class="p">:</span> <span class="o">[</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>  <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;monosyllable&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span>  <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;initial syllable&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;3&quot;</span><span class="p">,</span>  <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;median syllable&quot;</span><span class="p">}</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;4&quot;</span><span class="p">,</span>  <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;final syllable&quot;</span><span class="p">}</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;5&quot;</span><span class="p">,</span>  <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;metathesis&quot;</span><span class="p">}</span>
+         <span class="o">]</span>
+        <span class="p">},</span>
+
+
+        <span class="p">{</span><span class="s">&quot;Name&quot;</span><span class="p">:</span> <span class="s">&quot;Left context&quot;</span><span class="p">,</span> <span class="s">&quot;MatchAll&quot;</span><span class="p">:</span> <span class="s">&quot;[1-5]&quot;</span><span class="p">,</span>
+         <span class="s">&quot;Values&quot;</span><span class="p">:</span> <span class="o">[</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>  <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;vowel&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span>  <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;consonant&quot;</span><span class="p">}</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;3&quot;</span><span class="p">,</span>  <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;start of an intonational phrase&quot;</span><span class="p">}</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;4&quot;</span><span class="p">,</span>  <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;uncertain vowel&quot;</span><span class="p">}</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;5&quot;</span><span class="p">,</span>  <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;simplified cluster&quot;</span><span class="p">}</span>
+         <span class="o">]</span>
+        <span class="p">},</span>
+
+
+        <span class="p">{</span><span class="s">&quot;Name&quot;</span><span class="p">:</span> <span class="s">&quot;Right context&quot;</span><span class="p">,</span> <span class="s">&quot;MatchAll&quot;</span><span class="p">:</span> <span class="s">&quot;[1-4]&quot;</span><span class="p">,</span>
+         <span class="s">&quot;Values&quot;</span><span class="p">:</span> <span class="o">[</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span> <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;vowel&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span> <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;consonant&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;3&quot;</span><span class="p">,</span> <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;weak prosodic boundary&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;Match&quot;</span><span class="p">:</span> <span class="s">&quot;4&quot;</span><span class="p">,</span> <span class="s">&quot;Text&quot;</span><span class="p">:</span> <span class="s">&quot;strong prosodic boundary&quot;</span><span class="p">}</span>
+         <span class="o">]</span>
+        <span class="p">}</span>
+    <span class="o">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>We first see a <code class="docutils literal notranslate"><span class="pre">Header</span></code>, which provides information about the file.
+The field <code class="docutils literal notranslate"><span class="pre">Object</span></code> indicates that the file is a search grammar, the
+<code class="docutils literal notranslate"><span class="pre">Name</span></code> corresponds to the name of the grammar, as it will be seen by
+the user, and <code class="docutils literal notranslate"><span class="pre">Version</span></code> corresponds to the version of the grammar.</p>
+<p>Next, the <code class="docutils literal notranslate"><span class="pre">Separator</span></code> attribute indicates the separator to be used
+between fields. In this case, it is an empty string, which means that
+the fields are concatenated directly (e.g. <code class="docutils literal notranslate"><span class="pre">1412</span></code>). If the separator
+was <code class="docutils literal notranslate"><span class="pre">_</span></code>, each field should be separated by this symbol (e.g.
+<code class="docutils literal notranslate"><span class="pre">1_4_1_2</span></code>). Note that although a field may be only one digit (or one
+character), it does not need to be so; a field can be of any length,
+provided that it can be described by a regular expression.</p>
+<p>Next the <code class="docutils literal notranslate"><span class="pre">Tier</span></code> attribute indicates the tier number in which codings
+should be searched for.</p>
+<p>The following attribute, <code class="docutils literal notranslate"><span class="pre">FieldsPerRow</span></code>, lets us specify how many
+fields should be displayed in a row. In our case, since there are 4
+fields, we decide to distribute them across 2 rows containing 2 fields
+each.</p>
+<p>Finally, the <code class="docutils literal notranslate"><span class="pre">Fields</span></code> attribute contains a list of fields, each of
+them corresponding to a JSON object. The <code class="docutils literal notranslate"><span class="pre">Name</span></code> attribute provides a
+descriptive label for the field. The <code class="docutils literal notranslate"><span class="pre">MatchAll</span></code> attribute is a regular
+expression that should match all possible values for the field. If a
+user doesn’t check any value for a field, this attribute will be used to
+retrieve all possible values. The <code class="docutils literal notranslate"><span class="pre">Values</span></code> attribute contains a list
+of value. Each of them contains (at least) a <code class="docutils literal notranslate"><span class="pre">Match</span></code> attribute, which
+is a string corresponding to the value, and a <code class="docutils literal notranslate"><span class="pre">Text</span></code> attribute which
+is the label that will be displayed in the user interface for the
+corresponding value, along with a check box. Note that checking all
+values has the same effect as leaving all values unchecked.</p>
+<p>TO BE CONTINUED…</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../about/license.html" title="License"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api/system.html" title="Operating System"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.3.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Léa Courdès-Murphy &amp; Julien Eychenne.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+    
+
+  </body>
+</html>

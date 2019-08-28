@@ -201,5 +201,16 @@ void Viewer::view(const std::shared_ptr<VFile> &file)
     }
 }
 
+void Viewer::closeAll()
+{
+	saveViews();
+	int n = this->count();
+
+	for (int i = n - 1; i >= 0; --i) {
+		this->removeTab(i);
+	}
+	setStartView();
+}
+
 
 } // phonometrica

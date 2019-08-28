@@ -45,7 +45,7 @@ static String project_loaded("__evt_project_loaded");
 
 void Project::open(String path)
 {
-    clear();
+    close();
     set_path(std::move(path));
     load();
 }
@@ -827,6 +827,7 @@ void Project::close()
 {
 	the_instance->clear();
 	emit the_instance->notify_update();
+	emit the_instance->notify_closed();
 }
 
 VFileList Project::get_corpus_files() const

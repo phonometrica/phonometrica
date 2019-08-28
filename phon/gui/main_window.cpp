@@ -82,6 +82,7 @@ MainWindow::MainWindow(Runtime &rt, QWidget *parent)
     connect(file_manager, &FileManager::toggleConsole, main_area, &MainArea::toggleConsole);
     connect(file_manager, &FileManager::toggleInfo, main_area, &MainArea::toggleInfo);
     connect(Project::instance(), &Project::notify_update, file_manager, &FileManager::refreshProject);
+	connect(Project::instance(), &Project::notify_closed, viewer, &Viewer::closeAll);
     connect(Project::instance(), &Project::metadata_updated, file_manager, &FileManager::refreshLabel);
     connect(Project::instance(), &Project::metadata_updated, main_area->infoPanel(), &InfoPanel::reset);
     connect(file_manager->tree(), &ProjectCtrl::script_selected, viewer, &Viewer::openScriptView);

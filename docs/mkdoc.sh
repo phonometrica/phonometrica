@@ -12,12 +12,11 @@ if [ "$1" == "html" ] || [ "$1" == "" ] ; then
 
 	# Create HTML documentation
 	make html
-	#mv $BUILD/html $BASE/html
-	#rm -r $BASE/html/_sources
+	rm -r $BUILD/html/_sources
+	cp -r $BUILD/html $BASE/html
 
 	rm -r $GITHUB/*
 	touch $GITHUB/.nojekyll
-	rm -r $BUILD/html/_sources
 	mv $BUILD/html/* $GITHUB
 fi
 

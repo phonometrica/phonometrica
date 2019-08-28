@@ -254,6 +254,7 @@ QToolBar *SpeechView::makeToolbar()
     connect(action_enable_pitch, &QAction::triggered, this, &SpeechView::showPitch);
     connect(action_pitch_settings, &QAction::triggered, this, &SpeechView::changePitchSettings);
     connect(action_enable_intensity, &QAction::triggered, this, &SpeechView::showIntensity);
+    connect(waveform, &SpeechPlot::windowHasChanged, this, &SpeechView::setWindowTimes);
 
     return toolbar;
 }

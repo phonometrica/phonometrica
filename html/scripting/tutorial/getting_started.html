@@ -1,0 +1,384 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Getting started &#8212; Phonometrica 0.3.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Meta-objects and inheritance" href="metaobject.html" />
+    <link rel="prev" title="Scripting" href="../index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="metaobject.html" title="Meta-objects and inheritance"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Scripting"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting started</a><ul>
+<li><a class="reference internal" href="#fundamental-notions">Fundamental notions</a><ul>
+<li><a class="reference internal" href="#comments">Comments</a></li>
+<li><a class="reference internal" href="#variables">Variables</a></li>
+<li><a class="reference internal" href="#variable-scope">Variable scope</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#built-in-data-types">Built-in data types</a><ul>
+<li><a class="reference internal" href="#null">Null</a></li>
+<li><a class="reference internal" href="#boolean">Boolean</a></li>
+<li><a class="reference internal" href="#number">Number</a></li>
+<li><a class="reference internal" href="#string">String</a></li>
+<li><a class="reference internal" href="#list">List</a></li>
+<li><a class="reference internal" href="#object">Object</a></li>
+<li><a class="reference internal" href="#function">Function</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#control-flow">Control flow</a><ul>
+<li><a class="reference internal" href="#if-statement">If statement</a></li>
+<li><a class="reference internal" href="#while-loop">While loop</a></li>
+<li><a class="reference internal" href="#repeat-loop">Repeat loop</a></li>
+<li><a class="reference internal" href="#for-loop">For loop</a></li>
+<li><a class="reference internal" href="#foreach-loop">Foreach loop</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#errors">Errors</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../index.html"
+                        title="previous chapter">Scripting</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="metaobject.html"
+                        title="next chapter">Meta-objects and inheritance</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="fundamental-notions">
+<h2>Fundamental notions<a class="headerlink" href="#fundamental-notions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="comments">
+<h3>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h3>
+<p>Single-line comments start with the symbol <code class="docutils literal notranslate"><span class="pre">#</span></code> and end at the end of the line.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="c1"># Text following the symbol &#39;#&#39; is treated as a comment and is ignored</span>
+<span class="c1"># Call the built-in function print()</span>
+<span class="n">print</span><span class="p">(</span><span class="s">&quot;hello world&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Multi-line comments start with <code class="docutils literal notranslate"><span class="pre">!*</span></code> and end with <code class="docutils literal notranslate"><span class="pre">!*</span></code>. They can span over several lines, but cannot be nested.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="o">!*</span>
+<span class="n">This</span> <span class="kr">is</span> <span class="n">a</span> <span class="n">multi</span><span class="o">-</span><span class="n">line</span> <span class="n">comment</span> <span class="n">which</span> <span class="kr">is</span> <span class="n">ignored</span><span class="p">.</span>
+<span class="n">Call</span> <span class="n">the</span> <span class="n">built</span><span class="o">-</span><span class="kr">in</span> <span class="kr">function</span> <span class="n">print</span><span class="p">()</span>
+<span class="o">*!</span>
+<span class="n">print</span><span class="p">(</span><span class="s">&quot;hello world&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="variables">
+<h3>Variables<a class="headerlink" href="#variables" title="Permalink to this headline">¶</a></h3>
+<p>A variable must start with a letter or the symbol <code class="docutils literal notranslate"><span class="pre">_</span></code>, and can be followed by any number
+of letters, digits or the symbol <code class="docutils literal notranslate"><span class="pre">_</span></code>. The name of variables is case-sensitive, which means that <code class="docutils literal notranslate"><span class="pre">myvar</span></code> and <code class="docutils literal notranslate"><span class="pre">Myvar</span></code>
+are treated as different variables. Variables can be declared using the <code class="docutils literal notranslate"><span class="pre">var</span></code> keyword.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="kr">var</span> <span class="n">y</span>
+</pre></div>
+</div>
+<p>In this example, the variable <code class="docutils literal notranslate"><span class="pre">x</span></code> is declared and is simultaneously assigned the value 5 (a <code class="docutils literal notranslate"><span class="pre">Number</span></code>), whereas <code class="docutils literal notranslate"><span class="pre">y</span></code> is simply declared but is not assigned any value. When a variable is declared but is not explicitly assigned a value, it is automatically initialized to the value <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p>
+<p>Because Phonometrica’s scripting language is dynamic, variables can be bound to values of any type. In the following example, <code class="docutils literal notranslate"><span class="pre">x</span></code> is first declared as a number, and is subsequently used to store a string:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># prints &quot;5&quot;</span>
+<span class="n">x</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span>
+<span class="n">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># prints &quot;hello&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="variable-scope">
+<h3>Variable scope<a class="headerlink" href="#variable-scope" title="Permalink to this headline">¶</a></h3>
+<p>The scope of a variable is the region of code where it is visible (and accessible). There are three types of scope: global scope, module scope
+and function scope. When a variable is declared with the keyword <code class="docutils literal notranslate"><span class="pre">var</span></code>, it is declared as a local variable in the current scope: if it is declared in a function, it is a local variable visible anywhere inside that function (i.e. it has function scope), otherwise it has module scope
+and is visible anywhere in the script where it is defined (each script corresponds to a module). If a variable is defined without the <code class="docutils literal notranslate"><span class="pre">var</span></code>
+keyword, it is a global variable which is visible everywhere (i.e. it has global scope). Observe the following difference:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># a is a local variable visible in the current module</span>
+<span class="n">b</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># b is a global variable visible from other modules</span>
+</pre></div>
+</div>
+<p>In general, using global variables is strongly discouraged as it can be difficult to reason about them and it is easy to inadvertantly overwrite
+a value is there already exists a global variable with the same name. The only place where the use of global variables is recommended is in the
+console, as it saves some typing.</p>
+</div>
+</div>
+<div class="section" id="built-in-data-types">
+<h2>Built-in data types<a class="headerlink" href="#built-in-data-types" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="null">
+<h3>Null<a class="headerlink" href="#null" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">Null</span></code> type is a special type that has only one value, namely <code class="docutils literal notranslate"><span class="pre">null</span></code> (in lower case). It is used to represent an invalid value.</p>
+</div>
+<div class="section" id="boolean">
+<h3>Boolean<a class="headerlink" href="#boolean" title="Permalink to this headline">¶</a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">Boolean</span></code> can take on two values: <code class="docutils literal notranslate"><span class="pre">false</span></code> and <code class="docutils literal notranslate"><span class="pre">true</span></code>. Boolean values are used to express truth conditions about the state of a program. All conditions in control structures must evaluate to a <code class="docutils literal notranslate"><span class="pre">Boolean</span></code> value. There are only four values that are interpreted as false: <code class="docutils literal notranslate"><span class="pre">null</span></code>, <code class="docutils literal notranslate"><span class="pre">false</span></code>, <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">undefined</span></code> (a special invalid numeric value). All other values are interpreted as true.</p>
+</div>
+<div class="section" id="number">
+<h3>Number<a class="headerlink" href="#number" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">Number</span></code> type is used to represent real numbers. There are three special values of type <code class="docutils literal notranslate"><span class="pre">Number</span></code> that deserve some attention: <code class="docutils literal notranslate"><span class="pre">+Infinity</span></code> (positive infinity), <code class="docutils literal notranslate"><span class="pre">-Infinity</span></code> (negative infinity) and <code class="docutils literal notranslate"><span class="pre">undefined</span></code>. The latter value represents an invalid number, such as the logarithm of a negative number.</p>
+<p>Note that the decimal point is always represented by the symbol <code class="docutils literal notranslate"><span class="pre">.</span></code> (dot), even if the language of your operating system uses a different symbol (some languages, such as French, use a comma instead).</p>
+</div>
+<div class="section" id="string">
+<h3>String<a class="headerlink" href="#string" title="Permalink to this headline">¶</a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">String</span></code> represents an ordered sequence of characters, represented as Unicode <em>code points</em>. Strings must be enclosed between double quotes or single quotes. Thus, <code class="docutils literal notranslate"><span class="pre">&quot;abc&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">'abc'</span></code> represent the same string, which is formed by the concatenation of the three characters <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">b</span></code> and <code class="docutils literal notranslate"><span class="pre">c</span></code>. Code points may correspond to single letters, but they can represent more complex units. For example, the string <code class="docutils literal notranslate"><span class="pre">&quot;é&quot;</span></code> contains one code point, even though it represents a composite character (the letter <code class="docutils literal notranslate"><span class="pre">e</span></code> + an acute accent). Likewise, the string <code class="docutils literal notranslate"><span class="pre">&quot;한글&quot;</span></code> (the name of the Korean alphabet, in Korean) contains two code points, although it is composed of two syllables, each of which contains three letters.</p>
+<p>Internally, strings are encoded as UTF-8, which is the most widespread Unicode encoding. Source files are also expected to be encoded in UTF-8.</p>
+<p>Strings are immutable, which means that they can never be modified. Functions which “modify” a string always return a modified copy, leaving the
+original string unchanged.</p>
+</div>
+<div class="section" id="list">
+<h3>List<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">List</span></code> is an ordered collection of items. Like strings, lists can be modified and their capacity is automatically adjusted when items are added. Lists can be created directly using a <em>list literal</em>:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">lst</span> <span class="o">=</span> <span class="o">[</span> <span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="p">,</span> <span class="mf">3.14</span> <span class="o">]</span>
+</pre></div>
+</div>
+<p>The variable <code class="docutils literal notranslate"><span class="pre">lst</span></code> contains four elements, three strings and one number. To access elements in the list, we use array indexing by using the name of the variable followed by square brackets containing the index, as follows:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">print</span><span class="p">(</span><span class="n">lst</span><span class="o">[</span><span class="mi">2</span><span class="o">]</span><span class="p">)</span> <span class="c1"># prints &quot;b&quot;</span>
+</pre></div>
+</div>
+<p>We can also assign a new value at a given index, like so:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">lst</span><span class="o">[</span><span class="mi">3</span><span class="o">]</span> <span class="o">=</span> <span class="s">&quot;C&quot;</span>
+</pre></div>
+</div>
+<p>Indices start at 1 and can be negative: -1 represents the last element, -2 the second-to-last element, and so on.</p>
+</div>
+<div class="section" id="object">
+<h3>Object<a class="headerlink" href="#object" title="Permalink to this headline">¶</a></h3>
+<p>An <code class="docutils literal notranslate"><span class="pre">Object</span></code> represents an unordered mapping of key/value pairs. Each key/value pair represents a <em>field</em>. Keys must be strings and are always unique, whereas values can be anything. Objects can be declared with object literals:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">person</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;john&quot;</span><span class="p">,</span> <span class="s">&quot;surname&quot;</span> <span class="p">:</span> <span class="s">&quot;smith&quot;</span><span class="p">,</span> <span class="s">&quot;age&quot;</span> <span class="p">:</span> <span class="mi">38</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>In this example, we declare an object with three pairs (separated by commas): the key and value are separated by the : (colon) symbol. This table could correspond to mappings from names (keys) to ages (values) for instance. Note that there is no need for the keys and/or values to be homogeneous: any valid Value (even null!) may appear in an object. Note that even though we declared key/value pairs in a specific order in our example, there is no guarantee that they will be stored in this particular order. For all practical purposes, tables should be regarded as unordered collections, which means that the order of their elements is random.</p>
+<p>When the keys are strings which are valid variable names, we don’t need to surround them with quotes. The <code class="docutils literal notranslate"><span class="pre">person</span></code> variable could also be declared as follows:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">person</span> <span class="o">=</span> <span class="p">{</span> <span class="n">name</span> <span class="p">:</span> <span class="s">&quot;john&quot;</span><span class="p">,</span> <span class="n">surname</span> <span class="p">:</span> <span class="s">&quot;smith&quot;</span><span class="p">,</span> <span class="n">age</span> <span class="p">:</span> <span class="mi">38</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>There are two ways to access fields in an object. We can use array indexing like for tables, but using a string key instead:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">print</span><span class="p">(</span><span class="n">person</span><span class="o">[</span><span class="s">&quot;name&quot;</span><span class="o">]</span><span class="p">)</span> <span class="c1"># prints &quot;john&quot;</span>
+</pre></div>
+</div>
+<p>Alternatively, if the key is a valid identifier, we can use the <em>dot notation</em>:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">person</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;John&quot;</span>
+<span class="n">print</span><span class="p">(</span><span class="n">person</span><span class="p">.</span><span class="n">name</span><span class="p">)</span> <span class="c1"># prints &quot;John&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="function">
+<h3>Function<a class="headerlink" href="#function" title="Permalink to this headline">¶</a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">Function</span></code> is a special object which can be used to create reusable blocks of code. Function are created using the
+keyword <code class="docutils literal notranslate"><span class="pre">function</span></code>. Here is an example of a function which calculates the area of a rectangle.
+It expects two arguments (<code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>), which correspond to the rectangle’s height and width.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">function</span> <span class="n">area</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="kr">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+<p>We can then <em>call</em> the function with specific values for <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">rect</span> <span class="o">=</span> <span class="p">{</span> <span class="n">height</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="mi">30</span> <span class="p">}</span>
+<span class="kr">var</span> <span class="n">a</span> <span class="o">=</span> <span class="n">area</span><span class="p">(</span><span class="n">rect</span><span class="p">.</span><span class="n">height</span><span class="p">,</span> <span class="n">rect</span><span class="p">.</span><span class="n">width</span><span class="p">)</span>
+<span class="n">print</span><span class="p">(</span><span class="s">&quot;The area of the rectangle is &quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If a function is called with fewer arguments than it expects, missing arguments are replaced by <code class="docutils literal notranslate"><span class="pre">null</span></code>.
+If a function is called with more arguments than it expects, additional arguments are discarded.</p>
+<p>Functions are first class values, which means that they can be assigned to variables, passed as function argument to
+other functions, and used as a return value inside a function. In fact the defition of <code class="docutils literal notranslate"><span class="pre">area()</span></code> above could also be written
+as follows:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">area</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="kr">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+<p>In this case, we create an anonymous function object, and assign the result to a variable named <code class="docutils literal notranslate"><span class="pre">area</span></code>.</p>
+</div>
+</div>
+<div class="section" id="control-flow">
+<h2>Control flow<a class="headerlink" href="#control-flow" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="if-statement">
+<h3>If statement<a class="headerlink" href="#if-statement" title="Permalink to this headline">¶</a></h3>
+<p>It is often necessary to execute a code block only if a certain condition is satisfied. This can be achieved with the <code class="docutils literal notranslate"><span class="pre">if</span></code> statement</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">if</span> <span class="n">extension</span> <span class="o">==</span> <span class="s">&quot;.txt&quot;</span> <span class="kr">then</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">&quot;This is a text file&quot;</span><span class="p">)</span>
+<span class="kr">elsif</span> <span class="n">extension</span> <span class="o">==</span> <span class="s">&quot;.xml&quot;</span> <span class="kr">then</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">&quot;This is an XML file&quot;</span><span class="p">)</span>
+<span class="kr">else</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">&quot;extension &#39;&quot;</span> <span class="o">+</span> <span class="n">extension</span> <span class="o">+</span> <span class="s">&quot;&#39; not recognized&quot;</span><span class="p">)</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+<p>This block of code tries to execute the block following the <code class="docutils literal notranslate"><span class="pre">if</span></code> branch if its condition is true, otherwise it tries to execute the first
+elsif branch (if any), and if all else fails, it executes the <code class="docutils literal notranslate"><span class="pre">else</span></code> branch. The <code class="docutils literal notranslate"><span class="pre">elsif</span></code> and <code class="docutils literal notranslate"><span class="pre">else</span></code> branches are optional, and there
+is no limit on the number of <code class="docutils literal notranslate"><span class="pre">elsif</span></code> branches.</p>
+</div>
+<div class="section" id="while-loop">
+<h3>While loop<a class="headerlink" href="#while-loop" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">while</span></code> loop allows you to execute a block of code while some condition is true.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Print numbers from 1 to 10</span>
+<span class="kr">while</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">10</span> <span class="kr">do</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">x</span><span class="o">++</span> <span class="c1"># increment x</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="repeat-loop">
+<h3>Repeat loop<a class="headerlink" href="#repeat-loop" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">repeat</span></code> loop is similar to the <code class="docutils literal notranslate"><span class="pre">while</span></code> loop but there are two key differences: the block of code is executed <em>until</em> some condition is
+satisfied, and it is executed at least once since it precedes the evaluation of the condition.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># Print numbers from 1 to 10</span>
+<span class="kr">repeat</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">x</span><span class="o">++</span> <span class="c1"># increment x</span>
+<span class="kr">until</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">10</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="for-loop">
+<h3>For loop<a class="headerlink" href="#for-loop" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">for</span></code> loop, as in other programming languages, is used to iterate through a block of instructions, incrementing (or decrementing) a counter at each iteration. The <code class="docutils literal notranslate"><span class="pre">for</span></code> loop must always have a <code class="docutils literal notranslate"><span class="pre">start</span></code> condition and an <code class="docutils literal notranslate"><span class="pre">end</span></code> condition, and may optionally have a <code class="docutils literal notranslate"><span class="pre">step</span></code> condition, which indicates by how much the counter should be incremented/decremented (if no <code class="docutils literal notranslate"><span class="pre">step</span></code> is specified, the default is 1). Here is the single example, which prints the numbers from 1 to 10 (inclusive):</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">i</span>
+
+<span class="kr">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span> <span class="kr">to</span> <span class="mi">10</span> <span class="kr">do</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+<p>To print all the odd digits between 1 and 10, we can use the following loop:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">for</span> <span class="kr">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span> <span class="kr">to</span> <span class="mi">10</span> <span class="kr">step</span> <span class="mi">2</span> <span class="kr">do</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+<p>To iterate in decreasing order, <code class="docutils literal notranslate"><span class="pre">downto</span></code> must be used instead of <code class="docutils literal notranslate"><span class="pre">to</span></code>:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">10</span> <span class="kr">downto</span> <span class="mi">1</span> <span class="kr">do</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="foreach-loop">
+<h3>Foreach loop<a class="headerlink" href="#foreach-loop" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">foreach</span></code> loop is similar to the <code class="docutils literal notranslate"><span class="pre">for</span></code> loop, but offers a simpler way to iterate over the values of a list and
+the keys of an object.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="c1"># Iterate over a list</span>
+<span class="kr">var</span> <span class="n">lst</span> <span class="o">=</span> <span class="o">[</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="o">]</span>
+
+<span class="kr">foreach</span> <span class="n">value</span> <span class="kr">in</span> <span class="n">lst</span> <span class="kr">do</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="kr">end</span>
+
+<span class="c1"># Iterate over an object</span>
+<span class="kr">var</span> <span class="n">person</span> <span class="o">=</span>  <span class="p">{</span> <span class="n">name</span> <span class="p">:</span> <span class="s">&quot;john&quot;</span><span class="p">,</span> <span class="n">surname</span> <span class="p">:</span> <span class="s">&quot;smith&quot;</span><span class="p">,</span> <span class="n">age</span> <span class="p">:</span> <span class="mi">38</span> <span class="p">}</span>
+
+<span class="kr">foreach</span> <span class="n">key</span> <span class="kr">in</span> <span class="n">person</span> <span class="kr">do</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">&quot; -&gt; &quot;</span><span class="p">,</span> <span class="n">person</span><span class="o">[</span><span class="n">key</span><span class="o">]</span><span class="p">)</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="errors">
+<h2>Errors<a class="headerlink" href="#errors" title="Permalink to this headline">¶</a></h2>
+<p>It is sometimes necessary to interrupt a script because it can no longer proceed further. To signal an error, use the <code class="docutils literal notranslate"><span class="pre">error()</span></code>
+function, which takes as an argument a string explaining what kind of error happened. For example:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">function</span> <span class="n">area</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="kr">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="kr">or</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="kr">then</span>
+        <span class="n">error</span><span class="p">(</span><span class="s">&quot;x and y must be non-negative&quot;</span><span class="p">)</span>
+    <span class="kr">end</span>
+
+    <span class="kr">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+<p>Another way to trigger errors is to use the <code class="docutils literal notranslate"><span class="pre">assert()</span></code> function, which expects a Boolean expression as its first argument, followed by
+an optional error message. It will trigger an error with the error message if the condition is false.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">function</span> <span class="n">area</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;x must be non-negative&quot;</span><span class="p">)</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;y must be non-negative&quot;</span><span class="p">)</span>
+    <span class="kr">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="metaobject.html" title="Meta-objects and inheritance"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../index.html" title="Scripting"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.3.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
+      </ul>
+    </div>
+    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Léa Courdès-Murphy &amp; Julien Eychenne.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+    
+
+  </body>
+</html>
