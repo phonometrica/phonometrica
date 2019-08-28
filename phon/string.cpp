@@ -88,7 +88,7 @@ void String::reserve(intptr_t requested)
 	{
 		auto new_capacity = utils::find_capacity(requested, this->capacity());
 		String tmp(new_capacity);
-		std::copy(this->begin(), this->end(), tmp.begin());
+		char_traits::copy(tmp.chars(), this->data(), this->size());
 		tmp.adjust(this->size());
 		swap(tmp);
 	}
@@ -96,7 +96,7 @@ void String::reserve(intptr_t requested)
 
 bool String::check_capacity(intptr_t requested) const
 {
-	return impl->data + requested <= impl->limit;
+	return impl->data + requested < impl->limit;
 }
 
 void String::adjust(intptr_t new_size)
@@ -319,7 +319,10 @@ void String::Data::operator delete(void* ptr, size_t)
 
 Handle<String::Data> String::Data::create(intptr_t capacity)
 {
-	return create(nullptr, 0, capacity);
+	// [capacity] must be at least the size of a pointer, otherwise we might corrupt the heap when the Data
+	// is constructed in-place because the whole array might be 0-initizialized.
+	auto c = std::max<intptr_t>(capacity, meta::pointer_size);
+	return create(nullptr, 0, c);
 }
 
 Handle<String::Data> String::Data::create(const char *str, intptr_t len)
@@ -1050,6 +1053,7 @@ String &String::replace(intptr_t i, intptr_t count, Substring after)
 
 String &String::replace(const_iterator from, const_iterator to, Substring after)
 {
+	if (from == to) return *this;
 	bool ok = (begin() <= from && from <= end()) && (begin() <= to && to <= end()) && (to > from);
 	intptr_t offset = from - begin();
 	intptr_t count = to - from;

@@ -310,7 +310,8 @@ bool File::needs_swap32() const
 char16_t File::get_char_utf16()
 {
 	char16_t c = 0;
-	if (fread(&c, 2, 1, m_handle) != 2 && feof(m_handle))
+
+	if (fread(&c, 2, 1, m_handle) != 1 || at_end())
 	{
 		return Eof;
 	}
@@ -322,7 +323,7 @@ char32_t File::get_char_utf32()
 {
 	char32_t c = 0;
 
-	if (fread(&c, 4, 1, m_handle) != 4 && feof(m_handle))
+	if (fread(&c, 4, 1, m_handle) != 1 && feof(m_handle))
 	{
 		return Eof;
 	}
@@ -443,17 +444,7 @@ void File::close()
 bool File::at_end()
 {
     check_handle();
-	auto c = fgetc(m_handle);
-
-	if (c == EOF)
-	{
-		return feof(m_handle) != 0;
-	}
-	else
-	{
-		ungetc(c, m_handle);
-		return false;
-	}
+	return feof(m_handle) != 0;
 }
 
 void File::write(const char *text)

@@ -188,21 +188,13 @@ void append(String &s1, std::string_view s2)
 String application_directory()
 {
 #if PHON_WINDOWS
-	return user_directory();
+	return filesystem::join(user_directory(), "AppData", "Roaming");
 
 #elif PHON_MACOS
-	String path = user_directory();
-	check_end(path);
-	path.append("Applications/");
-
-	return path;
+	return filesystem::join(user_directory(), "Applications");;
 
 #else
-	String path = user_directory();
-	check_end(path);
-	path.append(".config");
-
-	return path;
+	return filesystem::join(user_directory(), ".config");;
 #endif
 }
 

@@ -366,6 +366,8 @@ private:
         String(utf8.data(), utf8.size())
     { }
 #endif
+
+	char* chars() { return impl->data;  }
 	
 	bool check_capacity(intptr_t requested) const;
 

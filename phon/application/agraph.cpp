@@ -308,6 +308,7 @@ void AGraph::read_textgrid(const String &path)
 	do
 	{
 		auto line = infile.read_line();
+		auto view = line.to_wide();
 		praat::TierHeader header;
 
 		if (praat::parse_tier_header(infile, line, header))
