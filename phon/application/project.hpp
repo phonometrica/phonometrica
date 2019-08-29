@@ -112,7 +112,7 @@ public:
 
 	void clear();
 
-	const String label() const;
+	String label() const;
 
 	std::shared_ptr<VFile> get(const String &path);
 

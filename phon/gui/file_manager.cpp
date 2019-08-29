@@ -45,7 +45,7 @@ FileManager::FileManager(Runtime &rt, QWidget *parent) :
     layout->addWidget(project_ctrl);
     layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
-    setProjectLabel(tr("Untitled project"));
+    refreshLabel();
 }
 
 void FileManager::updateConsoleStatus(bool status)
@@ -74,15 +74,6 @@ void FileManager::updateInfoStatus(bool status)
     info_shown = !status;
 }
 
-void FileManager::setProjectLabel(const QString &name)
-{
-#ifdef Q_OS_MAC
-    label->setText(name);
-#else
-    project_ctrl->setProjectLabel(name);
-#endif
-}
-
 void FileManager::consoleClicked(bool)
 { 
     emit toggleConsole();
@@ -97,6 +88,7 @@ void FileManager::infoClicked(bool)
 
 void FileManager::refreshProject()
 {
+    refreshLabel();
     project_ctrl->refresh();
 }
 
@@ -115,7 +107,15 @@ void FileManager::initStatusBar(QStatusBar *status_bar)
 
 void FileManager::refreshLabel()
 {
-    project_ctrl->resetLabel();
+    auto project = Project::instance();
+    String name = project->label();
+    if (project->modified()) name.append('*');
+
+#ifdef Q_OS_MAC
+    label->setText(name);
+#else
+    project_ctrl->setProjectLabel(name);
+#endif
 }
 
 

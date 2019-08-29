@@ -116,7 +116,7 @@ void AudioPlayer::prepare()
 #if PHON_LINUX
     m_options.flags = RTAUDIO_ALSA_USE_DEFAULT;
 #elif PHON_MACOS
-    if (m_data->channels() == 1)
+    if (data->channels() == 1)
         m_options.flags = RTAUDIO_NONINTERLEAVED | RTAUDIO_SCHEDULE_REALTIME;
 	else
 		m_options.flags = 0;

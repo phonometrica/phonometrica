@@ -36,7 +36,7 @@ class Field final
 {
 public:
 
-    Field() noexcept = default;
+    Field() = default;
 
     ~Field() = default;
 

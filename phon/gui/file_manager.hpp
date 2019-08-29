@@ -69,8 +69,6 @@ public slots:
 
 private:
 
-    void setProjectLabel(const QString &name);
-
     Runtime &rt;
 
     ProjectCtrl *project_ctrl;

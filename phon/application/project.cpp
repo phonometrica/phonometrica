@@ -974,9 +974,15 @@ void Project::clear()
     assert(m_accumulator.empty());
 }
 
-const String Project::label() const
+String Project::label() const
 {
-    return m_path.empty() ? "Untitled project" : filesystem::base_name(this->path());
+    if (m_path.empty())
+        return "Untitled project";
+
+    String label("Project ");
+    label.append(filesystem::base_name(this->path()));
+
+    return label;
 }
 
 std::shared_ptr<VFile> Project::get(const String &path)

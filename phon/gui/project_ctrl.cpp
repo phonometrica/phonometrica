@@ -132,7 +132,6 @@ void ProjectCtrl::refresh()
     bookmarks->setText(0, tr("Bookmarks"));
     bookmarks->setIcon(0, QIcon(":/icons/favorite.png"));
 
-    resetLabel();
     fillFolder(corpus, *project->corpus());
     fillFolder(data, *project->data());
     fillFolder(queries, *project->queries());
@@ -142,7 +141,6 @@ void ProjectCtrl::refresh()
     data->setExpanded(true);
     scripts->setExpanded(true);
     bookmarks->setExpanded(true);
-
 }
 
 void ProjectCtrl::fillFolder(QTreeWidgetItem *item, VFolder &folder)
@@ -578,19 +576,6 @@ VFileList ProjectCtrl::get_vfiles(const QList<QTreeWidgetItem *> &items)
 
     return files;
 }
-
-void ProjectCtrl::resetLabel()
-{
-    auto project = Project::instance();
-    String label = project->label();
-	if (label.empty())
-		label = "Untitled project";
-	else
-		label.prepend("Project ");
-    if (project->modified()) label.append('*');
-    setProjectLabel(label);
-}
-
 
 } // phonometrica
 

@@ -29,7 +29,7 @@
 namespace phonometrica {
 
 
-class DataView final : public View
+class DataView : public View
 {
     Q_OBJECT
 

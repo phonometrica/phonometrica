@@ -382,16 +382,22 @@ private:
 	String &trim(Option flag);
 };
 
+inline
+std::ostream &operator<<(std::ostream &stream, const String &s)
+{
+    stream.write(s.data(), s.size());
+    return stream;
+}
 
 } // namespace phonometrica
 
 //----------------------------------------------------------------------------------------------------------------------
 
-inline
-std::ostream &operator<<(std::ostream &out, const phonometrica::String &s)
-{
-	return out.write(s.data(), s.size());
-}
+//inline
+//std::ostream &operator<<(std::ostream &out, const phonometrica::String &s)
+//{
+//	return out.write(s.data(), s.size());
+//}
 
 
 

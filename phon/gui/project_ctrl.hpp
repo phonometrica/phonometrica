@@ -47,8 +47,6 @@ public:
 
     explicit ProjectCtrl(Runtime &rt, QWidget *parent = nullptr);
 
-    void resetLabel();
-
 signals:
 
     void script_selected(std::shared_ptr<Script>);
