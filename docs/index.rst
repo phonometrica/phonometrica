@@ -25,7 +25,6 @@ Phonometrica is a free, open-source software toolbox for the analysis of speech 
 Phonometrica runs on all major platforms (Windows, macOS and GNU/Linux) and is freely available under the terms of the GNU General Public License (version 3 or later).
 The latest version of Phonometrica can be downloaded from https://phonometrica.github.io. If you encounter any problem or bug, please write to the authors.
 
-**Note: Phonometrica is currently under development and is not yet usable.**
 
 Download
 ========
@@ -33,11 +32,14 @@ Download
 Phonometrica 0.3.0
 ------------------
 
--  Windows 7 and later:
+**Note: Phonometrica is under development and is currently only available in source code form.**
+
+
+.. -  Windows 7 and later:
    `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.3.0/setup_phonometrica.exe>`__
--  MacOS 10.7 and later:
+.. -  MacOS 10.7 and later:
    `phonometrica.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.3.0/phonometrica.dmg>`__
--  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.2.0.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.3.0/phonometrica-0.2.0.deb>`__
+.. -  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.2.0.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.3.0/phonometrica-0.2.0.deb>`__
 -  source code: available on `GitHub <https://github.com/phonometrica/phonometrica>`__
 
   
