@@ -121,8 +121,11 @@ phon.add_folder = function()
 end
 
 function save_project_as()
-	var path = phon.save_file_dialog("Save project as...")
+	var path = phon.save_file_dialog("Save project as...", "Phonometrica project (*.phon-project)")
 	if path then
+		if not path.ends_with(".phon-project") then
+			path = path + ".phon-project"
+		end
 		phon.project.save(path)
 		update_recent_projects(path)
 	end
