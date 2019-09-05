@@ -980,11 +980,13 @@ void Project::clear()
 
 String Project::label() const
 {
+	using namespace filesystem;
+
     if (m_path.empty())
         return "Untitled project";
 
     String label("Project ");
-    label.append(filesystem::base_name(this->path()));
+    label.append(base_name(strip_ext(path())));
 
     return label;
 }

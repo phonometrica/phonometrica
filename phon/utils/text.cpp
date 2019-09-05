@@ -37,6 +37,20 @@ Array<Array<String>> parse_csv(const String &path, std::string_view splitter)
 	}
 	infile.close();
 
+	if (!csv.empty())
+	{
+		intptr_t size = csv.first().size();
+
+		for (intptr_t i = 2; i <= csv.size(); i++)
+		{
+			if (csv[i].size() != size)
+			{
+				throw error("Inconsistent number of columns in CSV file on line % (expected %, got %)",
+						i, size, csv[i].size());
+			}
+		}
+	}
+
 	return csv;
 }
 

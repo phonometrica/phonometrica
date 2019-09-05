@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 ###########################
 
 set(BUILD_GUI ON)
-set(EMBED_SCRIPTS ON)
+set(EMBED_SCRIPTS OFF)
 set(BUILD_UNIT_TEST OFF)
 
 # Major release: incremented when major changes are introduced

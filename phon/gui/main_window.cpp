@@ -482,10 +482,10 @@ void MainWindow::setShellFunctions()
     };
 
     auto save_file_dialog = [=](Runtime &rt) {
-        auto s = rt.to_string(-1);
+        auto s = rt.to_string(1);
         auto dir = Settings::get_last_directory(rt);
-        String filter = rt.arg_count() > 1 ? rt.to_string(2) : String();
-        auto path = QFileDialog::getSaveFileName(this, s, dir, filter);
+        QString filter = rt.arg_count() > 1 ? QString(rt.to_string(2)) : QString();
+        auto path = QFileDialog::getSaveFileName(this, s, dir, filter, &filter);
         if (path.isNull())
         {
             rt.push_null();

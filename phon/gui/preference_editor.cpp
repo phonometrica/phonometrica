@@ -177,8 +177,8 @@ void PreferenceEditor::setLineEditFolder(QLineEdit *line)
 
 void PreferenceEditor::setLineEditFile(QLineEdit *line)
 {
-    auto dir = Settings::get_string(rt, "last_directory");
-    QString path = QFileDialog::getOpenFileName(this->parentWidget(), tr("Choose file..."), path);
+    QString dir = Settings::get_string(rt, "last_directory");
+    QString path = QFileDialog::getOpenFileName(this->parentWidget(), tr("Choose file..."), dir);
 
 	if (!path.isEmpty())
 		line->setText(path);
