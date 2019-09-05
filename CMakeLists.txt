@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 ###########################
 
 set(BUILD_GUI ON)
-set(EMBED_SCRIPTS OFF)
+set(EMBED_SCRIPTS ON)
 set(BUILD_UNIT_TEST OFF)
 
 # Major release: incremented when major changes are introduced
@@ -27,8 +27,8 @@ add_definitions(-DPHON_VERSION_NANO=0)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
-add_definitions(-DPHON_RELEASE_DATE_MONTH=8)
-add_definitions(-DPHON_RELEASE_DATE_DAY=31)
+add_definitions(-DPHON_RELEASE_DATE_MONTH=9)
+add_definitions(-DPHON_RELEASE_DATE_DAY=5)
 
 # Operating system
 if(WIN32)

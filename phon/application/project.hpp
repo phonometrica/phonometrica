@@ -191,6 +191,8 @@ private:
 
     void tag_file(std::shared_ptr<VFile> &file, const String &category, const String &value);
 
+    void set_default_bindings();
+
     static std::unique_ptr<Project> the_instance;
 
 	Runtime &rt;

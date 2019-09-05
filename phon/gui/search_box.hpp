@@ -31,6 +31,7 @@
 class QPushButton;
 class QRadioButton;
 class QTextEdit;
+class QSpinBox;
 
 namespace phonometrica {
 
@@ -85,6 +86,14 @@ private slots:
 
 private:
 
+	QSpinBox *createLayerSpinBox(int start = 0);
+
+	LineEdit *createLayerEdit();
+
+	void changeLayerDisplay(int constraint_index, int selection);
+
+	void updateRelations();
+
 	QVBoxLayout *main_layout;
 
 	QPushButton *add_button, *remove_button;
@@ -94,6 +103,8 @@ private:
 	QTextEdit *query_display;
 
 	Array<QHBoxLayout*> constraint_layouts;
+
+	Array<QComboBox*> relations;
 
 	int constraint_count = 0;
 };

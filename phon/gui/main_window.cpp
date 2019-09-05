@@ -170,6 +170,8 @@ MainWindow::~MainWindow()
     Settings::set_value(rt, "geometry", { x, y, w, h });
     Settings::set_value(rt, "full_screen", this->isMaximized());
 
+    if (query_editor) delete query_editor;
+
     try
     {
         Settings::write(rt);
@@ -500,6 +502,11 @@ void MainWindow::setShellFunctions()
     	rt.push_null();
     };
 
+    auto run_last_query = [=](Runtime &rt) {
+    	this->runLastQuery();
+    	rt.push_null();
+    };
+
     auto input = [=](Runtime &rt) {
         auto title = rt.to_string(1);
         auto text = rt.to_string(2);
@@ -609,6 +616,7 @@ void MainWindow::setShellFunctions()
         rt.add_method("view_script", view_script, 1);
         rt.add_method("run_script", run_script, 1);
         rt.add_method("open_query_editor", open_query_editor, 0);
+        rt.add_method("run_last_query", run_last_query, 0);
 
         // Define 'phon.config'
         Settings::initialize(rt);
@@ -736,6 +744,29 @@ void MainWindow::openQueryEditor()
 	auto editor = new QueryEditor(this);
 	editor->resize(1100, 800);
 	editor->show();
+	cacheQueryEditor(editor);
+}
+
+void MainWindow::runLastQuery()
+{
+	if (query_editor)
+	{
+		query_editor->show();
+	}
+	else
+	{
+		QMessageBox dlg(QMessageBox::Warning, "Warning", "You haven't run any query yet!");
+		dlg.exec();
+	}
+}
+
+void MainWindow::cacheQueryEditor(QueryEditor *ed)
+{
+	if (query_editor && query_editor != ed) {
+		delete query_editor;
+	}
+
+	query_editor = ed;
 }
 
 

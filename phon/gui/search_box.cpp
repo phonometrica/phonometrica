@@ -25,11 +25,14 @@
 #include <QButtonGroup>
 #include <QTextEdit>
 #include <QCheckBox>
+#include <QSpinBox>
 #include <QPushButton>
 #include <phon/gui/search_box.hpp>
 #include <phon/gui/line_edit.hpp>
 
 namespace phonometrica {
+
+static constexpr int SPINBOX_SIZE = 100;
 
 SearchBox::SearchBox(QWidget *parent, const QString &title) :
 	QGroupBox(title, parent)
@@ -63,9 +66,10 @@ void DefaultSearchBox::setupUi()
 	auto hlayout = new QHBoxLayout;
 	add_button = new QPushButton(QIcon(":/icons/plus.png"), QString());
 	remove_button = new QPushButton(QIcon(":/icons/minus.png"), QString());
+
+	hlayout->addStretch(1);
 	hlayout->addWidget(add_button);
 	hlayout->addWidget(remove_button);
-	hlayout->addStretch(1);
 
 	query_display = new QTextEdit;
 	query_display->setMaximumHeight(40);
@@ -104,8 +108,6 @@ void DefaultSearchBox::addSearchConstraint(bool )
 	layer_combo->addItem(tr("Layer index"));
 	layer_combo->addItem(tr("Layer name (regex)"));
 
-	auto layer_name = new LineEdit(tr("any layer"));
-	layer_name->setMaximumWidth(120);
 	auto relation = new QComboBox;
 	relation->addItem(tr("is aligned with"));
 	relation->addItem(tr("precedes"));
@@ -114,20 +116,29 @@ void DefaultSearchBox::addSearchConstraint(bool )
 	auto layout = new QHBoxLayout;
 	layout->addWidget(id_label);
 	layout->addWidget(layer_combo);
-	layout->addWidget(layer_name);
+	layout->addWidget(createLayerSpinBox());
 	layout->addWidget(match_box);
 	layout->addWidget(search_line);
 	layout->addWidget(case_box);
 	layout->addWidget(relation);
 	int index = int(constraint_layouts.size());
 	main_layout->insertLayout(index, layout);
+
 	constraint_layouts.append(layout);
+	relations.append(relation);
 
 	remove_button->setEnabled(constraint_count > 1);
 
-	// Single-layer queries don't use relations
-    if (i == 0) relation->setEnabled(false);
+	// The last constraint doesn't have a relation.
+	updateRelations();
+
     updateQueryString(true);
+
+    auto change_layer = [=](int index) {
+    	this->changeLayerDisplay(i, index);
+    };
+
+    connect(layer_combo, QOverload<int>::of(&QComboBox::currentIndexChanged), change_layer);
 }
 
 void DefaultSearchBox::removeSearchConstraint(bool)
@@ -145,6 +156,8 @@ void DefaultSearchBox::removeSearchConstraint(bool)
 		}
 	}
 	delete layout;
+	relations.pop_last();
+	updateRelations();
 
 	--constraint_count;
 	remove_button->setEnabled(constraint_count > 1);
@@ -174,6 +187,48 @@ void DefaultSearchBox::updateQueryString(bool)
 
 	query_display->setText(query);
 	query_display->setEnabled(op == Operator::Custom);
+}
+
+QSpinBox *DefaultSearchBox::createLayerSpinBox(int start)
+{
+	auto spinbox = new QSpinBox;
+	spinbox->setRange(start, 100);
+	spinbox->setSingleStep(1);
+//	spinbox->setPrefix("layer ");
+	if (start == 0)
+		spinbox->setSpecialValueText(tr("any"));
+	spinbox->setValue(start);
+	spinbox->setFixedWidth(SPINBOX_SIZE);
+
+	return spinbox;
+}
+
+LineEdit *DefaultSearchBox::createLayerEdit()
+{
+	auto layer_name = new LineEdit(tr("pattern"));
+	layer_name->setFixedWidth(SPINBOX_SIZE);
+
+	return layer_name;
+}
+
+void DefaultSearchBox::changeLayerDisplay(int constraint_index, int selection)
+{
+	const int layer_pos = 2;
+	int start = (constraint_count == 1) ? 0 : 1;
+	auto layout = constraint_layouts[constraint_index + 1];
+	auto item = layout->takeAt(layer_pos);
+	delete item;
+	auto new_widget = (selection == 0) ? (QWidget*)createLayerSpinBox(start) : (QWidget*)createLayerEdit();
+	layout->insertWidget(layer_pos, new_widget);
+}
+
+void DefaultSearchBox::updateRelations()
+{
+	for (intptr_t r = 1; r <= relations.size(); r++)
+	{
+		bool value = (r != relations.size());
+		relations[r]->setEnabled(value);
+	}
 }
 
 

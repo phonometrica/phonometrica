@@ -135,6 +135,7 @@ QWidget * QueryEditor::createFileBox()
 	layout->addWidget(desc_box);
 	layout->setStretchFactor(file_box, 1);
 	layout->setStretchFactor(desc_box, 2);
+	layout->setContentsMargins(0, 0, 0, 0);
 	widget->setLayout(layout);
 
 	return widget;
@@ -142,8 +143,8 @@ QWidget * QueryEditor::createFileBox()
 
 void QueryEditor::accept()
 {
-//	this->hide();
-	QDialog::accept();
+	this->hide();
+	//QDialog::accept();
 }
 
 QGroupBox *QueryEditor::createProperties()

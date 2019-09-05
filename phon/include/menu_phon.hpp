@@ -138,12 +138,12 @@ end
 
 
 
-function find_concordances()
-	pass
+function new_query()
+	phon.open_query_editor()
 end
 
-function extend_query_menu()
-	pass
+function run_last_query()
+	phon.run_last_query()
 end
 
 
@@ -253,10 +253,9 @@ file_menu = [
 	["Quit", phon.quit, "ctrl+q"]
 ]
 
-query_menu = [
-	["Find concordances...", find_concordances],
-	null,
-	["How to extend this menu...", extend_query_menu]
+annotation_menu = [
+	["New query...", new_query, "ctrl+y"],
+	["Run last query", run_last_query]
 ]
 
 help_menu = [
@@ -276,7 +275,7 @@ help_menu = [
 phon.actions = {} 
 
 create_menu(file_menu, "&File")
-create_menu(query_menu, "&Query")
+create_menu(annotation_menu, "&Annotation")
 phon.create_window_menu() # Handled in C++ code
 create_menu(help_menu, "&Help")
 enable_most_recent())_";

@@ -687,6 +687,8 @@ void Project::import_folder(String path)
 	filesystem::nativize(path);
 	add_folder(std::move(path), m_corpus);
 	bind_annotations();
+	// Try to find a sound that matches the annotation's name.
+	set_default_bindings();
 	m_modified = true;
 }
 
@@ -697,6 +699,8 @@ void Project::import_file(String path)
 	if (add_file(std::move(path), m_corpus)) {
         m_modified = true;
 	}
+	// Try to find a sound that matches the annotation's name.
+	set_default_bindings();
 }
 
 void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent)
@@ -1164,6 +1168,33 @@ Array<std::shared_ptr<Annotation>> Project::annotations() const
 	}
 
 	return result;
+}
+
+void Project::set_default_bindings()
+{
+	for (auto &item : m_files)
+	{
+		auto &vf = item.second;
+
+		if (vf->is_annotation())
+		{
+			auto annot = std::dynamic_pointer_cast<Annotation>(vf);
+			if (!annot->has_sound())
+			{
+				for (auto &ext : Sound::common_sound_formats())
+				{
+					auto path = filesystem::strip_ext(annot->path());
+					path.append('.').append(ext);
+					if (filesystem::exists(path))
+					{
+						add_file(path, m_corpus);
+						auto sound = std::dynamic_pointer_cast<Sound>(m_files[path]);
+						annot->set_sound(sound, false);
+					}
+				}
+			}
+		}
+	}
 }
 
 } // namespace phonometrica

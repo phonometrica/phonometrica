@@ -31,6 +31,8 @@
 
 namespace phonometrica {
 
+class QueryEditor;
+
 class MainWindow final : public QMainWindow
 {
     Q_OBJECT
@@ -85,6 +87,10 @@ private:
 
     void openQueryEditor();
 
+    void runLastQuery();
+
+    void cacheQueryEditor(QueryEditor *ed);
+
     Splitter *splitter;
 
     Runtime &rt;
@@ -94,6 +100,8 @@ private:
     MainArea *main_area;
 
     QAction *show_project, *show_console, *show_info, *restore_layout;
+
+    QueryEditor *query_editor = nullptr; // cache last query
 };
 
 } // phonometrica
