@@ -1191,7 +1191,8 @@ void Project::set_default_bindings()
 					{
 						add_file(path, m_corpus);
 						auto sound = std::dynamic_pointer_cast<Sound>(m_files[path]);
-						annot->set_sound(sound, false);
+						// Mutate the annotation, so that its metadata are saved.
+						annot->set_sound(sound, true);
 					}
 				}
 			}

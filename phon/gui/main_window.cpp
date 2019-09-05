@@ -755,7 +755,7 @@ void MainWindow::runLastQuery()
 	}
 	else
 	{
-		QMessageBox dlg(QMessageBox::Warning, "Warning", "You haven't run any query yet!");
+		QMessageBox dlg(QMessageBox::Critical, "Error", "You haven't run any query yet!");
 		dlg.exec();
 	}
 }

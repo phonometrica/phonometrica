@@ -142,7 +142,11 @@ end
 
 
 function new_query()
-	phon.open_query_editor()
+	if phon.project.is_empty() then
+		phon.alert("The current project is empty!")
+	else
+		phon.open_query_editor()
+	end
 end
 
 function run_last_query()
