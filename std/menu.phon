@@ -111,7 +111,7 @@ end
 
 
 phon.open_project = function()
-	var path = phon.open_file_dialog("Open Phonometrica project", "Project (*.xml)")
+	var path = phon.open_file_dialog("Open Phonometrica project", "Project (*.phon-project)")
 	if path then
 		phon.project.open(path)
 		update_recent_projects(path)
@@ -172,8 +172,8 @@ end
 
 # QUERY MENU
 
-function find_concordances()
-	pass
+function new_query()
+	phon.open_query_editor()
 end
 
 function extend_query_menu()
@@ -306,7 +306,7 @@ file_menu = [
 
 
 query_menu = [
-	["Find concordances...", find_concordances],
+	["New query...", new_query, "ctrl+f"],
 	null,
 	["How to extend this menu...", extend_query_menu]
 ]

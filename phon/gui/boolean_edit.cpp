@@ -13,70 +13,54 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 08/03/2019                                                                                                *
+ * Created: 05/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: editor for VFile properties.                                                                              *
+ * Purpose: see header.                                                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef METADATAEDITOR_H
-#define METADATAEDITOR_H
-
-#include <QDialog>
-#include <QVBoxLayout>
-#include <QGridLayout>
-#include <QMessageBox>
-#include <QPushButton>
-#include <QListWidget>
-#include <QLineEdit>
-#include <QLabel>
-
-#include <phon/gui/property_table.hpp>
-#include <phon/application/annotation.hpp>
-#include <phon/application/sound.hpp>
-#include <phon/application/script.hpp>
+#include <phon/gui/boolean_edit.hpp>
 
 namespace phonometrica {
 
-
-class MetadataEditor final : public QDialog
+BooleanEdit::BooleanEdit(QString desc) : QHBoxLayout()
 {
-    Q_OBJECT
+	this->desc = std::move(desc);
+	combo_box = new QComboBox;
+	combo_box->addItem("any");
+	combo_box->addItem("true");
+	combo_box->addItem("false");
 
-public:
+	this->addWidget(combo_box);
+	this->addStretch(1);
+}
 
-    MetadataEditor(QWidget *parent, VFileList files);
+QString BooleanEdit::description() const
+{
+	return desc;
+}
 
-private slots:
+std::optional<bool> BooleanEdit::value() const
+{
+	switch (combo_box->currentIndex())
+	{
+		case 1:
+			return true;
+		case 2:
+			return false;
+		default:
+			return std::optional<bool>();
+	}
+}
 
-    void accept() override;
+void BooleanEdit::show()
+{
+	combo_box->show();
+}
 
-    void addProperty();
-
-    void removeProperty();
-
-    void updateValues();
-
-    void updateSelectedValue();
-
-    void propertyContentEdited();
-
-    void selectRow(int);
-
-    void checkPropertyIsRemovable();
-
-private:
-
-    QVBoxLayout *layout;
-    QPushButton *addProperty_btn, *rmProperty_btn, *ok_btn;
-    VFileList m_files;
-    PropertyTable *property_table;
-    QListWidget *cat_list, *value_list;
-    QLineEdit *cat_line, *value_line;
-
-    void setupUi();
-};
+void BooleanEdit::hide()
+{
+	combo_box->hide();
+}
 
 } // namespace phonometrica
-
-#endif // METADATAEDITOR_H

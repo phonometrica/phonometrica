@@ -13,89 +13,15 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 03/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: see header.                                                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
 
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <phon/application/search/search_node.hpp>
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
-{
-    Q_OBJECT
-
-public:
-
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
-
-    ~MainWindow();
-
-public slots:
-
-    void closeEvent (QCloseEvent *event) override;
-
-private slots:
-
-    void showConsole(bool);
-
-    void showInfo(bool);
-
-    void showProject(bool);
-
-    void restoreDefaultLayout(bool);
-
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
-
-private:
-
-    bool finalize();
-
-    void makeMenu(QWidget *panel);
-
-    void addWindowMenu(QMenuBar *menubar);
-
-    void setShellFunctions();
-
-    void initialize();
-    
-    void preInitialize();
-
-    void postInitialize();
-
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
-};
-
-} // phonometrica
-
-#endif // MAIN_WINDOW_HPP
+} // namespace phonometrica

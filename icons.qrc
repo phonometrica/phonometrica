@@ -38,5 +38,7 @@
         <file>icons/100x100/new_folder.png</file>
         <file>icons/100x100/settings.png</file>
         <file>icons/100x100/help.png</file>
+        <file>icons/plus.png</file>
+        <file>icons/minus.png</file>
     </qresource>
 </RCC>

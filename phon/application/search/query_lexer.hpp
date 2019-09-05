@@ -13,89 +13,67 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 03/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: transforms a query represented as string into a stream of tokens to be consumed by the query parser.      *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
+#ifndef PHONOMETRICA_QUERY_LEXER_HPP
+#define PHONOMETRICA_QUERY_LEXER_HPP
 
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
-{
-    Q_OBJECT
 
+struct Token final
+{
+	enum Code
+	{
+		Invalid,
+		And,    // Boolean AND
+		Or,     // Boolean OR
+		Not,    // Boolean NOT
+		LParen, // "("
+		RParen, // ")"
+		Number, // # followed by n digits
+		Eot     // end of text
+	};
+
+	bool is(Code c) const { return code == c; }
+
+	Code code = Invalid;
+	int number = 0;
+};
+
+
+//----------------------------------------------------------------------------------------------------------------------
+
+class QueryLexer final
+{
 public:
 
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
+	explicit QueryLexer(String query);
 
-    ~MainWindow();
-
-public slots:
-
-    void closeEvent (QCloseEvent *event) override;
-
-private slots:
-
-    void showConsole(bool);
-
-    void showInfo(bool);
-
-    void showProject(bool);
-
-    void restoreDefaultLayout(bool);
-
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
+	Token next();
 
 private:
 
-    bool finalize();
+	void skip_white();
 
-    void makeMenu(QWidget *panel);
+	void read_char();
 
-    void addWindowMenu(QMenuBar *menubar);
+	void accept() { read_char(); }
 
-    void setShellFunctions();
+	String m_query;
 
-    void initialize();
-    
-    void preInitialize();
+	String::const_iterator m_pos;
 
-    void postInitialize();
-
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
+	char32_t m_char;
 };
 
-} // phonometrica
 
-#endif // MAIN_WINDOW_HPP
+} // namespace phonometrica
+
+#endif // PHONOMETRICA_QUERY_LEXER_HPP

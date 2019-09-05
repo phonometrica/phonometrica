@@ -13,89 +13,108 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 05/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: implement a custom list of checkable items. The list is presented in a group box, with an additional      *
+ * button to check all the items on or off.                                                                           *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
+#ifndef PHON_CHECKLIST_HPP
+#define PHON_CHECKLIST_HPP
 
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <QLabel>
+#include <QListWidget>
+#include <QButtonGroup>
+#include <QVBoxLayout>
+#include <QCheckBox>
+#include <QStringList>
+#include <QDebug>
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
+// Helper class for CheckListBox
+class CheckList : public QListWidget
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
 
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
+	CheckList(QWidget *parent, const Array<String> &labels, const Array<String> &toolTips = Array<String>());
 
-    ~MainWindow();
+	QList<QCheckBox *> buttons();
 
-public slots:
+	QList<QCheckBox *> checkedItems();
 
-    void closeEvent (QCloseEvent *event) override;
+	void appendItem(QString label, QString tooltip = QString());
+
+	void removeItem(QString text);
+
+	void resetLabels(const Array<String> &labels, const Array<String> &toolTips = Array<String>());
+
+signals:
+
+	void stateChanged(int index, int state);
 
 private slots:
 
-    void showConsole(bool);
-
-    void showInfo(bool);
-
-    void showProject(bool);
-
-    void restoreDefaultLayout(bool);
-
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
+	void forwardState(int);
 
 private:
 
-    bool finalize();
+	QButtonGroup *group;
 
-    void makeMenu(QWidget *panel);
+	QStringList m_labels, m_tooltips;
 
-    void addWindowMenu(QMenuBar *menubar);
+	bool hasTips;
 
-    void setShellFunctions();
-
-    void initialize();
-    
-    void preInitialize();
-
-    void postInitialize();
-
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
+	int indexFromCheckbox(QCheckBox *box);
 };
 
-} // phonometrica
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 
-#endif // MAIN_WINDOW_HPP
+class CheckListBox : public QWidget
+{
+	Q_OBJECT
+
+public:
+
+	CheckListBox(const QString &title, const Array <String> &labels, QWidget *parent = nullptr);
+
+	QString text(int index) const;
+
+	int index(QString text) const;
+
+	void addItem(QString item);
+
+	void removeItem(QString item);
+
+	QString title() const;
+
+signals:
+
+	void stateChanged(int index, int state);
+
+public slots:
+
+	void checkAll(int);
+
+	QStringList checkedLabels();
+
+private:
+
+	QVBoxLayout *layout;
+
+	QCheckBox *switch_button;
+
+	CheckList *checkList;
+
+	QString m_title;
+};
+
+
+} // namespace phonometrica
+
+#endif // PHON_CHECKLIST_HPP

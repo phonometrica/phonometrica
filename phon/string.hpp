@@ -271,7 +271,7 @@ public:
 
 	intptr_t to_int(bool *ok = nullptr) const;
 
-	bool to_bool() const;
+	bool to_bool(bool strict = false) const;
 
 	String &replace(intptr_t i, intptr_t count, Substring after);
 	String &replace(const_iterator from, const_iterator to, Substring after);

@@ -13,89 +13,51 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 03/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: nodes in the AST representing a parsed query.                                                             *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
+#ifndef PHONOMETRICA_SEARCH_NODE_HPP
+#define PHONOMETRICA_SEARCH_NODE_HPP
 
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <memory>
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
+// Abstract base class for all search nodes.
+struct SearchNode
 {
-    Q_OBJECT
-
 public:
 
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
-
-    ~MainWindow();
-
-public slots:
-
-    void closeEvent (QCloseEvent *event) override;
-
-private slots:
-
-    void showConsole(bool);
-
-    void showInfo(bool);
-
-    void showProject(bool);
-
-    void restoreDefaultLayout(bool);
-
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
-
-private:
-
-    bool finalize();
-
-    void makeMenu(QWidget *panel);
-
-    void addWindowMenu(QMenuBar *menubar);
-
-    void setShellFunctions();
-
-    void initialize();
-    
-    void preInitialize();
-
-    void postInitialize();
-
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
+	virtual ~SearchNode() = default;
 };
 
-} // phonometrica
+using SearchNodePtr = std::unique_ptr<SearchNode>;
 
-#endif // MAIN_WINDOW_HPP
+//----------------------------------------------------------------------------------------------------------------------
+
+struct AndSearchNode : public SearchNode
+{
+	SearchNodePtr left, right;
+};
+
+struct OrSearchNode : public SearchNode
+{
+	SearchNodePtr left, right;
+};
+
+struct NotSearchNode : public SearchNode
+{
+	SearchNodePtr child;
+};
+
+struct ExprSearchNode : public SearchNode
+{
+
+};
+
+} // namespace phonometrica
+
+#endif // PHONOMETRICA_SEARCH_NODE_HPP

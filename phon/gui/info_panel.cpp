@@ -23,7 +23,7 @@
 #include <QLabel>
 #include <QFileDialog>
 #include <phon/gui/info_panel.hpp>
-#include <phon/gui/metadata_editor.hpp>
+#include <phon/gui/property_editor.hpp>
 #include <phon/application/project.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/utils/file_system.hpp>
@@ -254,8 +254,8 @@ void InfoPanel::setFileDescription(bool)
 
 void InfoPanel::editProperties()
 {
-    MetadataEditor *editor = new MetadataEditor(this, m_files);
-    connect(editor, &MetadataEditor::accepted, this, &InfoPanel::refresh);
+    PropertyEditor *editor = new PropertyEditor(this, m_files);
+    connect(editor, &PropertyEditor::accepted, this, &InfoPanel::refresh);
     editor->show();
 }
 

@@ -30,11 +30,11 @@
 #include <QInputDialog>
 #include <QDir>
 #include <phon/gui/main_window.hpp>
+#include <phon/gui/query_editor.hpp>
 #include <phon/gui/preference_editor.hpp>
 #include <phon/runtime/object.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
-#include "main_window.hpp"
 
 
 #ifdef PHON_EMBED_SCRIPTS
@@ -495,6 +495,11 @@ void MainWindow::setShellFunctions()
         }
     };
 
+    auto open_query_editor = [=](Runtime &rt) {
+    	this->openQueryEditor();
+    	rt.push_null();
+    };
+
     auto input = [=](Runtime &rt) {
         auto title = rt.to_string(1);
         auto text = rt.to_string(2);
@@ -603,6 +608,7 @@ void MainWindow::setShellFunctions()
         rt.add_method("edit_settings", edit_settings, 0);
         rt.add_method("view_script", view_script, 1);
         rt.add_method("run_script", run_script, 1);
+        rt.add_method("open_query_editor", open_query_editor, 0);
 
         // Define 'phon.config'
         Settings::initialize(rt);
@@ -723,6 +729,13 @@ void MainWindow::maximizeViewer()
     show_project->setChecked(false);
     show_console->setChecked(false);
     show_info->setChecked(false);
+}
+
+void MainWindow::openQueryEditor()
+{
+	auto editor = new QueryEditor(this);
+	editor->resize(1100, 800);
+	editor->show();
 }
 
 

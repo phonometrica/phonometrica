@@ -13,89 +13,91 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 31/08/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: Search box in a query editor. This is a virtual class, whose default implementation provides search func- *
+ * tionality for single and multiple layer queries. Subclasses can override this behavior and present a custom layout,*
+ * e.g. to implement query protocols.                                                                                 *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
+#ifndef PHONOMETRICA_SEARCH_BOX_HPP
+#define PHONOMETRICA_SEARCH_BOX_HPP
 
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <QGroupBox>
+#include <QLayout>
+#include <phon/string.hpp>
+
+class QPushButton;
+class QRadioButton;
+class QTextEdit;
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
+class LineEdit;
+
+
+class SearchBox : public QGroupBox
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
 
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
+	SearchBox(QWidget *parent, const QString &title);
 
-    ~MainWindow();
+	void postInitialize();
 
-public slots:
+protected:
 
-    void closeEvent (QCloseEvent *event) override;
+	virtual void setupUi() = 0;
+};
+
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+class DefaultSearchBox final : public SearchBox
+{
+	Q_OBJECT
+
+	enum class Operator
+	{
+		And,
+		Or,
+		Custom
+	};
+
+public:
+
+	DefaultSearchBox(QWidget *parent);
+
+protected:
+
+	void setupUi() override;
 
 private slots:
 
-    void showConsole(bool);
+	void addSearchConstraint(bool dummy = true);
 
-    void showInfo(bool);
+	void removeSearchConstraint(bool dummy);
 
-    void showProject(bool);
-
-    void restoreDefaultLayout(bool);
-
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
+	void updateQueryString(bool);
 
 private:
 
-    bool finalize();
+	QVBoxLayout *main_layout;
 
-    void makeMenu(QWidget *panel);
+	QPushButton *add_button, *remove_button;
 
-    void addWindowMenu(QMenuBar *menubar);
+	QRadioButton *and_button, *or_button, *custom_button;
 
-    void setShellFunctions();
+	QTextEdit *query_display;
 
-    void initialize();
-    
-    void preInitialize();
+	Array<QHBoxLayout*> constraint_layouts;
 
-    void postInitialize();
-
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
+	int constraint_count = 0;
 };
 
-} // phonometrica
+} // namespace phonometrica
 
-#endif // MAIN_WINDOW_HPP
+#endif // PHONOMETRICA_SEARCH_BOX_HPP

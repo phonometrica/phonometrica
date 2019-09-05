@@ -51,7 +51,6 @@ Property::Property(String category, std::any value) :
 			// Roll back, since the property is invalid.
 			the_known_properties.erase(*this);
 
-			// TODO: Make sure this error is caught.
 			throw error("Property \"%\" has a type which differs from previous properties in the same category",
 						this->value());
 		}
@@ -208,7 +207,13 @@ String Property::value() const
 	}
 	else if (type == typeid(double))
 	{
-		return String::convert(numeric_value());
+		double n = numeric_value();
+		auto i = intptr_t(n);
+
+		if (double(i) == n)
+			return String::convert(i);
+		else
+			return String::convert(n);
 	}
 	else if (type == typeid(bool))
 	{
@@ -224,11 +229,19 @@ std::set<String> Property::get_values(const String &category)
 {
 	std::set<String> result;
 
-	for (auto &p : the_known_properties)
+	if (is_boolean(category))
 	{
-		if (p.category() == category)
+		result.insert(true_string());
+		result.insert(false_string());
+	}
+	else
+	{
+		for (auto &p : the_known_properties)
 		{
-			result.insert(p.value());
+			if (p.category() == category)
+			{
+				result.insert(p.value());
+			}
 		}
 	}
 
@@ -275,19 +288,19 @@ const std::type_info &Property::get_type(const String &category)
 
 String Property::false_string()
 {
-    static String f("%FALSE%");
+    static String f("false");
     return f;
 }
 
 String Property::true_string()
 {
-    static String t("%TRUE%");
+    static String t("true");
     return t;
 }
 
 String Property::undefined_string()
 {
-	static String u("%UNDEFINED%");
+	static String u("undefined");
 	return u;
 }
 
@@ -303,6 +316,21 @@ Property Property::from_string(const String &category, const String &value)
     if (ok) return Property(category, num);
 
     return Property(category, value);
+}
+
+bool Property::is_boolean(const String &category)
+{
+	return get_type(category) == typeid(bool);
+}
+
+bool Property::is_numeric(const String &category)
+{
+	return get_type(category) == typeid(double);
+}
+
+bool Property::is_text(const String &category)
+{
+	return get_type(category) == typeid(String);
 }
 
 } // namespace phonometrica

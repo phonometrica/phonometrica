@@ -13,89 +13,73 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 08/03/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: editor for VFile properties.                                                                              *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
+#ifndef PHONOMETRICA_PROPERTY_EDITOR_HPP
+#define PHONOMETRICA_PROPERTY_EDITOR_HPP
 
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QGridLayout>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QListWidget>
+#include <QLineEdit>
+#include <QLabel>
+
+#include <phon/gui/property_table.hpp>
+#include <phon/application/annotation.hpp>
+#include <phon/application/sound.hpp>
+#include <phon/application/script.hpp>
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
+
+class PropertyEditor final : public QDialog
 {
     Q_OBJECT
 
 public:
 
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
-
-    ~MainWindow();
-
-public slots:
-
-    void closeEvent (QCloseEvent *event) override;
+    PropertyEditor(QWidget *parent, VFileList files);
 
 private slots:
 
-    void showConsole(bool);
+    void accept() override;
 
-    void showInfo(bool);
+    void addProperty();
 
-    void showProject(bool);
+    void removeProperty();
 
-    void restoreDefaultLayout(bool);
+    void updateValues();
 
-    void updateConsoleAction(bool);
+    void updateSelectedValue();
 
-    void updateInfoAction(bool);
+    void propertyContentEdited();
 
-    void adjustSplitters();
+    void selectRow(int);
 
-    void maximizeViewer();
+    void checkPropertyIsRemovable();
 
 private:
 
-    bool finalize();
+	void updateCategories();
 
-    void makeMenu(QWidget *panel);
+    QVBoxLayout *layout;
+    QPushButton *addProperty_btn, *rmProperty_btn, *ok_btn;
+    VFileList m_files;
+    PropertyTable *property_table;
+    QListWidget *cat_list, *value_list;
+    QLineEdit *cat_line, *value_line;
+    QComboBox *type_box;
 
-    void addWindowMenu(QMenuBar *menubar);
-
-    void setShellFunctions();
-
-    void initialize();
-    
-    void preInitialize();
-
-    void postInitialize();
-
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
+    void setupUi();
 };
 
-} // phonometrica
+} // namespace phonometrica
 
-#endif // MAIN_WINDOW_HPP
+#endif // PHONOMETRICA_PROPERTY_EDITOR_HPP

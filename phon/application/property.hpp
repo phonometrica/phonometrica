@@ -84,6 +84,12 @@ public:
 
 	static const std::type_info &get_type(const String &category);
 
+	static bool is_boolean(const String &category);
+
+	static bool is_numeric(const String &category);
+
+	static bool is_text(const String &category);
+
 	const std::type_info &type() const;
 
 	static void remove(const Property &p);

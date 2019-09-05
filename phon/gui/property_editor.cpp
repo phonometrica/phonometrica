@@ -19,18 +19,18 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#include <phon/gui/metadata_editor.hpp>
+#include <phon/gui/property_editor.hpp>
 #include <phon/application/project.hpp>
 
 namespace phonometrica {
 
-MetadataEditor::MetadataEditor(QWidget *parent, VFileList files) :
+PropertyEditor::PropertyEditor(QWidget *parent, VFileList files) :
     QDialog(parent), m_files(std::move(files))
 {
     setupUi();
 }
 
-void MetadataEditor::setupUi()
+void PropertyEditor::setupUi()
 {
     setWindowTitle(tr("Property editor"));
     if (objectName().isEmpty())
@@ -40,11 +40,16 @@ void MetadataEditor::setupUi()
     layout = new QVBoxLayout;
     layout->setContentsMargins(15,20,15,10);
 
-
     ok_btn = new QPushButton("OK");
 	QHBoxLayout *btn_layout = new QHBoxLayout;
 	btn_layout->addStretch();
     btn_layout->addWidget(ok_btn);
+
+    type_box = new QComboBox;
+    type_box->addItem("Text");
+    type_box->addItem("Numeric");
+    type_box->addItem("Boolean");
+    type_box->setCurrentIndex(0);
 
     addProperty_btn = new QPushButton(tr("Add"));
     addProperty_btn->setEnabled(false);
@@ -74,14 +79,12 @@ void MetadataEditor::setupUi()
     value_list->setMinimumHeight(HEIGHT);
     value_list->setMaximumHeight(HEIGHT);
 
-    QStringList categories;
-    for (auto &cat : Property::get_categories()) {
-        categories.append(cat);
-    }
-    cat_list->addItems(categories);
+	updateCategories();
 
     int row = 0;
     QGridLayout *grid = new QGridLayout;
+    grid->addWidget(new QLabel(tr("Type:")), row, 0);
+    grid->addWidget(type_box, row++, 1);
     grid->addWidget(new QLabel(tr("Category:")), row, 0);
     grid->addWidget(cat_line, row++, 1);
     grid->addWidget(cat_list, row++, 1);
@@ -110,7 +113,7 @@ void MetadataEditor::setupUi()
 	connect(rmProperty_btn, SIGNAL(clicked()), this, SLOT(removeProperty()));
 }
 
-void MetadataEditor::updateValues()
+void PropertyEditor::updateValues()
 {
     if (cat_list->count() > 0)
     {
@@ -130,7 +133,7 @@ void MetadataEditor::updateValues()
     }
 }
 
-void MetadataEditor::propertyContentEdited()
+void PropertyEditor::propertyContentEdited()
 {
     if (!cat_line->text().isEmpty() && !value_line->text().isEmpty())
     {
@@ -138,7 +141,7 @@ void MetadataEditor::propertyContentEdited()
     }
 }
 
-void MetadataEditor::updateSelectedValue()
+void PropertyEditor::updateSelectedValue()
 {
     if (value_list->count() > 0)
     {
@@ -149,11 +152,33 @@ void MetadataEditor::updateSelectedValue()
     }
 }
 
-void MetadataEditor::addProperty()
+void PropertyEditor::addProperty()
 {
     String category = cat_line->text();
     String value = value_line->text();
-    Property prop(category, value);
+    Property prop;
+
+    try
+    {
+	    switch (type_box->currentIndex())
+	    {
+		    case 1:
+			    prop = Property(category, value.to_float());
+			    break;
+		    case 2:
+			    prop = Property(category, value.to_bool(true));
+			    break;
+		    default:
+			    prop = Property(category, value);
+	    }
+    }
+	catch (std::exception &e)
+	{
+		auto msg = utils::format("Invalid value: %", e.what());
+		QMessageBox dlg(QMessageBox::Critical, "Error", QString::fromStdString(msg));
+		dlg.exec();
+		return;
+	}
 
     for (auto &vf : m_files) {
         vf->add_property(prop);
@@ -163,13 +188,14 @@ void MetadataEditor::addProperty()
     // overwritten by another one.
     property_table->resetProperties(Project::get_shared_properties(m_files));
 
+
     cat_line->clear();
     value_line->clear();
     addProperty_btn->setEnabled(false);
     rmProperty_btn->setEnabled(false);
 }
 
-void MetadataEditor::removeProperty()
+void PropertyEditor::removeProperty()
 {
     int row = property_table->currentRow();
 
@@ -185,21 +211,32 @@ void MetadataEditor::removeProperty()
     rmProperty_btn->setEnabled(false);
 }
 
-void MetadataEditor::selectRow(int)
+void PropertyEditor::selectRow(int)
 {
     rmProperty_btn->setEnabled(true);
 }
 
-void MetadataEditor::checkPropertyIsRemovable()
+void PropertyEditor::checkPropertyIsRemovable()
 {
     if (!cat_line->text().isEmpty() && !value_line->text().isEmpty())
         rmProperty_btn->setEnabled(true);
 }
 
 
-void MetadataEditor::accept()
+void PropertyEditor::accept()
 {
 	QDialog::accept();
+}
+
+void PropertyEditor::updateCategories()
+{
+	cat_list->clear();
+	auto i = cat_list->currentIndex();
+
+	for (auto &cat : Property::get_categories()) {
+		cat_list->addItem(cat);
+	}
+	cat_list->setCurrentIndex(i);
 }
 
 } // namespace phonometrica

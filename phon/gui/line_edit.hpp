@@ -13,89 +13,37 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 05/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: custom line editor, which displays a default message when it is empty.                                    *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
+#ifndef PHONOMETRICA_LINE_EDIT_HPP
+#define PHONOMETRICA_LINE_EDIT_HPP
 
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <QLineEdit>
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
+class LineEdit : public QLineEdit
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
-
-    ~MainWindow();
+    LineEdit(const QString &defaultText);
+	QString text() const;
 
 public slots:
-
-    void closeEvent (QCloseEvent *event) override;
-
-private slots:
-
-    void showConsole(bool);
-
-    void showInfo(bool);
-
-    void showProject(bool);
-
-    void restoreDefaultLayout(bool);
-
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
+	void focusInEvent(QFocusEvent *event);
+	void focusOutEvent(QFocusEvent *event);
 
 private:
+	QString defaultText;
 
-    bool finalize();
-
-    void makeMenu(QWidget *panel);
-
-    void addWindowMenu(QMenuBar *menubar);
-
-    void setShellFunctions();
-
-    void initialize();
-    
-    void preInitialize();
-
-    void postInitialize();
-
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
+    void setDefaultText();
 };
 
-} // phonometrica
+} // namespace phonometrica
 
-#endif // MAIN_WINDOW_HPP
+#endif // PHONOMETRICA_LINE_EDIT_HPP

@@ -85,7 +85,7 @@ function import_metadata()
 end
 
 phon.open_project = function()
-	var path = phon.open_file_dialog("Open Phonometrica project", "Project (*.xml)")
+	var path = phon.open_file_dialog("Open Phonometrica project", "Project (*.phon-project)")
 	if path then
 		phon.project.open(path)
 		update_recent_projects(path)

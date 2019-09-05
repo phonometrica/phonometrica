@@ -1474,7 +1474,7 @@ double String::to_float(std::string_view str, bool *ok)
 	}
 	else if (!numeric)
 	{
-		throw error("Could not convert string to float");
+		throw error("Could not convert string to number");
 	}
 
 	return value;
@@ -1482,9 +1482,9 @@ double String::to_float(std::string_view str, bool *ok)
 
 intptr_t String::to_int(bool *ok) const
 {
-	char *e = nullptr;
+	char *e = const_cast<iterator>(begin());
 	auto result = strtol(begin(), &e, 10);
-	bool success = (e != end());
+	bool success = (e == end()) || this->empty();
 
 	if (ok) {
 		*ok = success;
@@ -1496,9 +1496,21 @@ intptr_t String::to_int(bool *ok) const
 	return intptr_t(result);
 }
 
-bool String::to_bool() const
+bool String::to_bool(bool strict) const
 {
-	return !((*this == "%false") || (*this == "false") || (*this == "FALSE"));
+	if (strict)
+	{
+		if (*this == "true" || *this == "TRUE" || *this == "1")
+			return true;
+		if (*this == "false" || *this == "FALSE" || *this == "0")
+			return false;
+
+		throw error("Could not convert string to Boolean");
+	}
+	else
+	{
+		return !((*this == "false") || (*this == "FALSE"));
+	}
 }
 
 } // namespace phonometrica

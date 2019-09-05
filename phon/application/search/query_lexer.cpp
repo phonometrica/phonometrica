@@ -13,89 +13,127 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 03/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: see header.                                                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
-
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <phon/error.hpp>
+#include <phon/application/search/query_lexer.hpp>
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
+QueryLexer::QueryLexer(String query) : m_query(std::move(query))
 {
-    Q_OBJECT
+	m_pos = m_query.begin();
+	m_char = 0;
+	read_char();
+}
 
-public:
+Token QueryLexer::next()
+{
+	read_char();
 
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
+	switch (m_char)
+	{
+		case U'#':
+		{
+			accept();
+			String buffer;
 
-    ~MainWindow();
+			while (isdigit((int)m_char))
+			{
+				buffer.append(m_char);
+				read_char();
+			}
 
-public slots:
+			bool ok = false;
+			auto n = (int) buffer.to_int(&ok);
+			if (!ok) throw error("[Query error] Invalid query number after '#'");
 
-    void closeEvent (QCloseEvent *event) override;
+			return { Token::Number, n };
+		}
+		case U'A':
+		case U'a':
+		{
+			accept();
+			if (m_char == U'N' || m_char == 'n')
+			{
+				accept();
+				if (m_char == U'D' || m_char == 'd')
+				{
+					accept();
+					return { Token::And, 0 };
+				}
+			}
 
-private slots:
+			throw error("[Query error] Invalid token. Did you mean 'AND'?");
+		}
+		case U'O':
+		case U'o':
+		{
+			accept();
+			if (m_char == 'R' || m_char == U'r')
+			{
+				accept();
+				return { Token::Or, 0 };
+			}
 
-    void showConsole(bool);
+			throw error("[Query error] Invalid token. Did you mean 'OR'?");
+		}
+		case U'N':
+		case U'n':
+		{
+			accept();
+			if (m_char == U'O' || m_char == U'o')
+			{
+				accept();
+				if (m_char == U'T' || m_char == U't')
+				{
+					return { Token::Not, 0 };
+				}
+			}
 
-    void showInfo(bool);
+			throw error("[Query error] Invalid token. Did you mean 'NOT'?");
+		}
+		case U'(':
+		{
+			accept();
+			return { Token::LParen, 0 };
+		}
+		case U')':
+		{
+			accept();
+			return { Token::RParen, 0 };
+		}
+		case 0x03:
+			return { Token::Eot, 0 };
+		default:
+			throw error("[Query error] Invalid query string \"%\"", m_query);
+	}
 
-    void showProject(bool);
+	return { Token::Eot, 0 };
+}
 
-    void restoreDefaultLayout(bool);
+void QueryLexer::skip_white()
+{
+	while (isspace((int)m_char))
+	{
+		read_char();
+	}
+}
 
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
-
-private:
-
-    bool finalize();
-
-    void makeMenu(QWidget *panel);
-
-    void addWindowMenu(QMenuBar *menubar);
-
-    void setShellFunctions();
-
-    void initialize();
-    
-    void preInitialize();
-
-    void postInitialize();
-
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
-};
-
-} // phonometrica
-
-#endif // MAIN_WINDOW_HPP
+void QueryLexer::read_char()
+{
+	if (m_pos == m_query.end())
+	{
+		m_char = 0x03; // end of text
+	}
+	else
+	{
+		m_char = m_query.next_codepoint(m_pos);
+		skip_white();
+	}
+}
+} // namespace phonometrica

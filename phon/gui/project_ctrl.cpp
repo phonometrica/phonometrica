@@ -25,7 +25,7 @@
 #include <QMenu>
 #include <QFileIconProvider>
 #include <phon/gui/project_ctrl.hpp>
-#include <phon/gui/metadata_editor.hpp>
+#include <phon/gui/property_editor.hpp>
 #include <phon/application/praat.hpp>
 #include "project_ctrl.hpp"
 
@@ -147,7 +147,11 @@ void ProjectCtrl::fillFolder(QTreeWidgetItem *item, VFolder &folder)
 {
     QFileIconProvider provider;
     QIcon file_icon = provider.icon(QFileIconProvider::File);
+#if PHON_LINUX
+    QIcon dir_icon(":/icons/folder.png");
+#else
 	QIcon dir_icon = provider.icon(QFileIconProvider::Folder);
+#endif
     QIcon annot_icon(":/icons/annotation.png");
     QIcon sound_icon(":/icons/sound.png");
     QIcon script_icon(":/icons/script.png");
@@ -515,7 +519,7 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
         menu.addAction(action_properties);
         menu.addSeparator();
         connect(action_properties, &QAction::triggered, [=](bool) mutable {
-            MetadataEditor ed(this, std::move(files));
+            PropertyEditor ed(this, std::move(files));
             ed.exec();
             Project::updated();
         });

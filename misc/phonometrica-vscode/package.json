@@ -13,7 +13,7 @@
         "languages": [{
             "id": "phonometrica",
             "aliases": ["phonometrica", "phonometrica"],
-            "extensions": [".phon"],
+            "extensions": [".phon", ".phon-script"],
             "configuration": "./language-configuration.json"
         }],
         "grammars": [{

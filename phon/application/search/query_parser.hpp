@@ -13,89 +13,45 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 03/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: build an abstract syntax tree (AST) from a query string.                                                  *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
+#ifndef PHONOMETRICA_QUERY_PARSER_HPP
+#define PHONOMETRICA_QUERY_PARSER_HPP
 
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <phon/application/search/search_node.hpp>
+#include <phon/application/search/query_lexer.hpp>
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
+class QueryParser final
 {
-    Q_OBJECT
-
 public:
 
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
+	explicit QueryParser(String query);
 
-    ~MainWindow();
-
-public slots:
-
-    void closeEvent (QCloseEvent *event) override;
-
-private slots:
-
-    void showConsole(bool);
-
-    void showInfo(bool);
-
-    void showProject(bool);
-
-    void restoreDefaultLayout(bool);
-
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
+	std::unique_ptr<SearchNode> parse();
 
 private:
 
-    bool finalize();
+	void read_token();
 
-    void makeMenu(QWidget *panel);
+	void accept() { read_token(); }
 
-    void addWindowMenu(QMenuBar *menubar);
+	void accept(Token::Code c, const char *msg);
 
-    void setShellFunctions();
+	bool check(Token::Code c) const { return m_token.is(c); }
 
-    void initialize();
-    
-    void preInitialize();
+	std::unique_ptr<SearchNode> parse_expression();
 
-    void postInitialize();
+	QueryLexer m_lexer;
 
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
+	Token m_token;
 };
 
-} // phonometrica
+} // namespace phonometrica
 
-#endif // MAIN_WINDOW_HPP
+#endif // PHONOMETRICA_QUERY_PARSER_HPP

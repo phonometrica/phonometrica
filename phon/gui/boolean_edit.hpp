@@ -13,89 +13,42 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 05/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: same as a QTextEdit, but for a Boolean value.                                                             *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
+#ifndef PHONOMETRICA_BOOLEAN_EDIT_HPP
+#define PHONOMETRICA_BOOLEAN_EDIT_HPP
 
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <optional>
+#include <QLayout>
+#include <QComboBox>
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
+class BooleanEdit : public QHBoxLayout
 {
-    Q_OBJECT
-
 public:
 
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
+	explicit BooleanEdit(QString desc);
 
-    ~MainWindow();
+	std::optional<bool> value() const;
 
-public slots:
+	QString description() const; // store useful info (e.g. category for numeric properties)
 
-    void closeEvent (QCloseEvent *event) override;
+	void show();
 
-private slots:
-
-    void showConsole(bool);
-
-    void showInfo(bool);
-
-    void showProject(bool);
-
-    void restoreDefaultLayout(bool);
-
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
+	void hide();
 
 private:
 
-    bool finalize();
+	QComboBox *combo_box;
 
-    void makeMenu(QWidget *panel);
-
-    void addWindowMenu(QMenuBar *menubar);
-
-    void setShellFunctions();
-
-    void initialize();
-    
-    void preInitialize();
-
-    void postInitialize();
-
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
+	QString desc;
 };
 
-} // phonometrica
+} // namespace phonometrica
 
-#endif // MAIN_WINDOW_HPP
+#endif // PHONOMETRICA_BOOLEAN_EDIT_HPP

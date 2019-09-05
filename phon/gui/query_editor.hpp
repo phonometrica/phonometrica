@@ -13,89 +13,62 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 30/08/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: a query editor is a dialog which allows the user to create and edit queries.                              *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
+#ifndef PHONOMETRICA_QUERY_EDITOR_HPP
+#define PHONOMETRICA_QUERY_EDITOR_HPP
 
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <phon/gui/search_box.hpp>
+
+class QGroupBox;
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
+class NumberEdit;
+class BooleanEdit;
+class CheckListBox;
+
+class QueryEditor final : public QDialog
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
 
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
-
-    ~MainWindow();
+	QueryEditor(QWidget *parent);
 
 public slots:
 
-    void closeEvent (QCloseEvent *event) override;
-
-private slots:
-
-    void showConsole(bool);
-
-    void showInfo(bool);
-
-    void showProject(bool);
-
-    void restoreDefaultLayout(bool);
-
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
+	void accept();
 
 private:
 
-    bool finalize();
+	void setupUi();
 
-    void makeMenu(QWidget *panel);
+	QWidget * createFileBox();
 
-    void addWindowMenu(QMenuBar *menubar);
+	SearchBox *createSearchBox();
 
-    void setShellFunctions();
+	QGroupBox *createProperties();
 
-    void initialize();
-    
-    void preInitialize();
+	SearchBox *search_box;
 
-    void postInitialize();
+	QWidget *main_widget;
 
-    void setStretchFactor(double ratio);
+	Array<NumberEdit*> numeric_properties;
 
-    void adjustProject();
+	Array<BooleanEdit*> boolean_properties;
 
-    void openQueryEditor();
+	Array<CheckListBox*> text_properties;
 
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
+	int properties_per_row = 3;
 };
 
-} // phonometrica
+} // namespace phonometrica
 
-#endif // MAIN_WINDOW_HPP
+#endif // PHONOMETRICA_QUERY_EDITOR_HPP

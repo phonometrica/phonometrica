@@ -1149,4 +1149,21 @@ bool Project::empty() const
     return m_corpus->empty() && m_data->empty() && m_scripts->empty() && m_bookmarks->empty();
 }
 
+Array<std::shared_ptr<Annotation>> Project::annotations() const
+{
+	Array<std::shared_ptr<Annotation>> result;
+
+	for (auto &item : m_files)
+	{
+		auto &vf = item.second;
+
+		if (vf->is_annotation())
+		{
+			result.push_back(std::dynamic_pointer_cast<Annotation>(vf));
+		}
+	}
+
+	return result;
+}
+
 } // namespace phonometrica

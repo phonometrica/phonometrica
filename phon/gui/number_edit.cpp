@@ -13,89 +13,59 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 05/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: main window.                                                                                              *
+ * Purpose: see header.                                                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
-
-#include <QMainWindow>
-#include <QSplitter>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/file_manager.hpp>
-#include <phon/gui/main_area.hpp>
-#include <phon/gui/splitter.hpp>
+#include <phon/gui/number_edit.hpp>
 
 namespace phonometrica {
 
-class MainWindow final : public QMainWindow
+NumberEdit::NumberEdit(QString desc) : QHBoxLayout()
 {
-    Q_OBJECT
+	this->desc = std::move(desc);
+	op_box = new QComboBox;
+	num_edit = new LineEdit(tr("numeric value"));
 
-public:
+	QStringList ops;
+	ops << "==" << "!=" << "<" << "<=" << ">" << ">=";
 
-    MainWindow(Runtime &rt, QWidget *parent = nullptr);
+	for (auto &op: ops) {
+		op_box->addItem(op);
+	}
 
-    ~MainWindow();
+	this->addWidget(op_box);
+	this->addWidget(num_edit);
+	op_box->setFocusProxy(num_edit);
+}
 
-public slots:
+QString NumberEdit::description() const
+{
+	return desc;
+}
 
-    void closeEvent (QCloseEvent *event) override;
+QString NumberEdit::get_operator() const
+{
+	return op_box->currentText();
+}
 
-private slots:
+double NumberEdit::value() const
+{
+	return num_edit->text().toDouble();
+}
 
-    void showConsole(bool);
+void NumberEdit::show()
+{
+	num_edit->show();
+	op_box->show();
+}
 
-    void showInfo(bool);
+void NumberEdit::hide()
+{
+	num_edit->hide();
+	op_box->hide();
+}
 
-    void showProject(bool);
-
-    void restoreDefaultLayout(bool);
-
-    void updateConsoleAction(bool);
-
-    void updateInfoAction(bool);
-
-    void adjustSplitters();
-
-    void maximizeViewer();
-
-private:
-
-    bool finalize();
-
-    void makeMenu(QWidget *panel);
-
-    void addWindowMenu(QMenuBar *menubar);
-
-    void setShellFunctions();
-
-    void initialize();
-    
-    void preInitialize();
-
-    void postInitialize();
-
-    void setStretchFactor(double ratio);
-
-    void adjustProject();
-
-    void openQueryEditor();
-
-    Splitter *splitter;
-
-    Runtime &rt;
-
-    FileManager *file_manager;
-
-    MainArea *main_area;
-
-    QAction *show_project, *show_console, *show_info, *restore_layout;
-};
-
-} // phonometrica
-
-#endif // MAIN_WINDOW_HPP
+} // namespace phonometrica

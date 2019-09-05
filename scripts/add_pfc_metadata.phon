@@ -57,7 +57,7 @@ function add_metadata(annot)
 	var file = system.get_base_name(annot.path)
 	if re.match(file) then
 		var survey = re.group(1).to_upper()
-		var speaker = re.group(2).to_upper()
+		var speaker = survey + re.group(2).to_upper()
 
 		var task = tasks[re.group(3)]
 		annot.add_property("Survey", survey)
