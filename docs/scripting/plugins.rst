@@ -4,8 +4,8 @@ Plugins
 =======
 
 
-Dolmen can be extended with plugins, which are written in JSON and the `Lua <http://www.lua.org>`_ scripting language.
-When it starts up, Dolmen loads all plugins which are located in the
+Phonometrica can be extended with plugins, which are written in JSON and the `Lua <http://www.lua.org>`_ scripting language.
+When it starts up, Phonometrica loads all plugins which are located in the
 system plugin directory or in the user plugin directory. Plugins can be
 redistributed as ZIP files (the ``.zip`` extension is compulsory). To
 install a plugin, go to ``File > Install plugin...`` and choose the ZIP
@@ -17,7 +17,7 @@ Structure of a plugin
 ---------------------
 
 To be valid, a plugin must adhere to a number of conventions: if they
-are not respected, Dolmen will silently ignore the plugin. The root
+are not respected, Phonometrica will silently ignore the plugin. The root
 directory of the plugin must contain the following:
 
 -  a description file, named description.json (compulsory)
@@ -59,11 +59,11 @@ shortcut to a given action.
 Defining search grammars
 ------------------------
 
-If you have devised a coding scheme for your data, Dolmen lets you
+If you have devised a coding scheme for your data, Phonometrica lets you
 define a "search grammar". A search grammar is a description of your
 coding scheme which offers a user-friendly interface for querying your
-data; it tells Dolmen what to look for and how to present the
-information to the user. Dolmen will automatically load all valid search
+data; it tells Phonometrica what to look for and how to present the
+information to the user. Phonometrica will automatically load all valid search
 grammars that are located in the ``Grammars`` sub-directory of your
 plugin. It will create a submenu in the ``Conc`` menu, whose name is the
 name of your plugins. All search grammars will be be available as tabs
@@ -71,7 +71,7 @@ in that submenu.
 
 A search grammar defines a number of fields which can take on a number
 of values. The user is presented with a number of checkboxes for each
-field, and Dolmen converts the query to the corresponding regular
+field, and Phonometrica converts the query to the corresponding regular
 expression, as defined by the grammar. Here is a simple yet realistic
 example, drawn from the PFC project:
 

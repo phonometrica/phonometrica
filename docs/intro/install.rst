@@ -4,17 +4,17 @@ Installation
 Windows
 ~~~~~~~
 
-On Windows, Dolmen is provided as a self-contained installer file.
+On Windows, Phonometrica is provided as a self-contained installer file.
 Simply double-click on ‘dolmen\_setup.exe’ and follow the instructions.
 
-The procedure will install Dolmen in your ``Program Files`` directory
+The procedure will install Phonometrica in your ``Program Files`` directory
 and will create a shortcut in the start menu (and optionally on the
 desktop).
 
-If you wish to be able to open files in Praat from Dolmen, you will need
-to install Praat in Dolmen’s installation directory, which should be
-either ``C:\Program Files (x86)\Dolmen2\Tools`` or
-``C:\Program Files\Dolmen2\Tools``, depending on your system.
+If you wish to be able to open files in Praat from Phonometrica, you will need
+to install Praat in Phonometrica’s installation directory, which should be
+either ``C:\Program Files (x86)\Phonometrica2\Tools`` or
+``C:\Program Files\Phonometrica2\Tools``, depending on your system.
 Alternatively, you can modify Praat’s default path with the preference
 editor.
 
@@ -23,9 +23,9 @@ editor.
 Mac OS
 ~~~~~~
 
-On Mac OS, Dolmen is provided as a standard DMG image disk. Mount the
-image by double-clicking on it and drag the application ``Dolmen`` into
-your ``Applications`` folder. If you want Dolmen to be able to interact
+On Mac OS, Phonometrica is provided as a standard DMG image disk. Mount the
+image by double-clicking on it and drag the application ``Phonometrica`` into
+your ``Applications`` folder. If you want Phonometrica to be able to interact
 with Praat, you will need to install it in the ``Applications`` folder
 too.
 
@@ -58,7 +58,7 @@ by the appropriate version number):
     sudo tar xvjpf ~/Downloads/dolmen-XX-linux.tar.bz2
     sudo ln -s /opt/dolmen/bin/dolmen /usr/local/bin/
 
-You can now run Dolmen by simply typing ``dolmen &`` from a terminal
+You can now run Phonometrica by simply typing ``dolmen &`` from a terminal
 window.
 
 If you get an error about a missing SQL plugin, try to add the following
@@ -92,7 +92,7 @@ anywhere. To put it in ``/usr/local/bin``, do:
     sudo mv dolmen /usr/local/bin/
 
 Assuming that ``sudo`` is installed and properly configured on your
-system. You can then run Dolmen by simply typing ``dolmen`` in the
+system. You can then run Phonometrica by simply typing ``dolmen`` in the
 terminal.
 
 In order to be able to read the documentation, you will also need to put
