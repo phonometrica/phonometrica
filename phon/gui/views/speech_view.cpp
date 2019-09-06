@@ -256,6 +256,11 @@ QToolBar *SpeechView::makeToolbar()
     connect(action_enable_intensity, &QAction::triggered, this, &SpeechView::showIntensity);
     connect(waveform, &SpeechPlot::windowHasChanged, this, &SpeechView::setWindowTimes);
 
+#if PHON_MACOS
+    toolbar->setMaximumHeight(30);
+    toolbar->setStyleSheet("QToolBar{spacing:0px;}");
+#endif
+
     return toolbar;
 }
 

@@ -161,6 +161,11 @@ QToolBar *ScriptView::createToolbar()
     connect(run_action, &QAction::triggered, this, &ScriptView::runScript);
     connect(save_action, &QAction::triggered, this, &ScriptView::saveScript);
 
+#if PHON_MACOS
+    toolbar->setMaximumHeight(30);
+    toolbar->setStyleSheet("QToolBar{spacing:0px;}");
+#endif
+
     return toolbar;
 }
 
