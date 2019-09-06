@@ -153,13 +153,14 @@ CheckListBox::CheckListBox(const QString &title, const Array<String> &labels, QW
 #ifdef Q_OS_WIN
     hl->addSpacing(2);
 #endif
-    hl->setSpacing(13); // make sure the button and the label don't overlap
-    hl->addWidget(switch_button);
+    hl->setSpacing(0);
+    hl->setContentsMargins(0, 0, 0, 0);
     hl->addWidget(new QLabel("<b>" + title + "</b>"));
-    hl->addStretch();
+	hl->addStretch();
+	hl->addWidget(switch_button);
 	checkList = new CheckList(nullptr, labels);
     checkList->setContentsMargins(0,0,0,0);
-    this->setContentsMargins(0,20,0,10);
+    this->setContentsMargins(0,0,0,10);
 
     layout->addLayout(hl);
 	layout->addWidget(checkList);

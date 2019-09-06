@@ -19,25 +19,30 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+#include <QLabel>
 #include <phon/gui/number_edit.hpp>
 
 namespace phonometrica {
 
-NumberEdit::NumberEdit(QString desc) : QHBoxLayout()
+NumberEdit::NumberEdit(QString desc) : QWidget()
 {
-	this->desc = std::move(desc);
+	auto layout = new QVBoxLayout;
+	this->desc = desc;
 	op_box = new QComboBox;
 	num_edit = new LineEdit(tr("numeric value"));
 
 	QStringList ops;
-	ops << "==" << "!=" << "<" << "<=" << ">" << ">=";
+	ops << "equal" << "not equal" << "less than" << "less than or equal" << "greater than" << "greater than or equal";
 
 	for (auto &op: ops) {
 		op_box->addItem(op);
 	}
 
-	this->addWidget(op_box);
-	this->addWidget(num_edit);
+	layout->addWidget(new QLabel("<b>" + desc + "</b>"));
+	layout->addWidget(op_box);
+	layout->addWidget(num_edit);
+	layout->addStretch(1);
+	setLayout(layout);
 	op_box->setFocusProxy(num_edit);
 }
 
@@ -46,26 +51,30 @@ QString NumberEdit::description() const
 	return desc;
 }
 
-QString NumberEdit::get_operator() const
+std::function<bool(double)> NumberEdit::get_functor() const
 {
-	return op_box->currentText();
+	double val = this->value();
+
+	switch (op_box->currentIndex())
+	{
+		case 0:
+			return [=](double x) { return x == val; };
+		case 1:
+			return [=](double x) { return x != val; };
+		case 2:
+			return [=](double x) { return x < val; };
+		case 3:
+			return [=](double x) { return x <= val; };
+		case 4:
+			return [=](double x) { return x > val; };
+		default:
+			return [=](double x) { return x >= val; };
+	}
 }
 
 double NumberEdit::value() const
 {
 	return num_edit->text().toDouble();
-}
-
-void NumberEdit::show()
-{
-	num_edit->show();
-	op_box->show();
-}
-
-void NumberEdit::hide()
-{
-	num_edit->hide();
-	op_box->hide();
 }
 
 } // namespace phonometrica

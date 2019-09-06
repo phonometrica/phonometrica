@@ -69,7 +69,6 @@ void QueryEditor::setupUi()
 
 	auto main_layout = new QVBoxLayout;
 	main_layout->addWidget(scroll_area);
-	main_layout->addSpacing(10);
 	main_layout->addWidget(button_box);
 
 	setWindowTitle("Query editor");
@@ -177,29 +176,17 @@ QGroupBox *QueryEditor::createProperties()
 	{
 		if (Property::is_boolean(category))
 		{
-			auto num_box = new QGroupBox(category);
-			auto vlayout = new QVBoxLayout;
-			auto edit = new BooleanEdit(category);
+			auto bool_box = new BooleanEdit(category);
+			layout->addWidget(bool_box, row, col);
 
-			vlayout->addLayout(edit);
-			vlayout->addStretch(1); // expand as needed
-			num_box->setLayout(vlayout);
-			layout->addWidget(num_box, row, col);
-
-			boolean_properties.append(edit);
+			boolean_properties.append(bool_box);
 		}
 		else if (Property::is_numeric(category))
 		{
-			auto num_box = new QGroupBox(category);
-			auto vlayout = new QVBoxLayout;
-			auto edit = new NumberEdit(category);
-
-			vlayout->addLayout(edit);
-			vlayout->addStretch(1); // expand as needed
-			num_box->setLayout(vlayout);
+			auto num_box = new NumberEdit(category);
 			layout->addWidget(num_box, row, col);
 
-			numeric_properties.append(edit);
+			numeric_properties.append(num_box);
 		}
 		else // String
 		{

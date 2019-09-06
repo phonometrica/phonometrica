@@ -591,7 +591,7 @@ String strip_ext(const String &path)
 	return split_ext(path).first;
 }
 
-String ext(String path, bool lower)
+String ext(String path, bool lower, bool strip_dot)
 {
 	auto data = path.data();
 	intptr_t i;
@@ -600,6 +600,7 @@ String ext(String path, bool lower)
 	{
 		if (data[i] == '.')
 		{
+			if (strip_dot) i++;
 			break;
 		}
 	}
@@ -608,6 +609,7 @@ String ext(String path, bool lower)
 	{
 		return String(); // empty path
 	}
+
 	String result(data + i, path.size() - i);
 
 	if (lower)

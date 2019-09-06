@@ -86,7 +86,7 @@ void rename(std::string_view old_name, std::string_view new_name);
 // the extension is an empty String
 std::pair<String, String> split_ext(const String &path);
 
-String ext(String path, bool lower = false);
+String ext(String path, bool lower = false, bool strip_dot = false);
 
 String strip_ext(const String &path);
 

@@ -85,6 +85,7 @@ void InfoPanel::clearWidgets()
     }
     main_label = file_label = soundRef_label = properties_label = start_label = end_label = nullptr;
     samplerate_label = channels_label = duration_label = nullptr;
+    bind_btn = nullptr;
 }
 
 void InfoPanel::showSelection(VFileList files)
@@ -182,13 +183,19 @@ void InfoPanel::setWidgets(bool showTimes)
     soundRef_label = new QLabel;
     properties_btn = new QPushButton(tr("Edit properties..."));
     import_btn = new QPushButton(tr("Import metadata..."));
+    bind_btn = new QPushButton(tr("Bind..."));
     desc_edit = new QTextEdit;
     description_is_editable = false;
     samplerate_label = new QLabel;
     channels_label = new QLabel;
     duration_label = new QLabel;
+    auto sound_layout = new QHBoxLayout;
+    sound_layout->addWidget(soundRef_label);
+    sound_layout->addStretch(1);
+    sound_layout->addWidget(bind_btn);
+
     vl->addWidget(file_label);
-    vl->addWidget(soundRef_label);
+    vl->addLayout(sound_layout);
     vl->addWidget(duration_label);
     vl->addWidget(samplerate_label);
     vl->addWidget(channels_label);
@@ -198,6 +205,7 @@ void InfoPanel::setWidgets(bool showTimes)
 
     connect(properties_btn, SIGNAL(clicked()), this, SLOT(editProperties()));
     connect(import_btn, SIGNAL(clicked()), this, SLOT(importMetadata()));
+    connect(bind_btn, SIGNAL(clicked()), this, SLOT(bindAnnotation()));
 
     if (showTimes)
     {
@@ -215,9 +223,9 @@ void InfoPanel::setWidgets(bool showTimes)
 
     auto hl2 = new QHBoxLayout;
     hl2->addWidget(properties_btn);
-    hl2->addSpacing(5);
+	hl2->addStretch();
     hl2->addWidget(import_btn);
-    hl2->addStretch();
+
     hl2->setSpacing(0);
     vl->addLayout(hl2);
 
@@ -304,6 +312,44 @@ void InfoPanel::reset()
 void InfoPanel::enableSaveDescription()
 {
 	save_desc_btn->setEnabled(true);
+}
+
+void InfoPanel::bindAnnotation()
+{
+	QString dir = Settings::get_string(rt, "last_directory");
+	auto p = QFileDialog::getOpenFileName(this, "Bind annotation to sound file...", dir);
+
+	if (!p.isNull())
+	{
+		auto project = Project::instance();
+		String path = p;
+		auto ext = filesystem::ext(path, true, true);
+		auto &formats = Sound::supported_sound_formats();
+
+		if (! formats.contains(ext))
+		{
+			auto msg = utils::format("'%' is not a supported sound format", ext);
+			QMessageBox dlg(QMessageBox::Critical, tr("Error"), QString::fromStdString(msg));
+			dlg.exec();
+
+			return;
+		}
+
+		auto annot = std::dynamic_pointer_cast<Annotation>(m_files.first());
+		project->import_file(path);
+		auto sound = std::dynamic_pointer_cast<Sound>(project->get(path));
+
+		if (annot && sound)
+		{
+			annot->set_sound(sound);
+			reset();
+		}
+		else
+		{
+			QMessageBox dlg(QMessageBox::Critical, tr("Invalid sound file"), tr("Could not bind annotation and sound file"));
+			dlg.exec();
+		}
+	}
 }
 
 

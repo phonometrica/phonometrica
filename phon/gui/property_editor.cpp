@@ -222,7 +222,6 @@ void PropertyEditor::checkPropertyIsRemovable()
         rmProperty_btn->setEnabled(true);
 }
 
-
 void PropertyEditor::accept()
 {
 	QDialog::accept();

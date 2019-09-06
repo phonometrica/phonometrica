@@ -22,28 +22,25 @@
 #ifndef PHONOMETRICA_NUMBER_EDIT_HPP
 #define PHONOMETRICA_NUMBER_EDIT_HPP
 
-#include <QHBoxLayout>
+#include <functional>
+#include <QVBoxLayout>
 #include <QLineEdit>
 #include <QComboBox>
 #include <phon/gui/line_edit.hpp>
 
 namespace phonometrica {
 
-class NumberEdit : public QHBoxLayout
+class NumberEdit : public QWidget
 {
 public:
 
 	explicit NumberEdit(QString desc);
 
-	QString get_operator() const;
+	std::function<bool(double)> get_functor() const;
 
 	double value() const;
 
 	QString description() const; // store useful info (e.g. category for numeric properties)
-
-	void show();
-
-	void hide();
 
 private:
 

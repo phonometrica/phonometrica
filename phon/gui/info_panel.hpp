@@ -64,6 +64,8 @@ private slots:
 
 	void enableSaveDescription();
 
+	void bindAnnotation();
+
 private:
 
     void setupUi();
@@ -88,7 +90,7 @@ private:
 
     QLabel *main_label, *file_label, *soundRef_label, *properties_label, *start_label, *end_label;
     QLabel *samplerate_label, *channels_label, *duration_label;
-    QPushButton *properties_btn, *import_btn, *save_desc_btn;
+    QPushButton *properties_btn, *import_btn, *save_desc_btn, *bind_btn;
     QTabWidget *tabs;
     QWidget *info_tab;
     QTextEdit *desc_edit;

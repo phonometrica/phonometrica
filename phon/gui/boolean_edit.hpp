@@ -28,7 +28,7 @@
 
 namespace phonometrica {
 
-class BooleanEdit : public QHBoxLayout
+class BooleanEdit : public QWidget
 {
 public:
 
@@ -37,10 +37,6 @@ public:
 	std::optional<bool> value() const;
 
 	QString description() const; // store useful info (e.g. category for numeric properties)
-
-	void show();
-
-	void hide();
 
 private:
 

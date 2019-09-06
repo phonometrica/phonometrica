@@ -19,20 +19,24 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+#include <QLabel>
 #include <phon/gui/boolean_edit.hpp>
 
 namespace phonometrica {
 
-BooleanEdit::BooleanEdit(QString desc) : QHBoxLayout()
+BooleanEdit::BooleanEdit(QString desc) : QWidget()
 {
-	this->desc = std::move(desc);
+	this->desc = desc;
+	auto layout = new QVBoxLayout;
 	combo_box = new QComboBox;
 	combo_box->addItem("any");
 	combo_box->addItem("true");
 	combo_box->addItem("false");
 
-	this->addWidget(combo_box);
-	this->addStretch(1);
+	layout->addWidget(new QLabel("<b>" + desc + "</b>"));
+	layout->addWidget(combo_box);
+	layout->addStretch(1);
+	setLayout(layout);
 }
 
 QString BooleanEdit::description() const
@@ -51,16 +55,6 @@ std::optional<bool> BooleanEdit::value() const
 		default:
 			return std::optional<bool>();
 	}
-}
-
-void BooleanEdit::show()
-{
-	combo_box->show();
-}
-
-void BooleanEdit::hide()
-{
-	combo_box->hide();
 }
 
 } // namespace phonometrica
