@@ -227,6 +227,9 @@ void InfoPanel::setWidgets(bool showTimes)
     save_desc_btn->setEnabled(false);
 	connect(save_desc_btn, &QPushButton::clicked, this, &InfoPanel::setFileDescription);
     vl->addWidget(save_desc_btn);
+#if PHON_MACOS
+    vl->setContentsMargins(0, 0, 0, 0);
+#endif
     info_tab->setLayout(vl);
 }
 

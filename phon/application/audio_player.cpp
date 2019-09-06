@@ -19,6 +19,7 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+#include <cmath>
 #include <QDebug>
 #include <phon/application/audio_player.hpp>
 #include <phon/application/settings.hpp>
@@ -37,6 +38,8 @@
 #define KEEP_PLAYING 0
 #define STOP_PLAYING 1
 
+#define FRAME_COUNT 1024
+
 namespace phonometrica {
 
 AudioPlayer::AudioPlayer(Runtime &rt, QObject *parent, std::shared_ptr<AudioData> data) :
@@ -49,11 +52,13 @@ AudioPlayer::AudioPlayer(Runtime &rt, QObject *parent, std::shared_ptr<AudioData
 
 AudioPlayer::~AudioPlayer()
 {
+    assert(m_error == nullptr);
+
     if (isRunning()) {
         close();
     }
-    if (resampler) {
-        speex_resampler_destroy(resampler);
+    if (m_resampler) {
+        speex_resampler_destroy(m_resampler);
     }
 }
 
@@ -83,8 +88,20 @@ int AudioPlayer::playback(void *out, void *, unsigned int nframes, double,
     sf_count_t left_over = player->remaining_frames();
     sf_count_t len = (nframes > left_over) ? left_over : nframes;
 
-    player->position += handle.readf(output, len);
+#if PHON_MACOS
+    // TO BE CONTINUED...
+    sf_count_t size_in_sf = FRAME_COUNT / player->ratio();
+    // Read data with libsndfile
+    sf_count_t nread_in = handle.readf(player->buffer(), size_in_sf);
+    player->position += nread_in;
+    // Set size of the output buffer
+    spx_uint32_t nread_out = nread_in * player->ratio();
 
+    spx_uint32_t nread_in_spx = (spx_uint32_t)nread_in;
+    int error = speex_resampler_process_float(player->resampler(), MONO_CHANNEL, player->buffer(), &nread_in_spx, output, &nread_out);
+#else
+    player->position += handle.readf(output, len);
+#endif
     auto t = double(player->position) / handle.samplerate();
     emit player->current_time(t);
 
@@ -107,6 +124,8 @@ void AudioPlayer::prepare()
 #if PHON_MACOS
     m_params.nChannels = 2;
     output_rate = MAC_SAMPLE_RATE;
+    m_ratio = double(output_rate) / data->sample_rate();
+    m_buffer.resize(FRAME_COUNT);
 #else
     m_params.nChannels = (unsigned int) data->channels();
     output_rate = (unsigned int) data->sample_rate();
@@ -135,7 +154,7 @@ void AudioPlayer::play(double from, double to)
 
 void AudioPlayer::run()
 {
-    unsigned int frame_count = 1024; //4096;
+    unsigned int frame_count = FRAME_COUNT;
 
 	try
 	{
@@ -163,19 +182,19 @@ void AudioPlayer::run()
 
 void AudioPlayer::initialize_resampling(uint32_t output_rate)
 {
-    if (resampler != nullptr) {
+    if (m_resampler != nullptr) {
         return;
     }
 
     int error = 0;
     auto input_rate = (uint32_t) data->sample_rate();
     auto quality = int(Settings::get_number(rt, "resampling_quality"));
-    resampler = speex_resampler_init(data->channels(), input_rate, output_rate, quality, &error);
+    m_resampler = speex_resampler_init(data->channels(), input_rate, output_rate, quality, &error);
 
-    if (error != 0 && resampler)
+    if (error != 0 && m_resampler)
     {
-        speex_resampler_destroy(resampler);
-        resampler = nullptr;
+        speex_resampler_destroy(m_resampler);
+        m_resampler = nullptr;
     }
 }
 

@@ -58,6 +58,14 @@ public:
 
 	void raise_error();
 
+#if PHON_MACOS
+	float *buffer() { return m_buffer.data(); }
+
+	double ratio() const { return m_ratio; }
+#endif
+
+    SpeexResamplerState *resampler() { return m_resampler; }
+
 signals:
 
     void current_time(double);
@@ -99,7 +107,7 @@ private:
 
     RtAudio m_stream;
 
-    SpeexResamplerState *resampler = nullptr;
+    SpeexResamplerState *m_resampler = nullptr;
 
     unsigned int output_rate;
 
@@ -110,6 +118,13 @@ private:
     intptr_t position = 0;
 
 	std::exception_ptr m_error;
+
+#if PHON_MACOS
+
+    Array<float> m_buffer;
+
+    double m_ratio = 1.0;
+#endif
 
     // Current audio data being played, if any
     std::shared_ptr<AudioData> data;

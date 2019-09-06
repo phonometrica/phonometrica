@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 ###########################
 
 set(BUILD_GUI ON)
-set(EMBED_SCRIPTS OFF)
+set(EMBED_SCRIPTS ON)
 set(BUILD_UNIT_TEST OFF)
 
 # Major release: incremented when major changes are introduced
@@ -112,8 +112,6 @@ if(WIN32)
 
 elseif(APPLE)
     include_directories(/usr/local/include)
-else()
-    add_definitions(-D__LINUX_ALSA__=1)
 endif()
 
 file(GLOB RUNTIME_FILES
@@ -190,22 +188,25 @@ if (BUILD_GUI)
     add_executable(${PROJECT_NAME} ${GUI_TYPE} phonometrica.cpp ${RC_FILE} icons.qrc ${APP_FILES})
 
     if (WIN32)
+        add_definitions(-D__WINDOWS_DS__=1)
         add_definitions(-D_USE_MATH_DEFINES) # for M_PI
         include_directories("C:/Lib/libsndfile")
         link_directories("C:/Lib/libsndfile")
         #add_subdirectory("${PROJECT_SOURCE_DIR}/libsndfile")
         target_link_libraries(
-                ${PROJECT_NAME} phon-runtime onig fftw3
+                ${PROJECT_NAME} phon-runtime onig fftw3 ole32 winmm dsound
 				C:/Lib/libsndfile/libsndfile-1.lib
                 Qt5::Core Qt5::Gui Qt5::Widgets
         )
     elseif (APPLE)
+        add_definitions(-D__MACOSX_CORE__=1)
         target_link_libraries(
                 ${PROJECT_NAME} phon-runtime onig fftw3 pthread dl sndfile
                 Qt5::Core Qt5::Gui Qt5::Widgets
-                "-framework Foundation" "-framework Cocoa" objc
+                "-framework Foundation" "-framework Cocoa" "-framework CoreAudio" objc
         )
     else()
+        add_definitions(-D__LINUX_ALSA__=1)
         target_link_libraries(
                 ${PROJECT_NAME} phon-runtime onig fftw3 pthread dl asound sndfile
                 Qt5::Core Qt5::Gui Qt5::Widgets
