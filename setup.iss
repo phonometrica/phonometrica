@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Phonometrica"
-#define MyAppVersion "0.3.0"
+#define MyAppVersion "0.3.1"
 #define MyAppPublisher "Julien Eychenne & Léa Courdès-Murphy"
 #define MyAppURL "https://phonometrica.github.io"
 #define MyAppExeName "phonometrica.exe"
@@ -26,7 +26,7 @@ LicenseFile=C:\Users\Julien\Documents\Devel\phonometrica\LICENSE
 OutputBaseFilename=setup_phonometrica
 Compression=lzma
 SolidCompression=yes
-OutputDir=C:\Users\Julien\Desktop
+OutputDir=D:\
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
