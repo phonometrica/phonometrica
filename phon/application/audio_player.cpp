@@ -137,17 +137,25 @@ void AudioPlayer::run()
 {
     unsigned int frame_count = 1024; //4096;
 
-    m_stream.openStream(&m_params,
-                         nullptr,
-                         RTAUDIO_FLOAT32,
-                         output_rate,
-                         &frame_count,
-                         &AudioPlayer::playback,
-                         this,
-                         &m_options,
-                         error_callback);
+	try
+	{
+		m_stream.openStream(&m_params,
+			nullptr,
+			RTAUDIO_FLOAT32,
+			output_rate,
+			&frame_count,
+			&AudioPlayer::playback,
+			this,
+			&m_options,
+			error_callback);
 
-    m_stream.startStream();
+		m_stream.startStream();
+	}
+	catch (...)
+	{
+		m_error = std::current_exception();
+		this->quit();		
+	}
 
     while (m_stream.isStreamRunning())
         QThread::msleep(2); // wait for 2 ms
@@ -174,6 +182,13 @@ void AudioPlayer::initialize_resampling(uint32_t output_rate)
 bool AudioPlayer::paused() const
 {
     return m_paused.load(std::memory_order_relaxed);
+}
+
+void AudioPlayer::raise_error()
+{
+	auto e = std::move(m_error);
+	m_error = nullptr;
+	std::rethrow_exception(std::move(e));
 }
 
 void AudioPlayer::pause()

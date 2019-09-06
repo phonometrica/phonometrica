@@ -54,6 +54,10 @@ public:
 
     bool paused() const;
 
+	bool has_error() const { return m_error != nullptr;  }
+
+	void raise_error();
+
 signals:
 
     void current_time(double);
@@ -104,6 +108,8 @@ private:
     intptr_t first_frame = -1, last_frame = -1;
 
     intptr_t position = 0;
+
+	std::exception_ptr m_error;
 
     // Current audio data being played, if any
     std::shared_ptr<AudioData> data;

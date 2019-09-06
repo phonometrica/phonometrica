@@ -351,7 +351,19 @@ void SpeechView::play(bool)
     {
         auto times = waveform->times();
         setPauseIcon();
-        player.play(times.first, times.second);
+		try {
+			player.play(times.first, times.second);
+			if (player.has_error())
+			{
+				player.raise_error();
+			}
+		}
+		catch (std::exception& e)
+		{
+			auto msg = utils::format("Cannot play sound: %", e.what());
+			QMessageBox dlg(QMessageBox::Critical, tr("Error"), QString::fromStdString(msg));
+			dlg.exec();
+		}
     }
 }
 
