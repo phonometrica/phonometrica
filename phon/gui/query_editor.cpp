@@ -24,6 +24,7 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QScrollArea>
+#include <QMessageBox>
 #include <phon/application/property.hpp>
 #include <phon/application/project.hpp>
 #include <phon/gui/query_editor.hpp>
@@ -153,9 +154,18 @@ QWidget * QueryEditor::createFileBox()
 
 void QueryEditor::accept()
 {
-	auto query = buildQuery();
-	this->hide();
-	emit queryReady(std::move(query));
+	try
+	{
+		auto query = buildQuery();
+		this->hide();
+		emit queryReady(std::move(query));
+	}
+	catch (std::exception &e)
+	{
+		QMessageBox dlg(QMessageBox::Critical, tr("Invalid query"), e.what(),QMessageBox::NoButton, this);
+		dlg.exec();
+	}
+
 }
 
 QGroupBox *QueryEditor::createProperties()
@@ -226,7 +236,7 @@ QGroupBox *QueryEditor::createProperties()
 
 AutoQuery QueryEditor::buildQuery()
 {
-	return std::make_shared<Query>(getAnnotations(), getMetadata());
+	return std::make_shared<Query>(getAnnotations(), getMetadata(), getSearchTree());
 }
 
 Array<AutoMetaNode> QueryEditor::getMetadata()
@@ -324,5 +334,10 @@ AnnotationSet QueryEditor::getAnnotations()
 	}
 
 	return annotations;
+}
+
+AutoSearchNode QueryEditor::getSearchTree()
+{
+	return search_box->buildSearchTree();
 }
 } // namespace phonometrica

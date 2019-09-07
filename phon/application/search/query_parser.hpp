@@ -33,7 +33,7 @@ public:
 
 	explicit QueryParser(String query);
 
-	std::unique_ptr<SearchNode> parse();
+	AutoSearchNode parse();
 
 private:
 
@@ -45,7 +45,7 @@ private:
 
 	bool check(Token::Code c) const { return m_token.is(c); }
 
-	std::unique_ptr<SearchNode> parse_expression();
+	AutoSearchNode parse_expression();
 
 	QueryLexer m_lexer;
 

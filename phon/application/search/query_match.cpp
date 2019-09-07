@@ -13,103 +13,81 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 03/09/2019                                                                                                *
+ * Created: 07/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: nodes in the AST representing a parsed query.                                                             *
+ * Purpose: see header.                                                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SEARCH_NODE_HPP
-#define PHONOMETRICA_SEARCH_NODE_HPP
-
-#include <memory>
 #include <phon/application/search/query_match.hpp>
 
 namespace phonometrica {
 
-// Abstract base class for all search nodes.
-class SearchNode
+double QueryMatch::start_time() const
 {
-public:
+	auto match = this;
+	auto value = std::numeric_limits<double>::max();
 
-	virtual ~SearchNode() = default;
+	while (match)
+	{
+		auto t = match->m_event->start_time();
+		if (t < value) value = t;
+		match = match->m_next.get();
+	}
 
-	virtual QueryMatchSet filter(const QueryMatchSet &matches) = 0;
+	return value;
+}
 
-};
-
-using AutoSearchNode = std::shared_ptr<SearchNode>;
-
-
-//----------------------------------------------------------------------------------------------------------------------
-
-class SearchOperator final : public SearchNode
+double QueryMatch::end_time() const
 {
-public:
+	auto match = this;
+	auto value = 0;
 
-	enum class Opcode
+	while (match)
 	{
-		And,
-		Or
-	};
+		auto t = match->m_event->start_time();
+		if (t > value) value = t;
+		match = match->m_next.get();
+	}
 
-	explicit SearchOperator(Opcode op) : opcode(op) { }
+	return value;
+}
 
-	QueryMatchSet filter(const QueryMatchSet &matches) override;
-
-	void add_constraint(AutoSearchNode n);
-
-private:
-
-	Array<AutoSearchNode> children;
-
-	Opcode opcode;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
-class SearchConstraint final : public SearchNode
+bool QueryMatch::operator<(const QueryMatch &other) const
 {
-public:
+	int cmp;
 
-	enum class Opcode : uint8_t
-	{
-		Matches,
-		Equals
-	};
+	// First compare file names.
+	cmp = this->annot()->path().compare(other.annot()->path());
 
-	enum class Relation : uint8_t
-	{
-		None,
-		Alignment,
-		Dominance,
-		Precedence
-	};
+	if (cmp < 0) {
+		return true;
+	}
+	else if (cmp > 0) {
+		return false;
+	}
 
-	SearchConstraint(int layer_index, String layer_name, bool case_sensitive, Opcode op, Relation rel, String value) :
-		layer_index(layer_index), layer_name(std::move(layer_name)), case_sensitive(case_sensitive),
-		opcode(op), relation(rel), value(std::move(value))
-	{ }
+	// Next, compare tier in the file
+	cmp = (this->layer_index() - other.layer_index());
 
-	QueryMatchSet filter(const QueryMatchSet &matches) override;
+	if (cmp < 0) {
+		return true;
+	}
+	else if (cmp > 0) {
+		return false;
+	}
 
-private:
+	// Next, Compare temporal position
+	double delta = (this->start_time() - other.start_time());
 
-	bool use_index() const;
+	if (delta < 0) {
+		return true;
+	}
+	else if (delta > 0) {
+		return false;
+	}
 
-	String layer_name;
-
-	int layer_index;
-
-	bool case_sensitive;
-
-	Opcode opcode;
-
-	Relation relation;
-
-	String value; // Text or regex.
-};
-
+	// Finally compare position in the event.
+	return this->position() < other.position();
+}
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_SEARCH_NODE_HPP

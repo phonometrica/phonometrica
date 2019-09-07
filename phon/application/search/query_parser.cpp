@@ -29,21 +29,25 @@ QueryParser::QueryParser(String query) : m_lexer(std::move(query))
 	read_token();
 }
 
-std::unique_ptr<SearchNode> QueryParser::parse()
+AutoSearchNode QueryParser::parse()
 {
 	return parse_expression();
 }
 
-std::unique_ptr<SearchNode> QueryParser::parse_expression()
+AutoSearchNode QueryParser::parse_expression()
 {
 	if (check(Token::LParen))
 	{
 		accept();
-	}
-	auto e = parse_expression();
-	accept(Token::RParen, ")");
+		auto e = parse_expression();
+		accept(Token::RParen, ")");
 
-	return e;
+		return e;
+	}
+	else
+	{
+		return AutoSearchNode();
+	}
 }
 
 void QueryParser::read_token()
@@ -59,7 +63,7 @@ void QueryParser::accept(Token::Code c, const char *msg)
 	}
 	else
 	{
-		throw error("[Query error] Invalid token: expected '%s'", msg);
+		throw error("Invalid token: expected '%s'", msg);
 	}
 }
 } // namespace phonometrica

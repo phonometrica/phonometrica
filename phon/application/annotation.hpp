@@ -113,6 +113,8 @@ struct AnnotationLessComparator
 	}
 };
 
+using AnnotationSet = std::set<AutoAnnotation, AnnotationLessComparator>;
+
 } // namespace phonometrica
 
 #endif // PHONOMETRICA_ANNOTATION_HPP

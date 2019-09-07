@@ -31,9 +31,6 @@
 
 namespace phonometrica {
 
-using AnnotationSet = std::set<AutoAnnotation, AnnotationLessComparator>;
-
-
 enum class DescOperator
 {
 	Equals,

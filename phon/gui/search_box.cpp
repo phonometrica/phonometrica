@@ -56,7 +56,7 @@ void DefaultSearchBox::setupUi()
 {
 	and_button = new QRadioButton("Use AND operator");
 	or_button = new QRadioButton("Use OR operator");
-	custom_button = new QRadioButton("Custom (you can use AND, OR, NOT, as well as parentheses for grouping)");
+	custom_button = new QRadioButton("Custom (you can use AND, OR, as well as parentheses for grouping)");
 	and_button->setChecked(true);
 	auto boolean_group = new QButtonGroup;
 	boolean_group->addButton(and_button, 0);
@@ -97,6 +97,7 @@ void DefaultSearchBox::addSearchConstraint(bool )
 	int i = constraint_count++;
 
 	auto id_label = new QLabel(QString("#%1").arg(constraint_count));
+	id_label->setFixedWidth(30);
 	auto match_box = new QComboBox;
 	match_box->addItem(tr("matches"));
 	match_box->addItem(tr("equals"));
@@ -229,6 +230,69 @@ void DefaultSearchBox::updateRelations()
 		bool value = (r != relations.size());
 		relations[r]->setEnabled(value);
 	}
+}
+
+AutoSearchNode DefaultSearchBox::buildSearchTree()
+{
+	int i = 1;
+	auto c = 0; // for errors
+	Array<AutoSearchNode> constraints;
+
+	for (auto layout : constraint_layouts)
+	{
+		c++;
+		auto layer_choice = cast<QComboBox>(layout, i++);
+		int layer_index = -1;
+		String layer_name;
+
+		if (layer_choice->currentIndex() == 0)
+		{
+			auto spinbox = cast<QSpinBox>(layout, i++);
+			layer_index = spinbox->value();
+		}
+		else
+		{
+			auto edit = cast<LineEdit>(layout, i++);
+			layer_name = edit->text();
+		}
+
+		auto match_box = cast<QComboBox>(layout, i++);
+		auto op = (match_box->currentIndex() == 0) ? SearchConstraint::Opcode::Matches : SearchConstraint::Opcode::Equals;
+
+		auto text_edit = cast<LineEdit>(layout, i++);
+		String value = text_edit->text();
+
+		if (value.empty())
+		{
+			throw error("Empty text in constraint #%", c);
+		}
+
+		auto case_box = cast<QCheckBox>(layout, i++);
+		auto case_sensitive = case_box->isChecked();
+
+		auto rel = SearchConstraint::Relation::None;
+		auto rel_box = cast<QComboBox>(layout, i);
+
+		if (rel_box->isEnabled())
+		{
+			switch (rel_box->currentIndex())
+			{
+				case 0:
+					rel = SearchConstraint::Relation::Alignment;
+					break;
+				case 1:
+					rel = SearchConstraint::Relation::Precedence;
+					break;
+				default:
+					rel = SearchConstraint::Relation::Dominance;
+			}
+		}
+
+		constraints.append(std::make_shared<SearchConstraint>(layer_index, layer_name, case_sensitive, op, rel, std::move(value)));
+	}
+
+	// For now, single layer constraint
+	return constraints.take_first();
 }
 
 

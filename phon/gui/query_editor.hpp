@@ -68,6 +68,8 @@ private:
 
 	Array<AutoMetaNode> getMetadata();
 
+	AutoSearchNode getSearchTree();
+
 	SearchBox *search_box;
 
 	QWidget *main_widget;

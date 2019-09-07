@@ -50,7 +50,7 @@ Token QueryLexer::next()
 
 			bool ok = false;
 			auto n = (int) buffer.to_int(&ok);
-			if (!ok) throw error("[Query error] Invalid query number after '#'");
+			if (!ok) throw error("Invalid query number after '#'");
 
 			return { Token::Number, n };
 		}
@@ -68,7 +68,7 @@ Token QueryLexer::next()
 				}
 			}
 
-			throw error("[Query error] Invalid token. Did you mean 'AND'?");
+			throw error("Invalid token. Did you mean 'AND'?");
 		}
 		case U'O':
 		case U'o':
@@ -80,22 +80,7 @@ Token QueryLexer::next()
 				return { Token::Or, 0 };
 			}
 
-			throw error("[Query error] Invalid token. Did you mean 'OR'?");
-		}
-		case U'N':
-		case U'n':
-		{
-			accept();
-			if (m_char == U'O' || m_char == U'o')
-			{
-				accept();
-				if (m_char == U'T' || m_char == U't')
-				{
-					return { Token::Not, 0 };
-				}
-			}
-
-			throw error("[Query error] Invalid token. Did you mean 'NOT'?");
+			throw error("Invalid token. Did you mean 'OR'?");
 		}
 		case U'(':
 		{
@@ -110,7 +95,7 @@ Token QueryLexer::next()
 		case 0x03:
 			return { Token::Eot, 0 };
 		default:
-			throw error("[Query error] Invalid query string \"%\"", m_query);
+			throw error("Invalid query string \"%\"", m_query);
 	}
 
 	return { Token::Eot, 0 };

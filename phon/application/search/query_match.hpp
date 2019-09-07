@@ -13,103 +13,99 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 03/09/2019                                                                                                *
+ * Created: 07/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: nodes in the AST representing a parsed query.                                                             *
+ * Purpose: match object created that corresponds to a search constraint.                                             *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SEARCH_NODE_HPP
-#define PHONOMETRICA_SEARCH_NODE_HPP
+#ifndef PHONOMETRICA_QUERY_MATCH_HPP
+#define PHONOMETRICA_QUERY_MATCH_HPP
 
 #include <memory>
-#include <phon/application/search/query_match.hpp>
+#include <phon/application/annotation.hpp>
 
 namespace phonometrica {
 
-// Abstract base class for all search nodes.
-class SearchNode
+
+class QueryMatch;
+using AutoQueryMatch = std::shared_ptr<QueryMatch>;
+
+class QueryMatch
 {
 public:
 
-	virtual ~SearchNode() = default;
-
-	virtual QueryMatchSet filter(const QueryMatchSet &matches) = 0;
-
-};
-
-using AutoSearchNode = std::shared_ptr<SearchNode>;
-
-
-//----------------------------------------------------------------------------------------------------------------------
-
-class SearchOperator final : public SearchNode
-{
-public:
-
-	enum class Opcode
-	{
-		And,
-		Or
-	};
-
-	explicit SearchOperator(Opcode op) : opcode(op) { }
-
-	QueryMatchSet filter(const QueryMatchSet &matches) override;
-
-	void add_constraint(AutoSearchNode n);
-
-private:
-
-	Array<AutoSearchNode> children;
-
-	Opcode opcode;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
-class SearchConstraint final : public SearchNode
-{
-public:
-
-	enum class Opcode : uint8_t
-	{
-		Matches,
-		Equals
-	};
-
-	enum class Relation : uint8_t
-	{
-		None,
-		Alignment,
-		Dominance,
-		Precedence
-	};
-
-	SearchConstraint(int layer_index, String layer_name, bool case_sensitive, Opcode op, Relation rel, String value) :
-		layer_index(layer_index), layer_name(std::move(layer_name)), case_sensitive(case_sensitive),
-		opcode(op), relation(rel), value(std::move(value))
+	QueryMatch(const AutoAnnotation &annot, int layer, const AutoEvent &e) :
+		m_annot(annot), m_event(e), m_layer_index(layer)
 	{ }
 
-	QueryMatchSet filter(const QueryMatchSet &matches) override;
+	virtual ~QueryMatch() = default;
+
+	double start_time() const;
+
+	double end_time() const;
+
+	bool operator<(const QueryMatch &other) const;
+
+	const AutoAnnotation &annot() const { return m_annot; }
+
+	const AutoEvent &event() const { return m_event; }
+
+	QueryMatch *next() const { return m_next.get(); }
+
+	int layer_index() const { return m_layer_index; }
+
+	int position() const { return m_position; }
+
+protected:
+
+	// Annotation in which the match was found.
+	AutoAnnotation m_annot;
+
+	// Event where the match occurred.
+	AutoEvent m_event;
+
+	// Next match in a complex query (may be null).
+	AutoQueryMatch m_next;
+
+	// Index of the layer in which the match was found.
+	int m_layer_index;
+
+	// Position in the event, in case there are several matches (used for sorting).
+	int m_position = 1;
+};
+
+
+struct MatchLessCompare
+{
+    bool operator()(const AutoQueryMatch &a, const AutoQueryMatch &b) const
+    {
+        return *a < *b;
+    }
+};
+
+using QueryMatchSet = std::set<AutoQueryMatch, MatchLessCompare>;
+
+//----------------------------------------------------------------------------------------------------------------------
+
+class Concordance final : public QueryMatch
+{
+public:
+
+	Concordance(const AutoAnnotation &annot, int layer, const AutoEvent &e, String left, String right) :
+		QueryMatch(annot, layer, e), m_left(std::move(left)), m_right(std::move(right))
+	{ }
+
+	String left() const { return m_left; }
+
+	String right() const { return m_right; }
 
 private:
 
-	bool use_index() const;
-
-	String layer_name;
-
-	int layer_index;
-
-	bool case_sensitive;
-
-	Opcode opcode;
-
-	Relation relation;
-
-	String value; // Text or regex.
+	// Left and right contexts of the concordance.
+	String m_left, m_right;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_SEARCH_NODE_HPP
+#endif // PHONOMETRICA_QUERY_MATCH_HPP

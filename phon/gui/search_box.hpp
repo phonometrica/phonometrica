@@ -26,7 +26,7 @@
 
 #include <QGroupBox>
 #include <QLayout>
-#include <phon/string.hpp>
+#include <phon/application/search/search_node.hpp>
 
 class QPushButton;
 class QRadioButton;
@@ -47,6 +47,8 @@ public:
 	SearchBox(QWidget *parent, const QString &title);
 
 	void postInitialize();
+
+	virtual AutoSearchNode buildSearchTree() = 0;
 
 protected:
 
@@ -72,6 +74,8 @@ public:
 
 	DefaultSearchBox(QWidget *parent);
 
+	AutoSearchNode buildSearchTree() override;
+
 protected:
 
 	void setupUi() override;
@@ -85,6 +89,13 @@ private slots:
 	void updateQueryString(bool);
 
 private:
+
+	template<class T>
+	T *cast(QHBoxLayout *layout, int i)
+	{
+		auto w = dynamic_cast<T*>(layout->itemAt(i)->widget());
+		assert(w); return w;
+	}
 
 	QSpinBox *createLayerSpinBox(int start = 0);
 

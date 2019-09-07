@@ -36,8 +36,8 @@ class Query final : public QObject
 
 public:
 
-	Query(AnnotationSet annotations, Array<AutoMetaNode> metadata) :
-		annotations(std::move(annotations)), metadata(std::move(metadata))
+	Query(AnnotationSet annotations, Array<AutoMetaNode> metadata, AutoSearchNode tree) :
+		annotations(std::move(annotations)), metadata(std::move(metadata)), search_tree(std::move(tree))
 	{ }
 
 	Query(const Query &) = delete;
@@ -58,6 +58,7 @@ private:
 
 	AnnotationSet annotations;
 	Array<AutoMetaNode> metadata;
+	AutoSearchNode search_tree;
 };
 
 // We shouldn't need the query to be shared, but we can't use a std::unique_ptr with Qt's signals and slots, since a

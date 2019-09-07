@@ -382,7 +382,7 @@ void MainWindow::addWindowMenu(QMenuBar *menubar)
     show_info->setChecked(true);
     show_project->setShortcut(QKeySequence("ctrl+alt+p"));
     show_console->setShortcut(QKeySequence("ctrl+alt+c"));
-    show_info->setShortcut(QKeySequence("ctrl+alt+i"));
+    show_info->setShortcut(QKeySequence("ctrl+alt+m"));
     restore_layout->setShortcut(QKeySequence("ctrl+alt+d"));
 
 

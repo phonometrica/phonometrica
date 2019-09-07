@@ -19,9 +19,52 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-
 #include <phon/application/search/search_node.hpp>
 
 namespace phonometrica {
 
+
+void SearchOperator::add_constraint(AutoSearchNode n)
+{
+	children.append(std::move(n));
+}
+
+QueryMatchSet SearchOperator::filter(const QueryMatchSet &matches)
+{
+	if (opcode == Opcode::And)
+	{
+		QueryMatchSet results = matches;
+
+		for (auto &child : children)
+		{
+			results = child->filter(results);
+		}
+
+		return results;
+	}
+	else
+	{
+		QueryMatchSet results;
+
+		for (auto &child : children)
+		{
+			for (auto &match : child->filter(matches))
+			{
+				results.insert(match);
+			}
+		}
+
+		return results;
+	}
+}
+
+bool SearchConstraint::use_index() const
+{
+	return layer_index >= 0;
+}
+
+QueryMatchSet SearchConstraint::filter(const QueryMatchSet &matches)
+{
+	return matches;
+}
 } // namespace phonometrica

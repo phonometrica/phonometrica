@@ -313,8 +313,8 @@ file_menu = [
 ]
 
 annotation_menu = [
-	["New query...", new_query, "ctrl+y"],
-	["Run last query", run_last_query]
+	["New query...", new_query, "alt+q"],
+	["Run last query", run_last_query, "ctrl+alt+q"]
 ]
 
 help_menu = [

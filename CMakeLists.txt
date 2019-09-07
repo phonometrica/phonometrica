@@ -21,7 +21,7 @@ add_definitions(-DPHON_VERSION_MAJOR=0)
 # Minor release: incremented when new features and/or bug fixes are introduced
 add_definitions(-DPHON_VERSION_MINOR=3)
 # Revision release: incremented when bugs are fixed are small features are added
-add_definitions(-DPHON_VERSION_MICRO=2)
+add_definitions(-DPHON_VERSION_MICRO=3)
 # Build: this is only used internally for development (set to 0 on public release)
 add_definitions(-DPHON_VERSION_NANO=0)
 
