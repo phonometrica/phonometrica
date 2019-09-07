@@ -30,7 +30,6 @@
 #include <QInputDialog>
 #include <QDir>
 #include <phon/gui/main_window.hpp>
-#include <phon/gui/query_editor.hpp>
 #include <phon/gui/preference_editor.hpp>
 #include <phon/runtime/object.hpp>
 #include <phon/application/settings.hpp>
@@ -742,6 +741,7 @@ void MainWindow::maximizeViewer()
 void MainWindow::openQueryEditor()
 {
 	auto editor = new QueryEditor(this);
+	connect(editor, &QueryEditor::queryReady, this, &MainWindow::executeQuery);
 	editor->resize(1100, 800);
 	editor->show();
 	cacheQueryEditor(editor);
@@ -768,6 +768,16 @@ void MainWindow::cacheQueryEditor(QueryEditor *ed)
 
 	query_editor = ed;
 }
+
+void MainWindow::executeQuery(AutoQuery query)
+{
+	auto console = main_area->console();
+	connect(query.get(), &Query::debug, console, &Console::warn);
+	connect(query.get(), &Query::done, console, &Console::setPrompt);
+
+	query->execute();
+}
+
 
 
 } // phonometrica

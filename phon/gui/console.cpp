@@ -28,7 +28,7 @@ namespace phonometrica {
 static const size_t COMMAND_MAX = 30;
 
 Console::Console(Runtime &rt, QWidget *parent) :
-    QPlainTextEdit(parent), rt(rt), prompt(">> ")
+		QPlainTextEdit(parent), runtime(rt), prompt(">> ")
 {
     auto font = get_monospace_font();
     setFont(font);
@@ -69,14 +69,14 @@ void Console::interpretCommand(const QString &command, bool from_script)
     {
         auto s = command.toStdString();
 
-        rt.load_string("[string]", command);
-        rt.push_null();
-        rt.call(0);
-        if (rt.is_defined(-1))
+        runtime.load_string("[string]", command);
+        runtime.push_null();
+        runtime.call(0);
+        if (runtime.is_defined(-1))
         {
-            print(rt.to_string(-1));
+            print(runtime.to_string(-1));
         }
-        rt.pop(1);
+        runtime.pop(1);
     }
     catch (std::exception &e)
     {
@@ -211,6 +211,11 @@ void Console::moveToEnd()
     auto c = textCursor();
     c.movePosition(QTextCursor::EndOfLine);
     setTextCursor(c);
+}
+
+void Console::warn(const String &str)
+{
+	printError(str);
 }
 
 

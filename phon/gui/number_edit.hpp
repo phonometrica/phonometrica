@@ -26,6 +26,7 @@
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QComboBox>
+#include <phon/string.hpp>
 #include <phon/gui/line_edit.hpp>
 
 namespace phonometrica {
@@ -34,19 +35,21 @@ class NumberEdit : public QWidget
 {
 public:
 
-	explicit NumberEdit(QString desc);
+	explicit NumberEdit(String desc);
 
-	std::function<bool(double)> get_functor() const;
+	std::function<bool(double)> functor() const;
 
 	double value() const;
 
-	QString description() const; // store useful info (e.g. category for numeric properties)
+	bool hasValue() const;
+
+	String description() const; // store useful info (e.g. category for numeric properties)
 
 private:
 
 	LineEdit *num_edit;
 	QComboBox *op_box; // operator
-	QString desc;
+	String desc;
 };
 
 } // namespace phonometrica

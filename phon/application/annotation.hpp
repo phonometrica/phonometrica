@@ -100,6 +100,19 @@ private:
 
 };
 
+
+//----------------------------------------------------------------------------------------------------------------------
+
+using AutoAnnotation = std::shared_ptr<Annotation>;
+
+struct AnnotationLessComparator
+{
+	bool operator()(const AutoAnnotation &lhs, const AutoAnnotation &rhs) const
+	{
+		return lhs->path() < rhs->path();
+	}
+};
+
 } // namespace phonometrica
 
 #endif // PHONOMETRICA_ANNOTATION_HPP

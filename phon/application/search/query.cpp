@@ -13,110 +13,32 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 05/09/2019                                                                                                *
+ * Created: 07/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: implement a custom list of checkable items. The list is presented in a group box, with an additional      *
- * button to check all the items on or off.                                                                           *
+ * Purpose: see header.                                                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef PHON_CHECKLIST_HPP
-#define PHON_CHECKLIST_HPP
-
-#include <QLabel>
-#include <QListWidget>
-#include <QButtonGroup>
-#include <QVBoxLayout>
-#include <QCheckBox>
-#include <QStringList>
-#include <QDebug>
-#include <phon/string.hpp>
+#include <phon/application/search/query.hpp>
 
 namespace phonometrica {
 
-// Helper class for CheckListBox
-class CheckList : public QListWidget
+void Query::execute()
 {
-	Q_OBJECT
+	filter_metadata();
+}
 
-public:
-
-	CheckList(QWidget *parent, const Array<String> &labels, const Array<String> &toolTips = Array<String>());
-
-	QList<QCheckBox *> buttons();
-
-	QList<QCheckBox *> checkedItems();
-
-	void appendItem(QString label, QString tooltip = QString());
-
-	void removeItem(QString text);
-
-	void resetLabels(const Array<String> &labels, const Array<String> &toolTips = Array<String>());
-
-	Array<String> checkedToolTips();
-
-signals:
-
-	void stateChanged(int index, int state);
-
-private slots:
-
-	void forwardState(int);
-
-private:
-
-	QButtonGroup *group = nullptr;
-
-	QStringList m_labels, m_tooltips;
-
-	bool hasTips;
-
-	int indexFromCheckbox(QCheckBox *box);
-};
-
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-
-class CheckListBox : public QWidget
+void Query::filter_metadata()
 {
-	Q_OBJECT
+	for (auto &node : metadata)
+	{
+		annotations = node->filter(annotations);
+	}
 
-public:
-
-	CheckListBox(const QString &title, const Array <String> &labels, QWidget *parent = nullptr);
-
-	QString text(int index) const;
-
-	int index(QString text) const;
-
-	void addItem(QString item);
-
-	void removeItem(QString item);
-
-	QString title() const;
-
-	Array<String> checkedLabels();
-
-signals:
-
-	void stateChanged(int index, int state);
-
-public slots:
-
-	void checkAll(int);
-
-private:
-
-	QVBoxLayout *layout;
-
-	QCheckBox *switch_button;
-
-	CheckList *checkList;
-
-	QString m_title;
-};
-
-
+	for (auto &annot : annotations)
+	{
+		emit debug(annot->path());
+	}
+	if (!annotations.empty()) emit done();
+}
 } // namespace phonometrica
-
-#endif // PHON_CHECKLIST_HPP

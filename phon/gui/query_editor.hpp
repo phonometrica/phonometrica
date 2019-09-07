@@ -24,6 +24,7 @@
 
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <phon/application/search/query.hpp>
 #include <phon/gui/search_box.hpp>
 
 class QGroupBox;
@@ -32,6 +33,7 @@ namespace phonometrica {
 
 class NumberEdit;
 class BooleanEdit;
+class CheckList;
 class CheckListBox;
 
 class QueryEditor final : public QDialog
@@ -41,6 +43,10 @@ class QueryEditor final : public QDialog
 public:
 
 	QueryEditor(QWidget *parent);
+
+signals:
+
+	void queryReady(AutoQuery);
 
 public slots:
 
@@ -56,9 +62,21 @@ private:
 
 	QGroupBox *createProperties();
 
+	AnnotationSet getAnnotations();
+
+	AutoQuery buildQuery();
+
+	Array<AutoMetaNode> getMetadata();
+
 	SearchBox *search_box;
 
 	QWidget *main_widget;
+
+	CheckList *selected_files_box;
+
+	QComboBox *description_box;
+
+	QLineEdit *description_line;
 
 	Array<NumberEdit*> numeric_properties;
 

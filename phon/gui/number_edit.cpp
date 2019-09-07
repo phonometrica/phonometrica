@@ -24,10 +24,10 @@
 
 namespace phonometrica {
 
-NumberEdit::NumberEdit(QString desc) : QWidget()
+NumberEdit::NumberEdit(String desc) : QWidget()
 {
 	auto layout = new QVBoxLayout;
-	this->desc = desc;
+	this->desc = std::move(desc);
 	op_box = new QComboBox;
 	num_edit = new LineEdit(tr("numeric value"));
 
@@ -38,7 +38,7 @@ NumberEdit::NumberEdit(QString desc) : QWidget()
 		op_box->addItem(op);
 	}
 
-	layout->addWidget(new QLabel("<b>" + desc + "</b>"));
+	layout->addWidget(new QLabel("<b>" + QString(this->desc) + "</b>"));
 	layout->addWidget(op_box);
 	layout->addWidget(num_edit);
 	layout->addStretch(1);
@@ -46,12 +46,12 @@ NumberEdit::NumberEdit(QString desc) : QWidget()
 	op_box->setFocusProxy(num_edit);
 }
 
-QString NumberEdit::description() const
+String NumberEdit::description() const
 {
 	return desc;
 }
 
-std::function<bool(double)> NumberEdit::get_functor() const
+std::function<bool(double)> NumberEdit::functor() const
 {
 	double val = this->value();
 
@@ -75,6 +75,11 @@ std::function<bool(double)> NumberEdit::get_functor() const
 double NumberEdit::value() const
 {
 	return num_edit->text().toDouble();
+}
+
+bool NumberEdit::hasValue() const
+{
+	return !num_edit->text().isEmpty();
 }
 
 } // namespace phonometrica

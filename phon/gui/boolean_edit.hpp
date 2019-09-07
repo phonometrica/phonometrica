@@ -25,6 +25,7 @@
 #include <optional>
 #include <QLayout>
 #include <QComboBox>
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
@@ -32,17 +33,17 @@ class BooleanEdit : public QWidget
 {
 public:
 
-	explicit BooleanEdit(QString desc);
+	explicit BooleanEdit(String desc);
 
 	std::optional<bool> value() const;
 
-	QString description() const; // store useful info (e.g. category for numeric properties)
+	String description() const; // store useful info (e.g. category for numeric properties)
 
 private:
 
 	QComboBox *combo_box;
 
-	QString desc;
+	String desc;
 };
 
 } // namespace phonometrica

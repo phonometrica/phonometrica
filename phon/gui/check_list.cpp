@@ -137,6 +137,21 @@ int CheckList::indexFromCheckbox(QCheckBox *box)
 	return -1;
 }
 
+Array<String> CheckList::checkedToolTips()
+{
+	Array<String> results;
+
+	for (QCheckBox *btn : this->buttons())
+	{
+		if (btn->isChecked())
+		{
+			results.append(btn->toolTip());
+		}
+	}
+
+	return results;
+}
+
 /*****************************************************************************************************
  *****************************************************************************************************
  *****************************************************************************************************/
@@ -184,7 +199,7 @@ void CheckListBox::checkAll(int state)
 	}
 	else if (state == Qt::Unchecked)
 	{
-		foreach (QCheckBox *btn, checkList->buttons())
+		for (QCheckBox *btn : checkList->buttons())
 			btn->setChecked(false);
 	}
 	else
@@ -192,14 +207,16 @@ void CheckListBox::checkAll(int state)
 
 }
 
-QStringList CheckListBox::checkedLabels()
+Array<String> CheckListBox::checkedLabels()
 {
-	QStringList results;
+	Array<String> results;
 
-	foreach (QCheckBox *btn, checkList->buttons())
+	for (QCheckBox *btn : checkList->buttons())
 	{
 		if (btn->isChecked())
-			results << btn->text();
+		{
+			results.append(btn->text());
+		}
 	}
 
 	return results;
@@ -207,7 +224,7 @@ QStringList CheckListBox::checkedLabels()
 
 QString CheckListBox::text(int index) const
 {
-	QCheckBox *box = qobject_cast<QCheckBox*>(checkList->itemWidget(checkList->item(index)));
+	auto box = qobject_cast<QCheckBox*>(checkList->itemWidget(checkList->item(index)));
 	return box->text();
 }
 
@@ -233,5 +250,6 @@ void CheckListBox::removeItem(QString item)
 {
 	checkList->removeItem(item);
 }
+
 } // namespace phonometrica
 

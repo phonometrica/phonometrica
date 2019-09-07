@@ -24,22 +24,22 @@
 
 namespace phonometrica {
 
-BooleanEdit::BooleanEdit(QString desc) : QWidget()
+BooleanEdit::BooleanEdit(String desc) : QWidget()
 {
-	this->desc = desc;
+	this->desc = std::move(desc);
 	auto layout = new QVBoxLayout;
 	combo_box = new QComboBox;
 	combo_box->addItem("any");
 	combo_box->addItem("true");
 	combo_box->addItem("false");
 
-	layout->addWidget(new QLabel("<b>" + desc + "</b>"));
+	layout->addWidget(new QLabel("<b>" + QString(this->desc) + "</b>"));
 	layout->addWidget(combo_box);
 	layout->addStretch(1);
 	setLayout(layout);
 }
 
-QString BooleanEdit::description() const
+String BooleanEdit::description() const
 {
 	return desc;
 }

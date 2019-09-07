@@ -13,110 +13,111 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 05/09/2019                                                                                                *
+ * Created: 07/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: implement a custom list of checkable items. The list is presented in a group box, with an additional      *
- * button to check all the items on or off.                                                                           *
+ * Purpose: see header.                                                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef PHON_CHECKLIST_HPP
-#define PHON_CHECKLIST_HPP
-
-#include <QLabel>
-#include <QListWidget>
-#include <QButtonGroup>
-#include <QVBoxLayout>
-#include <QCheckBox>
-#include <QStringList>
-#include <QDebug>
-#include <phon/string.hpp>
+#include <phon/application/search/meta_node.hpp>
 
 namespace phonometrica {
 
-// Helper class for CheckListBox
-class CheckList : public QListWidget
+AnnotationSet DescriptionNode::filter(const AnnotationSet &files)
 {
-	Q_OBJECT
+	AnnotationSet new_files;
 
-public:
+	for (auto &f : files)
+	{
+		auto &desc = f->description();
+		bool result;
 
-	CheckList(QWidget *parent, const Array<String> &labels, const Array<String> &toolTips = Array<String>());
+		switch (op)
+		{
+			case DescOperator::Equals:
+			{
+				result = (desc == value);
+				break;
+			}
+			case DescOperator::Contains:
+			{
+				result = desc.contains(value);
+				break;
+			}
+			case DescOperator::Matches:
+			{
+				Regex re(value);
+				result = re.match(desc);
+				break;
+			}
+		}
 
-	QList<QCheckBox *> buttons();
+		if (result == truth)
+		{
+			new_files.insert(f);
+		}
+	}
 
-	QList<QCheckBox *> checkedItems();
+	return new_files;
+}
 
-	void appendItem(QString label, QString tooltip = QString());
-
-	void removeItem(QString text);
-
-	void resetLabels(const Array<String> &labels, const Array<String> &toolTips = Array<String>());
-
-	Array<String> checkedToolTips();
-
-signals:
-
-	void stateChanged(int index, int state);
-
-private slots:
-
-	void forwardState(int);
-
-private:
-
-	QButtonGroup *group = nullptr;
-
-	QStringList m_labels, m_tooltips;
-
-	bool hasTips;
-
-	int indexFromCheckbox(QCheckBox *box);
-};
-
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-
-class CheckListBox : public QWidget
+AnnotationSet TextPropertyNode::filter(const AnnotationSet &files)
 {
-	Q_OBJECT
+	AnnotationSet new_files;
 
-public:
+	for (auto &f : files)
+	{
+		for (auto &property : f->properties())
+		{
+			if (property.category() == this->category)
+			{
+				auto it = values.find(property.value());
+				if (it != values.end()) new_files.insert(f);
+				break;
+			}
+		}
+	}
 
-	CheckListBox(const QString &title, const Array <String> &labels, QWidget *parent = nullptr);
+	return new_files;
+}
 
-	QString text(int index) const;
+AnnotationSet NumericPropertyNode::filter(const AnnotationSet &files)
+{
+	AnnotationSet new_files;
 
-	int index(QString text) const;
+	for (auto &f : files)
+	{
+		for (auto &property : f->properties())
+		{
+			if (property.category() == this->category)
+			{
+				bool result = callback(property.numeric_value());
+				if (result) new_files.insert(f);
+				break;
+			}
+		}
+	}
 
-	void addItem(QString item);
+	return new_files;
+}
 
-	void removeItem(QString item);
+AnnotationSet BooleanPropertyNode::filter(const AnnotationSet &files)
+{
+	AnnotationSet new_files;
 
-	QString title() const;
+	for (auto &f : files)
+	{
+		for (auto &property : f->properties())
+		{
+			if (property.category() == this->category)
+			{
+				bool result = (property.boolean_value() == this->value);
+				if (result) new_files.insert(f);
+				break;
+			}
+		}
+	}
 
-	Array<String> checkedLabels();
-
-signals:
-
-	void stateChanged(int index, int state);
-
-public slots:
-
-	void checkAll(int);
-
-private:
-
-	QVBoxLayout *layout;
-
-	QCheckBox *switch_button;
-
-	CheckList *checkList;
-
-	QString m_title;
-};
-
-
+	return new_files;
+}
 } // namespace phonometrica
-
-#endif // PHON_CHECKLIST_HPP

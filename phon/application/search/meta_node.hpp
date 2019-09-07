@@ -13,110 +13,98 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 05/09/2019                                                                                                *
+ * Created: 07/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: implement a custom list of checkable items. The list is presented in a group box, with an additional      *
- * button to check all the items on or off.                                                                           *
+ * Purpose: nodes used to filter metadata in a query.                                                                 *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef PHON_CHECKLIST_HPP
-#define PHON_CHECKLIST_HPP
+#ifndef PHONOMETRICA_META_NODE_HPP
+#define PHONOMETRICA_META_NODE_HPP
 
-#include <QLabel>
-#include <QListWidget>
-#include <QButtonGroup>
-#include <QVBoxLayout>
-#include <QCheckBox>
-#include <QStringList>
-#include <QDebug>
+#include <set>
+#include <functional>
+#include <unordered_set>
 #include <phon/string.hpp>
+#include <phon/regex.hpp>
+#include <phon/application/annotation.hpp>
 
 namespace phonometrica {
 
-// Helper class for CheckListBox
-class CheckList : public QListWidget
+using AnnotationSet = std::set<AutoAnnotation, AnnotationLessComparator>;
+
+
+enum class DescOperator
 {
-	Q_OBJECT
-
-public:
-
-	CheckList(QWidget *parent, const Array<String> &labels, const Array<String> &toolTips = Array<String>());
-
-	QList<QCheckBox *> buttons();
-
-	QList<QCheckBox *> checkedItems();
-
-	void appendItem(QString label, QString tooltip = QString());
-
-	void removeItem(QString text);
-
-	void resetLabels(const Array<String> &labels, const Array<String> &toolTips = Array<String>());
-
-	Array<String> checkedToolTips();
-
-signals:
-
-	void stateChanged(int index, int state);
-
-private slots:
-
-	void forwardState(int);
-
-private:
-
-	QButtonGroup *group = nullptr;
-
-	QStringList m_labels, m_tooltips;
-
-	bool hasTips;
-
-	int indexFromCheckbox(QCheckBox *box);
+	Equals,
+	Contains,
+	Matches
 };
 
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-
-class CheckListBox : public QWidget
+struct MetaNode
 {
-	Q_OBJECT
+	MetaNode() = default;
+	virtual ~MetaNode() = default;
 
-public:
+	virtual AnnotationSet filter(const AnnotationSet &files) = 0;
+};
 
-	CheckListBox(const QString &title, const Array <String> &labels, QWidget *parent = nullptr);
+using AutoMetaNode = std::unique_ptr<MetaNode>;
 
-	QString text(int index) const;
+struct DescriptionNode final : public MetaNode
+{
+	DescriptionNode(const String &value, DescOperator op, bool truth) :
+		value(value)
+	{
+		this->op = op;
+		this->truth = truth;
+	}
 
-	int index(QString text) const;
+	AnnotationSet filter(const AnnotationSet &files) override;
 
-	void addItem(QString item);
+	String value;
+	DescOperator op;
+	bool truth;
+};
 
-	void removeItem(QString item);
+struct PropertyNode : public MetaNode
+{
+	PropertyNode(const String &cat) : category(cat) { }
 
-	QString title() const;
+	String category;
+};
 
-	Array<String> checkedLabels();
+struct TextPropertyNode final : public PropertyNode
+{
+	TextPropertyNode(const String &category, std::unordered_set<String> values) :
+		PropertyNode(category), values(std::move(values)) { }
 
-signals:
+	AnnotationSet filter(const AnnotationSet &files) override;
 
-	void stateChanged(int index, int state);
+	std::unordered_set<String> values;
+};
 
-public slots:
+struct NumericPropertyNode final : public PropertyNode
+{
+	NumericPropertyNode(const String &category, std::function<bool(double)> cb) :
+		PropertyNode(category), callback(std::move(cb)) { }
 
-	void checkAll(int);
+	AnnotationSet filter(const AnnotationSet &files) override;
 
-private:
+	std::function<bool(double)> callback;
+};
 
-	QVBoxLayout *layout;
+struct BooleanPropertyNode final : public PropertyNode
+{
+	BooleanPropertyNode(const String &category, bool value) :
+		PropertyNode(category) { this->value = value; }
 
-	QCheckBox *switch_button;
+	AnnotationSet filter(const AnnotationSet &files) override;
 
-	CheckList *checkList;
-
-	QString m_title;
+	bool value;
 };
 
 
 } // namespace phonometrica
 
-#endif // PHON_CHECKLIST_HPP
+#endif // PHONOMETRICA_META_NODE_HPP

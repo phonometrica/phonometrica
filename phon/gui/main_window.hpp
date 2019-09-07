@@ -28,10 +28,9 @@
 #include <phon/gui/file_manager.hpp>
 #include <phon/gui/main_area.hpp>
 #include <phon/gui/splitter.hpp>
+#include <phon/gui/query_editor.hpp>
 
 namespace phonometrica {
-
-class QueryEditor;
 
 class MainWindow final : public QMainWindow
 {
@@ -64,6 +63,8 @@ private slots:
     void adjustSplitters();
 
     void maximizeViewer();
+
+    void executeQuery(AutoQuery query);
 
 private:
 

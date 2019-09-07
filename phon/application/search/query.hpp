@@ -13,110 +13,57 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 05/09/2019                                                                                                *
+ * Created: 07/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: implement a custom list of checkable items. The list is presented in a group box, with an additional      *
- * button to check all the items on or off.                                                                           *
+ * Purpose: Query object. A query contains metadata nodes, which allow the user to filter annotations, and search     *
+ * nodes, which allow them to extract concordances from the selected set of annotations.                              *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef PHON_CHECKLIST_HPP
-#define PHON_CHECKLIST_HPP
+#ifndef PHONOMETRICA_QUERY_HPP
+#define PHONOMETRICA_QUERY_HPP
 
-#include <QLabel>
-#include <QListWidget>
-#include <QButtonGroup>
-#include <QVBoxLayout>
-#include <QCheckBox>
-#include <QStringList>
-#include <QDebug>
-#include <phon/string.hpp>
+#include <memory>
+#include <QObject>
+#include <phon/application/search/meta_node.hpp>
+#include <phon/application/search/search_node.hpp>
 
 namespace phonometrica {
 
-// Helper class for CheckListBox
-class CheckList : public QListWidget
+class Query final : public QObject
 {
 	Q_OBJECT
 
 public:
 
-	CheckList(QWidget *parent, const Array<String> &labels, const Array<String> &toolTips = Array<String>());
+	Query(AnnotationSet annotations, Array<AutoMetaNode> metadata) :
+		annotations(std::move(annotations)), metadata(std::move(metadata))
+	{ }
 
-	QList<QCheckBox *> buttons();
+	Query(const Query &) = delete;
 
-	QList<QCheckBox *> checkedItems();
+	~Query() = default;
 
-	void appendItem(QString label, QString tooltip = QString());
-
-	void removeItem(QString text);
-
-	void resetLabels(const Array<String> &labels, const Array<String> &toolTips = Array<String>());
-
-	Array<String> checkedToolTips();
+	void execute();
 
 signals:
 
-	void stateChanged(int index, int state);
+	void debug(const String &);
 
-private slots:
-
-	void forwardState(int);
+	void done();
 
 private:
 
-	QButtonGroup *group = nullptr;
+	void filter_metadata();
 
-	QStringList m_labels, m_tooltips;
-
-	bool hasTips;
-
-	int indexFromCheckbox(QCheckBox *box);
+	AnnotationSet annotations;
+	Array<AutoMetaNode> metadata;
 };
 
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-
-class CheckListBox : public QWidget
-{
-	Q_OBJECT
-
-public:
-
-	CheckListBox(const QString &title, const Array <String> &labels, QWidget *parent = nullptr);
-
-	QString text(int index) const;
-
-	int index(QString text) const;
-
-	void addItem(QString item);
-
-	void removeItem(QString item);
-
-	QString title() const;
-
-	Array<String> checkedLabels();
-
-signals:
-
-	void stateChanged(int index, int state);
-
-public slots:
-
-	void checkAll(int);
-
-private:
-
-	QVBoxLayout *layout;
-
-	QCheckBox *switch_button;
-
-	CheckList *checkList;
-
-	QString m_title;
-};
-
+// We shouldn't need the query to be shared, but we can't use a std::unique_ptr with Qt's signals and slots, since a
+// signal may be connected to several slots, in which case the value needs to be copied.
+using AutoQuery = std::shared_ptr<Query>;
 
 } // namespace phonometrica
 
-#endif // PHON_CHECKLIST_HPP
+#endif // PHONOMETRICA_QUERY_HPP

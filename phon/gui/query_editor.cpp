@@ -34,6 +34,15 @@
 
 namespace phonometrica {
 
+enum {
+	IndexIsExactly = 0,
+	IndexIsNot,
+	IndexContains,
+	IndexDoesntContain,
+	IndexMatches,
+	IndexDoesntMatch
+};
+
 QueryEditor::QueryEditor(QWidget *parent) : QDialog(parent)
 {
 	setupUi();
@@ -103,7 +112,7 @@ QWidget * QueryEditor::createFileBox()
 	for (auto &path : full_paths) {
 		short_paths.append(filesystem::base_name(path));
 	}
-	auto selected_files_box = new CheckList(this, short_paths, full_paths);
+	selected_files_box = new CheckList(this, short_paths, full_paths);
 
 	// description
 	auto desc_box = new QGroupBox(tr("File description"), main_widget);
@@ -111,13 +120,15 @@ QWidget * QueryEditor::createFileBox()
 	auto desc_inner_layout = new QHBoxLayout;
 	auto desc_label = new QLabel(tr("Description "));
 
-	auto description_box = new QComboBox;
+	description_box = new QComboBox;
 	description_box->addItem(tr("is exactly"));
 	description_box->addItem(tr("is not"));
 	description_box->addItem(tr("contains"));
 	description_box->addItem(tr("doesn't contain"));
+	description_box->addItem(tr("matches"));
+	description_box->addItem(tr("doesn't match"));
 	description_box->setCurrentIndex(2);
-	auto description_line = new QLineEdit;
+	description_line = new QLineEdit;
 	description_line->setToolTip(tr("Filter files based on whether their description is (or not)\nan exact text or contains (or not) a regular expression."));
 
 	desc_inner_layout->addWidget(desc_label);
@@ -142,8 +153,9 @@ QWidget * QueryEditor::createFileBox()
 
 void QueryEditor::accept()
 {
+	auto query = buildQuery();
 	this->hide();
-	//QDialog::accept();
+	emit queryReady(std::move(query));
 }
 
 QGroupBox *QueryEditor::createProperties()
@@ -210,5 +222,107 @@ QGroupBox *QueryEditor::createProperties()
 	property_box->setLayout(layout);
 
 	return property_box;
+}
+
+AutoQuery QueryEditor::buildQuery()
+{
+	return std::make_shared<Query>(getAnnotations(), getMetadata());
+}
+
+Array<AutoMetaNode> QueryEditor::getMetadata()
+{
+	Array<AutoMetaNode> nodes;
+	String desc_value = description_line->text();
+
+	if (!desc_value.empty())
+	{
+		DescOperator desc_op;
+		bool truth;
+
+		switch (description_box->currentIndex())
+		{
+			case IndexIsExactly:
+			case IndexIsNot:
+				desc_op = DescOperator::Equals;
+				break;
+			case IndexContains:
+			case IndexDoesntContain:
+				desc_op = DescOperator::Contains;
+				break;
+			default:
+				desc_op = DescOperator::Matches;
+		}
+
+		switch (description_box->currentIndex())
+		{
+			case IndexIsExactly:
+			case IndexMatches:
+			case IndexContains:
+				truth = true;
+				break;
+			default:
+				truth = false;
+		}
+
+		nodes.append(std::make_unique<DescriptionNode>(desc_value, desc_op, truth));
+	}
+
+	for (auto edit : boolean_properties)
+	{
+		auto value = edit->value();
+
+		if (value.has_value())
+		{
+			nodes.append(std::make_unique<BooleanPropertyNode>(edit->description(), *value));
+		}
+	}
+
+	for (auto edit : numeric_properties)
+	{
+		if (edit->hasValue())
+		{
+			nodes.append(std::make_unique<NumericPropertyNode>(edit->description(), edit->functor()));
+		}
+	}
+
+	for (auto edit : text_properties)
+	{
+		auto labels = edit->checkedLabels();
+
+		if (!labels.empty())
+		{
+			std::unordered_set<String> values;
+			for (auto &label : labels) { values.insert(std::move(label)); }
+			String category = edit->title();
+			nodes.append(std::make_unique<TextPropertyNode>(category, std::move(values)));
+		}
+	}
+
+	return nodes;
+}
+
+AnnotationSet QueryEditor::getAnnotations()
+{
+	auto project = Project::instance();
+	auto paths = selected_files_box->checkedToolTips();
+	AnnotationSet annotations;
+
+	// If the user didn't check any file, get all the annotations in the project.
+	if (paths.empty())
+	{
+		for (auto &annot : project->annotations())
+		{
+			annotations.insert(std::move(annot));
+		}
+	}
+	else
+	{
+		for (auto &path : paths)
+		{
+			annotations.insert(std::dynamic_pointer_cast<Annotation>(project->get(path)));
+		}
+	}
+
+	return annotations;
 }
 } // namespace phonometrica

@@ -126,11 +126,11 @@ public:
 
     bool empty() const;
 
-    Array<std::shared_ptr<Annotation>> annotations() const;
+    Array<AutoAnnotation> annotations() const;
 
 public slots:
 
-	void bind_annotation(const std::shared_ptr<Annotation> &annot, const String &sound_file);
+	void bind_annotation(const AutoAnnotation &annot, const String &sound_file);
 
 signals:
 

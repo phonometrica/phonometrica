@@ -44,6 +44,10 @@ public slots:
 
     void print(const String &str);
 
+	void warn(const String &str);
+
+	void setPrompt();
+
 protected:
 
     void keyPressEvent(QKeyEvent *e) override;
@@ -51,8 +55,6 @@ protected:
 private:
 
     void interpretCommand(const QString &command, bool from_script);
-
-    void setPrompt();
 
     void printError(const QString &msg);
 
@@ -64,7 +66,7 @@ private:
 
     void moveToEnd();
 
-    Runtime &rt;
+    Runtime &runtime;
 
     const QString prompt;
 

@@ -795,7 +795,7 @@ MetaDatabase & Project::database() const
 	return *m_database;
 }
 
-void Project::bind_annotation(const std::shared_ptr<Annotation> &annot, const String &sound_file)
+void Project::bind_annotation(const AutoAnnotation &annot, const String &sound_file)
 {
 	// The actual binding will occur in bind_annotations(), which is called once the project is loaded.
 	m_accumulator.emplace_back(annot.get(), sound_file);
@@ -1155,9 +1155,9 @@ bool Project::empty() const
     return m_corpus->empty() && m_data->empty() && m_scripts->empty() && m_bookmarks->empty();
 }
 
-Array<std::shared_ptr<Annotation>> Project::annotations() const
+Array<AutoAnnotation> Project::annotations() const
 {
-	Array<std::shared_ptr<Annotation>> result;
+	Array<AutoAnnotation> result;
 
 	for (auto &item : m_files)
 	{
