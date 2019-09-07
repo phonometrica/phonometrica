@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Phonometrica"
-#define MyAppVersion "0.3.1"
+#define MyAppVersion "0.3.2"
 #define MyAppPublisher "Julien Eychenne & Léa Courdès-Murphy"
 #define MyAppURL "https://phonometrica.github.io"
 #define MyAppExeName "phonometrica.exe"
