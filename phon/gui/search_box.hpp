@@ -86,8 +86,6 @@ private slots:
 
 	void removeSearchConstraint(bool dummy);
 
-	void updateQueryString(bool);
-
 private:
 
 	template<class T>
@@ -101,23 +99,27 @@ private:
 
 	LineEdit *createLayerEdit();
 
+	void retainWhenHidden(QWidget *w, bool value);
+
 	void changeLayerDisplay(int constraint_index, int selection);
 
-	void updateRelations();
+	void updateFirstLayout();
+
+	AutoSearchNode buildSearchTree(int &layout_index);
+
+	AutoSearchConstraint parseConstraint(QHBoxLayout *layout);
 
 	QVBoxLayout *main_layout;
 
 	QPushButton *add_button, *remove_button;
-
-	QRadioButton *and_button, *or_button, *custom_button;
-
-	QTextEdit *query_display;
 
 	Array<QHBoxLayout*> constraint_layouts;
 
 	Array<QComboBox*> relations;
 
 	int constraint_count = 0;
+
+	int open_parentheses, closed_parentheses;
 };
 
 } // namespace phonometrica

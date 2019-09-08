@@ -56,6 +56,8 @@ private:
 
 	void filter_metadata();
 
+	void filter_data();
+
 	AnnotationSet annotations;
 	Array<AutoMetaNode> metadata;
 	AutoSearchNode search_tree;

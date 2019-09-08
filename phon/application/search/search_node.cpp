@@ -24,9 +24,9 @@
 namespace phonometrica {
 
 
-void SearchOperator::add_constraint(AutoSearchNode n)
+void SearchOperator::set_constraints(Array <AutoSearchNode> nodes)
 {
-	children.append(std::move(n));
+	children = std::move(nodes);
 }
 
 QueryMatchSet SearchOperator::filter(const QueryMatchSet &matches)
@@ -58,6 +58,24 @@ QueryMatchSet SearchOperator::filter(const QueryMatchSet &matches)
 	}
 }
 
+String SearchOperator::to_string() const
+{
+	intptr_t count = children.size();
+	if (count == 1) return children.first()->to_string();
+
+	String s("(");
+	String infix = (opcode == Opcode::And) ? String(" AND ") : String (" OR ");
+
+	for (intptr_t i = 1; i <= count; i++)
+	{
+		s.append(children[i]->to_string());
+		if (i < count) s.append(infix);
+	}
+	s.append(')');
+
+	return s;
+}
+
 bool SearchConstraint::use_index() const
 {
 	return layer_index >= 0;
@@ -66,5 +84,13 @@ bool SearchConstraint::use_index() const
 QueryMatchSet SearchConstraint::filter(const QueryMatchSet &matches)
 {
 	return matches;
+}
+
+String SearchConstraint::to_string() const
+{
+	auto s = utils::format("(layer_index = %, layer_name = \"%\", case_sensitive = %, opcode = %, relation = %, value = \"%\")",
+			layer_index, layer_name, case_sensitive, static_cast<int>(opcode), static_cast<int>(relation), value);
+
+	return String(s);
 }
 } // namespace phonometrica

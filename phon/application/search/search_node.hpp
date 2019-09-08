@@ -36,6 +36,8 @@ public:
 
 	virtual QueryMatchSet filter(const QueryMatchSet &matches) = 0;
 
+	virtual String to_string() const = 0;
+
 };
 
 using AutoSearchNode = std::shared_ptr<SearchNode>;
@@ -57,7 +59,9 @@ public:
 
 	QueryMatchSet filter(const QueryMatchSet &matches) override;
 
-	void add_constraint(AutoSearchNode n);
+	void set_constraints(Array<AutoSearchNode> nodes);
+
+	String to_string() const override;
 
 private:
 
@@ -93,6 +97,8 @@ public:
 
 	QueryMatchSet filter(const QueryMatchSet &matches) override;
 
+	String to_string() const override;
+
 private:
 
 	bool use_index() const;
@@ -109,6 +115,8 @@ private:
 
 	String value; // Text or regex.
 };
+
+using AutoSearchConstraint = std::shared_ptr<SearchConstraint>;
 
 } // namespace phonometrica
 

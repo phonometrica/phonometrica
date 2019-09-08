@@ -26,10 +26,12 @@ namespace phonometrica {
 void Query::execute()
 {
 	filter_metadata();
+	filter_data();
 }
 
 void Query::filter_metadata()
 {
+	emit debug("METADATA:");
 	for (auto &node : metadata)
 	{
 		annotations = node->filter(annotations);
@@ -39,6 +41,12 @@ void Query::filter_metadata()
 	{
 		emit debug(annot->path());
 	}
-	if (!annotations.empty()) emit done();
+}
+
+void Query::filter_data()
+{
+	emit debug("CONSTRAINTS:");
+	emit debug(search_tree->to_string());
+	emit done();
 }
 } // namespace phonometrica
