@@ -38,6 +38,10 @@ public:
 
 	virtual String to_string() const = 0;
 
+	virtual bool is_binop() const { return false; }
+
+	virtual int get_precedence() const { return 0; }
+
 };
 
 using AutoSearchNode = std::shared_ptr<SearchNode>;
@@ -51,21 +55,25 @@ public:
 
 	enum class Opcode
 	{
-		And,
-		Or
+		Null,
+		Or,
+		And
 	};
 
-	explicit SearchOperator(Opcode op) : opcode(op) { }
+	explicit SearchOperator(Opcode op, AutoSearchNode lhs, AutoSearchNode rhs) :
+		opcode(op), lhs(std::move(lhs)), rhs(std::move(rhs)) { }
 
 	QueryMatchSet filter(const QueryMatchSet &matches) override;
 
-	void set_constraints(Array<AutoSearchNode> nodes);
-
 	String to_string() const override;
+
+	bool is_binop() const override { return true; }
+
+	int get_precedence() const override { return static_cast<int>(opcode); }
 
 private:
 
-	Array<AutoSearchNode> children;
+	AutoSearchNode lhs, rhs;
 
 	Opcode opcode;
 };
@@ -90,14 +98,16 @@ public:
 		Precedence
 	};
 
-	SearchConstraint(int layer_index, String layer_name, bool case_sensitive, Opcode op, Relation rel, String value) :
-		layer_index(layer_index), layer_name(std::move(layer_name)), case_sensitive(case_sensitive),
-		opcode(op), relation(rel), value(std::move(value))
+	SearchConstraint(int index, int layer_index, String layer_name, bool case_sensitive, Opcode op, Relation rel, String value) :
+			index(index), layer_index(layer_index), layer_name(std::move(layer_name)), case_sensitive(case_sensitive),
+			op(op), relation(rel), value(std::move(value))
 	{ }
 
 	QueryMatchSet filter(const QueryMatchSet &matches) override;
 
 	String to_string() const override;
+
+	Opcode opcode() const { return op; }
 
 private:
 
@@ -107,9 +117,11 @@ private:
 
 	int layer_index;
 
+	int index; // for debugging
+
 	bool case_sensitive;
 
-	Opcode opcode;
+	Opcode op;
 
 	Relation relation;
 

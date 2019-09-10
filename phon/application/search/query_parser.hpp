@@ -13,69 +13,80 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 03/09/2019                                                                                                *
+ * Created: 10/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: see header.                                                                                               *
+ * Purpose: Parse a stream of token (produced by the query editor) into a abstract syntax tree which can be consumed  *
+ * by a query object.                                                                                                 *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#include <algorithm>
+#ifndef PHONOMETRICA_QUERY_PARSER_HPP
+#define PHONOMETRICA_QUERY_PARSER_HPP
+
+#include <phon/array.hpp>
 #include <phon/application/search/search_node.hpp>
 
 namespace phonometrica {
 
-QueryMatchSet SearchOperator::filter(const QueryMatchSet &matches)
+class QueryParser final
 {
-	if (opcode == Opcode::And)
+public:
+
+	enum class Type
 	{
-		auto results = lhs->filter(matches);
-		return rhs->filter(results);
-	}
-	else
+		Null,
+		LParen,
+		Rparen,
+		And,
+		Or,
+		Constraint
+	};
+
+	struct Token
 	{
-		QueryMatchSet x = lhs->filter(matches);
-		QueryMatchSet y = rhs->filter(matches);
-		QueryMatchSet results;
-		std::set_union(x.begin(), x.end(), y.begin(), y.end(), std::inserter(results, results.begin()));
+		Type type;
+		AutoSearchNode node;
+	};
 
-		return results;
-	}
-}
+	explicit QueryParser(Array<Token> tokens) : tokens(std::move(tokens)) { }
 
-String SearchOperator::to_string() const
-{
-	assert(opcode != Opcode::Null);
+	~QueryParser() = default;
 
-	String s("(");
-	s.append(lhs->to_string());
-	if (opcode == Opcode::And)
-		s.append(" AND ");
-	else
-		s.append(" OR ");
-	s.append(rhs->to_string());
-	s.append(')');
+	AutoSearchNode parse();
 
-	return s;
-}
+private:
 
-bool SearchConstraint::use_index() const
-{
-	return layer_index >= 0;
-}
+	/*
+	 * Grammar:
+	 * expression := or_expression
+	 * or_expression := and_expression ( 'OR' and_expression ) *
+	 * and_expression := primary ( 'AND' primary ) *
+	 * primary = '(' expression ')' | constraint
+	 */
 
-QueryMatchSet SearchConstraint::filter(const QueryMatchSet &matches)
-{
-	return matches;
-}
+	AutoSearchNode parseExpression();
 
-String SearchConstraint::to_string() const
-{
-	String s("e");
-	s.append(String::convert(intptr_t(index)));
-	return s;
-//	auto s = utils::format("(layer_index = %, layer_name = \"%\", case_sensitive = %, op = %, relation = %, value = \"%\")",
-//	                       layer_index, layer_name, case_sensitive, static_cast<int>(op), static_cast<int>(relation), value);
-//
-//	return String(s);
-}
+	AutoSearchNode parseOrExpression();
+
+	AutoSearchNode parseAndExpression();
+
+	AutoSearchNode parsePrimary();
+
+	Token *nextToken();
+
+	void accept() { readToken(); }
+
+	void accept(Type t, const char *msg);
+
+	void readToken() { the_token = nextToken(); }
+
+	Array<Token> tokens;
+
+	Token *the_token = nullptr;
+
+	int token_index = 0;
+};
+
 } // namespace phonometrica
+
+#endif // PHONOMETRICA_QUERY_PARSER_HPP

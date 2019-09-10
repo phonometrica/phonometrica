@@ -13,69 +13,99 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 03/09/2019                                                                                                *
+ * Created: 10/09/2019                                                                                                *
  *                                                                                                                    *
  * Purpose: see header.                                                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#include <algorithm>
-#include <phon/application/search/search_node.hpp>
+#include <phon/application/search/query_parser.hpp>
 
 namespace phonometrica {
 
-QueryMatchSet SearchOperator::filter(const QueryMatchSet &matches)
+AutoSearchNode QueryParser::parse()
 {
-	if (opcode == Opcode::And)
+	readToken();
+	return parseExpression();
+}
+
+AutoSearchNode QueryParser::parseExpression()
+{
+	return parseOrExpression();
+}
+
+AutoSearchNode QueryParser::parseOrExpression()
+{
+	auto lhs = parseAndExpression();
+
+	while (the_token->type == Type::Or)
 	{
-		auto results = lhs->filter(matches);
-		return rhs->filter(results);
+		accept();
+		auto rhs = parseAndExpression();
+		lhs = std::make_shared<SearchOperator>(SearchOperator::Opcode::Or, std::move(lhs), std::move(rhs));
+	}
+
+	return lhs;
+}
+
+AutoSearchNode QueryParser::parseAndExpression()
+{
+	auto lhs = parsePrimary();
+
+	while (the_token->type == Type::And)
+	{
+		accept();
+		auto rhs = parsePrimary();
+		lhs = std::make_shared<SearchOperator>(SearchOperator::Opcode::And, std::move(lhs), std::move(rhs));
+	}
+
+	return lhs;
+}
+
+AutoSearchNode QueryParser::parsePrimary()
+{
+	if (the_token->type == Type::LParen)
+	{
+		accept();
+		auto e = parseExpression();
+		accept(Type::Rparen, "closing parenthesis");
+
+		return e;
+	}
+	else if (the_token->type == Type::Constraint)
+	{
+		auto node = std::move(the_token->node);
+		accept();
+
+		return node;
+	}
+
+	throw error("[Internal error] Invalid primary expression in query parser");
+}
+
+QueryParser::Token *QueryParser::nextToken()
+{
+	static Token invalid = { Type::Null, nullptr };
+
+	if (token_index < tokens.size())
+	{
+		return &tokens[++token_index];
+	}
+
+	return &invalid;
+}
+
+void QueryParser::accept(QueryParser::Type t, const char *msg)
+{
+	if (the_token->type == t)
+	{
+		accept();
 	}
 	else
 	{
-		QueryMatchSet x = lhs->filter(matches);
-		QueryMatchSet y = rhs->filter(matches);
-		QueryMatchSet results;
-		std::set_union(x.begin(), x.end(), y.begin(), y.end(), std::inserter(results, results.begin()));
-
-		return results;
+		throw error("[Internal error] Invalid query token: expected a %", msg);
 	}
 }
 
-String SearchOperator::to_string() const
-{
-	assert(opcode != Opcode::Null);
 
-	String s("(");
-	s.append(lhs->to_string());
-	if (opcode == Opcode::And)
-		s.append(" AND ");
-	else
-		s.append(" OR ");
-	s.append(rhs->to_string());
-	s.append(')');
-
-	return s;
-}
-
-bool SearchConstraint::use_index() const
-{
-	return layer_index >= 0;
-}
-
-QueryMatchSet SearchConstraint::filter(const QueryMatchSet &matches)
-{
-	return matches;
-}
-
-String SearchConstraint::to_string() const
-{
-	String s("e");
-	s.append(String::convert(intptr_t(index)));
-	return s;
-//	auto s = utils::format("(layer_index = %, layer_name = \"%\", case_sensitive = %, op = %, relation = %, value = \"%\")",
-//	                       layer_index, layer_name, case_sensitive, static_cast<int>(op), static_cast<int>(relation), value);
-//
-//	return String(s);
-}
 } // namespace phonometrica

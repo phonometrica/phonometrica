@@ -27,18 +27,9 @@
 #include <set>
 #include <unordered_map>
 #include <memory>
-
-#if PHON_MACOS
-#include <phon/third_party/any.hpp>
-namespace std {
-    using namespace linb;
-}
-#else
-#include <any>
-#endif
-
 #include <phon/string.hpp>
 #include <phon/utils/refcount.hpp>
+#include <phon/utils/any.hpp>
 
 namespace phonometrica {
 

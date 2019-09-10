@@ -226,73 +226,31 @@ void DefaultSearchBox::updateFirstLayout()
 	}
 }
 
-AutoSearchNode DefaultSearchBox::buildSearchTree()
+void DefaultSearchBox::retainWhenHidden(QWidget *w, bool value)
 {
-	int i = 1;
-	open_parentheses = 0;
-	closed_parentheses = 0;
-	return buildSearchTree(i);
+	auto sp = w->sizePolicy();
+	sp.setRetainSizeWhenHidden(value);
+	w->setSizePolicy(sp);
 }
 
-AutoSearchNode DefaultSearchBox::buildSearchTree(int &layout_index)
+AutoSearchNode DefaultSearchBox::buildSearchTree()
 {
-	Array<AutoSearchNode> constraints;
-
-	Array<AutoSearchNode> nodes;
-	auto previous_operator = SearchOperator::Opcode::And;
-
-	while (layout_index <= constraint_layouts.size())
-	{
-		auto layout = constraint_layouts[layout_index];
-		auto constraint = parseConstraint(layout);
-
-		if (nodes.empty())
-		{
-			nodes.append(std::move(constraint));
-		}
-		// TODO: here
-//		else
-//		if (current_operator != previous_operator)
-//		{
-//			Array<AutoSearchNode> tmp;
-//			tmp.swap(nodes);
-//			auto op_node = std::make_shared<SearchOperator>(previous_operator);
-//			op_node->set_constraints(std::move(tmp));
-//			nodes.append(std::move(op_node));
-//			previous_operator = current_operator;
-//		}
-
-		nodes.append(std::move(constraint));
-
-		layout_index++;
-	}
+	open_parentheses = 0;
+	closed_parentheses = 0;
+	QueryParser parser(getTokens());
 
 	if (closed_parentheses != open_parentheses)
 	{
 		throw error("Invalid parentheses (found % open, % closed)", open_parentheses, closed_parentheses);
 	}
 
-	if (nodes.size() == 1)
-	{
-		return nodes.take_first();
-	}
-	else
-	{
-		auto op_node = std::make_shared<SearchOperator>(previous_operator);
-		op_node->set_constraints(std::move(nodes));
-
-		return op_node;
-	}
+	return parser.parse();
 }
 
-AutoSearchConstraint DefaultSearchBox::parseConstraint(QHBoxLayout *layout)
+AutoSearchNode DefaultSearchBox::parseConstraint(int layout_index)
 {
-	int i = 0;
-
-	// Boolean operator.
-	auto bool_box = cast<QComboBox>(layout, i++);
-	auto current_operator = SearchOperator::Opcode::And;
-	if (bool_box->currentIndex() != 0) current_operator = SearchOperator::Opcode::Or;
+	auto layout = constraint_layouts[layout_index];
+	int i = 1; // skip Boolean operator, which is handled by nextOpcode().
 
 	// Relation.
 	auto rel = SearchConstraint::Relation::None;
@@ -315,8 +273,9 @@ AutoSearchConstraint DefaultSearchBox::parseConstraint(QHBoxLayout *layout)
 
 	// Opening parenthesis.
 	auto open_box = cast<QComboBox>(layout, i++);
-	bool open_paren = (open_box->currentIndex() == 1);
-	if (open_paren) open_parentheses++;
+	auto open_paren = (open_box->currentIndex() == 1);
+	if (open_paren)
+		open_parentheses++;
 
 	// Layer number or name.
 	auto layer_choice = cast<QComboBox>(layout, i++);
@@ -344,7 +303,7 @@ AutoSearchConstraint DefaultSearchBox::parseConstraint(QHBoxLayout *layout)
 
 	if (value.empty())
 	{
-		throw error("Empty text in constraint #%", layer_index);
+		throw error("Empty text in constraint #%", layout_index);
 	}
 
 	// Case.
@@ -353,7 +312,7 @@ AutoSearchConstraint DefaultSearchBox::parseConstraint(QHBoxLayout *layout)
 
 	// Closing parenthesis.
 	auto closing_box = cast<QComboBox>(layout, i++);
-	bool closing_paren = (closing_box->currentIndex() == 1);
+	auto closing_paren = (closing_box->currentIndex() == 1);
 
 	if (closing_paren)
 	{
@@ -365,14 +324,56 @@ AutoSearchConstraint DefaultSearchBox::parseConstraint(QHBoxLayout *layout)
 		}
 	}
 
-	return std::make_shared<SearchConstraint>(layer_index, layer_name, case_sensitive, op, rel, std::move(value));
+	return std::make_shared<SearchConstraint>(layout_index, layer_index, layer_name, case_sensitive, op, rel, std::move(value));
 }
 
-void DefaultSearchBox::retainWhenHidden(QWidget *w, bool value)
+std::pair<bool, bool> DefaultSearchBox::getParentheses(int layout_index)
 {
-	auto sp = w->sizePolicy();
-	sp.setRetainSizeWhenHidden(value);
-	w->setSizePolicy(sp);
+	std::pair<bool, bool> paren;
+	auto layout = constraint_layouts[layout_index];
+	// Opening parenthesis.
+	auto open_box = cast<QComboBox>(layout, 2);
+	paren.first = (open_box->currentIndex() == 1);
+	int last = layout->count() - 1;
+	auto closing_box = cast<QComboBox>(layout, last);
+	paren.second = (closing_box->currentIndex() == 1);
+
+	return paren;
+}
+
+DefaultSearchBox::Type DefaultSearchBox::getOperator(int i)
+{
+	if (i == 1 || i > constraint_layouts.size()) {
+		return Type::Null;
+	}
+	auto layout = constraint_layouts[i];
+
+	return (cast<QComboBox>(layout, 0)->currentIndex()) == 0 ? Type::And : Type::Or;
+}
+
+Array<DefaultSearchBox::Token> DefaultSearchBox::getTokens()
+{
+	// Build a stream of tokens from the constraint layouts.
+	Array<Token> tokens(64);
+
+	for (int i = 1; i <= constraint_layouts.size(); i++)
+	{
+		auto paren = getParentheses(i);
+
+		if (i > 1) tokens.append({ getOperator(i), nullptr });
+
+		if (paren.first && !paren.second) {
+			tokens.append({ Type::LParen, nullptr });
+		}
+
+		tokens.append({ Type::Constraint, parseConstraint(i) });
+
+		if (paren.second && !paren.first) {
+			tokens.append({ Type::Rparen, nullptr });
+		}
+	}
+
+	return tokens;
 }
 
 } // namespace phonometrica

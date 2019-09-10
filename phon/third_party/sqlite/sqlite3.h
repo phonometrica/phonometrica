@@ -435,7 +435,7 @@ SQLITE_API int sqlite3_exec(
 #define SQLITE_INTERRUPT    9   /* Operation terminated by sqlite3_interrupt()*/
 #define SQLITE_IOERR       10   /* Some kind of disk I/O error occurred */
 #define SQLITE_CORRUPT     11   /* The database disk image is malformed */
-#define SQLITE_NOTFOUND    12   /* Unknown opcode in sqlite3_file_control() */
+#define SQLITE_NOTFOUND    12   /* Unknown op in sqlite3_file_control() */
 #define SQLITE_FULL        13   /* Insertion failed because database is full */
 #define SQLITE_CANTOPEN    14   /* Unable to open the database file */
 #define SQLITE_PROTOCOL    15   /* Database lock protocol error */
@@ -718,7 +718,7 @@ struct sqlite3_file {
 ** The xFileControl() method is a generic interface that allows custom
 ** VFS implementations to directly control an open file using the
 ** [sqlite3_file_control()] interface.  The second "op" argument is an
-** integer opcode.  The third argument is a generic pointer intended to
+** integer op.  The third argument is a generic pointer intended to
 ** point to a structure that may contain arguments or space in which to
 ** write return values.  Potential uses for xFileControl() might be
 ** functions to enable blocking locks with timeouts, to change the
@@ -802,7 +802,7 @@ struct sqlite3_io_methods {
 
 /*
 ** CAPI3REF: Standard File Control Opcodes
-** KEYWORDS: {file control opcodes} {file control opcode}
+** KEYWORDS: {file control opcodes} {file control op}
 **
 ** These integer constants are opcodes for the xFileControl method
 ** of the [sqlite3_io_methods] object and for the [sqlite3_file_control()]
@@ -810,8 +810,8 @@ struct sqlite3_io_methods {
 **
 ** <ul>
 ** <li>[[SQLITE_FCNTL_LOCKSTATE]]
-** The [SQLITE_FCNTL_LOCKSTATE] opcode is used for debugging.  This
-** opcode causes the xFileControl method to write the current state of
+** The [SQLITE_FCNTL_LOCKSTATE] op is used for debugging.  This
+** op causes the xFileControl method to write the current state of
 ** the lock (one of [SQLITE_LOCK_NONE], [SQLITE_LOCK_SHARED],
 ** [SQLITE_LOCK_RESERVED], [SQLITE_LOCK_PENDING], or [SQLITE_LOCK_EXCLUSIVE])
 ** into an integer that the pArg argument points to. This capability
@@ -819,7 +819,7 @@ struct sqlite3_io_methods {
 ** compile-time option is used.
 **
 ** <li>[[SQLITE_FCNTL_SIZE_HINT]]
-** The [SQLITE_FCNTL_SIZE_HINT] opcode is used by SQLite to give the VFS
+** The [SQLITE_FCNTL_SIZE_HINT] op is used by SQLite to give the VFS
 ** layer a hint of how large the database file will grow to be during the
 ** current transaction.  This hint is not guaranteed to be accurate but it
 ** is often close.  The underlying VFS might choose to preallocate database
@@ -827,7 +827,7 @@ struct sqlite3_io_methods {
 ** file run faster.
 **
 ** <li>[[SQLITE_FCNTL_SIZE_LIMIT]]
-** The [SQLITE_FCNTL_SIZE_LIMIT] opcode is used by in-memory VFS that
+** The [SQLITE_FCNTL_SIZE_LIMIT] op is used by in-memory VFS that
 ** implements [sqlite3_deserialize()] to set an upper bound on the size
 ** of the in-memory database.  The argument is a pointer to a [sqlite3_int64].
 ** If the integer pointed to is negative, then it is filled in with the
@@ -836,7 +836,7 @@ struct sqlite3_io_methods {
 ** pointed to is set to the new limit.
 **
 ** <li>[[SQLITE_FCNTL_CHUNK_SIZE]]
-** The [SQLITE_FCNTL_CHUNK_SIZE] opcode is used to request that the VFS
+** The [SQLITE_FCNTL_CHUNK_SIZE] op is used to request that the VFS
 ** extends and truncates the database file in chunks of a size specified
 ** by the user. The fourth argument to [sqlite3_file_control()] should 
 ** point to an integer (type int) containing the new chunk-size to use
@@ -845,12 +845,12 @@ struct sqlite3_io_methods {
 ** improve performance on some systems.
 **
 ** <li>[[SQLITE_FCNTL_FILE_POINTER]]
-** The [SQLITE_FCNTL_FILE_POINTER] opcode is used to obtain a pointer
+** The [SQLITE_FCNTL_FILE_POINTER] op is used to obtain a pointer
 ** to the [sqlite3_file] object associated with a particular database
 ** connection.  See also [SQLITE_FCNTL_JOURNAL_POINTER].
 **
 ** <li>[[SQLITE_FCNTL_JOURNAL_POINTER]]
-** The [SQLITE_FCNTL_JOURNAL_POINTER] opcode is used to obtain a pointer
+** The [SQLITE_FCNTL_JOURNAL_POINTER] op is used to obtain a pointer
 ** to the [sqlite3_file] object associated with the journal file (either
 ** the [rollback journal] or the [write-ahead log]) for a particular database
 ** connection.  See also [SQLITE_FCNTL_FILE_POINTER].
@@ -859,7 +859,7 @@ struct sqlite3_io_methods {
 ** No longer in use.
 **
 ** <li>[[SQLITE_FCNTL_SYNC]]
-** The [SQLITE_FCNTL_SYNC] opcode is generated internally by SQLite and
+** The [SQLITE_FCNTL_SYNC] op is generated internally by SQLite and
 ** sent to the VFS immediately before the xSync method is invoked on a
 ** database file descriptor. Or, if the xSync method is not invoked 
 ** because the user has configured SQLite with 
@@ -868,27 +868,27 @@ struct sqlite3_io_methods {
 ** this file-control is NULL. However, if the database file is being synced
 ** as part of a multi-database commit, the argument points to a nul-terminated
 ** string containing the transactions master-journal file name. VFSes that 
-** do not need this signal should silently ignore this opcode. Applications 
-** should not call [sqlite3_file_control()] with this opcode as doing so may 
+** do not need this signal should silently ignore this op. Applications
+** should not call [sqlite3_file_control()] with this op as doing so may
 ** disrupt the operation of the specialized VFSes that do require it.  
 **
 ** <li>[[SQLITE_FCNTL_COMMIT_PHASETWO]]
-** The [SQLITE_FCNTL_COMMIT_PHASETWO] opcode is generated internally by SQLite
+** The [SQLITE_FCNTL_COMMIT_PHASETWO] op is generated internally by SQLite
 ** and sent to the VFS after a transaction has been committed immediately
 ** but before the database is unlocked. VFSes that do not need this signal
-** should silently ignore this opcode. Applications should not call
-** [sqlite3_file_control()] with this opcode as doing so may disrupt the 
+** should silently ignore this op. Applications should not call
+** [sqlite3_file_control()] with this op as doing so may disrupt the
 ** operation of the specialized VFSes that do require it.  
 **
 ** <li>[[SQLITE_FCNTL_WIN32_AV_RETRY]]
-** ^The [SQLITE_FCNTL_WIN32_AV_RETRY] opcode is used to configure automatic
+** ^The [SQLITE_FCNTL_WIN32_AV_RETRY] op is used to configure automatic
 ** retry counts and intervals for certain disk I/O operations for the
 ** windows [VFS] in order to provide robustness in the presence of
 ** anti-virus programs.  By default, the windows VFS will retry file read,
 ** file write, and file delete operations up to 10 times, with a delay
 ** of 25 milliseconds before the first retry and with the delay increasing
 ** by an additional 25 milliseconds with each subsequent retry.  This
-** opcode allows these two values (10 retries and 25 milliseconds of delay)
+** op allows these two values (10 retries and 25 milliseconds of delay)
 ** to be adjusted.  The values are changed for all database connections
 ** within the same process.  The argument is a pointer to an array of two
 ** integers where the first integer is the new retry count and the second
@@ -898,7 +898,7 @@ struct sqlite3_io_methods {
 ** interrogated.  The zDbName parameter is ignored.
 **
 ** <li>[[SQLITE_FCNTL_PERSIST_WAL]]
-** ^The [SQLITE_FCNTL_PERSIST_WAL] opcode is used to set or query the
+** ^The [SQLITE_FCNTL_PERSIST_WAL] op is used to set or query the
 ** persistent [WAL | Write Ahead Log] setting.  By default, the auxiliary
 ** write ahead log ([WAL file]) and shared memory
 ** files used for transaction control
@@ -908,29 +908,29 @@ struct sqlite3_io_methods {
 ** have write permission on the directory containing the database file want
 ** to read the database file, as the WAL and shared memory files must exist
 ** in order for the database to be readable.  The fourth parameter to
-** [sqlite3_file_control()] for this opcode should be a pointer to an integer.
+** [sqlite3_file_control()] for this op should be a pointer to an integer.
 ** That integer is 0 to disable persistent WAL mode or 1 to enable persistent
 ** WAL mode.  If the integer is -1, then it is overwritten with the current
 ** WAL persistence setting.
 **
 ** <li>[[SQLITE_FCNTL_POWERSAFE_OVERWRITE]]
-** ^The [SQLITE_FCNTL_POWERSAFE_OVERWRITE] opcode is used to set or query the
+** ^The [SQLITE_FCNTL_POWERSAFE_OVERWRITE] op is used to set or query the
 ** persistent "powersafe-overwrite" or "PSOW" setting.  The PSOW setting
 ** determines the [SQLITE_IOCAP_POWERSAFE_OVERWRITE] bit of the
 ** xDeviceCharacteristics methods. The fourth parameter to
-** [sqlite3_file_control()] for this opcode should be a pointer to an integer.
+** [sqlite3_file_control()] for this op should be a pointer to an integer.
 ** That integer is 0 to disable zero-damage mode or 1 to enable zero-damage
 ** mode.  If the integer is -1, then it is overwritten with the current
 ** zero-damage mode setting.
 **
 ** <li>[[SQLITE_FCNTL_OVERWRITE]]
-** ^The [SQLITE_FCNTL_OVERWRITE] opcode is invoked by SQLite after opening
+** ^The [SQLITE_FCNTL_OVERWRITE] op is invoked by SQLite after opening
 ** a write transaction to indicate that, unless it is rolled back for some
 ** reason, the entire database file will be overwritten by the current 
 ** transaction. This is used by VACUUM operations.
 **
 ** <li>[[SQLITE_FCNTL_VFSNAME]]
-** ^The [SQLITE_FCNTL_VFSNAME] opcode can be used to obtain the names of
+** ^The [SQLITE_FCNTL_VFSNAME] op can be used to obtain the names of
 ** all [VFSes] in the VFS stack.  The names are of all VFS shims and the
 ** final bottom-level VFS are written into memory obtained from 
 ** [sqlite3_malloc()] and the result is stored in the char* variable
@@ -942,12 +942,12 @@ struct sqlite3_io_methods {
 ** is intended for diagnostic use only.
 **
 ** <li>[[SQLITE_FCNTL_VFS_POINTER]]
-** ^The [SQLITE_FCNTL_VFS_POINTER] opcode finds a pointer to the top-level
+** ^The [SQLITE_FCNTL_VFS_POINTER] op finds a pointer to the top-level
 ** [VFSes] currently in use.  ^(The argument X in
 ** sqlite3_file_control(db,SQLITE_FCNTL_VFS_POINTER,X) must be
 ** of type "[sqlite3_vfs] **".  This opcodes will set *X
 ** to a pointer to the top-level VFS.)^
-** ^When there are multiple VFS shims in the stack, this opcode finds the
+** ^When there are multiple VFS shims in the stack, this op finds the
 ** upper-most shim only.
 **
 ** <li>[[SQLITE_FCNTL_PRAGMA]]
@@ -1021,14 +1021,14 @@ struct sqlite3_io_methods {
 ** was first opened.
 **
 ** <li>[[SQLITE_FCNTL_WIN32_GET_HANDLE]]
-** The [SQLITE_FCNTL_WIN32_GET_HANDLE] opcode can be used to obtain the
+** The [SQLITE_FCNTL_WIN32_GET_HANDLE] op can be used to obtain the
 ** underlying native file handle associated with a file handle.  This file
 ** control interprets its argument as a pointer to a native file handle and
 ** writes the resulting value there.
 **
 ** <li>[[SQLITE_FCNTL_WIN32_SET_HANDLE]]
-** The [SQLITE_FCNTL_WIN32_SET_HANDLE] opcode is used for debugging.  This
-** opcode causes the xFileControl method to swap the file handle with the one
+** The [SQLITE_FCNTL_WIN32_SET_HANDLE] op is used for debugging.  This
+** op causes the xFileControl method to swap the file handle with the one
 ** pointed to by the pArg argument.  This capability is used during testing
 ** and only needs to be supported when SQLITE_TEST is defined.
 **
@@ -1040,16 +1040,16 @@ struct sqlite3_io_methods {
 ** Applications should <em>not</em> use this file-control.
 **
 ** <li>[[SQLITE_FCNTL_ZIPVFS]]
-** The [SQLITE_FCNTL_ZIPVFS] opcode is implemented by zipvfs only. All other
-** VFS should return SQLITE_NOTFOUND for this opcode.
+** The [SQLITE_FCNTL_ZIPVFS] op is implemented by zipvfs only. All other
+** VFS should return SQLITE_NOTFOUND for this op.
 **
 ** <li>[[SQLITE_FCNTL_RBU]]
-** The [SQLITE_FCNTL_RBU] opcode is implemented by the special VFS used by
+** The [SQLITE_FCNTL_RBU] op is implemented by the special VFS used by
 ** the RBU extension only.  All other VFS should return SQLITE_NOTFOUND for
-** this opcode.  
+** this op.
 **
 ** <li>[[SQLITE_FCNTL_BEGIN_ATOMIC_WRITE]]
-** If the [SQLITE_FCNTL_BEGIN_ATOMIC_WRITE] opcode returns SQLITE_OK, then
+** If the [SQLITE_FCNTL_BEGIN_ATOMIC_WRITE] op returns SQLITE_OK, then
 ** the file descriptor is placed in "batch write mode", which
 ** means all subsequent write operations will be deferred and done
 ** atomically at the next [SQLITE_FCNTL_COMMIT_ATOMIC_WRITE].  Systems
@@ -1062,7 +1062,7 @@ struct sqlite3_io_methods {
 ** with [SQLITE_FCNTL_SIZE_HINT].
 **
 ** <li>[[SQLITE_FCNTL_COMMIT_ATOMIC_WRITE]]
-** The [SQLITE_FCNTL_COMMIT_ATOMIC_WRITE] opcode causes all write
+** The [SQLITE_FCNTL_COMMIT_ATOMIC_WRITE] op causes all write
 ** operations since the previous successful call to 
 ** [SQLITE_FCNTL_BEGIN_ATOMIC_WRITE] to be performed atomically.
 ** This file control returns [SQLITE_OK] if and only if the writes were
@@ -1074,7 +1074,7 @@ struct sqlite3_io_methods {
 ** a prior successful call to [SQLITE_FCNTL_BEGIN_ATOMIC_WRITE].
 **
 ** <li>[[SQLITE_FCNTL_ROLLBACK_ATOMIC_WRITE]]
-** The [SQLITE_FCNTL_ROLLBACK_ATOMIC_WRITE] opcode causes all write
+** The [SQLITE_FCNTL_ROLLBACK_ATOMIC_WRITE] op causes all write
 ** operations since the previous successful call to 
 ** [SQLITE_FCNTL_BEGIN_ATOMIC_WRITE] to be rolled back.
 ** ^This file control takes the file descriptor out of batch write mode
@@ -1083,13 +1083,13 @@ struct sqlite3_io_methods {
 ** a prior successful call to [SQLITE_FCNTL_BEGIN_ATOMIC_WRITE].
 **
 ** <li>[[SQLITE_FCNTL_LOCK_TIMEOUT]]
-** The [SQLITE_FCNTL_LOCK_TIMEOUT] opcode causes attempts to obtain
+** The [SQLITE_FCNTL_LOCK_TIMEOUT] op causes attempts to obtain
 ** a file lock using the xLock or xShmLock methods of the VFS to wait
 ** for up to M milliseconds before failing, where M is the single 
 ** unsigned integer parameter.
 **
 ** <li>[[SQLITE_FCNTL_DATA_VERSION]]
-** The [SQLITE_FCNTL_DATA_VERSION] opcode is used to detect changes to
+** The [SQLITE_FCNTL_DATA_VERSION] op is used to detect changes to
 ** a database file.  The argument is a pointer to a 32-bit unsigned integer.
 ** The "data version" for the pager is written into the pointer.  The
 ** "data version" changes whenever any change occurs to the corresponding
@@ -7285,7 +7285,7 @@ SQLITE_API sqlite3_mutex *sqlite3_db_mutex(sqlite3*);
 ** the space pointed to by the 4th parameter.  The
 ** [SQLITE_FCNTL_JOURNAL_POINTER] works similarly except that it returns
 ** the [sqlite3_file] object associated with the journal file instead of
-** the main database.  The [SQLITE_FCNTL_VFS_POINTER] opcode returns
+** the main database.  The [SQLITE_FCNTL_VFS_POINTER] op returns
 ** a pointer to the underlying [sqlite3_vfs] object for the file.
 ** The [SQLITE_FCNTL_DATA_VERSION] returns the data version counter
 ** from the pager.
@@ -7885,7 +7885,7 @@ SQLITE_API int sqlite3_stmt_status(sqlite3_stmt*, int op,int resetFlg);
 ** <dd>^This is the approximate number of bytes of heap memory
 ** used to store the prepared statement.  ^This value is not actually
 ** a counter, and so the resetFlg parameter to sqlite3_stmt_status()
-** is ignored when the opcode is SQLITE_STMTSTATUS_MEMUSED.
+** is ignored when the op is SQLITE_STMTSTATUS_MEMUSED.
 ** </dd>
 ** </dl>
 */

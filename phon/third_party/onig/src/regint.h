@@ -586,7 +586,7 @@ enum OpCode {
   OP_PREC_READ_NOT_END,     /* (?!...)  end   */
   OP_ATOMIC_START,          /* (?>...)  start */
   OP_ATOMIC_END,            /* (?>...)  end   */
-  OP_LOOK_BEHIND,           /* (?<=...) start (no needs end opcode) */
+  OP_LOOK_BEHIND,           /* (?<=...) start (no needs end op) */
   OP_LOOK_BEHIND_NOT_START, /* (?<!...) start */
   OP_LOOK_BEHIND_NOT_END,   /* (?<!...) end   */
 
@@ -810,7 +810,7 @@ typedef struct {
 #ifdef USE_DIRECT_THREADED_CODE
   const void* opaddr;
 #else
-  enum OpCode opcode;
+  enum OpCode op;
 #endif
   union {
     struct {

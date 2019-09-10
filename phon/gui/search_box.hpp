@@ -27,9 +27,10 @@
 #include <QGroupBox>
 #include <QLayout>
 #include <phon/application/search/search_node.hpp>
+#include <phon/application/search/query_parser.hpp>
+#include <phon/utils/any.hpp>
 
 class QPushButton;
-class QRadioButton;
 class QTextEdit;
 class QSpinBox;
 
@@ -88,6 +89,9 @@ private slots:
 
 private:
 
+	using Type = QueryParser::Type;
+	using Token = QueryParser::Token;
+
 	template<class T>
 	T *cast(QHBoxLayout *layout, int i)
 	{
@@ -105,9 +109,14 @@ private:
 
 	void updateFirstLayout();
 
-	AutoSearchNode buildSearchTree(int &layout_index);
+	std::pair<bool,bool> getParentheses(int layout_index);
 
-	AutoSearchConstraint parseConstraint(QHBoxLayout *layout);
+
+	AutoSearchNode parseConstraint(int layout_index);
+
+	Type getOperator(int index);
+
+	Array<Token> getTokens();
 
 	QVBoxLayout *main_layout;
 

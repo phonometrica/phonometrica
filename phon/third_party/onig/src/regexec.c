@@ -144,7 +144,7 @@ typedef enum {
 } OpArgType;
 
 typedef struct {
-  short int opcode;
+  short int op;
   char*     name;
 } OpInfoType;
 
@@ -248,12 +248,12 @@ static OpInfoType OpInfo[] = {
 };
 
 static char*
-op2name(int opcode)
+op2name(int op)
 {
   int i;
 
-  for (i = 0; OpInfo[i].opcode >= 0; i++) {
-    if (opcode == OpInfo[i].opcode) return OpInfo[i].name;
+  for (i = 0; OpInfo[i].op >= 0; i++) {
+    if (op == OpInfo[i].op) return OpInfo[i].name;
   }
 
   return "";
@@ -308,18 +308,18 @@ print_compiled_byte_code(FILE* f, regex_t* reg, int index,
   ModeType mode;
   UChar *q;
   Operation* p;
-  enum OpCode opcode;
+  enum OpCode op;
 
   p = reg->ops + index;
 
 #ifdef USE_DIRECT_THREADED_CODE
-  opcode = reg->ocs[index];
+  op = reg->ocs[index];
 #else
-  opcode = p->opcode;
+  op = p->op;
 #endif
 
-  fprintf(f, "%s", op2name(opcode));
-  switch (opcode) {
+  fprintf(f, "%s", op2name(op));
+  switch (op) {
   case OP_EXACT1:
     p_string(f, 1, p->exact.s); break;
   case OP_EXACT2:
@@ -611,7 +611,7 @@ print_compiled_byte_code(FILE* f, regex_t* reg, int index,
     break;
 
   default:
-    fprintf(stderr, "print_compiled_byte_code: undefined code %d\n", opcode);
+    fprintf(stderr, "print_compiled_byte_code: undefined code %d\n", op);
     break;
   }
 }
@@ -2339,10 +2339,10 @@ static int OpCurr = OP_FINISH;
 static int OpPrevTarget = OP_FAIL;
 static int MaxStackDepth = 0;
 
-#define SOP_IN(opcode) do {\
-  if (opcode == OpPrevTarget) OpPrevCounter[OpCurr]++;\
-  OpCurr = opcode;\
-  OpCounter[opcode]++;\
+#define SOP_IN(op) do {\
+  if (op == OpPrevTarget) OpPrevCounter[OpCurr]++;\
+  OpCurr = op;\
+  OpCounter[op]++;\
   GETTIME(ts);\
 } while(0)
 
@@ -2370,7 +2370,7 @@ onig_print_statistics(FILE* f)
   r = fprintf(f, "   count      prev        time\n");
   if (r < 0) return -1;
 
-  for (i = 0; OpInfo[i].opcode >= 0; i++) {
+  for (i = 0; OpInfo[i].op >= 0; i++) {
     r = fprintf(f, "%8d: %8d: %10ld: %s\n",
                 OpCounter[i], OpPrevCounter[i], OpTime[i], OpInfo[i].name);
     if (r < 0) return -1;
@@ -2416,7 +2416,7 @@ typedef struct {
 #ifdef USE_DIRECT_THREADED_CODE
 #define GOTO_OP      goto *(p->opaddr)
 #else
-#define GOTO_OP      goto *opcode_to_label[p->opcode]
+#define GOTO_OP      goto *opcode_to_label[p->op]
 #endif
 #define BREAK_OP     /* Nothing */
 
@@ -2426,7 +2426,7 @@ typedef struct {
   while (1) {\
   MATCH_DEBUG_OUT(0)\
   sbegin = s;\
-  switch (p->opcode) {
+  switch (p->op) {
 #define BYTECODE_INTERPRETER_END  } sprev = sbegin; }
 #define CASE_OP(x)   case OP_##x: SOP_IN(OP_##x);
 #define DEFAULT_OP   default:
@@ -3684,7 +3684,7 @@ match_at(regex_t* reg, const UChar* str, const UChar* end,
         empty_check_found:
           /* empty loop founded, skip next instruction */
 #if defined(ONIG_DEBUG) && !defined(USE_DIRECT_THREADED_CODE)
-          switch (p->opcode) {
+          switch (p->op) {
           case OP_JUMP:
           case OP_PUSH:
           case OP_REPEAT_INC:
