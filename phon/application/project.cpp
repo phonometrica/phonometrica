@@ -28,6 +28,7 @@
 #include <phon/utils/text.hpp>
 #include <phon/runtime/object.hpp>
 #include "project.hpp"
+#include "spreadsheet.hpp"
 
 
 namespace phonometrica {
@@ -422,7 +423,7 @@ void Project::parse_data(xml_node root, VFolder *folder)
 
 			if (cls == data_tag)
 			{
-				auto dataset = std::make_shared<Dataset>(folder, std::move(path));
+				auto dataset = std::make_shared<Spreadsheet>(folder, std::move(path));
 				dataset->from_xml(node, m_directory);
 				folder->append(dataset, false);
 				trigger(dataset_loaded, dataset->class_name(), std::move(dataset));
@@ -642,7 +643,7 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent)
 	else if (ext == ".csv")
 	{
 		// Datasets are added to the data folder.
-		auto dataset = std::make_shared<Dataset>(m_data.get(), std::move(path));
+		auto dataset = std::make_shared<Spreadsheet>(m_data.get(), std::move(path));
 		vfile = upcast<VFile>(dataset);
 		m_data->append(vfile);
 //		trigger(dataset_loaded, dataset->class_name(), dataset);

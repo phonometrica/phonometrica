@@ -28,20 +28,30 @@ namespace phonometrica {
 static const int BUFFER_SIZE = 2048;
 
 AudioData::AudioData(const SndfileHandle &h) :
+	AudioData(h, true)
+{
+
+}
+
+AudioData::AudioData(const SndfileHandle &h, bool load) :
     m_handle(h)
 {
-    m_data.resize(m_handle.frames() * m_handle.channels());
-    sample_t *ptr = m_data.data();
-    auto end = m_data.end();
-    m_handle.seek(0, SEEK_SET);
+	m_data.resize(m_handle.frames() * m_handle.channels());
+	sample_t *ptr = m_data.data();
+	m_handle.seek(0, SEEK_SET);
 
-    while (ptr < end)
-    {
-        auto count = m_handle.readf(ptr, BUFFER_SIZE);
-        ptr += count * m_handle.channels();
-        //emit bufferLoaded(progress);
-    }
-    m_handle.seek(0, SEEK_SET);
+	if (load)
+	{
+		auto end = m_data.end();
+
+		while (ptr < end)
+		{
+			auto count = m_handle.readf(ptr, BUFFER_SIZE);
+			ptr += count * m_handle.channels();
+			//emit bufferLoaded(progress);
+		}
+		m_handle.seek(0, SEEK_SET);
+	}
 }
 
 Array<double> AudioData::real_data(intptr_t first_frame, intptr_t last_frame)
@@ -67,5 +77,6 @@ Array<double> AudioData::real_data(intptr_t first_frame, intptr_t last_frame)
 
     return result;
 }
+
 
 } // namespace phonometrica

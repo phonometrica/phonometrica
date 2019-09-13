@@ -19,14 +19,23 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+#include <QProgressDialog>
 #include <phon/application/search/query.hpp>
 
 namespace phonometrica {
 
-void Query::execute()
+int Query::the_id = 1;
+
+Query::Query(const String &label, AnnotationSet annotations, Array<AutoMetaNode> metadata, AutoSearchNode tree) :
+		m_label(label), annotations(std::move(annotations)), metadata(std::move(metadata)), search_tree(std::move(tree))
+{
+	m_id = the_id++;
+}
+
+AutoDataset Query::execute()
 {
 	filter_metadata();
-	filter_data();
+	return std::make_shared<QueryDataset>(filter_data(), m_label);
 }
 
 void Query::filter_metadata()
@@ -43,10 +52,43 @@ void Query::filter_metadata()
 	}
 }
 
-void Query::filter_data()
+QueryMatchList Query::filter_data()
 {
 	emit debug("CONSTRAINTS:");
 	emit debug(search_tree->to_string());
+	QueryMatchList results;
+	int count = annotations.size();
+
+	QProgressDialog progress("Executing query", "Cancel query", 0, count, nullptr);
+	progress.setWindowModality(Qt::WindowModal);
+	progress.setMinimumDuration(0);
+
+	int i = 0;
+	for (auto &annot : annotations)
+	{
+		progress.setValue(i++);
+		if (progress.wasCanceled()) return QueryMatchList();
+
+		annot->open();
+		auto matches = search_tree->filter(annot, QueryMatchSet());
+		results.reserve(matches.size());
+
+		for (auto it = matches.begin(); it != matches.end(); /* nothing */)
+		{
+			results.append(std::move(matches.extract(it++).value()));
+		}
+	}
+	progress.setValue(count);
+
+	//std::sort(results.begin(), results.end(), MatchLessCompare());
 	emit done();
+
+	return results;
 }
+
+int Query::current_id()
+{
+	return the_id;
+}
+
 } // namespace phonometrica

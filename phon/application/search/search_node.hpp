@@ -23,6 +23,7 @@
 #define PHONOMETRICA_SEARCH_NODE_HPP
 
 #include <memory>
+#include <phon/regex.hpp>
 #include <phon/application/search/query_match.hpp>
 
 namespace phonometrica {
@@ -34,13 +35,9 @@ public:
 
 	virtual ~SearchNode() = default;
 
-	virtual QueryMatchSet filter(const QueryMatchSet &matches) = 0;
+	virtual QueryMatchSet filter(const AutoAnnotation &annotation, const QueryMatchSet &matches) = 0;
 
 	virtual String to_string() const = 0;
-
-	virtual bool is_binop() const { return false; }
-
-	virtual int get_precedence() const { return 0; }
 
 };
 
@@ -57,23 +54,20 @@ public:
 	{
 		Null,
 		Or,
-		And
+		And,
+		Not
 	};
 
-	explicit SearchOperator(Opcode op, AutoSearchNode lhs, AutoSearchNode rhs) :
+	explicit SearchOperator(Opcode op, AutoSearchNode lhs, AutoSearchNode rhs = nullptr) :
 		opcode(op), lhs(std::move(lhs)), rhs(std::move(rhs)) { }
 
-	QueryMatchSet filter(const QueryMatchSet &matches) override;
+	QueryMatchSet filter(const AutoAnnotation &annot, const QueryMatchSet &matches) override;
 
 	String to_string() const override;
 
-	bool is_binop() const override { return true; }
-
-	int get_precedence() const override { return static_cast<int>(opcode); }
-
 private:
 
-	AutoSearchNode lhs, rhs;
+	AutoSearchNode lhs, rhs; // RHS is not used if the operator is Not.
 
 	Opcode opcode;
 };
@@ -98,26 +92,35 @@ public:
 		Precedence
 	};
 
-	SearchConstraint(int index, int layer_index, String layer_name, bool case_sensitive, Opcode op, Relation rel, String value) :
-			index(index), layer_index(layer_index), layer_name(std::move(layer_name)), case_sensitive(case_sensitive),
-			op(op), relation(rel), value(std::move(value))
-	{ }
+	SearchConstraint(int context_length, int index, int layer_index, const String &layer_name, bool case_sensitive,
+			Opcode op, Relation rel, String value);
 
-	QueryMatchSet filter(const QueryMatchSet &matches) override;
+	QueryMatchSet filter(const AutoAnnotation &annotation, const QueryMatchSet &matches) override;
 
 	String to_string() const override;
 
 	Opcode opcode() const { return op; }
 
+	QueryMatchSet search(const AutoAnnotation &annot);
+
+
 private:
 
-	bool use_index() const;
+	QueryMatchSet find_matches(const AutoAnnotation &annot, int layer_index, std::true_type use_regex);
 
-	String layer_name;
+	QueryMatchSet find_matches(const AutoAnnotation &annot, int layer_index, std::false_type use_regex);
 
+	Regex value_pattern;
+
+	// If this is null, use layer_index instead.
+	std::unique_ptr<Regex> layer_pattern;
+
+	// If the index is 0, all layers are matched. Otherwise we match the specific layer
 	int layer_index;
 
 	int index; // for debugging
+
+	int context_length ;
 
 	bool case_sensitive;
 

@@ -25,6 +25,7 @@
 
 #include <memory>
 #include <QObject>
+#include <phon/application/query_dataset.hpp>
 #include <phon/application/search/meta_node.hpp>
 #include <phon/application/search/search_node.hpp>
 
@@ -36,15 +37,19 @@ class Query final : public QObject
 
 public:
 
-	Query(AnnotationSet annotations, Array<AutoMetaNode> metadata, AutoSearchNode tree) :
-		annotations(std::move(annotations)), metadata(std::move(metadata)), search_tree(std::move(tree))
-	{ }
+	Query(const String &label, AnnotationSet annotations, Array<AutoMetaNode> metadata, AutoSearchNode tree);
 
 	Query(const Query &) = delete;
 
 	~Query() = default;
 
-	void execute();
+	AutoDataset execute();
+
+	intptr_t id() const { return m_id; }
+
+	static int current_id();
+
+	String label() const { return m_label; }
 
 signals:
 
@@ -56,11 +61,19 @@ private:
 
 	void filter_metadata();
 
-	void filter_data();
+	QueryMatchList filter_data();
+
+	static int the_id;
+
+	String m_label;
 
 	AnnotationSet annotations;
+
 	Array<AutoMetaNode> metadata;
+
 	AutoSearchNode search_tree;
+
+	intptr_t m_id;
 };
 
 // We shouldn't need the query to be shared, but we can't use a std::unique_ptr with Qt's signals and slots, since a

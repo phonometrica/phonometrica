@@ -33,11 +33,15 @@
 namespace phonometrica {
 
 static constexpr int SPINBOX_SIZE = 100;
+static constexpr int OPERATOR_POS = 0;
+static constexpr int NOT_POS = OPERATOR_POS + 1;
+static constexpr int RELATION_POS = NOT_POS + 1;
+static constexpr int OPEN_PAREN_POS = RELATION_POS + 1;
 
-SearchBox::SearchBox(QWidget *parent, const QString &title) :
+SearchBox::SearchBox(QWidget *parent, const QString &title, int context_length) :
 	QGroupBox(title, parent)
 {
-
+	this->context_length = context_length;
 }
 
 void SearchBox::postInitialize()
@@ -47,24 +51,24 @@ void SearchBox::postInitialize()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-DefaultSearchBox::DefaultSearchBox(QWidget *parent) :
-	SearchBox(parent, tr("Search constraints"))
+DefaultSearchBox::DefaultSearchBox(QWidget *parent, int context_length) :
+	SearchBox(parent, tr("Search constraints"), context_length)
 {
 }
 
 void DefaultSearchBox::setupUi()
 {
-	auto hlayout = new QHBoxLayout;
+	auto add_remove_layout = new QHBoxLayout;
 	add_button = new QPushButton(QIcon(":/icons/plus.png"), QString());
 	remove_button = new QPushButton(QIcon(":/icons/minus.png"), QString());
 
-	hlayout->addWidget(add_button);
-	hlayout->addWidget(remove_button);
-	hlayout->addStretch(1);
+	add_remove_layout->addWidget(add_button);
+	add_remove_layout->addWidget(remove_button);
+	add_remove_layout->addStretch(1);
 
 	main_layout = new QVBoxLayout(this);
 	addSearchConstraint();
-	main_layout->addLayout(hlayout);
+	main_layout->addLayout(add_remove_layout);
 
 	this->setLayout(main_layout);
 
@@ -80,6 +84,10 @@ void DefaultSearchBox::addSearchConstraint(bool )
 	op_box->addItem("AND");
 	op_box->addItem("OR");
 
+	auto not_box = new QComboBox;
+	not_box->addItem("");
+	not_box->addItem("NOT");
+
 	auto start_box = new QComboBox;
 	start_box->addItem("");
 	start_box->addItem("(");
@@ -89,8 +97,9 @@ void DefaultSearchBox::addSearchConstraint(bool )
 	end_box->addItem(")");
 
 	auto match_box = new QComboBox;
-	match_box->addItem(tr("matches"));
-	match_box->addItem(tr("equals"));
+	match_box->addItem(tr("matches regex"));
+	match_box->addItem(tr("contains text"));
+
 	auto search_line = new LineEdit(tr("text or regular expression..."));
 	auto case_box = new QCheckBox(tr("case sensitive"));
 	case_box->setChecked(true);
@@ -107,6 +116,7 @@ void DefaultSearchBox::addSearchConstraint(bool )
 
 	auto layout = new QHBoxLayout;
 	layout->addWidget(op_box);
+	layout->addWidget(not_box);
 	layout->addWidget(relation);
 	layout->addWidget(start_box);
 	layout->addWidget(layer_combo);
@@ -127,6 +137,7 @@ void DefaultSearchBox::addSearchConstraint(bool )
 	if (i == 0)
 	{
 		op_box->setEnabled(false);
+		not_box->setEnabled(false);
 		relation->setEnabled(false);
 	}
 
@@ -183,7 +194,7 @@ LineEdit *DefaultSearchBox::createLayerEdit()
 
 void DefaultSearchBox::changeLayerDisplay(int constraint_index, int selection)
 {
-	constexpr int layer_pos = 4;
+	constexpr int layer_pos = 5;
 	auto layout = constraint_layouts[constraint_index + 1];
 	auto item = layout->takeAt(layer_pos);
 	auto new_widget = (selection == 0) ? (QWidget*)createLayerSpinBox(0) : (QWidget*)createLayerEdit();
@@ -196,27 +207,30 @@ void DefaultSearchBox::updateFirstLayout()
 {
 	auto enable = (constraint_count != 1);
 	auto layout = constraint_layouts.first();
-	int open_index = 2;
+	int open_index = 3;
 	int close_index = layout->count() - 1;
 
 	auto w0 = layout->itemAt(0)->widget();
 	auto w1 = layout->itemAt(1)->widget();
-	auto w2 = layout->itemAt(open_index)->widget();
-	auto w3 = layout->itemAt(close_index)->widget();
+	auto w2 = layout->itemAt(2)->widget();
+	auto w3 = layout->itemAt(open_index)->widget();
+	auto w4 = layout->itemAt(close_index)->widget();
 
 	const bool fill_space = enable;
 
 	w0->setHidden(true);
 	w1->setHidden(true);
-	w2->setHidden(!enable);
+	w2->setHidden(true);
 	w3->setHidden(!enable);
+	w4->setHidden(!enable);
 	retainWhenHidden(w0, fill_space);
 	retainWhenHidden(w1, fill_space);
 	retainWhenHidden(w2, fill_space);
 	retainWhenHidden(w3, fill_space);
+	retainWhenHidden(w4, fill_space);
 
-	w2->setEnabled(enable);
 	w3->setEnabled(enable);
+	w4->setEnabled(enable);
 
 
 	if (!enable)
@@ -250,7 +264,7 @@ AutoSearchNode DefaultSearchBox::buildSearchTree()
 AutoSearchNode DefaultSearchBox::parseConstraint(int layout_index)
 {
 	auto layout = constraint_layouts[layout_index];
-	int i = 1; // skip Boolean operator, which is handled by nextOpcode().
+	int i = 2; // skip Boolean operators, which are handled separately.
 
 	// Relation.
 	auto rel = SearchConstraint::Relation::None;
@@ -324,7 +338,7 @@ AutoSearchNode DefaultSearchBox::parseConstraint(int layout_index)
 		}
 	}
 
-	return std::make_shared<SearchConstraint>(layout_index, layer_index, layer_name, case_sensitive, op, rel, std::move(value));
+	return std::make_shared<SearchConstraint>(context_length, layout_index, layer_index, layer_name, case_sensitive, op, rel, std::move(value));
 }
 
 std::pair<bool, bool> DefaultSearchBox::getParentheses(int layout_index)
@@ -332,7 +346,7 @@ std::pair<bool, bool> DefaultSearchBox::getParentheses(int layout_index)
 	std::pair<bool, bool> paren;
 	auto layout = constraint_layouts[layout_index];
 	// Opening parenthesis.
-	auto open_box = cast<QComboBox>(layout, 2);
+	auto open_box = cast<QComboBox>(layout, OPEN_PAREN_POS);
 	paren.first = (open_box->currentIndex() == 1);
 	int last = layout->count() - 1;
 	auto closing_box = cast<QComboBox>(layout, last);
@@ -348,7 +362,7 @@ DefaultSearchBox::Type DefaultSearchBox::getOperator(int i)
 	}
 	auto layout = constraint_layouts[i];
 
-	return (cast<QComboBox>(layout, 0)->currentIndex()) == 0 ? Type::And : Type::Or;
+	return (cast<QComboBox>(layout, OPERATOR_POS)->currentIndex()) == 0 ? Type::And : Type::Or;
 }
 
 Array<DefaultSearchBox::Token> DefaultSearchBox::getTokens()
@@ -360,7 +374,14 @@ Array<DefaultSearchBox::Token> DefaultSearchBox::getTokens()
 	{
 		auto paren = getParentheses(i);
 
-		if (i > 1) tokens.append({ getOperator(i), nullptr });
+		if (i > 1)
+		{
+			tokens.append({ getOperator(i), nullptr });
+
+			if (hasNotOperator(i)) {
+				tokens.append({ Type::Not, nullptr });
+			}
+		}
 
 		if (paren.first && !paren.second) {
 			tokens.append({ Type::LParen, nullptr });
@@ -374,6 +395,14 @@ Array<DefaultSearchBox::Token> DefaultSearchBox::getTokens()
 	}
 
 	return tokens;
+}
+
+bool DefaultSearchBox::hasNotOperator(int index)
+{
+	auto layout = constraint_layouts[index];
+	auto not_box = cast<QComboBox>(layout, NOT_POS);
+
+	return (not_box->currentIndex() == 1);
 }
 
 } // namespace phonometrica

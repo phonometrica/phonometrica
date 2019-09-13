@@ -33,7 +33,7 @@
 namespace phonometrica {
 
 Viewer::Viewer(Runtime &rt, QWidget *parent) :
-    QTabWidget(parent), rt(rt)
+		QTabWidget(parent), runtime(rt)
 {
     setTabsClosable(true);
     setMovable(true);
@@ -44,9 +44,9 @@ Viewer::Viewer(Runtime &rt, QWidget *parent) :
 
 void Viewer::setStartView()
 {
-    if (!rt.is_text_mode())
+    if (!runtime.is_text_mode())
     {
-        addView(new StartView(nullptr, rt), tr("Start"));
+        addView(new StartView(nullptr, runtime), tr("Start"));
     }
 }
 
@@ -118,11 +118,19 @@ void Viewer::showDocumentation(const String &page)
 	}
 }
 
-void Viewer::openScriptView(std::shared_ptr<Script> script)
+void Viewer::openScriptView(AutoScript script)
 {
     auto label = script->label();
-    auto view = new ScriptView(rt, std::move(script));
+    auto view = new ScriptView(runtime, std::move(script));
     addView(view, label);
+}
+
+void Viewer::openDataView(AutoDataset dataset)
+{
+	auto label = dataset->label();
+	auto view = new DataView(this, runtime, std::move(dataset));
+	connect(view, &DataView::openAnnotation, this, &Viewer::editAnnotation);
+	addView(view, label);
 }
 
 void Viewer::openScript(const String &path)
@@ -175,7 +183,7 @@ void Viewer::view(const std::shared_ptr<VFile> &file)
     {
         auto sound = downcast<Sound>(file);
         auto label = sound->label();
-        addView(new SoundView(rt, std::move(sound)), label);
+        addView(new SoundView(runtime, std::move(sound)), label);
     }
     else if (file->is_annotation())
     {
@@ -184,7 +192,7 @@ void Viewer::view(const std::shared_ptr<VFile> &file)
         if (annot->has_sound())
         {
             auto label = annot->label();
-            addView(new AnnotationView(rt, std::move(annot)), label);
+            addView(new AnnotationView(runtime, std::move(annot)), label);
         }
         else
         {
@@ -212,5 +220,12 @@ void Viewer::closeAll()
 	setStartView();
 }
 
+void Viewer::editAnnotation(AutoAnnotation annot, intptr_t layer, double from, double to)
+{
+    auto label = annot->label();
+    auto view = new AnnotationView(runtime, std::move(annot), this);
+    addView(view, label);
+	view->openSelection(layer, from, to);
+}
 
 } // phonometrica

@@ -25,6 +25,7 @@
 #include <QTabWidget>
 #include <phon/runtime/runtime.hpp>
 #include <phon/gui/views/script_view.hpp>
+#include <phon/gui/views/data_view.hpp>
 
 namespace phonometrica {
 
@@ -50,7 +51,9 @@ public slots:
 
     void showDocumentation(const String &page);
 
-    void openScriptView(std::shared_ptr<Script> script);
+    void openScriptView(AutoScript script);
+
+    void openDataView(AutoDataset);
 
     void openScript(const String &path);
 
@@ -59,6 +62,8 @@ public slots:
     void saveViews();
 
     void view(const std::shared_ptr<VFile> &file);
+
+    void editAnnotation(AutoAnnotation, intptr_t, double, double);
 
     void closeAll();
 
@@ -74,7 +79,7 @@ private:
 
     void addView(View *view, const QString &label);
 
-    Runtime &rt;
+    Runtime &runtime;
 };
 
 

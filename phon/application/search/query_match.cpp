@@ -41,11 +41,11 @@ double QueryMatch::start_time() const
 double QueryMatch::end_time() const
 {
 	auto match = this;
-	auto value = 0;
+	double value = 0;
 
 	while (match)
 	{
-		auto t = match->m_event->start_time();
+		auto t = match->m_event->end_time();
 		if (t > value) value = t;
 		match = match->m_next.get();
 	}
@@ -58,7 +58,7 @@ bool QueryMatch::operator<(const QueryMatch &other) const
 	int cmp;
 
 	// First compare file names.
-	cmp = this->annot()->path().compare(other.annot()->path());
+	cmp = this->annotation()->path().compare(other.annotation()->path());
 
 	if (cmp < 0) {
 		return true;
@@ -89,5 +89,10 @@ bool QueryMatch::operator<(const QueryMatch &other) const
 
 	// Finally compare position in the event.
 	return this->position() < other.position();
+}
+
+size_t QueryMatch::hash() const
+{
+	return annotation()->path().hash() + std::hash<int>{}(layer_index()) + text().hash() + std::hash<int>{}(position());
 }
 } // namespace phonometrica

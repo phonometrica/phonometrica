@@ -45,7 +45,7 @@ class SearchBox : public QGroupBox
 
 public:
 
-	SearchBox(QWidget *parent, const QString &title);
+	SearchBox(QWidget *parent, const QString &title, int context_length);
 
 	void postInitialize();
 
@@ -54,6 +54,8 @@ public:
 protected:
 
 	virtual void setupUi() = 0;
+
+	int context_length;
 };
 
 
@@ -73,7 +75,7 @@ class DefaultSearchBox final : public SearchBox
 
 public:
 
-	DefaultSearchBox(QWidget *parent);
+	DefaultSearchBox(QWidget *parent, int context_length);
 
 	AutoSearchNode buildSearchTree() override;
 
@@ -115,6 +117,8 @@ private:
 	AutoSearchNode parseConstraint(int layout_index);
 
 	Type getOperator(int index);
+
+	bool hasNotOperator(int index);
 
 	Array<Token> getTokens();
 

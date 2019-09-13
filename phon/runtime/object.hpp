@@ -84,7 +84,7 @@ public:
     uint32_t version = 0;
     FieldMap fields;
     Object *gcnext; // *gcprev;
-    //Environment *rt; // environment the object was created from (for destruction)
+    //Environment *runtime; // environment the object was created from (for destruction)
     Object *prototype;
 
     union Storage

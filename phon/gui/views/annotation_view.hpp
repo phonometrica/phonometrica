@@ -38,6 +38,8 @@ public:
 
     void save() override;
 
+    void openSelection(intptr_t layer, double from, double to);
+
 protected:
 
     void addAnnotationMenu(QToolBar *toolbar) override;

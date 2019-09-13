@@ -52,13 +52,15 @@ public:
 
     void post_initialize() override;
 
+	void setSelection(double t1, double t2);
+
 protected slots:
+
+	void zoomToSelection(bool);
 
     void zoomIn(bool);
 
     void zoomOut(bool);
-
-    void zoomToSelection(bool);
 
     void viewAll(bool);
 
@@ -85,8 +87,6 @@ protected slots:
     void changePitchSettings(bool);
 
 protected:
-
-    void setSelection(double t1, double t2);
 
     QToolBar *makeToolbar();
 

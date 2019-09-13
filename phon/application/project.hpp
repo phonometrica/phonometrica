@@ -28,7 +28,7 @@
 #include <phon/application/document.hpp>
 #include <phon/application/script.hpp>
 #include <phon/application/bookmark.hpp>
-#include <phon/application/dataset.hpp>
+#include <phon/application/spreadsheet.hpp>
 #include <phon/application/metadata.hpp>
 #include <phon/application/database.hpp>
 #include <phon/runtime/runtime.hpp>

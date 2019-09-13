@@ -40,12 +40,14 @@
 
 #define FRAME_COUNT 1024
 
+#define MINIMUM_DURATION 1.0
+
 namespace phonometrica {
 
 AudioPlayer::AudioPlayer(Runtime &rt, QObject *parent, std::shared_ptr<AudioData> data) :
     QThread(parent), rt(rt), m_stream(SOUND_API), data(std::move(data))
 {
-    connect(this, &QThread::finished, this, &AudioPlayer::close);
+    connect(this, &QThread::finished, this, &AudioPlayer::stop);
     prepare();
     initialize_resampling(output_rate);
 }
@@ -55,7 +57,7 @@ AudioPlayer::~AudioPlayer()
     assert(m_error == nullptr);
 
     if (isRunning()) {
-        close();
+	    stop();
     }
     if (m_resampler) {
         speex_resampler_destroy(m_resampler);
@@ -146,6 +148,21 @@ void AudioPlayer::prepare()
 
 void AudioPlayer::play(double from, double to)
 {
+	if (from == to)
+	{
+		double duration = data->duration();
+
+		if (duration < MINIMUM_DURATION)
+		{
+			from = 0.0;
+			to = MINIMUM_DURATION;
+		}
+		else
+		{
+			from -= MINIMUM_DURATION / 2;
+			to += MINIMUM_DURATION / 2;
+		}
+	}
     first_frame = data->time_to_frame(from);
     last_frame = data->time_to_frame(to);
     position = first_frame;
@@ -222,7 +239,7 @@ void AudioPlayer::resume()
 
 void AudioPlayer::interrupt()
 {
-    close();
+	stop();
     quit();
 }
 
@@ -236,7 +253,7 @@ void AudioPlayer::error_callback(RtAudioError::Type type, const std::string &msg
     qDebug() << msg.data();
 }
 
-void AudioPlayer::close()
+void AudioPlayer::stop()
 {
     if (m_stream.isStreamOpen()) {
         m_stream.closeStream();

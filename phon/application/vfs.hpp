@@ -203,6 +203,10 @@ public:
 
 	bool remove_property(const String &category);
 
+	String get_property_value(const String &category) const;
+
+	Property get_property(const String &category) const;
+
 	const String &description() const;
 
 	void set_description(String value, bool mutate = true);

@@ -82,7 +82,7 @@ public slots:
 
     void resume();
 
-    void close();
+    void stop();
 
 private:
 

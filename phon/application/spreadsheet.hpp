@@ -13,72 +13,45 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 28/02/2019                                                                                                *
+ * Created: 12/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: Sound file.                                                                                               *
+ * Purpose: tabular dataset (e.g. CSV file).                                                                          *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SOUND_HPP
-#define PHONOMETRICA_SOUND_HPP
+#ifndef PHONOMETRICA_SPREADSHEET_HPP
+#define PHONOMETRICA_SPREADSHEET_HPP
 
-#include <phon/application/vfs.hpp>
-#include <phon/application/audio_data.hpp>
-#include <phon/third_party/rtaudio/RtAudio.h>
+#include <phon/application/dataset.hpp>
 
 namespace phonometrica {
 
-class Sound final : public VFile
+class Spreadsheet final : public Dataset
 {
 public:
 
-	Sound(VFolder *parent, String path);
+	Spreadsheet(VFolder *parent, String path = String()) :
+		Dataset(parent, std::move(path))
+	{ }
 
-	static void set_sound_formats();
+	String get_header(intptr_t j) const override { return String(); }
 
-	static const Array<String> &supported_sound_formats();
+	String get_cell(intptr_t i, intptr_t j) const override { return String(); }
 
-	static const Array<String> &common_sound_formats();
+	intptr_t row_count() const override { return 0; }
 
-	static Array<String> supported_sound_format_names();
+	intptr_t column_count() const override { return 0; }
 
-	static String rtaudio_version();
+	bool empty() const override { return true; } // TODO: Spreadsheet::empty();
 
-	static String libsndfile_version();
+	bool is_query_dataset() const override { return false; }
 
-	static bool supports_format(const String &format);
-
-	bool is_sound() const override;
-
-	const char *class_name() const override;
-
-	double duration() const;
-
-	int sample_rate() const;
-
-	intptr_t nframes() const;
-
-    std::shared_ptr<AudioData> data();
-
-    std::shared_ptr<AudioData> light_data() const;
-
-    SndfileHandle handle() const;
-
-    int nchannel() const;
+	bool is_spreadsheet() const override { return true; }
 
 private:
 
-	void load() override;
-
-	void write() override;
-
-	static Array<String> the_supported_sound_formats, the_common_sound_formats;
-
-	std::shared_ptr<AudioData> m_data;
 };
-
-using AutoSound = std::shared_ptr<Sound>;
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_SOUND_HPP
+#endif // PHONOMETRICA_SPREADSHEET_HPP

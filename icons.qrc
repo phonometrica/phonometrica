@@ -40,5 +40,9 @@
         <file>icons/100x100/help.png</file>
         <file>icons/plus.png</file>
         <file>icons/minus.png</file>
+        <file>icons/select_column.png</file>
+        <file>icons/edit_row.png</file>
+        <file>icons/eye.png</file>
+        <file>icons/praat.png</file>
     </qresource>
 </RCC>

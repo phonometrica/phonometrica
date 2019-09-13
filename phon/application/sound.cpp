@@ -155,19 +155,19 @@ String Sound::libsndfile_version()
 
 double Sound::duration() const
 {
-    auto h = light_handle();
+    auto h = handle();
 
     return double(h.frames()) / h.samplerate();
 }
 
 int Sound::sample_rate() const
 {
-	return light_handle().samplerate();
+	return handle().samplerate();
 }
 
 intptr_t Sound::nframes() const
 {
-	return light_handle().frames();
+	return handle().frames();
 }
 
 std::shared_ptr<AudioData> Sound::data()
@@ -178,6 +178,8 @@ std::shared_ptr<AudioData> Sound::data()
 
 SndfileHandle Sound::handle() const
 {
+	if (m_data) return m_data->handle();
+
 #if PHON_WINDOWS
 	auto wpath = m_path.to_wide();
         return SndfileHandle(wpath.data());
@@ -186,17 +188,21 @@ SndfileHandle Sound::handle() const
 #endif
 }
 
-SndfileHandle Sound::light_handle() const
-{
-    if (m_data)
-        return m_data->handle();
-    else
-        return this->handle();
-}
-
 int Sound::nchannel() const
 {
-    return light_handle().channels();
+    return handle().channels();
+}
+
+std::shared_ptr<AudioData> Sound::light_data() const
+{
+	// We don't to load the audio data, so we use the current data if it's already loaded, otherwise we create
+	// an AudioData which doesn't load the sound file.
+	if (m_data)
+	{
+		return m_data;
+	}
+
+	return std::make_shared<AudioData>(handle(), false);
 }
 
 } // namespace phonometrica

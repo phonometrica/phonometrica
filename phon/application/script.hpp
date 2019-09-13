@@ -58,6 +58,8 @@ private:
 
 };
 
+using AutoScript = std::shared_ptr<Script>;
+
 } // namespace phonometrica
 
 #endif // PHONOMETRICA_SCRIPT_HPP

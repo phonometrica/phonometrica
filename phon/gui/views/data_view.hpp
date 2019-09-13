@@ -23,28 +23,84 @@
 #define PHONOMETRICA_DATA_VIEW_HPP
 
 #include <QTableWidget>
+#include <QCheckBox>
+#include <phon/runtime/runtime.hpp>
 #include <phon/gui/views/view.hpp>
 #include <phon/application/dataset.hpp>
+#include <phon/application/annotation.hpp>
+#include <phon/application/query_dataset.hpp>
 
 namespace phonometrica {
 
+class AudioPlayer;
 
-class DataView : public View
+
+class DataView final : public View
 {
     Q_OBJECT
 
 public:
 
-    DataView(QWidget *parent, std::shared_ptr<Dataset> data);
+    DataView(QWidget *parent, Runtime &rt, std::shared_ptr<Dataset> data);
+
+	void save() override;
+
+signals:
+
+	void openAnnotation(AutoAnnotation, intptr_t, double, double);
 
 
+private slots:
+
+	void refreshTable(bool);
+
+	void onCellClicked(int i, int j);
+
+	void onCellDoubleClicked(int i, int j);
+
+	void openMatchInPraat(int i);
+
+protected:
+
+	void keyReleaseEvent(QKeyEvent *event) override;
 
 private:
+
+	void fill_table();
+
+	int getQueryFlags();
+
+	void playMatch(int i);
+
+	void editEvent(int i);
+
+	void openInAnnotation(int i);
+
+	QueryDataset *getQueryDataset() const { return dynamic_cast<QueryDataset*>(m_data.get()); }
+
+	void enableQueryButtons(bool enable);
+
+	void stopPlayer();
+
+	Runtime &runtime;
 
     std::shared_ptr<Dataset> m_data;
 
     QTableWidget *m_table;
 
+    QAction *property_action = nullptr;
+
+    QAction *context_action = nullptr;
+
+    QAction *info_action = nullptr;
+
+    QAction *play_action = nullptr;
+
+    QAction *stop_action = nullptr;
+
+    QAction *edit_action = nullptr;
+
+    std::unique_ptr<AudioPlayer> player;
 };
 
 } // namespace phonometrica

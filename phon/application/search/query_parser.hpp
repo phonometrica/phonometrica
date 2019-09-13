@@ -39,6 +39,7 @@ public:
 		Rparen,
 		And,
 		Or,
+		Not,
 		Constraint
 	};
 
@@ -61,16 +62,16 @@ private:
 	 * expression := or_expression
 	 * or_expression := and_expression ( 'OR' and_expression ) *
 	 * and_expression := primary ( 'AND' primary ) *
-	 * primary = '(' expression ')' | constraint
+	 * primary = '(' expression ')' | constraint | 'NOT' primary
 	 */
 
-	AutoSearchNode parseExpression();
+	AutoSearchNode parse_expression();
 
-	AutoSearchNode parseOrExpression();
+	AutoSearchNode parse_or_expression();
 
-	AutoSearchNode parseAndExpression();
+	AutoSearchNode parse_and_expression();
 
-	AutoSearchNode parsePrimary();
+	AutoSearchNode parse_primary();
 
 	Token *nextToken();
 

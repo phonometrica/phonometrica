@@ -27,7 +27,7 @@
 
 namespace phonometrica {
 
-class Dataset final : public VFile
+class Dataset : public VFile
 {
 public:
 
@@ -45,6 +45,19 @@ public:
 
 	void from_xml(xml_node root, const String &project_dir);
 
+	virtual String get_header(intptr_t j) const = 0;
+
+	virtual String get_cell(intptr_t i, intptr_t j) const = 0;
+
+	virtual intptr_t row_count() const = 0;
+
+	virtual intptr_t column_count() const = 0;
+
+	virtual bool empty() const = 0;
+
+	virtual bool is_query_dataset() const { return false; }
+
+	virtual bool is_spreadsheet() const { return false; }
 
 private:
 
@@ -63,6 +76,7 @@ private:
 
 };
 
+using AutoDataset = std::shared_ptr<Dataset>;
 
 } // namespace phonometrica
 

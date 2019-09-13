@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
             return app.exec();
         }
 #else
-        return interpret(rt, argc, argv);
+        return interpret(runtime, argc, argv);
 #endif
     }
     catch (std::bad_alloc &)

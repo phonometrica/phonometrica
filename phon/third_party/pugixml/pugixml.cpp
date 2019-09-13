@@ -397,26 +397,26 @@ PUGI__NS_BEGIN
 		while (count >= capacity - capacity / 4)
 			capacity *= 2;
 
-		compact_hash_table rt;
-		rt._capacity = capacity;
-		rt._items = static_cast<item_t*>(xml_memory::allocate(sizeof(item_t) * capacity));
+		compact_hash_table runtime;
+		runtime._capacity = capacity;
+		runtime._items = static_cast<item_t*>(xml_memory::allocate(sizeof(item_t) * capacity));
 
-		if (!rt._items)
+		if (!runtime._items)
 			return false;
 
-		memset(rt._items, 0, sizeof(item_t) * capacity);
+		memset(runtime._items, 0, sizeof(item_t) * capacity);
 
 		for (size_t i = 0; i < _capacity; ++i)
 			if (_items[i].key)
-				rt.insert(_items[i].key, _items[i].value);
+				runtime.insert(_items[i].key, _items[i].value);
 
 		if (_items)
 			xml_memory::deallocate(_items);
 
 		_capacity = capacity;
-		_items = rt._items;
+		_items = runtime._items;
 
-		assert(_count == rt._count);
+		assert(_count == runtime._count);
 
 		return true;
 	}

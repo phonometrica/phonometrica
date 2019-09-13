@@ -260,7 +260,7 @@ file_menu = [
 	["Quit", phon.quit, "ctrl+q"]
 ]
 
-annotation_menu = [
+query_menu = [
 	["New query...", new_query, "alt+q"],
 	["Run last query", run_last_query, "ctrl+alt+q"]
 ]
@@ -281,10 +281,10 @@ help_menu = [
 
 phon.actions = {} 
 
-create_menu(file_menu, "&File")
-create_menu(annotation_menu, "&Annotation")
+create_menu(file_menu, "File")
+create_menu(query_menu, "Query")
 phon.create_window_menu() # Handled in C++ code
-create_menu(help_menu, "&Help")
+create_menu(help_menu, "Help")
 enable_most_recent())_";
 
 #endif /* MENU_PHON_SCRIPT_INCLUDE */

@@ -42,10 +42,10 @@ Object::Object(Runtime &rt, ClassTag type, Object *prototype)
     this->gcmark = 0;
     // Attach to GC chain.
     this->gcnext = rt.gcobj;
-    //if (rt.gcobj) rt.gcobj->gcprev = this;
+    //if (runtime.gcobj) runtime.gcobj->gcprev = this;
     rt.gcobj = this;
     ++rt.gccounter;
-    //this->rt = &rt;
+    //this->runtime = &runtime;
 
     this->type = type;
     this->prototype = prototype;
@@ -72,8 +72,8 @@ Object::~Object()
     }
 
     // Detach object from the GC chain.
-//    if (this == rt->gcobj) {
-//        rt->gcobj = this->gcnext;
+//    if (this == runtime->gcobj) {
+//        runtime->gcobj = this->gcnext;
 //    }
 //
 //    if (this->gcprev) {

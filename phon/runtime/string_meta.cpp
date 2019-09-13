@@ -119,7 +119,7 @@ static void string_mid(Runtime &rt)
 
     try
     {
-        auto result = str.mid(from, count);
+        String result = str.mid(from, count);
         rt.push(std::move(result));
     }
     catch (std::exception &e)
@@ -323,11 +323,11 @@ static void split_with_regex(Runtime &rt)
     const char *p, *a, *b, *c, *e;
     Resub m;
 
-    auto &text = checkstring(&rt, 0);
-    re = js_toregexp(&rt, 1);
-    limit = rt.is_defined(2) ? rt.to_integer(2) : 1 << 30;
+    auto &text = checkstring(&runtime, 0);
+    re = js_toregexp(&runtime, 1);
+    limit = runtime.is_defined(2) ? runtime.to_integer(2) : 1 << 30;
 
-    rt.new_list();
+    runtime.new_list();
     len = 0;
 
     e = text.end();
@@ -338,8 +338,8 @@ static void split_with_regex(Runtime &rt)
         if (js_regexec((Reprog *) re->prog, text, &m, 0))
         {
             if (len == limit) return;
-            rt.push_literal("");
-            js_setindex(&rt, -2, 0);
+            runtime.push_literal("");
+            js_setindex(&runtime, -2, 0);
         }
         return;
     }
@@ -361,22 +361,22 @@ static void split_with_regex(Runtime &rt)
         }
 
         if (len == limit) return;
-        rt.push_lstring(p, b - p);
-        js_setindex(&rt, -2, len++);
+        runtime.push_lstring(p, b - p);
+        js_setindex(&runtime, -2, len++);
 
         for (k = 1; k < m.nsub; ++k)
         {
             if (len == limit) return;
-            rt.push_lstring(m.sub[k].sp, m.sub[k].ep - m.sub[k].sp);
-            js_setindex(&rt, -2, len++);
+            runtime.push_lstring(m.sub[k].sp, m.sub[k].ep - m.sub[k].sp);
+            js_setindex(&runtime, -2, len++);
         }
 
         a = p = c;
     }
 
     if (len == limit) return;
-    rt.push_string(p);
-    js_setindex(&rt, -2, len);
+    runtime.push_string(p);
+    js_setindex(&runtime, -2, len);
 #endif
 }
 

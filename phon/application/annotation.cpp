@@ -109,7 +109,7 @@ Annotation::Type Annotation::guess_type()
 	return Type::Undefined;
 }
 
-EventList Annotation::get_layer_events(size_t i) const
+EventList Annotation::get_layer_events(intptr_t i) const
 {
 	return m_graph.get_layer_events(i);
 }
@@ -163,6 +163,13 @@ void Annotation::initialize(Runtime &rt)
 		rt.push_null();
     };
 
+    auto remove_property = [](Runtime &rt) {
+    	auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
+    	auto category = rt.to_string(1);
+    	annot->remove_property(category);
+    	rt.push_null();
+    };
+
     auto bind_to_sound = [](Runtime &rt) {
     	auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
     	auto path = rt.to_string(1);
@@ -173,10 +180,36 @@ void Annotation::initialize(Runtime &rt)
     	rt.push_null();
     };
 
+    auto get_property = [](Runtime &rt) {
+    	auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
+    	auto category = rt.to_string(1);
+    	auto prop = annot->get_property(category);
+
+    	if (prop.valid())
+	    {
+    		if (prop.is_text())
+    			rt.push(prop.value());
+    		else if (prop.is_numeric())
+    			rt.push(prop.numeric_value());
+    		else if (prop.is_boolean())
+    			rt.push_boolean(prop.boolean_value());
+		    else
+		    {
+		    	throw error("[Internal error] Invalid property type");
+		    }
+	    }
+	    else
+	    {
+	    	rt.push_null();
+	    }
+    };
+
     rt.push(metaobject);
     {
         rt.add_accessor("path", annot_path);
         rt.add_method("Annotation.meta.add_property", add_property, 2);
+	    rt.add_method("Annotation.meta.remove_property", remove_property, 2);
+	    rt.add_method("Annotation.meta.get_property", get_property, 2);
         rt.add_method("Annotation.meta.bind_to_sound", bind_to_sound, 1);
     }
     rt.new_native_constructor(new_annot, new_annot, "Annotation", 1);
@@ -193,5 +226,44 @@ bool Annotation::modified() const
 bool Annotation::content_modified() const
 {
 	return m_graph.modified() || VFile::content_modified();
+}
+
+String Annotation::left_context(const EventList &events, intptr_t i, String::const_iterator start, intptr_t length,
+                                const String &separator)
+{
+	String context(length);
+	context.append(events[i]->text().rmid(start, length));
+
+	while (context.grapheme_count() != length && --i > 0)
+	{
+		auto &label = events[i]->text();
+		auto prefix = label.right(length - context.grapheme_count() - separator.size());
+		context.prepend(separator);
+		context.prepend(prefix);
+	}
+
+	return context;
+}
+
+String Annotation::right_context(const EventList &events, intptr_t i, String::const_iterator end, intptr_t length,
+                                 const String &separator)
+{
+	String context(length);
+	context.append(events[i]->text().mid(end, length));
+
+	while (context.grapheme_count() != length && ++i <= events.size())
+	{
+		auto &label = events[i]->text();
+		auto suffix = label.left(length - context.grapheme_count() - separator.size());
+		context.append(separator);
+		context.append(suffix);
+	}
+
+	return context;
+}
+
+void Annotation::set_event_text(AutoEvent &event, const String &new_text)
+{
+	m_graph.set_event_text(event, new_text);
 }
 } // namespace phonometrica

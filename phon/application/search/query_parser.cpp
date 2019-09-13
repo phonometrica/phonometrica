@@ -26,51 +26,56 @@ namespace phonometrica {
 AutoSearchNode QueryParser::parse()
 {
 	readToken();
-	return parseExpression();
+	return parse_expression();
 }
 
-AutoSearchNode QueryParser::parseExpression()
+AutoSearchNode QueryParser::parse_expression()
 {
-	return parseOrExpression();
+	return parse_or_expression();
 }
 
-AutoSearchNode QueryParser::parseOrExpression()
+AutoSearchNode QueryParser::parse_or_expression()
 {
-	auto lhs = parseAndExpression();
+	auto lhs = parse_and_expression();
 
 	while (the_token->type == Type::Or)
 	{
 		accept();
-		auto rhs = parseAndExpression();
+		auto rhs = parse_and_expression();
 		lhs = std::make_shared<SearchOperator>(SearchOperator::Opcode::Or, std::move(lhs), std::move(rhs));
 	}
 
 	return lhs;
 }
 
-AutoSearchNode QueryParser::parseAndExpression()
+AutoSearchNode QueryParser::parse_and_expression()
 {
-	auto lhs = parsePrimary();
+	auto lhs = parse_primary();
 
 	while (the_token->type == Type::And)
 	{
 		accept();
-		auto rhs = parsePrimary();
+		auto rhs = parse_primary();
 		lhs = std::make_shared<SearchOperator>(SearchOperator::Opcode::And, std::move(lhs), std::move(rhs));
 	}
 
 	return lhs;
 }
 
-AutoSearchNode QueryParser::parsePrimary()
+AutoSearchNode QueryParser::parse_primary()
 {
 	if (the_token->type == Type::LParen)
 	{
 		accept();
-		auto e = parseExpression();
+		auto e = parse_expression();
 		accept(Type::Rparen, "closing parenthesis");
 
 		return e;
+	}
+	else if (the_token->type == Type::Not)
+	{
+		accept();
+		return std::make_shared<SearchOperator>(SearchOperator::Opcode::Not, parse_primary());
 	}
 	else if (the_token->type == Type::Constraint)
 	{

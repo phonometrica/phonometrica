@@ -99,6 +99,8 @@ public:
 
 	static String undefined_string();
 
+	bool valid() const { return bool(impl); }
+
 private:
 
 	static std::set<Property> the_known_properties;

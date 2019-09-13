@@ -56,7 +56,7 @@ public:
 
 	void set_sound(const std::shared_ptr<Sound> &value, bool mutate = true);
 
-	EventList get_layer_events(size_t i) const;
+	EventList get_layer_events(intptr_t i) const;
 
 	bool is_textgrid() const { return m_type == TextGrid; }
 
@@ -73,6 +73,14 @@ public:
 	intptr_t size() const { return m_graph.layer_count(); }
 
 	bool modified() const override;
+
+	void set_event_text(AutoEvent &event, const String &new_text);
+
+	static String left_context(const EventList &events, intptr_t i, String::const_iterator start, intptr_t length,
+	                    const String &separator = String());
+
+	static String right_context(const EventList &events, intptr_t i, String::const_iterator end, intptr_t length,
+	                    const String &separator = String());
 
 protected:
 

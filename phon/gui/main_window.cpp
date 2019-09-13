@@ -383,6 +383,7 @@ void MainWindow::addWindowMenu(QMenuBar *menubar)
     show_project->setShortcut(QKeySequence("ctrl+alt+p"));
     show_console->setShortcut(QKeySequence("ctrl+alt+c"));
     show_info->setShortcut(QKeySequence("ctrl+alt+m"));
+    maximize->setShortcut(QKeySequence("ctrl+alt+v"));
     restore_layout->setShortcut(QKeySequence("ctrl+alt+d"));
 
 
@@ -740,7 +741,8 @@ void MainWindow::maximizeViewer()
 
 void MainWindow::openQueryEditor()
 {
-	auto editor = new QueryEditor(this);
+	int context_length = (int) Settings::get_number(rt, "match_window_length");
+	auto editor = new QueryEditor(this, context_length);
 	connect(editor, &QueryEditor::queryReady, this, &MainWindow::executeQuery);
 	editor->resize(1100, 800);
 	editor->show();
@@ -774,8 +776,17 @@ void MainWindow::executeQuery(AutoQuery query)
 	auto console = main_area->console();
 	connect(query.get(), &Query::debug, console, &Console::warn);
 	connect(query.get(), &Query::done, console, &Console::setPrompt);
+	auto dataset = query->execute();
 
-	query->execute();
+	if (dataset->empty())
+	{
+		QMessageBox dlg(QMessageBox::Information, tr("Information"), tr("Not match found!"));
+		dlg.exec();
+	}
+	else
+	{
+		main_area->viewer()->openDataView(std::move(dataset));
+	}
 }
 
 

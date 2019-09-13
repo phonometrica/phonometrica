@@ -25,6 +25,7 @@
 #include <QLineEdit>
 #include <QScrollArea>
 #include <QMessageBox>
+#include <phon/application/search/query.hpp>
 #include <phon/application/property.hpp>
 #include <phon/application/project.hpp>
 #include <phon/gui/query_editor.hpp>
@@ -44,18 +45,26 @@ enum {
 	IndexDoesntMatch
 };
 
-QueryEditor::QueryEditor(QWidget *parent) : QDialog(parent)
+QueryEditor::QueryEditor(QWidget *parent, int context_length) : QDialog(parent)
 {
-	setupUi();
+	setupUi(context_length);
 	setWindowFlags(Qt::Window);
 }
 
-void QueryEditor::setupUi()
+void QueryEditor::setupUi(int context_length)
 {
 	auto layout = new QVBoxLayout;
 	main_widget = new QWidget;
 
-	search_box = createSearchBox();
+	auto name_layout = new QHBoxLayout;
+	name_layout->addSpacing(10);
+	name_layout->addWidget(new QLabel("Query name:"));
+	auto query_label = QString("Query %1").arg(Query::current_id());
+	query_name_edit = new QLineEdit(query_label);
+	name_layout->addWidget(query_name_edit);
+	name_layout->addStretch(1);
+
+	search_box = new DefaultSearchBox(main_widget, context_length);
 	search_box->postInitialize();
 
 	auto scroll_area = new QScrollArea;
@@ -71,6 +80,7 @@ void QueryEditor::setupUi()
 	button_box->setOrientation(Qt::Horizontal);
 	button_box->setStandardButtons(QDialogButtonBox::Cancel | QDialogButtonBox::Ok);
 
+	layout->addLayout(name_layout);
 	layout->addWidget(search_box);
 	layout->addWidget(file_box);
 	layout->addWidget(property_box);
@@ -87,11 +97,6 @@ void QueryEditor::setupUi()
 	connect(button_box, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(button_box, SIGNAL(rejected()), this, SLOT(reject()));
 
-}
-
-SearchBox * QueryEditor::createSearchBox()
-{
-	return new DefaultSearchBox(main_widget);
 }
 
 QWidget * QueryEditor::createFileBox()
@@ -236,7 +241,10 @@ QGroupBox *QueryEditor::createProperties()
 
 AutoQuery QueryEditor::buildQuery()
 {
-	return std::make_shared<Query>(getAnnotations(), getMetadata(), getSearchTree());
+	String label = query_name_edit->text().trimmed();
+	if (label.empty()) label = "Untitled query";
+
+	return std::make_shared<Query>(label, getAnnotations(), getMetadata(), getSearchTree());
 }
 
 Array<AutoMetaNode> QueryEditor::getMetadata()

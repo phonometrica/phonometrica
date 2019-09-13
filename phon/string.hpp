@@ -238,8 +238,11 @@ public:
 
 	String repeat(intptr_t count) const;
 
-	String mid(intptr_t from, intptr_t count = -1) const;
-	String mid(const_iterator from, const_iterator to) const;
+	Substring mid(intptr_t from, intptr_t count = -1) const;
+	Substring mid(const_iterator from, const_iterator to) const;
+	Substring mid(const_iterator from, intptr_t count = -1) const;
+
+	Substring rmid(const_iterator to, intptr_t count = -1) const;
 
 	const_iterator index_to_iter(intptr_t i) const;
 	iterator index_to_iter(intptr_t i);
@@ -266,7 +269,7 @@ public:
 	static String convert(intptr_t n);
 	static String convert(double n);
 
-	static double to_float(std::string_view str, bool *ok = nullptr);
+	static double to_float(Substring str, bool *ok = nullptr);
 	double to_float(bool *ok = nullptr) const { return to_float(view(), ok); }
 
 	intptr_t to_int(bool *ok = nullptr) const;
@@ -314,6 +317,12 @@ public:
 	String &arg(Substring arg1, Substring arg2, Substring arg3, Substring arg4, Substring arg5, Substring arg6, Substring arg7, Substring arg8, Substring arg9);
 
 	static bool is_letter(char32_t codepoint);
+
+	// Case-insensitive comparison
+	static bool iequals(Substring self, Substring other);
+
+	// Case-insensitive find
+	const_iterator ifind(Substring substring, const_iterator from) const;
 
 private:
 
@@ -380,6 +389,8 @@ private:
 	static bool grapheme_break(char32_t c1, char32_t c2, int32_t *state);
 
 	String &trim(Option flag);
+
+	static intptr_t utf8_length(Substring str);
 };
 
 inline

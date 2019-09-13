@@ -31,6 +31,7 @@
 #include <phon/third_party/murmur_hash2.hpp>
 #include <phon/third_party/utf8proc/utf8proc.h>
 #include <phon/third_party/sol/unicode.hpp>
+#include <phon/third_party/utf8.hpp>
 
 #define MAX_FORMAT_BUFFER 256
 
@@ -427,16 +428,16 @@ void String::advance(String::const_iterator &it, intptr_t count) const
 {
 	intptr_t len;
 
-	if (count > 0)
+	if (count >= 0)
 	{
-		while (count-- != 0)
+		while (count-- != 0 && it != this->cend())
 		{
 			next_grapheme(it, len);
 		}
 	}
 	else
 	{
-		while (count++ < 0)
+		while (count++ < 0 && it != this->cbegin())
 		{
 			previous_grapheme(it, len);
 		}
@@ -813,26 +814,12 @@ String String::repeat(intptr_t count) const
 	return result;
 }
 
-String String::mid(intptr_t from, intptr_t count) const
+std::string_view String::mid(intptr_t from, intptr_t count) const
 {
-	auto start = index_to_iter(from);
-    auto bound = start;
-
-	// Go until the end
-	if (count < 0)
-	{
-		bound = end();
-	}
-	// Get `count` graphemes.
-	else
-	{
-		advance(bound, count);
-	}
-
-	return mid(start, bound);
+	return mid(index_to_iter(from), count);
 }
 
-String String::mid(String::const_iterator from, String::const_iterator to) const
+std::string_view String::mid(String::const_iterator from, String::const_iterator to) const
 {
     assert(to >= from);
 
@@ -840,7 +827,41 @@ String String::mid(String::const_iterator from, String::const_iterator to) const
 		throw error("Cannot extract % bytes at byte index %", to-from, from-begin()+1);
 	}
 
-    return String(from, to - from);
+    return std::string_view(from, size_t(to - from));
+}
+
+std::string_view String::mid(String::const_iterator from, intptr_t count) const
+{
+	auto to = from;
+
+	// Go until the end
+	if (count < 0)
+	{
+		to = end();
+	}
+	// Get `count` graphemes.
+	else
+	{
+		advance(to, count);
+	}
+
+	return mid(from, to);
+}
+
+Substring String::rmid(String::const_iterator to, intptr_t count) const
+{
+	auto from = to;
+
+	if (count < 0)
+	{
+		from = begin();
+	}
+	else
+	{
+		advance(from, -count);
+	}
+
+	return mid(from, to);
 }
 
 String::const_iterator String::index_to_iter(intptr_t i) const
@@ -1431,7 +1452,7 @@ Substring String::next_grapheme(intptr_t i) const
 	return next_grapheme(it);
 }
 
-double String::to_float(std::string_view str, bool *ok)
+double String::to_float(Substring str, bool *ok)
 {
 	auto ch = str.begin();
 	bool numeric = true;
@@ -1511,6 +1532,61 @@ bool String::to_bool(bool strict) const
 	{
 		return !((*this == "false") || (*this == "FALSE"));
 	}
+}
+
+bool String::iequals(Substring self, Substring other)
+{
+	using namespace sol::unicode;
+
+	if (utf8_length(self) != utf8_length(other)) {
+		return false;
+	}
+
+	auto it1 = self.begin();
+	auto it2 = other.begin();
+
+	while (it1 != self.begin())
+	{
+		auto r1 = utf8_to_code_point(it1, (const char*)self.end());
+		auto r2 = utf8_to_code_point(it2, (const char*)other.end());
+		auto c1 = utf8proc_tolower(r1.codepoint);
+		auto c2 = utf8proc_tolower(r2.codepoint);
+
+		if (c1 != c2) return false;
+	}
+
+	return true;
+}
+
+intptr_t String::utf8_length(Substring str)
+{
+	intptr_t len;
+	utf8_strlen(str.data(), str.size(), &len);
+
+	return len;
+}
+
+String::const_iterator String::ifind(Substring substring, String::const_iterator from) const
+{
+	auto this_length = utf8_length(*this);
+	auto sub_length = utf8_length(substring);
+
+	if (this_length < sub_length || substring.empty()) {
+		return this->cend();
+	}
+
+	auto it = from;
+
+	while (it != this->cend())
+	{
+		auto part = mid(it, sub_length);
+		if (iequals(part, substring))
+		{
+			return reinterpret_cast<const_iterator>(it);
+		}
+	}
+
+	return this->cend();
 }
 
 } // namespace phonometrica

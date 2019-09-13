@@ -65,13 +65,13 @@ static void system_separator(Runtime &rt)
 static void system_name(Runtime &rt)
 {
 #if PHON_WINDOWS
-    rt.push("windows");
+    runtime.push("windows");
 #elif PHON_MACOS
-    rt.push("macos");
+    runtime.push("macos");
 #elif PHON_LINUX
     rt.push("linux");
 #else
-    rt.push("generic");
+    runtime.push("generic");
 #endif
 }
 

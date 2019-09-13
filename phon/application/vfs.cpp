@@ -382,13 +382,38 @@ bool VFile::remove_property(const Property &p)
 
 bool VFile::remove_property(const String &category)
 {
-	for (auto &p : m_properties) {
+	for (auto &p : m_properties)
+	{
 		if (p.category() == category) {
 			return remove_property(p);
 		}
 	}
 
 	return false;
+}
+
+String VFile::get_property_value(const String &category) const
+{
+	for (auto &p : m_properties)
+	{
+		if (p.category() == category) {
+			return p.value();
+		}
+	}
+
+	return String();
+}
+
+Property VFile::get_property(const String &category) const
+{
+	for (auto &p : m_properties)
+	{
+		if (p.category() == category) {
+			return p;
+		}
+	}
+
+	return Property();
 }
 
 const String &VFile::description() const
@@ -496,6 +521,5 @@ bool VFile::content_modified() const
 {
 	return m_content_modified;
 }
-
 
 } // namespace phonometrica

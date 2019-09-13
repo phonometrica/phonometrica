@@ -280,7 +280,6 @@ void SpeechView::zoomOut(bool)
 
 void SpeechView::zoomToSelection(bool)
 {
-
     waveform->zoomToSelection();
     pitch_plot->zoomToSelection();
     intensity_plot->zoomToSelection();
@@ -318,7 +317,7 @@ void SpeechView::chooseSelection(bool)
     {
         if (to > 0 && to > m_data->duration())
         {
-            QMessageBox msg(QMessageBox::Critical, tr("Error"), "Invalid time window");
+            QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("Invalid time window"));
             msg.exec();
         }
         else

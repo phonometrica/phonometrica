@@ -43,6 +43,8 @@ public:
 
     explicit AudioData(const SndfileHandle &h);
 
+	AudioData(const SndfileHandle &h, bool load);
+
     const sample_t *data() const { return m_data.data(); }
 
     sample_t *data() { return m_data.data(); }

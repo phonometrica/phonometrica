@@ -46,7 +46,7 @@ Regex::Regex(const String &pattern, int flags) :
     m_flags = flags;
 
     if (pattern.empty()) {
-        throw error("Empty regular expression");
+        throw error("[Regex error] Empty regular expression pattern");
     }
 
     const UChar *pattern_start = reinterpret_cast<const UChar*>(pattern.begin());

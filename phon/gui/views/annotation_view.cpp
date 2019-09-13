@@ -25,7 +25,6 @@
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/gui/views/annotation_view.hpp>
-#include "annotation_view.hpp"
 
 namespace phonometrica {
 
@@ -146,6 +145,13 @@ void AnnotationView::resetAnchorMovement(intptr_t layer)
     }
 
     waveform->clearCurrentTime();
+}
+
+void AnnotationView::openSelection(intptr_t layer, double from, double to)
+{
+	setSelection(from, to);
+	auto t = from + (to - from) / 2;
+	focusEvent(layer, t);
 }
 
 } // namespace phonometrica
