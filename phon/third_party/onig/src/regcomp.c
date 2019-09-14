@@ -220,7 +220,7 @@ ops_free(regex_t* reg)
 #ifdef USE_DIRECT_THREADED_CODE
     opcode = *(reg->ocs + i);
 #else
-    op = op->op;
+    opcode = op->opcode;
 #endif
 
     switch (opcode) {
@@ -294,7 +294,7 @@ ops_calc_size_of_string_pool(regex_t* reg)
 #ifdef USE_DIRECT_THREADED_CODE
     opcode = *(reg->ocs + i);
 #else
-    op = op->op;
+    opcode = op->opcode;
 #endif
 
     switch (opcode) {
@@ -345,7 +345,7 @@ ops_make_string_pool(regex_t* reg)
 #ifdef USE_DIRECT_THREADED_CODE
     opcode = *(reg->ocs + i);
 #else
-    op = op->op;
+    opcode = op->opcode;
 #endif
 
     switch (opcode) {
@@ -539,7 +539,7 @@ add_op(regex_t* reg, int opcode)
 #ifdef USE_DIRECT_THREADED_CODE
   *(reg->ocs + (reg->ops_curr - reg->ops)) = opcode;
 #else
-  reg->ops_curr->op = op;
+  reg->ops_curr->opcode = opcode;
 #endif
 
   return 0;
@@ -6449,7 +6449,7 @@ onig_compile(regex_t* reg, const UChar* pattern, const UChar* pattern_end,
 #endif
 
 #ifdef USE_DIRECT_THREADED_CODE
-  /* op -> opaddr */
+  /* opcode -> opaddr */
   onig_init_for_match_at(reg);
 #endif
 

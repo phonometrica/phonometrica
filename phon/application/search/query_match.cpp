@@ -26,7 +26,7 @@ namespace phonometrica {
 double QueryMatch::start_time() const
 {
 	auto match = this;
-	auto value = std::numeric_limits<double>::max();
+	auto value = (std::numeric_limits<double>::max)();
 
 	while (match)
 	{

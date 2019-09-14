@@ -1547,8 +1547,8 @@ bool String::iequals(Substring self, Substring other)
 
 	while (it1 != self.end())
 	{
-		auto r1 = utf8_to_code_point(it1, (const char*)self.end());
-		auto r2 = utf8_to_code_point(it2, (const char*)other.end());
+		auto r1 = utf8_to_code_point(it1, self.end());
+		auto r2 = utf8_to_code_point(it2, other.end());
 		auto c1 = utf8proc_tolower(r1.codepoint);
 		auto c2 = utf8proc_tolower(r2.codepoint);
 

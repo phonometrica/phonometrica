@@ -1082,7 +1082,7 @@ History
 2004/11/26: [dist] fix doc/RE and RE.ja (multibyte character types).
 2004/11/26: [impl] add onig_free_shared_cclass_table().
 2004/11/26: [impl] move definition USE_UNICODE_FULL_RANGE_CTYPE to regenc.h.
-2004/11/26: [impl] add op OP_CCLASS_NODE.
+2004/11/26: [impl] add opcode OP_CCLASS_NODE.
 2004/11/26: [impl] move definition of CClassNode to regint.h.
 2004/11/26: [impl] add type PointerType in regint.h.
 2004/11/25: [impl] remove ONIGENC_CTYPE_MOD_NOT.
@@ -1773,9 +1773,9 @@ History
                    add IS_DYNAMIC_OPTION() to regint.h.
 2003/07/07: [spec] called group should not ignore outside option (?i:...).
                    ex. /(?i:(?<n>(a)\2)){0}\g<n>/.match("aA")
-                   add op OP_BACKREFN_IC and OP_BACKREF_MULTI_IC.
+                   add opcode OP_BACKREFN_IC and OP_BACKREF_MULTI_IC.
                    set option status to effect memory in optimize_node_left().
-2003/07/07: [impl] add op OP_ANYCHAR_ML, OP_ANYCHAR_ML_STAR and
+2003/07/07: [impl] add opcode OP_ANYCHAR_ML, OP_ANYCHAR_ML_STAR and
                    OP_ANYCHAR_ML_START_PEEK_NEXT.
 2003/07/07: [bug]  (thanks nobu) REG_MBLEN_TABLE[SJIS][0x80] should be 1.
 2003/07/07: [spec] rename REG_SYN_OP_QUOTE to REG_SYN_OP_ESC_Q_QUOTE.
@@ -1854,7 +1854,7 @@ History
                    /[d-a]/ should be error.
 2003/05/28: [impl] optimize stop-backtrack compiled code.
                    (/(?>a*)/, /(?>\w+)/ etc...)
-                   add OP_POP op.
+                   add OP_POP opcode.
 2003/05/28: [new]  possessive repeat operator. (?+, *+, ++, {n,m}+)
 2003/05/27: [spec] '-' at beginning of char-class should be warn only if
                    it is start of range.  (ex. /[--a]/)
@@ -1992,8 +1992,8 @@ History
 2003/02/28: [new]  subexp call. (?*name)    (thanks akr)
 2003/02/28: [spec] add match stack limit check. (MATCH_STACK_LIMIT_SIZE)
 2003/02/28: [impl] check recursive subexp call.
-2003/02/28: [impl] add op OP_MEMORY_END_PUSH for callable subexp.
-2003/02/28: [impl] add op OP_CALL, OP_RETURN.
+2003/02/28: [impl] add opcode OP_MEMORY_END_PUSH for callable subexp.
+2003/02/28: [impl] add opcode OP_CALL, OP_RETURN.
                    add stack type STK_CALL_FRAME, STK_RETURN, STK_MEM_END.
 2003/02/26: [spec] add new syntax behavior REG_SYN_STRICT_CHECK_BACKREF_NUMBER.
                    if it is set, then error /(\1)/, /\1(..)/ etc...
@@ -2097,7 +2097,7 @@ History
                    NOT_RUBY is referred in regint.h for escape double
                    including config.h.
 2003/01/30: [impl] when string hasn't case ambiguity, don't compile
-                   to ignore case op.
+                   to ignore case opcode.
 2003/01/29: [impl] add SJIS, UTF-8 test_sb() test.
 2003/01/29: [dist] add INSTALL-RUBY file.
 2003/01/28: [test] success in Cygwin, Ruby 1.8.0 (2003-01-27).
@@ -2244,8 +2244,8 @@ History
 2002/03/09: [spec] decrease REG_MAX_BACKREF_NUM, REG_MAX_REPEAT_NUM
                    values.
 2002/03/08: [spec] allow use of "\A"(begin-buf) in look-behind.
-2002/03/08: [impl] add a new op OP_PUSH_IF_PEEK_NEXT.
-2002/03/08: [impl] add a new op OP_ANYCHAR_STAR_PEEK_NEXT.
+2002/03/08: [impl] add a new opcode OP_PUSH_IF_PEEK_NEXT.
+2002/03/08: [impl] add a new opcode OP_ANYCHAR_STAR_PEEK_NEXT.
 2002/03/07: [spec] prohibit use of capture group "(...)"
                    in negative look-behind.
 2002/03/07: [inst] add configure.in, config.h.in, Makefile.in.
@@ -2269,11 +2269,11 @@ History
 2002/03/04: Version 1.1
 
 2002/03/04: [impl] replace STK_BOTTOM with STK_ALT.
-2002/03/02: [impl] add new op OP_FINISH and new stack type
+2002/03/02: [impl] add new opcode OP_FINISH and new stack type
                    STK_BOTTOM for (little bit) speed up STACK_POP.
-2002/03/02: [impl] add new op OP_EXACT1_IC, OP_EXACTN_IC
+2002/03/02: [impl] add new opcode OP_EXACT1_IC, OP_EXACTN_IC
                    for compile time ignore case check.
-                   remove op OP_EXACT1_RAW, OP_EXACTN_RAW.
+                   remove opcode OP_EXACT1_RAW, OP_EXACTN_RAW.
 2002/03/02: [impl] add OpTime info to statistical data.
 2002/02/28: [bug]  sub_anchor($) in ForwardSearch() and BackwardSearch().
                    ex. /$\x0az/.match("\nz")
