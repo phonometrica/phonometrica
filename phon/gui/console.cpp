@@ -72,7 +72,7 @@ void Console::interpretCommand(const QString &command, bool from_script)
         runtime.load_string("[string]", command);
         runtime.push_null();
         runtime.call(0);
-        if (runtime.is_defined(-1))
+        if (runtime.is_defined(-1) && !from_script)
         {
             print(runtime.to_string(-1));
         }

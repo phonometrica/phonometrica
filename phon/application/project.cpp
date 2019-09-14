@@ -876,6 +876,7 @@ void Project::initialize(Runtime &rt)
 	auto close_project = [](Runtime &rt)
 	{
 		Project::instance()->close();
+		Project::instance()->reinitialize();
 		rt.push_null();
 	};
 
@@ -970,8 +971,9 @@ void Project::clear()
     m_data->clear(false);
     m_scripts->clear(false);
     m_bookmarks->clear(false);
+    m_queries->clear(false);
     discard_database();
-    m_uuid = String();
+	m_uuid.clear();
     m_path = String();
     m_directory = String();
     m_files.clear();
@@ -1199,6 +1201,12 @@ void Project::set_default_bindings()
 			}
 		}
 	}
+}
+
+void Project::reinitialize()
+{
+	create_uuid();
+	open_database();
 }
 
 } // namespace phonometrica

@@ -22,10 +22,10 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * UTF8-CPP, by Nemanja Trifunovic (MIT-like), see `utfcpp.sourceforge.net <http://utfcpp.sourceforge.net/>`_
 * CMake, by Kitware Inc. (BSD 3-clause), see `cmake.org <https://cmake.org/>`_
 
-Phonometrica's icon theme and main icon were created by `Icons8 LLC. <https://icons8.com>`_ and are available under the `Creative Commons Attribution-NoDerivs 3.0 Unported license <https://creativecommons.org/licenses/by-nd/3.0/>`_.
+Phonometrica's icon theme and main icon were created by `Icons8 LLC. <https://icons8.com>`_.
 
 
-Phonometrica also uses `GitHub <https://github.com>`_ to host its source code. The source code is available `here <https://github.com/jeychenne/phonometrica>`_.
+Phonometrica also uses `GitHub <https://github.com>`_ to host its source code. The source code is available `here <https://github.com/phonometrica/phonometrica>`_.
 
 We are also grateful to JetBrains for providing us with an academic license of their `C++ editor <https://www.jetbrains.com/clion/>`_.
 

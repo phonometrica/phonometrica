@@ -183,6 +183,8 @@ private:
 
 	void discard_database();
 
+	void reinitialize();
+
 	const std::shared_ptr<VFile> & get_file_handle(const String &path, std::string_view msg);
 
 	void trigger(const String &event, const char *tag, std::any value);

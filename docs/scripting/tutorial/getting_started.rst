@@ -172,7 +172,7 @@ Alternatively, if the key is a valid identifier, we can use the *dot notation*:
 Function
 ~~~~~~~~
 
-A ``Function`` is a special object which can be used to create reusable blocks of code. Function are created using the 
+A ``Function`` is a special object which can be used to create reusable blocks of code. Functions are created using the
 keyword ``function``. Here is an example of a function which calculates the area of a rectangle.
 It expects two arguments (``x`` and ``y``), which correspond to the rectangle's height and width. 
 
