@@ -13,86 +13,63 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 30/08/2019                                                                                                *
+ * Created: 14/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: a query editor is a dialog which allows the user to create and edit queries.                              *
+ * Purpose: see header.                                                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_QUERY_EDITOR_HPP
-#define PHONOMETRICA_QUERY_EDITOR_HPP
-
-#include <QDialog>
-#include <QDialogButtonBox>
-#include <phon/application/search/query.hpp>
-#include <phon/gui/search_box.hpp>
-
-class QGroupBox;
-class QLineEdit;
+#include <QMessageBox>
+#include <phon/gui/bookmark_editor.hpp>
 
 namespace phonometrica {
 
-class NumberEdit;
-class BooleanEdit;
-class CheckList;
-class CheckListBox;
-
-
-class QueryEditor final : public QDialog
+BookmarkEditor::BookmarkEditor(QWidget *parent) : QDialog(parent)
 {
-	Q_OBJECT
+    QLabel *name_label = new QLabel(tr("Title:"));
+	title_line = new QLineEdit;
 
-public:
+    QLabel *content_label = new QLabel(tr("Notes:"));
+	notes_edit = new QTextEdit;
 
-	QueryEditor(QWidget *parent, int context_length = 30);
+	ok_button = new QPushButton(tr("&OK"));
+	cancel_button = new QPushButton(tr("&Cancel"));
 
-	void resurrect();
+    QHBoxLayout *button_layout = new QHBoxLayout;
+    button_layout->addStretch();
+    button_layout->addWidget(ok_button);
+    button_layout->addWidget(cancel_button);
 
-signals:
+    QVBoxLayout *main_layout = new QVBoxLayout;
+    main_layout->addWidget(name_label);
+    main_layout->addWidget(title_line);
+    main_layout->addWidget(content_label);
+    main_layout->addWidget(notes_edit);
+    main_layout->addLayout(button_layout);
 
-	void queryReady(AutoQuery);
+    setLayout(main_layout);
+    setWindowTitle(tr("Bookmark Editor"));
 
-public slots:
+	connect(ok_button, SIGNAL(clicked()), this, SLOT(accept()));
+	connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+}
 
-	void accept();
+void BookmarkEditor::accept()
+{
+	String title = title_line->text();
 
-private:
+	if (title.empty())
+	{
+		QMessageBox msg(QMessageBox::Warning, tr("Cannot create bookmark"), tr("This bookmark needs a title!"));
+	}
+	else
+	{
+//		auto bookmark = std::make_shared<Bookmark>(nullptr, title);
+////		m_bookmark->set_notes(notes_edit->toPlainText());
+//        emit bookmarkAvailable(std::move(bookmark));
+		QDialog::accept();
+	}
+}
 
-	void setupUi(int context_length);
-
-	QWidget * createFileBox();
-
-	QGroupBox *createProperties();
-
-	AnnotationSet getAnnotations();
-
-	AutoQuery buildQuery();
-
-	Array<AutoMetaNode> getMetadata();
-
-	AutoSearchNode getSearchTree();
-
-	QLineEdit *query_name_edit;
-
-	SearchBox *search_box;
-
-	QWidget *main_widget;
-
-	CheckList *selected_files_box;
-
-	QComboBox *description_box;
-
-	QLineEdit *description_line;
-
-	Array<NumberEdit*> numeric_properties;
-
-	Array<BooleanEdit*> boolean_properties;
-
-	Array<CheckListBox*> text_properties;
-
-	int properties_per_row = 3;
-};
 
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_QUERY_EDITOR_HPP

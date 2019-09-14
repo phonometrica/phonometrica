@@ -217,7 +217,10 @@ void MetaDatabase::add_file(VFile &file)
 
 void MetaDatabase::save_file_metadata(VFile &file)
 {
-	String path = file.path();
+	auto &path = file.path();
+	String msg("Saving metadata for file ");
+	msg.append(path);
+	emit saving_metadata(msg);
 
 	if (has_file(path))
 	{

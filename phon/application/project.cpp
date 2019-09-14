@@ -69,6 +69,8 @@ Project::Project(Runtime &rt, String path) :
 		set_path(std::move(path));
 		load();
 	}
+
+	emit initialized();
 }
 
 Project::~Project()
@@ -134,6 +136,7 @@ void Project::save()
 	m_corpus->save_content();
 	m_scripts->save_content();
 	m_data->save_content();
+	m_queries->save_content();
 
 	write();
 
@@ -1207,6 +1210,7 @@ void Project::reinitialize()
 {
 	create_uuid();
 	open_database();
+	emit initialized();
 }
 
 } // namespace phonometrica

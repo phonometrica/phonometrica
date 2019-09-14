@@ -38,11 +38,11 @@ static Regex pattern_size("size\\s+=\\s+(\\d*)");
 static Regex pattern_interval("intervals\\s+\\[\\d*\\]:");
 static Regex pattern_xmin("xmin\\s+=\\s+(\\d+\\.?\\d*)");
 static Regex pattern_xmax("xmax\\s+=\\s+(\\d+\\.?\\d*)");
-static Regex pattern_text("text\\s+=\\s+\"(.*?)\"", Regex::Multiline);
+static Regex pattern_text("text\\s+=\\s+\"(.*)\"", Regex::Multiline);
 
 static Regex pattern_point("points\\s+\\[\\d*\\]:");
 static Regex pattern_time("number\\s+=\\s+(\\d+\\.?\\d*)");
-static Regex pattern_mark("mark\\s+=\\s+\"(.*?)\"", Regex::Multiline);
+static Regex pattern_mark("mark\\s+=\\s+\"(.*)\"", Regex::Multiline);
 
 static
 bool search(File &infile, Regex &pattern, String &result)

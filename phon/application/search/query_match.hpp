@@ -23,7 +23,7 @@
 #define PHONOMETRICA_QUERY_MATCH_HPP
 
 #include <memory>
-#include <unordered_set>
+#include <set>
 #include <phon/application/annotation.hpp>
 
 namespace phonometrica {
@@ -92,25 +92,7 @@ struct MatchLessCompare
     }
 };
 
-struct MatchEqualCompare
-{
-	bool operator()(const AutoQueryMatch &a, const AutoQueryMatch &b) const
-	{
-		return (a->annotation()->path() == b->annotation()->path()) &&
-				(a->layer_index() == b->layer_index()) && (a->text() == b->text()) && (a->position() == b->position());
-	}
-};
-
-struct MatchHash
-{
-	size_t operator()(const AutoQueryMatch &a) const
-	{
-		return a->hash();
-	}
-};
-
 using QueryMatchSet = std::set<AutoQueryMatch, MatchLessCompare>;
-//using QueryMatchSet = std::unordered_set<AutoQueryMatch, MatchHash, MatchEqualCompare>;
 using QueryMatchList = Array<AutoQueryMatch>;
 
 //----------------------------------------------------------------------------------------------------------------------

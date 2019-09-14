@@ -348,4 +348,11 @@ AutoSearchNode QueryEditor::getSearchTree()
 {
 	return search_box->buildSearchTree();
 }
+
+void QueryEditor::resurrect()
+{
+	auto query_label = QString("Query %1").arg(Query::current_id());
+	query_name_edit->setText(query_label);
+	show();
+}
 } // namespace phonometrica

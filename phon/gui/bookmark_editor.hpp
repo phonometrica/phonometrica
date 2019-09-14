@@ -13,86 +13,51 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see             *
  * <http://www.gnu.org/licenses/>.                                                                                    *
  *                                                                                                                    *
- * Created: 30/08/2019                                                                                                *
+ * Created: 14/09/2019                                                                                                *
  *                                                                                                                    *
- * Purpose: a query editor is a dialog which allows the user to create and edit queries.                              *
+ * Purpose: editor to create bookmarks.                                                                               *
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_QUERY_EDITOR_HPP
-#define PHONOMETRICA_QUERY_EDITOR_HPP
+#ifndef PHONOMETRICA_BOOKMARK_EDITOR_HPP
+#define PHONOMETRICA_BOOKMARK_EDITOR_HPP
 
+
+#include <memory>
 #include <QDialog>
-#include <QDialogButtonBox>
-#include <phon/application/search/query.hpp>
-#include <phon/gui/search_box.hpp>
+#include <QLineEdit>
+#include <QTextEdit>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QLabel>
 
-class QGroupBox;
-class QLineEdit;
+#include <phon/application/bookmark.hpp>
 
 namespace phonometrica {
 
-class NumberEdit;
-class BooleanEdit;
-class CheckList;
-class CheckListBox;
-
-
-class QueryEditor final : public QDialog
+class BookmarkEditor final : public QDialog
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
 
-	QueryEditor(QWidget *parent, int context_length = 30);
+    BookmarkEditor(QWidget *parent = nullptr);
 
-	void resurrect();
+    ~BookmarkEditor() = default;
 
 signals:
 
-	void queryReady(AutoQuery);
+	void bookmarkAvailable(AutoBookmark);
 
 public slots:
-
 	void accept();
 
 private:
-
-	void setupUi(int context_length);
-
-	QWidget * createFileBox();
-
-	QGroupBox *createProperties();
-
-	AnnotationSet getAnnotations();
-
-	AutoQuery buildQuery();
-
-	Array<AutoMetaNode> getMetadata();
-
-	AutoSearchNode getSearchTree();
-
-	QLineEdit *query_name_edit;
-
-	SearchBox *search_box;
-
-	QWidget *main_widget;
-
-	CheckList *selected_files_box;
-
-	QComboBox *description_box;
-
-	QLineEdit *description_line;
-
-	Array<NumberEdit*> numeric_properties;
-
-	Array<BooleanEdit*> boolean_properties;
-
-	Array<CheckListBox*> text_properties;
-
-	int properties_per_row = 3;
+    QLineEdit   *title_line;
+    QTextEdit   *notes_edit;
+    QPushButton *ok_button, *cancel_button;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_QUERY_EDITOR_HPP
+#endif // PHONOMETRICA_BOOKMARK_EDITOR_HPP

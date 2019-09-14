@@ -1545,7 +1545,7 @@ bool String::iequals(Substring self, Substring other)
 	auto it1 = self.begin();
 	auto it2 = other.begin();
 
-	while (it1 != self.begin())
+	while (it1 != self.end())
 	{
 		auto r1 = utf8_to_code_point(it1, (const char*)self.end());
 		auto r2 = utf8_to_code_point(it2, (const char*)other.end());
@@ -1553,6 +1553,8 @@ bool String::iequals(Substring self, Substring other)
 		auto c2 = utf8proc_tolower(r2.codepoint);
 
 		if (c1 != c2) return false;
+		it1 = r1.next;
+		it2 = r2.next;
 	}
 
 	return true;
@@ -1584,6 +1586,7 @@ String::const_iterator String::ifind(Substring substring, String::const_iterator
 		{
 			return reinterpret_cast<const_iterator>(it);
 		}
+		advance(it, 1);
 	}
 
 	return this->cend();

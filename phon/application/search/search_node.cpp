@@ -95,7 +95,7 @@ QueryMatchSet SearchConstraint::filter(const AutoAnnotation &annotation, const Q
 
 String SearchConstraint::to_string() const
 {
-	String s("e");
+	String s("#");
 	s.append(String::convert(intptr_t(index)));
 	return s;
 //	auto s = utils::format("(layer_index = %, layer_name = \"%\", case_sensitive = %, op = %, relation = %, value = \"%\")",
@@ -144,7 +144,6 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 	EventList events = annot->get_layer_events(layer_index);
 	QueryMatchSet matches;
 	static String sep(" ");
-	int found = 0;
 
 	for (intptr_t i = 1; i <= events.size(); i++)
 	{
@@ -161,13 +160,9 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 			it = end;
 			auto left = Annotation::left_context(events, i, start, context_length, sep);
 			auto right = Annotation::right_context(events, i, end, context_length, sep);
-			assert(left.grapheme_count() <= context_length);
-			assert(right.grapheme_count() <= context_length);
 			matches.insert(std::make_shared<Concordance>(annot, layer_index, event, match, ++match_index, left, right));
-			found++;
 		}
 	}
-	auto s = matches.size();
 
 	return matches;
 }
@@ -176,6 +171,7 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 {
 	EventList events = annot->get_layer_events(layer_index);
 	QueryMatchSet matches;
+	static String sep(" ");
 
 	for (intptr_t i = 1; i <= events.size(); i++)
 	{
@@ -183,19 +179,30 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 		int match_index = 0;
 		auto &label = event->text();
 		auto it = label.begin();
+		intptr_t grapheme_count = case_sensitive ? 0 : value.grapheme_count();
 
 		if (case_sensitive)
 		{
 			while((it = label.find(value, it)) != label.end())
 			{
-				matches.insert(std::make_shared<QueryMatch>(annot, layer_index, event, value, ++match_index));
+				String::const_iterator end = it + value.size();
+				auto left = Annotation::left_context(events, i, it, context_length, sep);
+				auto right = Annotation::right_context(events, i, end, context_length, sep);
+				matches.insert(std::make_shared<Concordance>(annot, layer_index, event, value, ++match_index, left, right));
+				it = end;
 			}
 		}
 		else
 		{
 			while((it = label.ifind(value, it)) != label.end())
 			{
-				matches.insert(std::make_shared<QueryMatch>(annot, layer_index, event, value, ++match_index));
+				String::const_iterator end = it;
+				label.advance(end, grapheme_count);
+				String text(it, intptr_t(end-it));
+				auto left = Annotation::left_context(events, i, it, context_length, sep);
+				auto right = Annotation::right_context(events, i, end, context_length, sep);
+				matches.insert(std::make_shared<Concordance>(annot, layer_index, event, text, ++match_index, left, right));
+				it = end;
 			}
 		}
 	}

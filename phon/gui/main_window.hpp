@@ -66,6 +66,8 @@ private slots:
 
     void executeQuery(AutoQuery query);
 
+    void updateStatus(const String &);
+
 private:
 
     bool finalize();
@@ -91,6 +93,8 @@ private:
     void runLastQuery();
 
     void cacheQueryEditor(QueryEditor *ed);
+
+    void setDatabaseConnection();
 
     Splitter *splitter;
 

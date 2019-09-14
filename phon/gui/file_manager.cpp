@@ -101,8 +101,8 @@ void FileManager::initStatusBar(QStatusBar *status_bar)
     info_button = new QPushButton(QIcon(":/icons/info.png"), tr("Hide metadata"));
     info_button->setFlat(true);
 
-    status_bar->addWidget(console_button);
-    status_bar->addWidget(info_button);
+    status_bar->addPermanentWidget(console_button);
+    status_bar->addPermanentWidget(info_button);
 }
 
 void FileManager::refreshLabel()

@@ -40,22 +40,28 @@ AutoDataset Query::execute()
 
 void Query::filter_metadata()
 {
-	emit debug("METADATA:");
 	for (auto &node : metadata)
 	{
 		annotations = node->filter(annotations);
 	}
 
+#if PHON_DEBUG_CONSOLE
+	emit debug("METADATA:");
+
 	for (auto &annot : annotations)
 	{
 		emit debug(annot->path());
 	}
+#endif
 }
 
 QueryMatchList Query::filter_data()
 {
+#if PHON_DEBUG_CONSOLE
 	emit debug("CONSTRAINTS:");
 	emit debug(search_tree->to_string());
+#endif
+
 	QueryMatchList results;
 	int count = annotations.size();
 
@@ -71,7 +77,8 @@ QueryMatchList Query::filter_data()
 
 		annot->open();
 		auto matches = search_tree->filter(annot, QueryMatchSet());
-		results.reserve(matches.size());
+		auto new_size = results.size() + matches.size();
+		results.reserve(new_size);
 
 		for (auto it = matches.begin(); it != matches.end(); /* nothing */)
 		{
@@ -80,8 +87,9 @@ QueryMatchList Query::filter_data()
 	}
 	progress.setValue(count);
 
-	//std::sort(results.begin(), results.end(), MatchLessCompare());
+#if PHON_DEBUG_CONSOLE
 	emit done();
+#endif
 
 	return results;
 }

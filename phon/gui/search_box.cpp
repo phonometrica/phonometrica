@@ -61,6 +61,7 @@ void DefaultSearchBox::setupUi()
 	auto add_remove_layout = new QHBoxLayout;
 	add_button = new QPushButton(QIcon(":/icons/plus.png"), QString());
 	remove_button = new QPushButton(QIcon(":/icons/minus.png"), QString());
+	add_button->setEnabled(false);
 
 	add_remove_layout->addWidget(add_button);
 	add_remove_layout->addWidget(remove_button);
@@ -97,8 +98,8 @@ void DefaultSearchBox::addSearchConstraint(bool )
 	end_box->addItem(")");
 
 	auto match_box = new QComboBox;
-	match_box->addItem(tr("matches regex"));
-	match_box->addItem(tr("contains text"));
+	match_box->addItem(tr("match pattern"));
+	match_box->addItem(tr("find text"));
 
 	auto search_line = new LineEdit(tr("text or regular expression..."));
 	auto case_box = new QCheckBox(tr("case sensitive"));
@@ -309,7 +310,7 @@ AutoSearchNode DefaultSearchBox::parseConstraint(int layout_index)
 
 	// Match operator.
 	auto match_box = cast<QComboBox>(layout, i++);
-	auto op = (match_box->currentIndex() == 0) ? SearchConstraint::Opcode::Matches : SearchConstraint::Opcode::Equals;
+	auto op = (match_box->currentIndex() == 0) ? SearchConstraint::Opcode::Matches : SearchConstraint::Opcode::Contains;
 
 	// Text value.
 	auto text_edit = cast<LineEdit>(layout, i++);

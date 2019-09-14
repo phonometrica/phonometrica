@@ -15,20 +15,21 @@ set(CMAKE_CXX_STANDARD 17)
 set(BUILD_GUI ON)
 set(EMBED_SCRIPTS ON)
 set(BUILD_UNIT_TEST OFF)
+set(DEBUG_CONSOLE OFF)
 
 # Major release: incremented when major changes are introduced
 add_definitions(-DPHON_VERSION_MAJOR=0)
 # Minor release: incremented when new features and/or bug fixes are introduced
-add_definitions(-DPHON_VERSION_MINOR=3)
+add_definitions(-DPHON_VERSION_MINOR=4)
 # Revision release: incremented when bugs are fixed are small features are added
-add_definitions(-DPHON_VERSION_MICRO=3)
+add_definitions(-DPHON_VERSION_MICRO=0)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=0)
+add_definitions(-DPHON_VERSION_NANO=1)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=9)
-add_definitions(-DPHON_RELEASE_DATE_DAY=7)
+add_definitions(-DPHON_RELEASE_DATE_DAY=14)
 
 # Operating system
 if(WIN32)
@@ -66,6 +67,10 @@ endif()
 
 if (NOT BUILD_UNIT_TEST)
     add_definitions(-DPHON_WITH_QT)
+endif()
+
+if (DEBUG_CONSOLE)
+    add_definitions(-DPHON_DEBUG_CONSOLE=1)
 endif()
 
 if (BUILD_GUI)

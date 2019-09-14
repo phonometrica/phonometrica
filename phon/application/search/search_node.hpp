@@ -81,7 +81,7 @@ public:
 	enum class Opcode : uint8_t
 	{
 		Matches,
-		Equals
+		Contains
 	};
 
 	enum class Relation : uint8_t

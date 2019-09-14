@@ -100,6 +100,11 @@ std::string get_version()
     std::ostringstream os;
     os << PHON_VERSION_MAJOR << "." << PHON_VERSION_MINOR << "." << PHON_VERSION_MICRO;
 
+    if (PHON_VERSION_NANO > 0)
+    {
+    	os << " (test " << PHON_VERSION_NANO << ")";
+    }
+
     return os.str();
 }
 

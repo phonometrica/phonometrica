@@ -94,6 +94,10 @@ class MetaDatabase final : public Database
 {
     Q_OBJECT
 
+signals:
+
+	void saving_metadata(const String &);
+
 public:
 
 	MetaDatabase(const String &path, bool create_table);

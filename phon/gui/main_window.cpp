@@ -84,11 +84,14 @@ MainWindow::MainWindow(Runtime &rt, QWidget *parent)
 	connect(Project::instance(), &Project::notify_closed, viewer, &Viewer::closeAll);
     connect(Project::instance(), &Project::metadata_updated, file_manager, &FileManager::refreshLabel);
     connect(Project::instance(), &Project::metadata_updated, main_area->infoPanel(), &InfoPanel::reset);
+    connect(Project::instance(), &Project::initialized, this, &MainWindow::setDatabaseConnection);
     connect(file_manager->tree(), &ProjectCtrl::script_selected, viewer, &Viewer::openScriptView);
     connect(file_manager->tree(), &ProjectCtrl::files_selected, main_area->infoPanel(), &InfoPanel::showSelection);
     connect(file_manager->tree(), &ProjectCtrl::no_selection, main_area->infoPanel(), &InfoPanel::showEmptySelection);
     connect(Project::instance(), &Project::request_save, viewer, &Viewer::saveViews);
     connect(file_manager->tree(), &ProjectCtrl::view_file, viewer, &Viewer::view);
+
+    setDatabaseConnection();
 
     postInitialize();
 
@@ -137,6 +140,13 @@ MainWindow::MainWindow(Runtime &rt, QWidget *parent)
     // FIXME: We need to delay splitter adjustment, otherwise they won't show up in the right place.
     //  See: https://stackoverflow.com/questions/28795329/qsplitter-sizes-indicates-wrong-sizes
     QTimer::singleShot(50, this, SLOT(adjustSplitters()));
+
+    updateStatus("Ready");
+}
+
+void MainWindow::updateStatus(const String &msg)
+{
+	statusBar()->showMessage(msg, 2000);
 }
 
 void MainWindow::adjustProject()
@@ -753,12 +763,11 @@ void MainWindow::runLastQuery()
 {
 	if (query_editor)
 	{
-		query_editor->show();
+		query_editor->resurrect();
 	}
 	else
 	{
-		QMessageBox dlg(QMessageBox::Critical, "Error", "You haven't run any query yet!");
-		dlg.exec();
+		openQueryEditor();
 	}
 }
 
@@ -789,6 +798,11 @@ void MainWindow::executeQuery(AutoQuery query)
 	}
 }
 
+void MainWindow::setDatabaseConnection()
+{
+	auto &db = Project::instance()->database();
+	connect(&db, &MetaDatabase::saving_metadata, this, &MainWindow::updateStatus);
+}
 
 
 } // phonometrica

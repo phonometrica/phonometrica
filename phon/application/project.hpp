@@ -154,6 +154,8 @@ signals:
 
 	void request_save();
 
+	void initialized();
+
 private:
 
     void load();

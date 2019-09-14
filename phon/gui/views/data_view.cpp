@@ -63,7 +63,7 @@ DataView::DataView(QWidget *parent, Runtime &rt, std::shared_ptr<Dataset> data) 
 
         auto play = [=](bool) {
         	auto index = m_table->currentIndex();
-        	this->onCellDoubleClicked(index.row(), index.column());
+        	if (index.isValid()) onCellDoubleClicked(index.row(), index.column());
         };
 
         auto stop = [=](bool) {
@@ -72,7 +72,7 @@ DataView::DataView(QWidget *parent, Runtime &rt, std::shared_ptr<Dataset> data) 
 
         auto edit = [=](bool) {
         	auto index = m_table->currentIndex();
-        	this->editEvent(index.row());
+        	if (index.isValid()) editEvent(index.row());
         };
 
         connect(play_action, &QAction::triggered, play);
@@ -107,12 +107,12 @@ DataView::DataView(QWidget *parent, Runtime &rt, std::shared_ptr<Dataset> data) 
 
 		auto view_event = [=](bool) {
 			auto index = m_table->currentIndex();
-			openInAnnotation(index.row());
+			if (index.isValid()) openInAnnotation(index.row());
 		};
 
 		auto open_in_praat = [=](bool) {
 			auto index = m_table->currentIndex();
-			openMatchInPraat(index.row());
+			if (index.isValid()) openMatchInPraat(index.row());
 		};
 
 		connect(info_action, &QAction::triggered, this, &DataView::refreshTable);
@@ -252,7 +252,7 @@ void DataView::onCellClicked(int i, int j)
 	}
 }
 
-void DataView::keyReleaseEvent(QKeyEvent *event)
+void DataView::keyPressEvent(QKeyEvent *event)
 {
 	if (!m_data->is_query_dataset())
 	{
