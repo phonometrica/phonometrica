@@ -25,9 +25,11 @@
 #include <QToolButton>
 #include <QHeaderView>
 #include <QFontDatabase>
+#include <QFileDialog>
 #include <QMessageBox>
 #include <QMenu>
 #include <QLayout>
+#include <phon/application/project.hpp>
 #include <phon/application/audio_player.hpp>
 #include <phon/application/praat.hpp>
 #include <phon/application/settings.hpp>
@@ -56,7 +58,9 @@ DataView::DataView(QWidget *parent, Runtime &rt, std::shared_ptr<Dataset> data) 
 		edit_action = toolbar->addAction(QIcon(":/icons/edit_row.png"), tr("Edit event label"));
 		enableQueryButtons(false);
 
-	#if PHON_MACOS
+		auto csv_action = toolbar->addAction(QIcon(":/icons/export_csv.png"), tr("Export to tab-separated value file"));
+
+#if PHON_MACOS
 		toolbar->setMaximumHeight(30);
         toolbar->setStyleSheet("QToolBar{spacing:0px;}");
 	#endif
@@ -78,6 +82,7 @@ DataView::DataView(QWidget *parent, Runtime &rt, std::shared_ptr<Dataset> data) 
         connect(play_action, &QAction::triggered, play);
         connect(stop_action, &QAction::triggered, stop);
         connect(edit_action, &QAction::triggered, edit);
+        connect(csv_action, &QAction::triggered, this, &DataView::exportToCsv);
         layout->addWidget(toolbar);
 
         auto column_menu = new QMenu;
@@ -369,6 +374,26 @@ void DataView::stopPlayer()
 	{
 		player->stop();
 		player = nullptr;
+	}
+}
+
+void DataView::exportToCsv(bool)
+{
+	String dir = Settings::get_last_directory(runtime);
+	auto p = QFileDialog::getSaveFileName(this, tr("Save as CSV file..."), dir);
+	if (p.isNull()) return;
+	String path = p;
+	if (!path.ends_with(".csv")) path.append(".csv");
+	m_data->to_csv(path);
+
+	auto reply = QMessageBox::question(this, tr("Import file?"), tr("Would you like to import this dataset into the current project?"),
+			QMessageBox::Yes|QMessageBox::No);
+
+	if (reply == QMessageBox::Yes)
+	{
+		auto project = Project::instance();
+		project->import_file(path);
+		emit project->notify_update();
 	}
 }
 

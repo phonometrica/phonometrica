@@ -109,6 +109,8 @@ public:
 	// Check whether the end of the file has been reached
 	bool at_end();
 
+	void write(char c);
+
 	// Write a string to this file
 	void write(const char *text);
 

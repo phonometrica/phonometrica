@@ -59,6 +59,8 @@ public:
 
 	virtual bool is_spreadsheet() const { return false; }
 
+	virtual void to_csv(const String &path, const String &sep = "\t");
+
 private:
 
 	void load() override;

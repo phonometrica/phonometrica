@@ -19,6 +19,7 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+#include <phon/file.hpp>
 #include <phon/application/dataset.hpp>
 #include <phon/utils/file_system.hpp>
 
@@ -94,6 +95,30 @@ Dataset::Type Dataset::guess_type() const
 	}
 
 	return Undefined;
+}
+
+void Dataset::to_csv(const String &path, const String &sep)
+{
+	File file(path, File::Write);
+	auto nrow = this->row_count();
+	auto ncol = this->column_count();
+
+	for (intptr_t j = 1; j <= ncol; j++)
+	{
+		file.write(get_header(j));
+		if (j == ncol) file.write('\n');
+		else file.write(sep);
+	}
+
+	for (intptr_t i = 1; i <= nrow; i++)
+	{
+		for (intptr_t j = 1; j <= ncol; j++)
+		{
+			file.write(get_cell(i, j));
+			if (j == ncol) file.write('\n');
+			else file.write(sep);
+		}
+	}
 }
 
 } // namespace phonometrica

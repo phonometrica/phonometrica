@@ -183,7 +183,6 @@ void InfoPanel::setWidgets(bool showTimes)
     soundRef_label = new QLabel;
     properties_btn = new QPushButton(tr("Edit properties..."));
     import_btn = new QPushButton(tr("Import metadata..."));
-    bind_btn = new QPushButton(tr("Bind..."));
     desc_edit = new QTextEdit;
     description_is_editable = false;
     samplerate_label = new QLabel;
@@ -192,7 +191,12 @@ void InfoPanel::setWidgets(bool showTimes)
     auto sound_layout = new QHBoxLayout;
     sound_layout->addWidget(soundRef_label);
     sound_layout->addStretch(1);
-    sound_layout->addWidget(bind_btn);
+	if (m_files.first()->is_annotation())
+	{
+		bind_btn = new QPushButton(tr("Bind..."));
+		sound_layout->addWidget(bind_btn);
+		connect(bind_btn, SIGNAL(clicked()), this, SLOT(bindAnnotation()));
+	}
 
     vl->addWidget(file_label);
     vl->addLayout(sound_layout);
@@ -205,7 +209,6 @@ void InfoPanel::setWidgets(bool showTimes)
 
     connect(properties_btn, SIGNAL(clicked()), this, SLOT(editProperties()));
     connect(import_btn, SIGNAL(clicked()), this, SLOT(importMetadata()));
-    connect(bind_btn, SIGNAL(clicked()), this, SLOT(bindAnnotation()));
 
     if (showTimes)
     {

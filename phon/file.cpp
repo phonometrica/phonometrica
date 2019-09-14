@@ -477,6 +477,12 @@ void File::write(const char *text)
     fputs(text, m_handle);
 }
 
+void File::write(char c)
+{
+	check_handle();
+	fputc(c, m_handle);
+}
+
 void File::write(const String &text)
 {
     write(text.data());

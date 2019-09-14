@@ -429,7 +429,7 @@ void Project::parse_data(xml_node root, VFolder *folder)
 				auto dataset = std::make_shared<Spreadsheet>(folder, std::move(path));
 				dataset->from_xml(node, m_directory);
 				folder->append(dataset, false);
-				trigger(dataset_loaded, dataset->class_name(), std::move(dataset));
+				trigger(dataset_loaded, dataset->class_name(), dataset);
 			}
 			else
 			{

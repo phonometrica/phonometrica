@@ -60,6 +60,8 @@ private slots:
 
 	void openMatchInPraat(int i);
 
+	void exportToCsv(bool);
+
 protected:
 
 	void keyPressEvent(QKeyEvent *event) override;
