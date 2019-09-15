@@ -364,8 +364,15 @@ void DataView::openMatchInPraat(int i)
 	{
 		sound_path = annot->sound()->path();
 	}
-
-	praat::open_interval(match->layer_index(), match->start_time(), annot->path(), sound_path);
+	
+	try {
+		praat::open_interval(match->layer_index(), match->start_time(), annot->path(), sound_path);		
+	}
+	catch (std::exception &e)
+	{
+		QMessageBox msg(QMessageBox::Critical, tr("Cannot open interval in Praat"), e.what());
+		msg.exec();
+	}
 }
 
 void DataView::stopPlayer()

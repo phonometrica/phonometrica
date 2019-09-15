@@ -424,7 +424,14 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
                 auto path = file->path();
                 auto action = new QAction(tr("Open sound in Praat"), this);
                 connect(action, &QAction::triggered, [=](bool) {
-                    praat::open_sound(path);
+                	try {
+		                praat::open_sound(path);
+                	}
+                	catch (std::exception &e)
+	                {
+		                QMessageBox msg(QMessageBox::Critical, tr("Cannot open sound in Praat"), e.what());
+		                msg.exec();
+	                }
                 });
             }
             else if (file->is_script())
@@ -566,16 +573,24 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
     menu.display(pos);
 }
 
-void ProjectCtrl::openInPraat(const std::shared_ptr<Annotation> &annot)
+void ProjectCtrl::openInPraat(const AutoAnnotation &annot)
 {
-    if (annot->has_sound())
-    {
-        praat::open_textgrid(annot->path(), annot->sound()->path());
-    }
-    else
-    {
-        praat::open_textgrid(annot->path());
-    }
+	try
+	{
+		if (annot->has_sound())
+		{
+			praat::open_textgrid(annot->path(), annot->sound()->path());
+		}
+		else
+		{
+			praat::open_textgrid(annot->path());
+		}	
+	}
+	catch (std::exception &e)
+	{
+		QMessageBox msg(QMessageBox::Critical, tr("Cannot open TextGrid in Praat"), e.what());
+		msg.exec();
+	}
 }
 
 VFileList ProjectCtrl::get_vfiles(const QList<QTreeWidgetItem *> &items)

@@ -158,9 +158,18 @@ static void run_temp_script(const String &script)
 
 #if PHON_WINDOWS
     auto wargs = args.to_wide();
-    sendpraatW(nullptr, L"praat", 0, wargs.data());
+    auto result = sendpraatW(nullptr, L"praat", 0, wargs.data());
+
+    if (result != nullptr)
+    {
+		String msg(result);
+		throw error(msg);
+    }
 #else
-	sendpraat(nullptr, "praat", 0, args.data());
+	auto result = sendpraat(nullptr, "praat", 0, args.data());
+
+	if (result != nullptr)
+		throw error(result);
 #endif
 	
 	filesystem::remove_file(path);
