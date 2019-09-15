@@ -154,13 +154,7 @@ void Project::load()
 
 	xml_document doc;
 	xml_node root;
-
-#if PHON_WINDOWS
-	auto wpath = m_path.to_wide();
-	auto result = doc.load_file(wpath.data());
-#else
-	auto result = doc.load_file(m_path.data());
-#endif
+	auto result = read_xml(doc, m_path);
 
 	if (!result) {
 		throw error(result.description());
@@ -611,12 +605,7 @@ void Project::write()
 	auto bookmarks_node = root.append_child("Bookmarks");
 	write_bookmarks(bookmarks_node);
 
-#if PHON_WINDOWS
-	auto wpath = m_path.to_wide();
-	doc.save_file(wpath.data());
-#else
-	doc.save_file(m_path.data());
-#endif
+	write_xml(doc, m_path);
 }
 
 bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent)

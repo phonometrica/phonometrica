@@ -32,7 +32,7 @@ Object *Annotation::metaobject = nullptr;
 Annotation::Annotation(VFolder *parent, String path) :
 		VFile(parent, std::move(path))
 {
-	guess_type();
+	m_type = guess_type();
 }
 
 const char *Annotation::class_name() const
@@ -65,8 +65,11 @@ void Annotation::write()
 {
 	switch (m_type)
 	{
+		case Type::Native:
+			write_as_native();
+			break;
 		case Type::TextGrid:
-			m_graph.write_textgrid(m_path);
+			write_as_textgrid(m_path);
 			break;
 		default:
 			throw error("Cannot write annotation: unsupported format");
@@ -94,8 +97,9 @@ Annotation::Type Annotation::guess_type()
 	if (!m_path.empty())
 	{
 		auto ext = filesystem::ext(m_path, true);
+		auto v = ext.view();
 
-		if (ext == ".dmf") {
+		if (ext == ".phon-annot") {
 			return Type::Native;
 		}
 		if (ext == ".textgrid") {
@@ -265,5 +269,35 @@ String Annotation::right_context(const EventList &events, intptr_t i, String::co
 void Annotation::set_event_text(AutoEvent &event, const String &new_text)
 {
 	m_graph.set_event_text(event, new_text);
+}
+
+void Annotation::metadata_to_xml(xml_node meta_node)
+{
+	VFile::metadata_to_xml(meta_node);
+	String snd = has_sound() ? sound()->path() : String();
+	auto project = Project::instance();
+	filesystem::compress(snd, project->directory());
+	add_data_node(meta_node, "Sound", snd);
+}
+
+void Annotation::write_as_native(const String &path)
+{
+	xml_document doc;
+
+	auto root = doc.append_child("Phonometrica");
+	auto attr = root.append_attribute("class");
+    attr.set_value(class_name());
+    auto meta_node = root.append_child("Metadata");
+    metadata_to_xml(meta_node);
+    auto graph_node = root.append_child("Graph");
+    m_graph.to_xml(graph_node);
+
+    auto &p = path.empty() ? m_path : path;
+    write_xml(doc, p);
+}
+
+void Annotation::write_as_textgrid(const String &path)
+{
+	m_graph.write_textgrid(path);
 }
 } // namespace phonometrica

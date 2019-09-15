@@ -522,4 +522,20 @@ bool VFile::content_modified() const
 	return m_content_modified;
 }
 
+void VFile::metadata_to_xml(xml_node meta_node)
+{
+	// The root node is "Metadata" so that subclasses can add additional metadata.
+	add_data_node(meta_node, "Description", description());
+	auto properties_node = meta_node.append_child("Properties");
+
+	for (auto &prop : properties())
+	{
+		auto prop_node = properties_node.append_child("Property");
+		auto attr = prop_node.append_attribute("type");
+		attr.set_value(prop.type_name());
+		add_data_node(prop_node, "Category", prop.category());
+		add_data_node(prop_node, "Value", prop.value());
+	}
+}
+
 } // namespace phonometrica

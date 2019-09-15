@@ -156,7 +156,7 @@ void DataView::fill_table()
 	QStringList vheaders, hheaders;
 	vheaders.reserve(m_table->rowCount());
 	hheaders.reserve(m_table->columnCount());
-	auto query_set = dynamic_cast<QueryDataset*>(m_data.get());
+	auto query_set = dynamic_cast<QueryTable*>(m_data.get());
 
 	for (int j = 1; j <= m_table->columnCount(); j++)
 	{
@@ -207,11 +207,11 @@ int DataView::getQueryFlags()
 	if (m_data->is_query_dataset())
 	{
 		if (info_action->isChecked())
-			flags |= QueryDataset::ShowFileInfo;
+			flags |= QueryTable::ShowFileInfo;
 		if (context_action->isChecked())
-			flags |= QueryDataset::ShowMatchContext;
+			flags |= QueryTable::ShowMatchContext;
 		if (property_action->isChecked())
-			flags |= QueryDataset::ShowProperties;
+			flags |= QueryTable::ShowProperties;
 	}
 
 	return flags;
@@ -220,7 +220,7 @@ int DataView::getQueryFlags()
 void DataView::refreshTable(bool)
 {
 	m_table->clear();
-	dynamic_cast<QueryDataset*>(m_data.get())->set_flags(getQueryFlags());
+	dynamic_cast<QueryTable*>(m_data.get())->set_flags(getQueryFlags());
 	int ncol = m_data->column_count();
 	m_table->setColumnCount(ncol);
 	fill_table();

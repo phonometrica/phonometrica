@@ -26,6 +26,7 @@
 #include <memory>
 #include <algorithm>
 #include <phon/string.hpp>
+#include <phon/utils/xml.hpp>
 
 namespace phonometrica {
 
@@ -200,6 +201,8 @@ public:
     bool change_end_time(std::shared_ptr<Event> &event, double new_time);
 
     void set_event_text(std::shared_ptr<Event> &event, const String &new_text);
+
+    void to_xml(xml_node graph_node);
 
 private:
 

@@ -83,6 +83,8 @@ public:
 
 	const std::type_info &type() const;
 
+	const char *type_name() const;
+
 	static void remove(const Property &p);
 
 	String to_string() const;

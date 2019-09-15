@@ -20,7 +20,7 @@
  **********************************************************************************************************************/
 
 #include <unordered_set>
-#include <phon/application/query_dataset.hpp>
+#include <phon/application/query_table.hpp>
 
 namespace phonometrica {
 
@@ -28,14 +28,14 @@ static const int BASE_COLUMN_COUNT = 7;
 static const int INFO_FILE_COUNT = 4;
 static const int CONTEXT_COUNT = 2;
 
-QueryDataset::QueryDataset(QueryMatchList matches, String label) :
+QueryTable::QueryTable(QueryMatchList matches, String label) :
 		Dataset(nullptr), m_matches(std::move(matches)), m_categories(Property::get_categories()),
 		m_label(std::move(label))
 {
 
 }
 
-String QueryDataset::get_cell(intptr_t i, intptr_t j) const
+String QueryTable::get_cell(intptr_t i, intptr_t j) const
 {
 	j = adjust_column(j);
 
@@ -65,12 +65,12 @@ String QueryDataset::get_cell(intptr_t i, intptr_t j) const
 	return get_property(i, category);
 }
 
-intptr_t QueryDataset::row_count() const
+intptr_t QueryTable::row_count() const
 {
 	return m_matches.size();
 }
 
-intptr_t QueryDataset::column_count() const
+intptr_t QueryTable::column_count() const
 {
 	/*
 	 * A match has the following columns for a simple query:
@@ -95,22 +95,22 @@ intptr_t QueryDataset::column_count() const
 	return col_count;
 }
 
-intptr_t QueryDataset::category_count() const
+intptr_t QueryTable::category_count() const
 {
 	return m_categories.size();
 }
 
-String QueryDataset::get_annotation_name(intptr_t i) const
+String QueryTable::get_annotation_name(intptr_t i) const
 {
 	return m_matches[i]->annotation()->label();
 }
 
-String QueryDataset::get_layer_index(intptr_t i) const
+String QueryTable::get_layer_index(intptr_t i) const
 {
 	return String::convert(intptr_t(m_matches[i]->layer_index()));
 }
 
-String QueryDataset::get_start_time(intptr_t i) const
+String QueryTable::get_start_time(intptr_t i) const
 {
 	auto s = String::convert(m_matches[i]->start_time());
 	s.chop(8);
@@ -118,7 +118,7 @@ String QueryDataset::get_start_time(intptr_t i) const
 	return s;
 }
 
-String QueryDataset::get_end_time(intptr_t i) const
+String QueryTable::get_end_time(intptr_t i) const
 {
 	auto s = String::convert(m_matches[i]->end_time());
 	s.chop(8);
@@ -126,32 +126,32 @@ String QueryDataset::get_end_time(intptr_t i) const
 	return s;
 }
 
-String QueryDataset::get_left_context(intptr_t i) const
+String QueryTable::get_left_context(intptr_t i) const
 {
 	return dynamic_cast<Concordance*>(m_matches[i].get())->left();
 }
 
-String QueryDataset::get_matched_text(intptr_t i, intptr_t submatch_index) const
+String QueryTable::get_matched_text(intptr_t i, intptr_t submatch_index) const
 {
 	return m_matches[i]->text();
 }
 
-String QueryDataset::get_right_context(intptr_t i) const
+String QueryTable::get_right_context(intptr_t i) const
 {
 	return dynamic_cast<Concordance*>(m_matches[i].get())->right();
 }
 
-String QueryDataset::get_property(intptr_t i, const String &category) const
+String QueryTable::get_property(intptr_t i, const String &category) const
 {
 	return m_matches[i]->annotation()->get_property_value(category);
 }
 
-String QueryDataset::label() const
+String QueryTable::label() const
 {
 	return m_label;
 }
 
-String QueryDataset::get_header(intptr_t j) const
+String QueryTable::get_header(intptr_t j) const
 {
 	j = adjust_column(j);
 
@@ -181,12 +181,12 @@ String QueryDataset::get_header(intptr_t j) const
 	return category;
 }
 
-bool QueryDataset::empty() const
+bool QueryTable::empty() const
 {
 	return m_matches.empty();
 }
 
-intptr_t QueryDataset::adjust_column(intptr_t j) const
+intptr_t QueryTable::adjust_column(intptr_t j) const
 {
 	if (!(m_flags & ShowFileInfo))
 		j += INFO_FILE_COUNT;
@@ -199,6 +199,63 @@ intptr_t QueryDataset::adjust_column(intptr_t j) const
 	}
 
 	return j;
+}
+
+void QueryTable::load()
+{
+
+}
+
+void QueryTable::write()
+{
+	// TODO: read/write query table from/to native format
+#if 0
+	assert(!m_path.empty());
+	int flags = m_flags;
+	m_flags = 0;
+
+	xml_document doc;
+	auto root = doc.append_child("Phonometrica");
+	auto attr = root.append_attribute("class");
+    attr.set_value(class_name());
+    auto data_node = root.append_child("Data");
+    attr = data_node.append_attribute("size");
+	attr.set_value(m_matches.size());
+	auto nrow = this->row_count();
+	auto ncol = BASE_COLUMN_COUNT;
+
+	Array<String> headers;
+	headers.append("Annotation");
+	headers.append("Layer");
+	headers.append("StartTime");
+	headers.append("EndTime");
+	headers.append("LeftContext");
+	headers.append("Match");
+	headers.append("RightContext");
+
+	for  (intptr_t j = 1; j <= ncol; j++) headers.append(get_header(j));
+
+	for (intptr_t i = 1; i <= nrow; i++)
+	{
+		auto node = data_node.append_child("QueryMatch");
+
+		for (intptr_t j = 1; j <= ncol; j++)
+		{
+			auto subnode = node.append_child(headers[j].data());
+			auto data = subnode.append_child(node_pcdata);
+			auto field = get_cell(i, j);
+			data.set_value(field.data());
+		}
+	}
+
+    write_xml(doc, m_path);
+    m_flags = flags;
+#endif
+}
+
+const char *QueryTable::class_name() const
+{
+	return "QueryTable";
 }
 
 } // namespace phonometrica

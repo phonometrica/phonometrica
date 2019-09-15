@@ -28,7 +28,7 @@
 #include <phon/gui/views/view.hpp>
 #include <phon/application/dataset.hpp>
 #include <phon/application/annotation.hpp>
-#include <phon/application/query_dataset.hpp>
+#include <phon/application/query_table.hpp>
 
 namespace phonometrica {
 
@@ -78,7 +78,7 @@ private:
 
 	void openInAnnotation(int i);
 
-	QueryDataset *getQueryDataset() const { return dynamic_cast<QueryDataset*>(m_data.get()); }
+	QueryTable *getQueryDataset() const { return dynamic_cast<QueryTable*>(m_data.get()); }
 
 	void enableQueryButtons(bool enable);
 

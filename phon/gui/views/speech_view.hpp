@@ -94,6 +94,8 @@ protected:
 
     void setPauseIcon();
 
+    virtual void addEditButtons(QToolBar *) { }
+
     virtual void addAnnotationMenu(QToolBar *) { }
 
     virtual void addAnnotationLayers(QVBoxLayout *) { }

@@ -23,8 +23,7 @@
 #include <phon/error.hpp>
 #include <phon/application/agraph.hpp>
 #include <phon/application/praat.hpp>
-#include "agraph.hpp"
-
+#include <phon/hashmap.hpp>
 
 namespace phonometrica { 
 
@@ -549,6 +548,52 @@ bool AGraph::change_time(std::shared_ptr<Event> &event, std::shared_ptr<Event> &
     m_modified = true;
 
     return true;
+}
+
+void AGraph::to_xml(xml_node graph_node)
+{
+	auto anchors_node = graph_node.append_child("Anchors");
+	Hashmap<Anchor*, intptr_t> anchor_map;
+
+	for (intptr_t i = 1; i <= anchors.size(); i++)
+	{
+		auto &anchor = anchors[i];
+		auto anchor_node = anchors_node.append_child("Anchor");
+		auto attr = anchor_node.append_attribute("id");
+		attr.set_value(i);
+		auto time = String::convert(anchor->time);
+		add_data_node(anchor_node, "Time", time);
+		anchor_map[anchor.get()] = i;
+	}
+
+	auto layers_node = graph_node.append_child("Layers");
+
+	for (auto &layer : layers())
+	{
+		auto layer_node = layers_node.append_child("Layer");
+		auto attr = layer_node.append_attribute("index");
+		attr.set_value(layer->index);
+		attr = layer_node.append_attribute("label");
+		attr.set_value(layer->label.data());
+		attr = layer_node.append_attribute("instants");
+		attr.set_value(layer->has_instants);
+	}
+
+	auto events_node = graph_node.append_child("Events");
+
+	for (auto &event : events)
+	{
+		auto event_node = events_node.append_child("Event");
+		auto attr = event_node.append_attribute("layer");
+		attr.set_value(event->layer_index());
+		auto start_node = event_node.append_child("StartAnchor");
+		attr = start_node.append_attribute("id");
+		attr.set_value(anchor_map[event->m_start]);
+		auto end_node = event_node.append_child("EndAnchor");
+		attr = end_node.append_attribute("id");
+		attr.set_value(anchor_map[event->m_end]);
+		add_data_node(event_node, "Text", event->text().data());
+	}
 }
 
 } // namespace phonometrica

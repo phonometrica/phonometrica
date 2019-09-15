@@ -35,7 +35,7 @@ Query::Query(const String &label, AnnotationSet annotations, Array<AutoMetaNode>
 AutoDataset Query::execute()
 {
 	filter_metadata();
-	return std::make_shared<QueryDataset>(filter_data(), m_label);
+	return std::make_shared<QueryTable>(filter_data(), m_label);
 }
 
 void Query::filter_metadata()

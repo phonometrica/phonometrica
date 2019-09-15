@@ -34,13 +34,22 @@ AnnotationView::AnnotationView(Runtime &rt, std::shared_ptr<Annotation> annot, Q
     this->annot->open();
 }
 
+void AnnotationView::addEditButtons(QToolBar *toolbar)
+{
+	auto save_action = new QAction(QIcon(":/icons/save.png"), "Save annotation");
+	toolbar->addAction(save_action);
+	toolbar->addSeparator();
+
+	connect(save_action, &QAction::triggered, this, &AnnotationView::saveAnnotation);
+}
+
 void AnnotationView::addAnnotationMenu(QToolBar *toolbar)
 {
     auto layer_action = new QAction(QIcon(":/icons/layers.png"), "Manage layers");
     auto anchor_action = new QAction(QIcon(":/icons/anchor.png"), "Manage anchors");
+
     toolbar->addAction(layer_action);
     toolbar->addAction(anchor_action);
-    toolbar->addSeparator();
 }
 
 void AnnotationView::addAnnotationLayers(QVBoxLayout *layout)
@@ -153,5 +162,26 @@ void AnnotationView::openSelection(intptr_t layer, double from, double to)
 	auto t = from + (to - from) / 2;
 	focusEvent(layer, t);
 }
+
+void AnnotationView::saveAnnotation(bool)
+{
+	if (!annot->has_path())
+	{
+		QString dir = Settings::get_string(rt, "last_directory");
+		auto path = QFileDialog::getSaveFileName(this, tr("Save annotation..."), dir, tr("Annotation (*.phon-annot)"));
+
+		if (path.isEmpty()) {
+			return; // cancelled
+		}
+		if (!path.endsWith(".phon-annot")) {
+			path.append(".phon-annot");
+		}
+		annot->set_path(path, true);
+	}
+
+	annot->save();
+	Project::instance()->notify_update();
+}
+
 
 } // namespace phonometrica

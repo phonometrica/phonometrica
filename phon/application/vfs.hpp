@@ -235,6 +235,8 @@ protected:
 
 	virtual bool content_modified() const;
 
+	virtual void metadata_to_xml(xml_node meta_node);
+
 	String m_path;
 
 	std::set<Property> m_properties;

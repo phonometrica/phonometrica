@@ -22,13 +22,13 @@
 #include <QDropEvent>
 #include <QQueue>
 #include <QInputDialog>
+#include <QFileDialog>
 #include <QMenu>
 #include <QFileIconProvider>
 #include <phon/gui/project_ctrl.hpp>
 #include <phon/gui/property_editor.hpp>
 #include <phon/application/praat.hpp>
-#include "project_ctrl.hpp"
-
+#include <phon/application/settings.hpp>
 
 namespace phonometrica {
 
@@ -403,6 +403,20 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
                     connect(action, &QAction::triggered, this, [=](bool) {
                         openInPraat(annot);
                     });
+
+                    action = new QAction(tr("Save as Phonometrica annotation..."), this);
+                    menu.addAction(action);
+                    connect(action, &QAction::triggered, this, [=](bool) {
+                    	textGridToNative(annot);
+                    });
+                }
+                else if (annot->is_native())
+                {
+                	auto action = new QAction(tr("Save as Praat TextGrid..."), this);
+                    menu.addAction(action);
+                    connect(action, &QAction::triggered, this, [=](bool) {
+                    	nativeToTextGrid(annot);
+                    });
                 }
             }
             else if (file->is_sound())
@@ -579,6 +593,45 @@ VFileList ProjectCtrl::get_vfiles(const QList<QTreeWidgetItem *> &items)
     }
 
     return files;
+}
+
+void ProjectCtrl::textGridToNative(const AutoAnnotation &annot)
+{
+	QString dir = Settings::get_string(rt, "last_directory");
+	auto path = QFileDialog::getSaveFileName(this, tr("Save as annotation..."), dir, tr("Annotation (*.phon-annot)"));
+
+	if (path.isEmpty()) {
+		return; // cancelled
+	}
+	if (!path.endsWith(".phon-annot")) {
+		path.append(".phon-annot");
+	}
+	annot->write_as_native(path);
+
+	// TODO: import annotation on export
+#if 0
+	auto reply = QMessageBox::question(this, tr("Import file?"), tr("Would you like to import this annotation into the current project?"),
+	                                   QMessageBox::Yes|QMessageBox::No);
+
+	if (reply == QMessageBox::Yes)
+	{
+		auto project = Project::instance();
+		project->import_file(path);
+		emit project->notify_update();
+	}
+#endif
+}
+
+void ProjectCtrl::nativeToTextGrid(const AutoAnnotation &annot)
+{
+	QString dir = Settings::get_string(rt, "last_directory");
+	auto path = QFileDialog::getSaveFileName(this, tr("Save as TextGrid..."), dir, tr("TextGrid (*.TextGrid)"));
+
+	if (path.isEmpty()) {
+		return; // cancelled
+	}
+
+	annot->write_as_textgrid(path);
 }
 
 } // phonometrica

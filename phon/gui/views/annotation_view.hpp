@@ -42,6 +42,8 @@ public:
 
 protected:
 
+	void addEditButtons(QToolBar *toolbar) override;
+
     void addAnnotationMenu(QToolBar *toolbar) override;
 
     void addAnnotationLayers(QVBoxLayout *layout) override;
@@ -56,6 +58,8 @@ private slots:
     void setMovingAnchor(intptr_t layer, double time);
 
     void resetAnchorMovement(intptr_t layer);
+
+    void saveAnnotation(bool);
 
 private:
 

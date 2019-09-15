@@ -81,9 +81,13 @@ private slots:
 
     void onRightClick(const QPoint &);
 
-    void openInPraat(const std::shared_ptr<Annotation> &annot);
+    void openInPraat(const AutoAnnotation &annot);
 
 private:
+
+	void textGridToNative(const AutoAnnotation &annot);
+
+	void nativeToTextGrid(const AutoAnnotation &annot);
 
     void fillFolder(QTreeWidgetItem *item, VFolder &folder);
 

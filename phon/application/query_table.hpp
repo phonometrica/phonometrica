@@ -19,15 +19,15 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_QUERY_DATASET_HPP
-#define PHONOMETRICA_QUERY_DATASET_HPP
+#ifndef PHONOMETRICA_QUERY_TABLE_HPP
+#define PHONOMETRICA_QUERY_TABLE_HPP
 
 #include <phon/application/dataset.hpp>
 #include <phon/application/search/query_match.hpp>
 
 namespace phonometrica {
 
-class QueryDataset final : public Dataset
+class QueryTable final : public Dataset
 {
 public:
 
@@ -39,7 +39,7 @@ public:
 		ShowProperties   = 4
 	};
 
-	explicit QueryDataset(QueryMatchList matches, String label);
+	explicit QueryTable(QueryMatchList matches, String label);
 
 	String get_header(intptr_t j) const override;
 
@@ -63,8 +63,13 @@ public:
 
 	intptr_t adjust_column(intptr_t j) const;
 
+	const char *class_name() const override;
+
 private:
 
+	void load() override;
+
+	void write() override;
 
 	intptr_t category_count() const;
 
@@ -96,4 +101,4 @@ private:
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_QUERY_DATASET_HPP
+#endif // PHONOMETRICA_QUERY_TABLE_HPP

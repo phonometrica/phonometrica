@@ -82,6 +82,10 @@ public:
 	static String right_context(const EventList &events, intptr_t i, String::const_iterator end, intptr_t length,
 	                    const String &separator = String());
 
+	void write_as_native(const String &path = String());
+
+	void write_as_textgrid(const String &path = String());
+
 protected:
 
 	bool content_modified() const override;
@@ -93,6 +97,8 @@ protected:
 	void save_metadata() override;
 
 	bool uses_external_metadata() const override;
+
+	void metadata_to_xml(xml_node meta_node) override;
 
 private:
 

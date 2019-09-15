@@ -28,11 +28,36 @@ namespace phonometrica {
 
 using namespace pugi;
 
-inline void add_data_node(xml_node root, std::string_view name, std::string_view data)
+static inline
+void add_data_node(xml_node root, std::string_view name, std::string_view data)
 {
 	auto node = root.append_child(name.data());
 	auto data_node = node.append_child(node_pcdata);
 	data_node.set_value(data.data());
+}
+
+
+static inline
+xml_parse_result read_xml(xml_document &doc, const String &path)
+{
+#if PHON_WINDOWS
+	auto wpath = path.to_wide();
+	return doc.load_file(wpath.data());
+#else
+	return doc.load_file(path.data());
+#endif
+}
+
+
+static inline
+void write_xml(const xml_document &doc, const String &path)
+{
+#if PHON_WINDOWS
+	auto wpath = path.to_wide();
+	doc.save_file(wpath.data());
+#else
+	doc.save_file(path.data());
+#endif
 }
 
 } // namespace phonometrica

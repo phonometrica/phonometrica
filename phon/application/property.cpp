@@ -333,4 +333,14 @@ bool Property::is_text(const String &category)
 	return get_type(category) == typeid(String);
 }
 
+const char *Property::type_name() const
+{
+	if (type() == typeid(bool))
+		return "boolean";
+	if (type() == typeid(double))
+		return "numeric";
+
+	return "text";
+}
+
 } // namespace phonometrica
