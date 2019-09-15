@@ -98,7 +98,7 @@ private:
 
     Splitter *splitter;
 
-    Runtime &rt;
+    Runtime &runtime;
 
     FileManager *file_manager;
 

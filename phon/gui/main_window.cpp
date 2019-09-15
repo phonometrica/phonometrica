@@ -45,7 +45,7 @@
 namespace phonometrica {
 
 MainWindow::MainWindow(Runtime &rt, QWidget *parent)
-    : QMainWindow(parent), rt(rt)
+    : QMainWindow(parent), runtime(rt)
 {
     preInitialize();
     setShellFunctions();
@@ -151,7 +151,7 @@ void MainWindow::updateStatus(const String &msg)
 
 void MainWindow::adjustProject()
 {
-    auto project_ratio = Settings::get_number(rt, "project_ratio");
+    auto project_ratio = Settings::get_number(runtime, "project_ratio");
     setStretchFactor(project_ratio);
 }
 
@@ -164,26 +164,26 @@ MainWindow::~MainWindow()
 
     // Don't update ratio if a widget is hidden, otherwise when we try to unhide them,
     // they won't be shown because their ratio is 0.
-    if (!Settings::get_boolean(rt, "hide_info"))
-        Settings::set_value(rt, "info_ratio", info_ratio);
-    if (!Settings::get_boolean(rt, "hide_console"))
-        Settings::set_value(rt, "console_ratio", console_ratio);
-    if (!Settings::get_boolean(rt, "hide_project"))
-        Settings::set_value(rt, "project_ratio", project_ratio);
+    if (!Settings::get_boolean(runtime, "hide_info"))
+        Settings::set_value(runtime, "info_ratio", info_ratio);
+    if (!Settings::get_boolean(runtime, "hide_console"))
+        Settings::set_value(runtime, "console_ratio", console_ratio);
+    if (!Settings::get_boolean(runtime, "hide_project"))
+        Settings::set_value(runtime, "project_ratio", project_ratio);
 
     auto geom = this->geometry();
     double x = geom.x();
     double y = geom.y();
     double w = geom.width();
     double h = geom.height();
-    Settings::set_value(rt, "geometry", { x, y, w, h });
-    Settings::set_value(rt, "full_screen", this->isMaximized());
+    Settings::set_value(runtime, "geometry", {x, y, w, h });
+    Settings::set_value(runtime, "full_screen", this->isMaximized());
 
     if (query_editor) delete query_editor;
 
     try
     {
-        Settings::write(rt);
+        Settings::write(runtime);
     }
     catch (std::runtime_error &e)
     {
@@ -206,7 +206,7 @@ void MainWindow::showProject(bool)
 {
     bool new_state = !file_manager->isVisible();
     file_manager->setVisible(new_state);
-    Settings::set_value(rt, "hide_project", !new_state);
+    Settings::set_value(runtime, "hide_project", !new_state);
 }
 
 void MainWindow::restoreDefaultLayout(bool)
@@ -229,13 +229,13 @@ void MainWindow::restoreDefaultLayout(bool)
     setStretchFactor(DEFAULT_FILE_MANAGER_RATIO);
     main_area->setDefaultLayout();
 
-    Settings::set_value(rt, "hide_project", false);
-    Settings::set_value(rt, "hide_info", false);
-    Settings::set_value(rt, "hide_console", false);
-    Settings::set_value(rt, "hide_console", false);
-    Settings::set_value(rt, "console_ratio", DEFAULT_CONSOLE_RATIO);
-    Settings::set_value(rt, "project_ratio", DEFAULT_FILE_MANAGER_RATIO);
-    Settings::set_value(rt, "info_ratio", DEFAULT_INFO_RATIO);
+    Settings::set_value(runtime, "hide_project", false);
+    Settings::set_value(runtime, "hide_info", false);
+    Settings::set_value(runtime, "hide_console", false);
+    Settings::set_value(runtime, "hide_console", false);
+    Settings::set_value(runtime, "console_ratio", DEFAULT_CONSOLE_RATIO);
+    Settings::set_value(runtime, "project_ratio", DEFAULT_FILE_MANAGER_RATIO);
+    Settings::set_value(runtime, "info_ratio", DEFAULT_INFO_RATIO);
 }
 
 void MainWindow::makeMenu(QWidget *panel)
@@ -341,27 +341,27 @@ void MainWindow::makeMenu(QWidget *panel)
         this->addWindowMenu(menubar);
     };
 
-    rt.get_global("phon");
+    runtime.get_global("phon");
     {
-        rt.add_method("add_menu", add_menu, 1);
-        rt.add_method("add_submenu", add_submenu, 2);
-        rt.add_method("clear_menu", clear_menu, 1);
-        rt.add_method("enable_menu", enable_menu, 2);
-        rt.add_method("enable_action", enable_action, 2);
-        rt.add_method("add_action", add_action, 2);
-        rt.add_method("add_separator", add_separator, 0);
-        rt.add_method("set_checkable", set_checkable, 2);
-        rt.add_method("check_action", check_action, 2);
-        rt.add_method("set_action_shortcut", set_action_shortcut, 2);
-        rt.add_method("set_action_tooltip", set_action_tooltip, 2);
-        rt.add_method("bind_action", bind_action, 2);
-        rt.add_method("create_window_menu", create_window_menu, 0);
+        runtime.add_method("add_menu", add_menu, 1);
+        runtime.add_method("add_submenu", add_submenu, 2);
+        runtime.add_method("clear_menu", clear_menu, 1);
+        runtime.add_method("enable_menu", enable_menu, 2);
+        runtime.add_method("enable_action", enable_action, 2);
+        runtime.add_method("add_action", add_action, 2);
+        runtime.add_method("add_separator", add_separator, 0);
+        runtime.add_method("set_checkable", set_checkable, 2);
+        runtime.add_method("check_action", check_action, 2);
+        runtime.add_method("set_action_shortcut", set_action_shortcut, 2);
+        runtime.add_method("set_action_tooltip", set_action_tooltip, 2);
+        runtime.add_method("bind_action", bind_action, 2);
+        runtime.add_method("create_window_menu", create_window_menu, 0);
     }
-    rt.pop();
+    runtime.pop();
 
     try
     {
-        run_script(rt, menu);
+        run_script(runtime, menu);
     }
     catch (std::exception &e)
     {
@@ -603,45 +603,45 @@ void MainWindow::setShellFunctions()
         }
     };
 
-    rt.get_global("phon");
+    runtime.get_global("phon");
     {
-        rt.add_method("warning", warning, 1);
-        rt.add_method("alert", alert, 1);
-        rt.add_method("info", info, 1);
-        rt.add_method("about", about, 2);
-        rt.add_method("message", message, 2);
-        rt.add_method("open_file_dialog", open_file_dialog, 1);
-        rt.add_method("open_files_dialog", open_files_dialog, 1);
-        rt.add_method("open_directory_dialog", open_directory_dialog, 1);
-        rt.add_method("save_file_dialog", save_file_dialog, 1);
-        rt.add_method("input", input, 3);
-        rt.add_method("show_documentation", show_doc, 1);
-        rt.add_accessor("version", get_version);
-        rt.add_accessor("date", get_date);
-        rt.add_accessor("supported_sound_formats", get_supported_sound_formats);
-        rt.add_accessor("rtaudio_version", get_rtaudio_version);
-        rt.add_accessor("libsndfile_version", get_libsndfile_version);
-        rt.add_method("quit", quit, 0);
-        rt.add_method("edit_settings", edit_settings, 0);
-        rt.add_method("view_script", view_script, 1);
-        rt.add_method("run_script", run_script, 1);
-        rt.add_method("open_query_editor", open_query_editor, 0);
-        rt.add_method("run_last_query", run_last_query, 0);
+        runtime.add_method("warning", warning, 1);
+        runtime.add_method("alert", alert, 1);
+        runtime.add_method("info", info, 1);
+        runtime.add_method("about", about, 2);
+        runtime.add_method("message", message, 2);
+        runtime.add_method("open_file_dialog", open_file_dialog, 1);
+        runtime.add_method("open_files_dialog", open_files_dialog, 1);
+        runtime.add_method("open_directory_dialog", open_directory_dialog, 1);
+        runtime.add_method("save_file_dialog", save_file_dialog, 1);
+        runtime.add_method("input", input, 3);
+        runtime.add_method("show_documentation", show_doc, 1);
+        runtime.add_accessor("version", get_version);
+        runtime.add_accessor("date", get_date);
+        runtime.add_accessor("supported_sound_formats", get_supported_sound_formats);
+        runtime.add_accessor("rtaudio_version", get_rtaudio_version);
+        runtime.add_accessor("libsndfile_version", get_libsndfile_version);
+        runtime.add_method("quit", quit, 0);
+        runtime.add_method("edit_settings", edit_settings, 0);
+        runtime.add_method("view_script", view_script, 1);
+        runtime.add_method("run_script", run_script, 1);
+        runtime.add_method("open_query_editor", open_query_editor, 0);
+        runtime.add_method("run_last_query", run_last_query, 0);
 
         // Define 'phon.config'
-        Settings::initialize(rt);
+        Settings::initialize(runtime);
     }
-    rt.pop();
+    runtime.pop();
 }
 
 void MainWindow::initialize()
 {
     try
     {
-        run_script(rt, initialize);
-        run_script(rt, event);
-        Project::create(rt);
-        Project::initialize(rt);
+        run_script(runtime, initialize);
+        run_script(runtime, event);
+        Project::create(runtime);
+        Project::initialize(runtime);
     }
     catch (std::runtime_error &e)
     {
@@ -662,8 +662,8 @@ void MainWindow::preInitialize()
 {
     try
     {
-        rt.do_string("phon = {}");
-        Settings::read(rt);
+        runtime.do_string("phon = {}");
+        Settings::read(runtime);
     }
     catch (std::runtime_error &e)
     {
@@ -676,7 +676,7 @@ void MainWindow::postInitialize()
 {
     try
     {
-        rt.do_string("phon.load_plugins()");
+        runtime.do_string("phon.load_plugins()");
     }
     catch (std::runtime_error &e)
     {
@@ -701,7 +701,7 @@ bool MainWindow::finalize()
 
     if (project->modified())
     {
-        auto autosave = Settings::get_boolean(rt, "autosave");
+        auto autosave = Settings::get_boolean(runtime, "autosave");
 
         if (!autosave)
         {
@@ -719,7 +719,7 @@ bool MainWindow::finalize()
             // If reply == Yes, fall through and save project.
         }
 
-        rt.do_string("phon.save_project()");
+        runtime.do_string("phon.save_project()");
     }
 
     return true;
@@ -751,8 +751,8 @@ void MainWindow::maximizeViewer()
 
 void MainWindow::openQueryEditor()
 {
-	int context_length = (int) Settings::get_number(rt, "match_window_length");
-	auto editor = new QueryEditor(this, context_length);
+	int context_length = (int) Settings::get_number(runtime, "match_window_length");
+	auto editor = new QueryEditor(runtime, this, context_length);
 	connect(editor, &QueryEditor::queryReady, this, &MainWindow::executeQuery);
 	editor->resize(1100, 800);
 	editor->show();

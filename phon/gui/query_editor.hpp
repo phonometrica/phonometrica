@@ -24,6 +24,7 @@
 
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <phon/runtime/runtime.hpp>
 #include <phon/application/search/query.hpp>
 #include <phon/gui/search_box.hpp>
 
@@ -44,7 +45,7 @@ class QueryEditor final : public QDialog
 
 public:
 
-	QueryEditor(QWidget *parent, int context_length = 30);
+	QueryEditor(Runtime &rt, QWidget *parent, int context_length = 30);
 
 	void resurrect();
 
@@ -55,6 +56,10 @@ signals:
 public slots:
 
 	void accept();
+
+private slots:
+
+	void showHelp(bool);
 
 private:
 
@@ -71,6 +76,8 @@ private:
 	Array<AutoMetaNode> getMetadata();
 
 	AutoSearchNode getSearchTree();
+
+	Runtime &runtime;
 
 	QLineEdit *query_name_edit;
 

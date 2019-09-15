@@ -25,6 +25,7 @@
 #include <QLineEdit>
 #include <QScrollArea>
 #include <QMessageBox>
+#include <QPushButton>
 #include <phon/application/search/query.hpp>
 #include <phon/application/property.hpp>
 #include <phon/application/project.hpp>
@@ -45,7 +46,8 @@ enum {
 	IndexDoesntMatch
 };
 
-QueryEditor::QueryEditor(QWidget *parent, int context_length) : QDialog(parent)
+QueryEditor::QueryEditor(Runtime &rt, QWidget *parent, int context_length) :
+	QDialog(parent), runtime(rt)
 {
 	setupUi(context_length);
 	setWindowFlags(Qt::Window);
@@ -63,6 +65,9 @@ void QueryEditor::setupUi(int context_length)
 	query_name_edit = new QLineEdit(query_label);
 	name_layout->addWidget(query_name_edit);
 	name_layout->addStretch(1);
+	auto help_button = new QPushButton(QIcon(":/icons/question.png"), QString());
+	help_button->setToolTip(tr("Show help page"));
+	name_layout->addWidget(help_button);
 
 	search_box = new DefaultSearchBox(main_widget, context_length);
 	search_box->postInitialize();
@@ -96,7 +101,7 @@ void QueryEditor::setupUi(int context_length)
 
 	connect(button_box, SIGNAL(accepted()), this, SLOT(accept()));
 	connect(button_box, SIGNAL(rejected()), this, SLOT(reject()));
-
+	connect(help_button, &QPushButton::clicked, this, &QueryEditor::showHelp);
 }
 
 QWidget * QueryEditor::createFileBox()
@@ -354,5 +359,14 @@ void QueryEditor::resurrect()
 	auto query_label = QString("Query %1").arg(Query::current_id());
 	query_name_edit->setText(query_label);
 	show();
+}
+
+void QueryEditor::showHelp(bool)
+{
+	auto script = R"__(
+	var page = phon.config.get_documentation_page("concordance.html")
+	phon.show_documentation(page)
+	)__";
+	runtime.do_string(script);
 }
 } // namespace phonometrica
