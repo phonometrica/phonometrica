@@ -181,7 +181,7 @@ public:
     const Layer *get(intptr_t i) const { return m_layers[i].get(); }
 
     bool empty() const
-    { return anchors.empty(); }
+    { return m_anchors.empty(); }
 
     intptr_t layer_count() const
     { return m_layers.size(); }
@@ -204,30 +204,41 @@ public:
 
     void to_xml(xml_node graph_node);
 
+    void from_xml(xml_node graph_node);
+
 private:
 
-    // Sorted list of anchors.
-    AnchorList anchors;
+	void insert_event(intptr_t index, Anchor *start, Anchor *end, const String &text);
+
+	// Get anchor at the given time. The anchor is created if it does not exist.
+	Anchor *get_anchor(double time);
+
+	// Check that there is no events in a given anchor's outgoing or incoming nodes on a given layer.
+	void check_free_anchor(const Array<Event *> &events, intptr_t index);
+
+	// Change end time of event, if possible.
+	bool change_time(std::shared_ptr<Event> &event, std::shared_ptr<Event> &right_boundary, double new_time);
+
+	// Erase content.
+	void clear();
+
+	void parse_anchors(xml_node anchors_node);
+
+	void parse_layers(xml_node layers_node);
+
+	void parse_events(xml_node events_node);
+
+	// Sorted list of anchors.
+    AnchorList m_anchors;
 
     // Unsorted list of events.
-    EventList events;
+    EventList m_events;
 
     // Sorted list of Layers.
     LayerList m_layers;
 
     // Has modifications?
     bool m_modified = false;
-
-    void insert_event(intptr_t index, Anchor *start, Anchor *end, const String &text);
-
-    // Get anchor at the given time. The anchor is created if it does not exist.
-    Anchor *get_anchor(double time);
-
-    // Check that there is no events in a given anchor's outgoing or incoming nodes on a given layer.
-    void check_free_anchor(const Array<Event *> &events, intptr_t index);
-
-    // Change end time of event, if possible
-    bool change_time(std::shared_ptr<Event> &event, std::shared_ptr<Event> &right_boundary, double new_time);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -153,17 +153,7 @@ void Project::load()
 	assert(m_accumulator.empty());
 
 	xml_document doc;
-	xml_node root;
-	auto result = read_xml(doc, m_path);
-
-	if (!result) {
-		throw error(result.description());
-	}
-
-	do {
-		root = doc.first_child();
-	}
-	while (root.type() == node_declaration || root.type() == node_doctype);
+	xml_node root = read_xml(doc, m_path);
 
 	static const std::string_view project_tag("Phonometrica");
 	static const std::string_view class_tag("Project");
@@ -618,7 +608,7 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent)
 
 	std::shared_ptr<VFile> vfile;
 
-	if (ext == ".annot" || ext == ".textgrid")
+	if (ext == ".phon-annot" || ext == ".textgrid")
 	{
 	    auto annot = std::make_shared<Annotation>(parent.get(), std::move(path));
 		vfile = upcast<VFile>(annot);
@@ -640,7 +630,7 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent)
 		m_data->append(vfile);
 //		trigger(dataset_loaded, dataset->class_name(), dataset);
 	}
-	else if (ext == ".phon")
+	else if (ext == ".phon" || ext == ".phon-script")
 	{
 		// Scripts are not added to the parent folder, but to the scripts folder.
         auto script = std::make_shared<Script>(m_scripts.get(), std::move(path));
@@ -648,13 +638,13 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent)
 		m_scripts->append(vfile);
 //		trigger(script_loaded, dataset->class_name(), script);
 	}
-	else if (ext == ".txt")
-	{
-	    auto doc = std::make_shared<Document>(parent.get(), std::move(path));
-		vfile = upcast<VFile>(doc);
-		parent->append(vfile);
-//		trigger(document_loaded, doc->class_name(), doc);
-	}
+//	else if (ext == ".txt")
+//	{
+//	    auto doc = std::make_shared<Document>(parent.get(), std::move(path));
+//		vfile = upcast<VFile>(doc);
+//		parent->append(vfile);
+////		trigger(document_loaded, doc->class_name(), doc);
+//	}
 	else
 	{
 		return false; // Ignore unknown files
@@ -685,15 +675,19 @@ void Project::import_folder(String path)
 	m_modified = true;
 }
 
-void Project::import_file(String path)
+String Project::import_file(String path)
 {
+	filesystem::interpolate(path, directory());
 	filesystem::nativize(path);
+
 	// Assume that the file will be added to the corpus. add_file() will change the parent if necessary.
-	if (add_file(std::move(path), m_corpus)) {
+	if (add_file(path, m_corpus)) {
         m_modified = true;
 	}
 	// Try to find a sound that matches the annotation's name.
 	set_default_bindings();
+
+	return path;
 }
 
 void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent)

@@ -272,9 +272,11 @@ public:
 	static double to_float(Substring str, bool *ok = nullptr);
 	double to_float(bool *ok = nullptr) const { return to_float(view(), ok); }
 
-	intptr_t to_int(bool *ok = nullptr) const;
+	static intptr_t to_int(Substring str, bool *ok = nullptr);
+	intptr_t to_int(bool *ok = nullptr) const { return to_int(view(), ok); }
 
-	bool to_bool(bool strict = false) const;
+	static bool to_bool(Substring str, bool strict = false);
+	bool to_bool(bool strict = false) const { return to_bool(view(), strict); }
 
 	String &replace(intptr_t i, intptr_t count, Substring after);
 	String &replace(const_iterator from, const_iterator to, Substring after);

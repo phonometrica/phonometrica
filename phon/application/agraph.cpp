@@ -19,6 +19,7 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+#include <cmath>
 #include <iostream>
 #include <phon/error.hpp>
 #include <phon/application/agraph.hpp>
@@ -140,16 +141,16 @@ void AGraph::insert_event(intptr_t index, Anchor *start, Anchor *end, const Stri
 
 	start->outgoing.push_back(e.get());
 	end->incoming.push_back(e.get());
-	events.push_back(std::move(e));
+	m_events.push_back(std::move(e));
 }
 
 Anchor *AGraph::get_anchor(double time)
 {
-	auto it = std::lower_bound(anchors.begin(), anchors.end(), time, AnchorLess());
+	auto it = std::lower_bound(m_anchors.begin(), m_anchors.end(), time, AnchorLess());
 
-	if (it == anchors.end() || time < it->get()->time)
+	if (it == m_anchors.end() || time < it->get()->time)
 	{
-		auto a = anchors.insert(it, std::make_unique<Anchor>(time));
+		auto a = m_anchors.insert(it, std::make_unique<Anchor>(time));
 		return a->get();
 	}
 	else
@@ -173,12 +174,12 @@ EventList AGraph::get_layer_events(intptr_t index) const
 	EventList events;
 	intptr_t anchor_index = 1;
 
-	if (anchors.empty()) {
+	if (m_anchors.empty()) {
 		return events;
 	}
 
-	intptr_t anchor_count = anchors.size();
-	auto anchor = anchors.front().get();
+	intptr_t anchor_count = m_anchors.size();
+	auto anchor = m_anchors.front().get();
 
 	while (anchor && anchor_index <= anchor_count)
 	{
@@ -195,7 +196,7 @@ EventList AGraph::get_layer_events(intptr_t index) const
 					// Try next anchor. This may be the last anchor since an instant's start and end point to the same
 					// anchor.
 					if (++anchor_index < anchor_count) {
-						anchor = anchors[anchor_index].get();
+						anchor = m_anchors[anchor_index].get();
 					}
 					else {
 						anchor = nullptr; // done
@@ -205,9 +206,9 @@ EventList AGraph::get_layer_events(intptr_t index) const
 				{
 					// Use right anchor as a start point
 					anchor = e->end_anchor();
-					auto it = std::lower_bound(anchors.begin(), anchors.end(), anchor->time, AnchorLess());
-					assert(it != anchors.end());
-					anchor_index = intptr_t(it - anchors.begin());
+					auto it = std::lower_bound(m_anchors.begin(), m_anchors.end(), anchor->time, AnchorLess());
+					assert(it != m_anchors.end());
+					anchor_index = intptr_t(it - m_anchors.begin());
 				}
 
 				found = true;
@@ -219,7 +220,7 @@ EventList AGraph::get_layer_events(intptr_t index) const
 		if (! found)
 		{
 			if (++anchor_index < anchor_count) {
-				anchor = anchors[anchor_index].get();
+				anchor = m_anchors[anchor_index].get();
 			}
 			else {
 				anchor = nullptr; // done
@@ -235,12 +236,12 @@ EventList AGraph::get_layer_events(intptr_t index, double t1, double t2) const
 	EventList events;
 	intptr_t anchor_index = 1;
 
-	if (anchors.empty()) {
+	if (m_anchors.empty()) {
 		return events;
 	}
 
-	intptr_t anchor_count = anchors.size();
-	auto anchor = anchors[1].get();
+	intptr_t anchor_count = m_anchors.size();
+	auto anchor = m_anchors[1].get();
 
 	while (anchor && anchor_index <= anchor_count)
 	{
@@ -263,7 +264,7 @@ EventList AGraph::get_layer_events(intptr_t index, double t1, double t2) const
 					// Try next anchor. This may be the last anchor since an instant's start and end point to the same
 					// anchor.
 					if (++anchor_index < anchor_count) {
-						anchor = anchors[anchor_index].get();
+						anchor = m_anchors[anchor_index].get();
 					}
 					else {
 						anchor = nullptr; // done
@@ -273,9 +274,9 @@ EventList AGraph::get_layer_events(intptr_t index, double t1, double t2) const
 				{
 					// Use right anchor as a start point
 					anchor = e->end_anchor();
-					auto it = std::lower_bound(anchors.begin(), anchors.end(), anchor->time, AnchorLess());
-					assert(it != anchors.end());
-					anchor_index = intptr_t(it - anchors.begin());
+					auto it = std::lower_bound(m_anchors.begin(), m_anchors.end(), anchor->time, AnchorLess());
+					assert(it != m_anchors.end());
+					anchor_index = intptr_t(it - m_anchors.begin());
 				}
 
 				found = true;
@@ -287,7 +288,7 @@ EventList AGraph::get_layer_events(intptr_t index, double t1, double t2) const
 		if (! found)
 		{
 			if (++anchor_index <= anchor_count) {
-				anchor = anchors[anchor_index].get();
+				anchor = m_anchors[anchor_index].get();
 			}
 			else {
 				anchor = nullptr; // done
@@ -345,8 +346,8 @@ void AGraph::write_textgrid(const String &path)
 	File outfile(path, File::Write, Encoding::Utf8);
 
 	// Write TextGrid header
-	double start_time = anchors.front()->time;
-	double end_time = anchors.back()->time;
+	double start_time = m_anchors.front()->time;
+	double end_time = m_anchors.back()->time;
 	intptr_t layer_count = m_layers.size();
 
 	outfile.write("File type = \"ooTextFile\"\nObject class = \"TextGrid\"\n\n");
@@ -355,14 +356,14 @@ void AGraph::write_textgrid(const String &path)
 
 	for (intptr_t i = 1; i <= layer_count; ++i)
 	{
-		auto the_layer = m_layers[i].get();
+		auto layer = m_layers[i].get();
 		auto layer_events = get_layer_events(i);
-		String kind = the_layer->has_instants ? "TextTier" : "IntervalTier";
+		String kind = layer->has_instants ? "TextTier" : "IntervalTier";
 
 		// Write tier header
 		outfile.format("    item [%lu]:\n", i);
 		outfile.format("        class = \"%s\"\n", kind.data());
-		outfile.format("        name = \"%s\"\n", the_layer->label.data());
+		outfile.format("        name = \"%s\"\n", layer->label.data());
 
 		if (layer_events.empty()) {
 			outfile.write("        xmin = 0\n        xmax = 0\n");
@@ -374,17 +375,19 @@ void AGraph::write_textgrid(const String &path)
 		}
 
 		// Write tier events
-		if (the_layer->has_instants)
+		if (layer->has_instants)
 		{
 			outfile.format("        points: size = %lu\n", layer_events.size());
 
 			for (intptr_t j = 1; j <= layer_events.size(); j++)
 			{
 				auto e = layer_events[j];
+				auto text = e->text();
+				text.replace("\"", "\"\"");
 
 				outfile.format("        points [%lu]:\n", j);
 				outfile.format("            number = %.16f\n", e->start_time());
-				outfile.format("            mark = \"%s\"\n", e->text().data());
+				outfile.format("            mark = \"%s\"\n", text.data());
 			}
 		}
 		else
@@ -394,11 +397,13 @@ void AGraph::write_textgrid(const String &path)
 			for (intptr_t j = 1; j <= layer_events.size(); ++j)
 			{
 				auto e = layer_events[j];
+				auto text = e->text();
+				text.replace("\"", "\"\"");
 
 				outfile.format("        intervals [%lu]:\n", j);
 				outfile.format("            xmin = %.16f\n", e->start_time());
 				outfile.format("            xmax = %.16f\n", e->end_time());
-				outfile.format("            text = \"%s\"\n", e->text().data());
+				outfile.format("            text = \"%s\"\n", text.data());
 			}
 		}
 	}
@@ -413,10 +418,10 @@ std::shared_ptr<Event> AGraph::previous_event(intptr_t layer, const std::shared_
     while (true)
     {
         // Find the previous anchor
-        auto it = std::lower_bound(anchors.begin(), anchors.end(), time, AnchorLess());
-        assert(it != anchors.end());
+        auto it = std::lower_bound(m_anchors.begin(), m_anchors.end(), time, AnchorLess());
+        assert(it != m_anchors.end());
 
-        if (it == anchors.begin())
+        if (it == m_anchors.begin())
         {
             return std::shared_ptr<Event>();
         }
@@ -444,9 +449,9 @@ std::shared_ptr<Event> AGraph::next_event(intptr_t layer, const std::shared_ptr<
     while (true)
     {
         // Find the next anchor
-        auto it = std::upper_bound(anchors.begin(), anchors.end(), time, AnchorLess());
+        auto it = std::upper_bound(m_anchors.begin(), m_anchors.end(), time, AnchorLess());
 
-        if (it == anchors.end())
+        if (it == m_anchors.end())
         {
             return std::shared_ptr<Event>();
         }
@@ -555,9 +560,9 @@ void AGraph::to_xml(xml_node graph_node)
 	auto anchors_node = graph_node.append_child("Anchors");
 	Hashmap<Anchor*, intptr_t> anchor_map;
 
-	for (intptr_t i = 1; i <= anchors.size(); i++)
+	for (intptr_t i = 1; i <= m_anchors.size(); i++)
 	{
-		auto &anchor = anchors[i];
+		auto &anchor = m_anchors[i];
 		auto anchor_node = anchors_node.append_child("Anchor");
 		auto attr = anchor_node.append_attribute("id");
 		attr.set_value(i);
@@ -581,18 +586,122 @@ void AGraph::to_xml(xml_node graph_node)
 
 	auto events_node = graph_node.append_child("Events");
 
-	for (auto &event : events)
+	for (auto &event : m_events)
 	{
 		auto event_node = events_node.append_child("Event");
 		auto attr = event_node.append_attribute("layer");
 		attr.set_value(event->layer_index());
-		auto start_node = event_node.append_child("StartAnchor");
-		attr = start_node.append_attribute("id");
+		auto start_node = event_node.append_child("Start");
+		attr = start_node.append_attribute("anchor");
 		attr.set_value(anchor_map[event->m_start]);
-		auto end_node = event_node.append_child("EndAnchor");
-		attr = end_node.append_attribute("id");
+		auto end_node = event_node.append_child("End");
+		attr = end_node.append_attribute("anchor");
 		attr.set_value(anchor_map[event->m_end]);
 		add_data_node(event_node, "Text", event->text().data());
+	}
+}
+
+void AGraph::from_xml(xml_node graph_node)
+{
+	static std::string_view anchors_tag = "Anchors";
+	static std::string_view layers_tag = "Layers";
+	static std::string_view events_tag = "Events";
+	clear();
+
+	for (auto node = graph_node.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == anchors_tag)
+		{
+			parse_anchors(node);
+		}
+		else if (node.name() == layers_tag)
+		{
+			parse_layers(node);
+		}
+		else if (node.name() == events_tag)
+		{
+			parse_events(node);
+		}
+	}
+}
+
+void AGraph::clear()
+{
+	m_anchors.clear();
+	m_layers.clear();
+	m_events.clear();
+}
+
+void AGraph::parse_anchors(xml_node anchors_node)
+{
+	static std::string_view anchor_tag = "Anchor";
+	AnchorList anchors;
+
+	for (auto node = anchors_node.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == anchor_tag)
+		{
+			auto attr = node.attribute("id");
+			auto id = String::to_int(attr.value());
+			double time = String::to_float(node.child_value("Time"));
+			anchors.append(std::make_unique<Anchor>(time));
+
+			if (anchors.size() != id) {
+				throw error("Inconsistent anchor ID: (expected %, got %)", anchors.size(), id);
+			}
+		}
+	}
+
+	m_anchors = std::move(anchors);
+}
+
+void AGraph::parse_layers(xml_node layers_node)
+{
+	static std::string_view layer_tag = "Layer";
+	LayerList layers;
+
+	for (auto node = layers_node.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == layer_tag)
+		{
+			auto attr = node.attribute("index");
+			intptr_t index = String::to_int(attr.value());
+			attr = node.attribute("label");
+			String label = attr.value();
+			attr = node.attribute("instants");
+			bool instants = String::to_bool(attr.value(), true);
+			layers.append(std::make_shared<Layer>(index, std::move(label), instants));
+
+			if (index != layers.size()) {
+				throw error("Inconsistent layer index (expected %, got %)", layers.size(), index);
+			}
+		}
+	}
+
+	m_layers = std::move(layers);
+}
+
+void AGraph::parse_events(xml_node events_node)
+{
+	static std::string_view event_tag = "Event";
+
+	for (auto node = events_node.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == event_tag)
+		{
+			auto attr = node.attribute("layer");
+			intptr_t layer = String::to_int(attr.value());
+			auto start_node = node.child("Start");
+			attr = start_node.attribute("anchor");
+			intptr_t id1 = String::to_int(attr.value());
+			auto anchor1 = m_anchors[id1].get();
+			auto end_node = node.child("End");
+			attr = end_node.attribute("anchor");
+			intptr_t id2 = String::to_int(attr.value());
+			auto anchor2 = m_anchors[id2].get();
+			auto label = node.child_value("Text");
+			insert_event(layer, anchor1, anchor2, label);
+		}
 	}
 }
 

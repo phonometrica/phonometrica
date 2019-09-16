@@ -237,6 +237,10 @@ protected:
 
 	virtual void metadata_to_xml(xml_node meta_node);
 
+	virtual void metadata_from_xml(xml_node meta_node);
+
+	Property parse_property(xml_node prop_node, const std::type_info &type);
+
 	String m_path;
 
 	std::set<Property> m_properties;

@@ -90,6 +90,8 @@ protected:
 
 	bool content_modified() const override;
 
+	void read_from_native();
+
 	void load() override;
 
 	void write() override;
@@ -99,6 +101,8 @@ protected:
 	bool uses_external_metadata() const override;
 
 	void metadata_to_xml(xml_node meta_node) override;
+
+	void metadata_from_xml(xml_node meta_node) override;
 
 private:
 

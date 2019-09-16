@@ -343,4 +343,16 @@ const char *Property::type_name() const
 	return "text";
 }
 
+const std::type_info &Property::parse_type_name(std::string_view name)
+{
+	if (name == "text")
+		return typeid(String);
+	if (name == "numeric")
+		return typeid(double);
+	if (name == "boolean")
+		return typeid(bool);
+
+	throw error("Invalid property type name \"%\"", name);
+}
+
 } // namespace phonometrica

@@ -1034,7 +1034,7 @@ String String::convert(intptr_t n)
 String String::convert(double n)
 {
 	char buffer[MAX_FORMAT_BUFFER];
-	snprintf(buffer, MAX_FORMAT_BUFFER, "%f", n);
+	snprintf(buffer, MAX_FORMAT_BUFFER, "%.10f", n);
 
 	// Manually convert to C locale.
 	for (char *c = buffer; *c != '\0'; c++)
@@ -1501,11 +1501,11 @@ double String::to_float(Substring str, bool *ok)
 	return value;
 }
 
-intptr_t String::to_int(bool *ok) const
+intptr_t String::to_int(Substring str, bool *ok)
 {
-	char *e = const_cast<iterator>(begin());
-	auto result = strtol(begin(), &e, 10);
-	bool success = (e == end()) || this->empty();
+	char *e = const_cast<iterator>(str.begin());
+	auto result = strtol(str.begin(), &e, 10);
+	bool success = (e == str.end()) || str.empty();
 
 	if (ok) {
 		*ok = success;
@@ -1517,20 +1517,20 @@ intptr_t String::to_int(bool *ok) const
 	return intptr_t(result);
 }
 
-bool String::to_bool(bool strict) const
+bool String::to_bool(Substring str, bool strict)
 {
 	if (strict)
 	{
-		if (*this == "true" || *this == "TRUE" || *this == "1")
+		if (str == "true" || str == "TRUE" || str == "1")
 			return true;
-		if (*this == "false" || *this == "FALSE" || *this == "0")
+		if (str == "false" || str == "FALSE" || str == "0")
 			return false;
 
 		throw error("Could not convert string to Boolean");
 	}
 	else
 	{
-		return !((*this == "false") || (*this == "FALSE"));
+		return !((str == "false") || (str == "FALSE"));
 	}
 }
 

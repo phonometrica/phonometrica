@@ -538,4 +538,69 @@ void VFile::metadata_to_xml(xml_node meta_node)
 	}
 }
 
+void VFile::metadata_from_xml(xml_node meta_node)
+{
+	static std::string_view desc_tag = "Description";
+	static std::string_view properties_tag = "Properties";
+	static std::string_view property_tag = "Property";
+
+	for (auto node = meta_node.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == desc_tag)
+		{
+			set_description(node.text().get(), false);
+		}
+		else if (node.name() == properties_tag)
+		{
+			for (auto subnode = node.first_child(); subnode; subnode = subnode.next_sibling())
+			{
+				if (subnode.name() == property_tag)
+				{
+					auto attr = subnode.attribute("type");
+					auto &type = Property::parse_type_name(attr.value());
+					auto prop = parse_property(subnode, type);
+					add_property(std::move(prop), false);
+				}
+			}
+		}
+	}
+}
+
+Property VFile::parse_property(xml_node prop_node, const std::type_info &type)
+{
+	static std::string_view category_tag = "Category";
+	static std::string_view value_tag = "Value";
+	String category;
+
+	for (auto node = prop_node.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == category_tag)
+		{
+			category = node.text().get();
+		}
+		else if (node.name() == value_tag)
+		{
+			if (category.empty()) {
+				throw error("Empty property category in annotation file");
+			}
+
+			String value = node.text().get();
+
+			if (type == typeid(String))
+			{
+				return Property(category, value);
+			}
+			if (type == typeid(double))
+			{
+				return Property(category, value.to_float());
+			}
+			assert(type == typeid(bool));
+
+			return Property(category, value.to_bool(true));
+		}
+	}
+
+	throw error("Invalid property node in annotation file");
+}
+
 } // namespace phonometrica

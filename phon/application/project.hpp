@@ -90,7 +90,7 @@ public:
 
 	void import_folder(String path);
 
-	void import_file(String path);
+	String import_file(String path);
 
 	void remove(VFileList &files);
 

@@ -38,14 +38,27 @@ void add_data_node(xml_node root, std::string_view name, std::string_view data)
 
 
 static inline
-xml_parse_result read_xml(xml_document &doc, const String &path)
+xml_node read_xml(xml_document &doc, const String &path)
 {
+	xml_node root;
+
 #if PHON_WINDOWS
 	auto wpath = path.to_wide();
-	return doc.load_file(wpath.data());
+	auto result = doc.load_file(wpath.data());
 #else
-	return doc.load_file(path.data());
+	auto result = doc.load_file(path.data());
 #endif
+
+	if (!result) {
+		throw error(result.description());
+	}
+
+	do {
+		root = doc.first_child();
+	}
+	while (root.type() == node_declaration || root.type() == node_doctype);
+
+	return root;
 }
 
 

@@ -33,6 +33,8 @@ Annotation::Annotation(VFolder *parent, String path) :
 		VFile(parent, std::move(path))
 {
 	m_type = guess_type();
+	// Native annotations must be opened in order to display metadata.
+	if (is_native()) open();
 }
 
 const char *Annotation::class_name() const
@@ -53,6 +55,9 @@ void Annotation::load()
 
 	switch (m_type)
 	{
+		case Type::Native:
+			read_from_native();
+			break;
 		case Type::TextGrid:
 			m_graph.read_textgrid(m_path);
 			break;
@@ -97,7 +102,6 @@ Annotation::Type Annotation::guess_type()
 	if (!m_path.empty())
 	{
 		auto ext = filesystem::ext(m_path, true);
-		auto v = ext.view();
 
 		if (ext == ".phon-annot") {
 			return Type::Native;
@@ -282,6 +286,7 @@ void Annotation::metadata_to_xml(xml_node meta_node)
 
 void Annotation::write_as_native(const String &path)
 {
+	open();
 	xml_document doc;
 
 	auto root = doc.append_child("Phonometrica");
@@ -298,6 +303,60 @@ void Annotation::write_as_native(const String &path)
 
 void Annotation::write_as_textgrid(const String &path)
 {
+	open();
 	m_graph.write_textgrid(path);
+}
+
+void Annotation::read_from_native()
+{
+	assert(!m_path.empty());
+	static std::string_view project_tag("Phonometrica");
+	static std::string_view class_tag = class_name();
+	static std::string_view meta_tag = "Metadata";
+	static std::string_view graph_tag = "Graph";
+
+	xml_document doc;
+	auto root = read_xml(doc, m_path);
+
+		if (root.name() != project_tag) {
+		throw error("[Input/Output] Invalid XML project root");
+	}
+
+    auto attr = root.attribute("class");
+
+	if (!attr || attr.as_string() != class_tag) {
+	    throw error("[Input/Output] Expected an annotation file, got a % file instead", attr.as_string());
+	}
+
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == meta_tag)
+		{
+			metadata_from_xml(node);
+		}
+		else if (node.name() == graph_tag)
+		{
+			m_graph.from_xml(node);
+		}
+	}
+}
+
+void Annotation::metadata_from_xml(xml_node meta_node)
+{
+	static std::string_view sound_tag = "Sound";
+	VFile::metadata_from_xml(meta_node);
+
+	for (auto node = meta_node.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == sound_tag)
+		{
+			auto project = Project::instance();
+			auto path = project->import_file(node.text().get());
+			auto sound = std::dynamic_pointer_cast<Sound>(project->get(path));
+			set_sound(sound, false);
+
+			return;
+		}
+	}
 }
 } // namespace phonometrica

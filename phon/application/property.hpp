@@ -85,6 +85,8 @@ public:
 
 	const char *type_name() const;
 
+	static const std::type_info &parse_type_name(std::string_view name);
+
 	static void remove(const Property &p);
 
 	String to_string() const;
