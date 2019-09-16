@@ -31,7 +31,7 @@ Download
 Phonometrica 0.4.0 (preview)
 ----------------------------
 
-**Note: Phonometrica is currently under development and some things may change.**
+**Note: Phonometrica is currently under development: some things might change and the documentation is incomplete.**
 
 
 -  Windows 7 and later:

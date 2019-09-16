@@ -12,12 +12,9 @@ Simple queries
 --------------
 
 
-To run a new query, click on ``Search > Find concordances...`` or use
-the shortcut ``ctrl+F`` (or ``cmd+f`` on macOS). This will open a new
-search window, which lets you search through all the *documents* (i.e.
-plain text files) or *annotations* in your corpus . We will focus on
-annotations here, but things work in a similar way for documents,
-mutatis mutandis.
+To run a new query, click on ``Query > New query...`` or use
+the shortcut ``alt+Q``. This will open a new
+search window, which lets you search through all the annotations in your corpus . 
 
 The Files box
 ~~~~~~~~~~~~~

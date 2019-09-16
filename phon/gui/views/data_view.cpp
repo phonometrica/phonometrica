@@ -139,6 +139,8 @@ DataView::DataView(QWidget *parent, Runtime &rt, std::shared_ptr<Dataset> data) 
 	int nrow = m_data->row_count();
 	int ncol = m_data->column_count();
 	m_table = new QTableWidget(nrow, ncol, this);
+	// FIXME: on linux, the cell in the selected row becomes white instead of transparent.
+	//m_table->setStyleSheet("QTableWidget::item:hover { background-color: transparent; }");
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->horizontalHeader()->setHighlightSections(false);
 

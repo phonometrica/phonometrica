@@ -8,7 +8,7 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * libsndfile, by Erik de Castro Lopo (LGPL), see `www.mega-nerd.com <http://www.mega-nerd.com>`_
 * Speex, maintained by Jean-Marc Valin and contributors (BSD license), see `www.speex.org <http://www.speex.org>`_
 * RTAudio, by Gary P. Scavone (MIT), see `www.music.mcgill.ca/~gary/rtaudio <http://www.music.mcgill.ca/~gary/rtaudio/>`_
-* FFTS, by Anthony M. Blake (BSD), see `github.com/anthonix/ffts <https://github.com/anthonix/ffts/>`_
+* FFTS, by Anthony M. Blake (BSD 3-clause), see `github.com/anthonix/ffts <https://github.com/anthonix/ffts/>`_
 * swipe, by Kyle Gorman (MIT), see `github.com/kylebgorman/swipe <https://github.com/kylebgorman/swipe>`_
 * pugixml, by Arseny Kapoulkine (MIT), see `pugixml.org <https://pugixml.org>`_
 * sendpraat, by Paul Boersma, see `www.praat.org <http://www.fon.hum.uva.nl/praat/sendpraat.html>`_
