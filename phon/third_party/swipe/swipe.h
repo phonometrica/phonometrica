@@ -24,17 +24,20 @@
  *  Kyle Gorman
 */
 
+// This version includes modifications by Sevag Hanssian to use FFTS instead of FFTW.
+// See: https://github.com/sevagh/pitch-detection/blob/master/src/swipe.cpp
+
 #include <stdint.h>
 #include "vector.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
 
 vector swipe(vector x, double samplerate, double min, double max, double st, double dt);
 
 //vector pyswipe(char[], double, double, double, double);
 
-#ifdef __cplusplus
-}
-#endif
+//#ifdef __cplusplus
+//}
+//#endif

@@ -1,2 +1,5 @@
-This is Kyle Gorman's original implementation of the SWIPE algorithm, but we use the modified version of vector.c provided by SPTK,
-so that polynomial fitting doesn't require linking against LAPACK.
+This is Kyle Gorman's original implementation of the SWIPE algorithm, but we made the following changes:
+
+- the implementation was converted from C to C++
+- we used the modified version of vector.c provided by SPTK, so that polynomial fitting doesn't require linking against LAPACK.
+- we incorporated changes by Sevag Hanssian to replace FFTW with FFTS

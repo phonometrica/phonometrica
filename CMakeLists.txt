@@ -8,14 +8,21 @@ endif(APPLE)
 
 set(CMAKE_CXX_STANDARD 17)
 
+
 ###########################
-##  VERSION INFORMATION  ##
+##  COMPILATION OPTIONS  ##
 ###########################
 
 set(BUILD_GUI ON)
 set(EMBED_SCRIPTS ON)
 set(BUILD_UNIT_TEST OFF)
 set(DEBUG_CONSOLE OFF)
+set(USE_FFTW OFF)
+
+
+###########################
+##  VERSION INFORMATION  ##
+###########################
 
 # Major release: incremented when major changes are introduced
 add_definitions(-DPHON_VERSION_MAJOR=0)
@@ -171,7 +178,7 @@ if (BUILD_GUI)
             phon/third_party/sqlite/sqlite3.c
             phon/third_party/sendpraat.c
             phon/third_party/speex/resample.c
-            phon/third_party/swipe/*.c phon/third_party/swipe/*.h
+            phon/third_party/swipe/*.c phon/third_party/swipe/*.cpp phon/third_party/swipe/*.h
     )
 
     if(WIN32)
@@ -185,10 +192,19 @@ if (BUILD_GUI)
 		set(RC_FILE "")
     endif (WIN32)
 
-    # FFTW
-    add_subdirectory(phon/third_party/fftw)
-    include_directories(phon/third_party/fftw/api)
-    link_directories(${PROJECT_BINARY_DIR}/phon/third_party/fftw)
+    if (USE_FFTW)
+        add_definitions(-DPHON_USE_FFTW=1)
+        add_subdirectory(phon/third_party/fftw)
+        include_directories(phon/third_party/fftw/api)
+        link_directories(${PROJECT_BINARY_DIR}/phon/third_party/fftw)
+        set(FFT_LIB fftw3)
+    else()
+        add_definitions(-DPHON_USE_FFTS=1)
+        add_subdirectory(phon/third_party/ffts)
+        include_directories(phon/third_party/ffts/include)
+        link_directories(${PROJECT_BINARY_DIR}/phon/third_party/ffts)
+        set(FFT_LIB ffts)
+    endif (USE_FFTW)
 
     add_executable(${PROJECT_NAME} ${GUI_TYPE} phonometrica.cpp ${RC_FILE} icons.qrc ${APP_FILES})
 
@@ -199,21 +215,21 @@ if (BUILD_GUI)
         link_directories("C:/Lib/libsndfile")
         #add_subdirectory("${PROJECT_SOURCE_DIR}/libsndfile")
         target_link_libraries(
-                ${PROJECT_NAME} phon-runtime onig fftw3 ole32 winmm dsound
+                ${PROJECT_NAME} phon-runtime onig ${FFT_LIB} ole32 winmm dsound
 				C:/Lib/libsndfile/libsndfile-1.lib
                 Qt5::Core Qt5::Gui Qt5::Widgets
         )
     elseif (APPLE)
         add_definitions(-D__MACOSX_CORE__=1)
         target_link_libraries(
-                ${PROJECT_NAME} phon-runtime onig fftw3 pthread dl sndfile
+                ${PROJECT_NAME} phon-runtime onig ${FFT_LIB} pthread dl sndfile
                 Qt5::Core Qt5::Gui Qt5::Widgets
                 "-framework Foundation" "-framework Cocoa" "-framework CoreAudio" objc
         )
     else()
         add_definitions(-D__LINUX_ALSA__=1)
         target_link_libraries(
-                ${PROJECT_NAME} phon-runtime onig fftw3 pthread dl asound sndfile
+                ${PROJECT_NAME} phon-runtime onig ${FFT_LIB} pthread dl asound sndfile
                 Qt5::Core Qt5::Gui Qt5::Widgets
                 ${GTK2_LIBRARIES}
         )
