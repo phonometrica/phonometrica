@@ -1503,9 +1503,11 @@ double String::to_float(Substring str, bool *ok)
 
 intptr_t String::to_int(Substring str, bool *ok)
 {
-	char *e = const_cast<iterator>(str.begin());
-	auto result = strtol(str.begin(), &e, 10);
-	bool success = (e == str.end()) || str.empty();
+	// MSVC doesn't let us convert std::string_view::iterator to char*.
+	auto end = const_cast<char*>(str.data() + str.size());
+	auto e = const_cast<char*>(str.data());
+	auto result = strtol(str.data(), &e, 10);
+	bool success = (e == end) || str.empty();
 
 	if (ok) {
 		*ok = success;
