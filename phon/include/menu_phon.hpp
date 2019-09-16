@@ -174,7 +174,7 @@ function show_about()
 	var title = "About Phonometrica"
 	var msg = "<b>Phonometrica " + phon.version + "</b><br/>\n" 
 		+ "Copyright (C) 2019 Julien Eychenne & Léa Courdès-Murphy<br/>" 
-		+ "Phonometrica is distributed under the GNU GPL license version 3.<br/>"
+		+ "Phonometrica is distributed under the CECILL license version 2.1.<br/>"
 		+ "See \"License\" for details.<br/><br/>"
 		+ "Icons by <a href=\"https://icons8.com\">Icon8</a>.<br/><br/>"
 		+ "Build date: " + phon.date

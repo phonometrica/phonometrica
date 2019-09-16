@@ -8,7 +8,7 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * libsndfile, by Erik de Castro Lopo (LGPL), see `www.mega-nerd.com <http://www.mega-nerd.com>`_
 * Speex, maintained by Jean-Marc Valin and contributors (BSD license), see `www.speex.org <http://www.speex.org>`_
 * RTAudio, by Gary P. Scavone (MIT), see `www.music.mcgill.ca/~gary/rtaudio <http://www.music.mcgill.ca/~gary/rtaudio/>`_
-* FFTW, by the MIT (GPL), see `fftw.org/ <http://fftw.org/>`_
+* FFTS, by Anthony M. Blake (BSD), see `github.com/anthonix/ffts <https://github.com/anthonix/ffts/>`_
 * swipe, by Kyle Gorman (MIT), see `github.com/kylebgorman/swipe <https://github.com/kylebgorman/swipe>`_
 * pugixml, by Arseny Kapoulkine (MIT), see `pugixml.org <https://pugixml.org>`_
 * sendpraat, by Paul Boersma, see `www.praat.org <http://www.fon.hum.uva.nl/praat/sendpraat.html>`_
@@ -21,9 +21,6 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * Unicode routines in sol2, by ThePhD (MIT), see `sol2.rtfd.io <http://sol2.rtfd.io>`_
 * UTF8-CPP, by Nemanja Trifunovic (MIT-like), see `utfcpp.sourceforge.net <http://utfcpp.sourceforge.net/>`_
 * CMake, by Kitware Inc. (BSD 3-clause), see `cmake.org <https://cmake.org/>`_
-
-Phonometrica's icon theme and main icon were created by `Icons8 LLC. <https://icons8.com>`_.
-
 
 Phonometrica also uses `GitHub <https://github.com>`_ to host its source code. The source code is available `here <https://github.com/phonometrica/phonometrica>`_.
 

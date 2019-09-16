@@ -15,38 +15,37 @@ Overview
 
 Phonometrica is a free, open-source software toolbox for the analysis of speech data. It offers a user-friendly interface to manage, annotate and query language corpora. It is particularly well suited for dealing with time-aligned data. The main features it offers are:
 
-   * Project management: organize files into projects and manage versions.
+   * Project management: organize files into projects.
    * Extensible metadata: files can be annotated with properties, which allow you to sort and organize your data.
-   * Interaction with Praat: Phonometrica can read TextGrid files and open files directly in Praat.
-   * Powerful search engine: build and save complex queries; search patterns across tiers.
+   * Interaction with Praat: Phonometrica can read and write TextGrid files and open files directly in Praat.
+   * Powerful search engine: build and save complex queries; search patterns across layers.
    * Standard-based: Phonometrica files are encoded in XML and Unicode.
    * Scripting engine: Phonometrica can be configured and extended with an easy-to-use scripting language.
 
 Phonometrica runs on all major platforms (Windows, macOS and GNU/Linux) and is freely available under the terms of the GNU General Public License (version 3 or later).
 The latest version of Phonometrica can be downloaded from https://phonometrica.github.io. If you encounter any problem or bug, please write to the authors.
 
-
 Download
 ========
 
-Phonometrica 0.3.0
-------------------
+Phonometrica 0.4.0 (preview)
+----------------------------
 
-**Note: Phonometrica is under development and is currently only available in source code form.**
+**Note: Phonometrica is currently under development and some things may change.**
 
 
-.. -  Windows 7 and later:
-   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.3.0/setup_phonometrica.exe>`__
-.. -  MacOS 10.7 and later:
-   `phonometrica.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.3.0/phonometrica.dmg>`__
-.. -  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.2.0.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.3.0/phonometrica-0.2.0.deb>`__
+-  Windows 7 and later:
+   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.4.0/setup_phonometrica.exe>`__
+-  MacOS 10.7 and later:
+   `phonometrica.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.4.0/phonometrica.dmg>`__
+-  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.4.0.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.4.0/phonometrica-0.4.0.deb>`__
 -  source code: available on `GitHub <https://github.com/phonometrica/phonometrica>`__
 
   
 Manual
 ------
 
-Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.3.0/phonometrica_manual.pdf>`_ file.
+Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.4.0/phonometrica_manual.pdf>`_ file.
 
 
 Topics
