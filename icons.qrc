@@ -45,5 +45,6 @@
         <file>icons/eye.png</file>
         <file>icons/praat.png</file>
         <file>icons/export_csv.png</file>
+        <file>icons/query.png</file>
     </qresource>
 </RCC>

@@ -801,7 +801,7 @@ void MainWindow::executeQuery(AutoQuery query)
 	}
 	else
 	{
-		main_area->viewer()->openDataView(std::move(dataset));
+		main_area->viewer()->openTableView(std::move(dataset));
 	}
 }
 

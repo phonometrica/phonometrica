@@ -32,6 +32,7 @@
 #include <phon/gui/views/view.hpp>
 #include <phon/gui/views/sound_view.hpp>
 #include <phon/gui/views/annotation_view.hpp>
+#include <phon/gui/views/spreadsheet_view.hpp>
 #include <phon/gui/views/start_view.hpp>
 #include <phon/application/project.hpp>
 #include <phon/application/settings.hpp>
@@ -132,11 +133,30 @@ void Viewer::openScriptView(AutoScript script)
     addView(view, label);
 }
 
-void Viewer::openDataView(AutoDataset dataset)
+void Viewer::openTableView(AutoDataset table)
 {
-	auto label = dataset->label();
-	auto view = new DataView(this, runtime, std::move(dataset));
-	connect(view, &DataView::openAnnotation, this, &Viewer::editAnnotation);
+	View *view = nullptr;
+	auto label = table->label();
+
+	if (table->is_query_table())
+	{
+		auto query_view = new QueryView(this, runtime, std::dynamic_pointer_cast<QueryTable>(table));
+		connect(query_view, &QueryView::openAnnotation, this, &Viewer::editAnnotation);
+		view = query_view;
+	}
+	else if (table->is_spreadsheet())
+	{
+		auto spreadsheet_view = new SpreadsheetView(this, runtime, std::dynamic_pointer_cast<Spreadsheet>(table));
+		view = spreadsheet_view;
+	}
+	else
+	{
+		QString msg = QString("View for %1 files is not implemented").arg(table->class_name());
+		QMessageBox dlg(QMessageBox::Information, tr("Cannot open view"), msg);
+		dlg.exec();
+		return;
+	}
+
 	addView(view, label);
 }
 
@@ -207,6 +227,10 @@ void Viewer::view(const std::shared_ptr<VFile> &file)
             QMessageBox dlg(QMessageBox::Critical, tr("Cannot open view"), msg);
             dlg.exec();
         }
+    }
+    else if (file->is_dataset())
+    {
+    	openTableView(downcast<Dataset>(file));
     }
     else
     {

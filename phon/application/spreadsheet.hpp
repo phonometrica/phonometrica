@@ -41,23 +41,87 @@ public:
 		Dataset(parent, std::move(path))
 	{ }
 
-	String get_header(intptr_t j) const override { return String(); }
+	String get_header(intptr_t j) const override;
 
-	String get_cell(intptr_t i, intptr_t j) const override { return String(); }
+	String get_cell(intptr_t i, intptr_t j) const override;
 
-	intptr_t row_count() const override { return 0; }
+	intptr_t row_count() const override { return nrow; }
 
-	intptr_t column_count() const override { return 0; }
+	intptr_t column_count() const override { return ncol; }
 
-	bool empty() const override { return true; } // TODO: Spreadsheet::empty();
-
-	bool is_query_dataset() const override { return false; }
+	bool empty() const override { return nrow == 0; }
 
 	bool is_spreadsheet() const override { return true; }
 
 private:
 
+	enum class Type
+	{
+		Boolean,
+		Numeric,
+		Text
+	};
+
+	struct Column
+	{
+		virtual ~Column();
+
+		virtual Type type() const = 0;
+
+		virtual void resize(intptr_t size) = 0;
+
+	protected:
+
+		Type find_type(const std::type_info &t) const;
+	};
+
+	template<class T>
+	struct TColumn : public Column
+	{
+		TColumn() = default;
+
+		TColumn(intptr_t size, const T &value = T()) :
+			data(size, value)
+		{ }
+
+		Type type() const override { return find_type(typeid(T)); }
+
+		const T &get(intptr_t i) const { return data[i]; }
+
+		void set(intptr_t i, T value) { data[i] = std::move(value); }
+
+		void resize(intptr_t size) { data.resize(size); }
+
+		Array<T> data;
+	};
+
+	void read_from_csv(std::string_view sep = ",");
+
+	void load() override;
+
+	void write() override;
+
+	TColumn<double>* cast_num(Column *col) { return static_cast<TColumn<double>*>(col); }
+	const TColumn<double>* cast_num(Column *col) const { return static_cast<TColumn<double>*>(col); }
+
+	TColumn<bool>* cast_bool(Column *col) { return static_cast<TColumn<bool>*>(col); }
+	const TColumn<bool>* cast_bool(Column *col) const { return static_cast<TColumn<bool>*>(col); }
+
+	TColumn<String>* cast_string(Column *col) { return static_cast<TColumn<String>*>(col); }
+	const TColumn<String>* cast_string(Column *col) const { return static_cast<TColumn<String>*>(col); }
+
+	using AutoColumn = std::unique_ptr<Column>;
+
+	Array<String> m_labels;
+
+	Array<AutoColumn> m_columns;
+
+	intptr_t nrow = 0;
+
+	intptr_t ncol = 0;
 };
+
+using AutoSpreadsheet = std::shared_ptr<Spreadsheet>;
 
 } // namespace phonometrica
 

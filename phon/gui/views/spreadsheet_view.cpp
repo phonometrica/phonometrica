@@ -20,69 +20,65 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 17/09/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: tabular dataset, where each column represents a variable and each row represents an observation.           *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_DATASET_HPP
-#define PHONOMETRICA_DATASET_HPP
-
-#include <phon/application/vfs.hpp>
-
+#include <QLayout>
+#include <phon/gui/views/spreadsheet_view.hpp>
 
 namespace phonometrica {
 
-class Dataset : public VFile
+SpreadsheetView::SpreadsheetView(QWidget *parent, Runtime &rt, AutoSpreadsheet data) :
+	View(parent), runtime(rt), m_data(std::move(data))
 {
-public:
+	m_data->open();
+	setupUi();
+}
 
-	enum Type {
-		Undefined,
-		Native,
-		Csv
-	};
+void SpreadsheetView::save()
+{
+	//m_data->save();
+}
 
-	explicit Dataset(VFolder *parent, String path = String());
+void SpreadsheetView::setupUi()
+{
+	auto layout = new QVBoxLayout;
+	int nrow = m_data->row_count();
+	int ncol = m_data->column_count();
+	m_table = new QTableWidget(nrow, ncol, this);
+	QFont font("Noto Sans Mono");
+	//font.setStyleHint(QFont::Monospace);
+	QStringList vheaders, hheaders;
+	vheaders.reserve(m_table->rowCount());
+	hheaders.reserve(m_table->columnCount());
 
-	const char *class_name() const override;
+	for (int j = 1; j <= m_table->columnCount(); j++)
+	{
+		hheaders << m_data->get_header(j);
+	}
 
-	bool is_dataset() const override;
+	for (int i = 1; i <= m_table->rowCount(); i++)
+	{
+		vheaders << QString("%1").arg(i);
 
-	void from_xml(xml_node root, const String &project_dir);
+		for (int j = 1; j <= m_table->columnCount(); j++)
+		{
+			auto label = m_data->get_cell(i, j);
+			auto item = new QTableWidgetItem(label);
+			item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+			item->setFont(font);
+			m_table->setItem(i-1, j-1, item);
+		}
+	}
 
-	virtual String get_header(intptr_t j) const = 0;
+	m_table->setHorizontalHeaderLabels(hheaders);
+	m_table->setVerticalHeaderLabels(vheaders);
+	m_table->resizeColumnsToContents();
 
-	virtual String get_cell(intptr_t i, intptr_t j) const = 0;
-
-	virtual intptr_t row_count() const = 0;
-
-	virtual intptr_t column_count() const = 0;
-
-	virtual bool empty() const = 0;
-
-	virtual bool is_query_table() const { return false; }
-
-	virtual bool is_spreadsheet() const { return false; }
-
-	virtual void to_csv(const String &path, const String &sep = "\t");
-
-private:
-
-	void save_metadata() override;
-
-	Type guess_type() const;
-
-	bool uses_external_metadata() const override;
-
-
-	Type m_type = Undefined;
-
-};
-
-using AutoDataset = std::shared_ptr<Dataset>;
-
+	layout->addWidget(m_table);
+	setLayout(layout);
+}
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_DATASET_HPP

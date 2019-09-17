@@ -49,16 +49,6 @@ bool Dataset::is_dataset() const
 	return true;
 }
 
-void Dataset::load()
-{
-
-}
-
-void Dataset::write()
-{
-
-}
-
 void Dataset::from_xml(xml_node root, const String &project_dir)
 {
 	static const std::string_view path_tag("Path");

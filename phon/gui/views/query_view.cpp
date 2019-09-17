@@ -40,101 +40,99 @@
 #include <phon/application/audio_player.hpp>
 #include <phon/application/praat.hpp>
 #include <phon/application/settings.hpp>
-#include <phon/gui/views/data_view.hpp>
+#include <phon/gui/views/query_view.hpp>
 #include <phon/gui/popup_text_editor.hpp>
 #include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
 
-DataView::DataView(QWidget *parent, Runtime &rt, std::shared_ptr<Dataset> data) :
+QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
     View(parent), runtime(rt), m_data(std::move(data))
 {
 	auto layout = new QVBoxLayout;
 
-	if (m_data->is_query_dataset())
-	{
-		// Toolbar.
-		auto toolbar = new QToolBar;
-		play_action = toolbar->addAction(QIcon(":/icons/play.png"), tr("Play selected match"));
-		stop_action = toolbar->addAction(QIcon(":/icons/stop.png"), tr("Stop selected match"));
-		auto view_action = toolbar->addAction(QIcon(":/icons/eye.png"), tr("View match in annotation"));
-		auto praat_action = toolbar->addAction(QIcon(":/icons/praat.png"), tr("Open match in Praat"));
-		auto praat_path = Settings::get_string(runtime, "praat_path");
-		praat_action->setEnabled(filesystem::exists(praat_path));
+	// Toolbar.
+	auto toolbar = new QToolBar;
+	play_action = toolbar->addAction(QIcon(":/icons/play.png"), tr("Play selected match"));
+	stop_action = toolbar->addAction(QIcon(":/icons/stop.png"), tr("Stop selected match"));
+	auto view_action = toolbar->addAction(QIcon(":/icons/eye.png"), tr("View match in annotation"));
+	auto praat_action = toolbar->addAction(QIcon(":/icons/praat.png"), tr("Open match in Praat"));
+	auto praat_path = Settings::get_string(runtime, "praat_path");
+	praat_action->setEnabled(filesystem::exists(praat_path));
 
-		edit_action = toolbar->addAction(QIcon(":/icons/edit_row.png"), tr("Edit event label"));
-		enableQueryButtons(false);
+	edit_action = toolbar->addAction(QIcon(":/icons/edit_row.png"), tr("Edit event label"));
+	enableQueryButtons(false);
 
-		auto csv_action = toolbar->addAction(QIcon(":/icons/export_csv.png"), tr("Export to tab-separated value file"));
+	auto csv_action = toolbar->addAction(QIcon(":/icons/export_csv.png"), tr("Export to tab-separated value file"));
 
 #if PHON_MACOS
-		toolbar->setMaximumHeight(30);
-        toolbar->setStyleSheet("QToolBar{spacing:0px;}");
-	#endif
+	toolbar->setMaximumHeight(30);
+    toolbar->setStyleSheet("QToolBar{spacing:0px;}");
+#endif
 
-        auto play = [=](bool) {
-        	auto index = m_table->currentIndex();
-        	if (index.isValid()) onCellDoubleClicked(index.row(), index.column());
-        };
+    auto play = [=](bool) {
+        auto index = m_table->currentIndex();
+        if (index.isValid()) onCellDoubleClicked(index.row(), index.column());
+    };
 
-        auto stop = [=](bool) {
-        	this->stopPlayer();
-        };
+    auto stop = [=](bool) {
+        this->stopPlayer();
+    };
 
-        auto edit = [=](bool) {
-        	auto index = m_table->currentIndex();
-        	if (index.isValid()) editEvent(index.row());
-        };
+    auto edit = [=](bool) {
+        auto index = m_table->currentIndex();
+        if (index.isValid()) editEvent(index.row());
+    };
 
-        connect(play_action, &QAction::triggered, play);
-        connect(stop_action, &QAction::triggered, stop);
-        connect(edit_action, &QAction::triggered, edit);
-        connect(csv_action, &QAction::triggered, this, &DataView::exportToCsv);
-        layout->addWidget(toolbar);
+    connect(play_action, &QAction::triggered, play);
+    connect(stop_action, &QAction::triggered, stop);
+    connect(edit_action, &QAction::triggered, edit);
+    connect(csv_action, &QAction::triggered, this, &QueryView::exportToCsv);
+    layout->addWidget(toolbar);
 
-        auto column_menu = new QMenu;
-		info_action = new QAction(tr("Show file information"), this);
-        info_action->setCheckable(true);
-		context_action = new QAction(tr("Show match context"), this);
-		context_action->setCheckable(true);
-		property_action = new QAction(tr("Show properties"), this);
-		property_action->setCheckable(true);
-		column_menu->addAction(info_action);
-		column_menu->addAction(context_action);
-		column_menu->addAction(property_action);
-		info_action->setChecked(true);
-		context_action->setChecked(true);
+    auto column_menu = new QMenu;
+	info_action = new QAction(tr("Show file information"), this);
+    info_action->setCheckable(true);
+	context_action = new QAction(tr("Show match context"), this);
+	context_action->setCheckable(true);
+	property_action = new QAction(tr("Show properties"), this);
+	property_action->setCheckable(true);
+	column_menu->addAction(info_action);
+	column_menu->addAction(context_action);
+	column_menu->addAction(property_action);
+	info_action->setChecked(true);
+	context_action->setChecked(true);
 
-		auto column_button = new QToolButton;
-		column_button->setIcon(QIcon(":/icons/select_column.png"));
-		column_button->setToolTip(tr("Show/hide columns"));
-		column_button->setMenu(column_menu);
-		column_button->setPopupMode(QToolButton::InstantPopup);
-		toolbar->addWidget(column_button);
+	auto column_button = new QToolButton;
+	column_button->setIcon(QIcon(":/icons/select_column.png"));
+	column_button->setToolTip(tr("Show/hide columns"));
+	column_button->setMenu(column_menu);
+	column_button->setPopupMode(QToolButton::InstantPopup);
+	toolbar->addWidget(column_button);
 
-		// Match result layout
+	// Match result layout
 
-		auto label = QString("<b>%1 matches").arg(m_data->row_count());
-		layout->addWidget(new QLabel(label));
+	auto label = QString("<b>%1 matches").arg(m_data->row_count());
+	layout->addWidget(new QLabel(label));
 
-		auto view_event = [=](bool) {
-			auto index = m_table->currentIndex();
-			if (index.isValid()) openInAnnotation(index.row());
-		};
+	auto view_event = [=](bool) {
+		auto index = m_table->currentIndex();
+		if (index.isValid()) openInAnnotation(index.row());
+	};
 
-		auto open_in_praat = [=](bool) {
-			auto index = m_table->currentIndex();
-			if (index.isValid()) openMatchInPraat(index.row());
-		};
+	auto open_in_praat = [=](bool) {
+		auto index = m_table->currentIndex();
+		if (index.isValid()) openMatchInPraat(index.row());
+	};
 
-		connect(info_action, &QAction::triggered, this, &DataView::refreshTable);
-		connect(context_action, &QAction::triggered, this, &DataView::refreshTable);
-		connect(property_action, &QAction::triggered, this, &DataView::refreshTable);
-		connect(view_action, &QAction::triggered, this, view_event);
-		connect(praat_action, &QAction::triggered, this, open_in_praat);
+	connect(info_action, &QAction::triggered, this, &QueryView::refreshTable);
+	connect(context_action, &QAction::triggered, this, &QueryView::refreshTable);
+	connect(property_action, &QAction::triggered, this, &QueryView::refreshTable);
+	connect(view_action, &QAction::triggered, this, view_event);
+	connect(praat_action, &QAction::triggered, this, open_in_praat);
 
-		getQueryDataset()->set_flags(getQueryFlags());
-	}
+	m_data->set_flags(getQueryFlags());
+
 
 	int nrow = m_data->row_count();
 	int ncol = m_data->column_count();
@@ -149,12 +147,12 @@ DataView::DataView(QWidget *parent, Runtime &rt, std::shared_ptr<Dataset> data) 
 	fill_table();
 }
 
-void DataView::save()
+void QueryView::save()
 {
-	// TODO: implement DataView::save()
+	// TODO: implement QueryView::save()
 }
 
-void DataView::fill_table()
+void QueryView::fill_table()
 {
 	//auto font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
 	QFont font("Noto Sans Mono");
@@ -165,7 +163,6 @@ void DataView::fill_table()
 	QStringList vheaders, hheaders;
 	vheaders.reserve(m_table->rowCount());
 	hheaders.reserve(m_table->columnCount());
-	auto query_set = dynamic_cast<QueryTable*>(m_data.get());
 
 	for (int j = 1; j <= m_table->columnCount(); j++)
 	{
@@ -182,7 +179,7 @@ void DataView::fill_table()
 			auto item = new QTableWidgetItem(label);
 			item->setFlags(item->flags() ^ Qt::ItemIsEditable);
 			item->setFont(font);
-			int jj = (int) query_set->adjust_column(j);
+			int jj = (int) m_data->adjust_column(j);
 			if (jj == 2)
 			{
 				item->setTextAlignment(Qt::AlignCenter);
@@ -205,49 +202,42 @@ void DataView::fill_table()
 	m_table->setVerticalHeaderLabels(vheaders);
 	m_table->resizeColumnsToContents();
 
-	connect(m_table, &QTableWidget::cellClicked, this, &DataView::onCellClicked);
-	connect(m_table, &QTableWidget::cellDoubleClicked, this, &DataView::onCellDoubleClicked);
+	connect(m_table, &QTableWidget::cellClicked, this, &QueryView::onCellClicked);
+	connect(m_table, &QTableWidget::cellDoubleClicked, this, &QueryView::onCellDoubleClicked);
 }
 
-int DataView::getQueryFlags()
+int QueryView::getQueryFlags()
 {
-	int flags = 0;
+	int flags = QueryTable::ShowNothing;
 
-	if (m_data->is_query_dataset())
-	{
-		if (info_action->isChecked())
-			flags |= QueryTable::ShowFileInfo;
-		if (context_action->isChecked())
-			flags |= QueryTable::ShowMatchContext;
-		if (property_action->isChecked())
-			flags |= QueryTable::ShowProperties;
-	}
+	if (info_action->isChecked())
+		flags |= QueryTable::ShowFileInfo;
+	if (context_action->isChecked())
+		flags |= QueryTable::ShowMatchContext;
+	if (property_action->isChecked())
+		flags |= QueryTable::ShowProperties;
 
 	return flags;
 }
 
-void DataView::refreshTable(bool)
+void QueryView::refreshTable(bool)
 {
 	m_table->clear();
-	dynamic_cast<QueryTable*>(m_data.get())->set_flags(getQueryFlags());
+	m_data->set_flags(getQueryFlags());
 	int ncol = m_data->column_count();
 	m_table->setColumnCount(ncol);
 	fill_table();
 }
 
-void DataView::onCellDoubleClicked(int i, int)
+void QueryView::onCellDoubleClicked(int i, int)
 {
-	if (m_data->is_query_dataset())
-	{
-		enableQueryButtons(true);
-		playMatch(i);
-	}
+	enableQueryButtons(true);
+	playMatch(i);
 }
 
-void DataView::playMatch(int i)
+void QueryView::playMatch(int i)
 {
-	auto query_set = getQueryDataset();
-	auto &match = query_set->get_match(i+1);
+	auto &match = m_data->get_match(i+1);
 	auto sound = match->annotation()->sound();
 	if (!sound) return;
 	if (player) player->stop();
@@ -258,22 +248,13 @@ void DataView::playMatch(int i)
 	player->play(from, to);
 }
 
-void DataView::onCellClicked(int i, int j)
+void QueryView::onCellClicked(int i, int j)
 {
-	if (m_data->is_query_dataset())
-	{
-		enableQueryButtons(true);
-	}
+	enableQueryButtons(true);
 }
 
-void DataView::keyPressEvent(QKeyEvent *event)
+void QueryView::keyPressEvent(QKeyEvent *event)
 {
-	if (!m_data->is_query_dataset())
-	{
-		event->ignore();
-		return;
-	}
-
 	auto index = m_table->currentIndex();
 
 	if (event->key() == Qt::Key_Space)
@@ -303,10 +284,9 @@ void DataView::keyPressEvent(QKeyEvent *event)
 	}
 }
 
-void DataView::editEvent(int i)
+void QueryView::editEvent(int i)
 {
-	auto query_set = getQueryDataset();
-	auto &match = query_set->get_match(i+1);
+	auto &match = m_data->get_match(i+1);
 	auto event = match->event();
 	QString text = event->text();
 	int y = m_table->rowViewportPosition(i) + 100;
@@ -325,17 +305,16 @@ void DataView::editEvent(int i)
 	}
 }
 
-void DataView::enableQueryButtons(bool enable)
+void QueryView::enableQueryButtons(bool enable)
 {
 	play_action->setEnabled(enable);
 	edit_action->setEnabled(enable);
 	stop_action->setEnabled(enable);
 }
 
-void DataView::openInAnnotation(int i)
+void QueryView::openInAnnotation(int i)
 {
-	auto query_set = getQueryDataset();
-	auto &match = query_set->get_match(i+1);
+	auto &match = m_data->get_match(i+1);
 	auto annot = match->annotation();
 
 	if (annot->has_sound())
@@ -353,10 +332,9 @@ void DataView::openInAnnotation(int i)
 
 }
 
-void DataView::openMatchInPraat(int i)
+void QueryView::openMatchInPraat(int i)
 {
-	auto query_set = getQueryDataset();
-	auto &match = query_set->get_match(i+1);
+	auto &match = m_data->get_match(i+1);
 	auto &annot = match->annotation();
 
 	if (!annot->is_textgrid())
@@ -384,7 +362,7 @@ void DataView::openMatchInPraat(int i)
 	}
 }
 
-void DataView::stopPlayer()
+void QueryView::stopPlayer()
 {
 	if (player)
 	{
@@ -393,7 +371,7 @@ void DataView::stopPlayer()
 	}
 }
 
-void DataView::exportToCsv(bool)
+void QueryView::exportToCsv(bool)
 {
 	String dir = Settings::get_last_directory(runtime);
 	auto p = QFileDialog::getSaveFileName(this, tr("Save as CSV file..."), dir);

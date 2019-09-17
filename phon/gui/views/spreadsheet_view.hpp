@@ -20,69 +20,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 17/09/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: tabular dataset, where each column represents a variable and each row represents an observation.           *
+ * Purpose: display a spreadsheet.                                                                                     *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_DATASET_HPP
-#define PHONOMETRICA_DATASET_HPP
+#ifndef PHONOMETRICA_SPREADSHEET_VIEW_HPP
+#define PHONOMETRICA_SPREADSHEET_VIEW_HPP
 
-#include <phon/application/vfs.hpp>
-
+#include <QTableWidget>
+#include <phon/application/spreadsheet.hpp>
+#include <phon/runtime/runtime.hpp>
+#include <phon/gui/views/view.hpp>
 
 namespace phonometrica {
 
-class Dataset : public VFile
+class SpreadsheetView final : public View
 {
+	Q_OBJECT
+
 public:
 
-	enum Type {
-		Undefined,
-		Native,
-		Csv
-	};
+	SpreadsheetView(QWidget *parent, Runtime &rt, AutoSpreadsheet data);
 
-	explicit Dataset(VFolder *parent, String path = String());
-
-	const char *class_name() const override;
-
-	bool is_dataset() const override;
-
-	void from_xml(xml_node root, const String &project_dir);
-
-	virtual String get_header(intptr_t j) const = 0;
-
-	virtual String get_cell(intptr_t i, intptr_t j) const = 0;
-
-	virtual intptr_t row_count() const = 0;
-
-	virtual intptr_t column_count() const = 0;
-
-	virtual bool empty() const = 0;
-
-	virtual bool is_query_table() const { return false; }
-
-	virtual bool is_spreadsheet() const { return false; }
-
-	virtual void to_csv(const String &path, const String &sep = "\t");
+	void save() override;
 
 private:
 
-	void save_metadata() override;
+	void setupUi();
 
-	Type guess_type() const;
+	Runtime &runtime;
 
-	bool uses_external_metadata() const override;
+	QTableWidget *m_table;
 
-
-	Type m_type = Undefined;
-
+	AutoSpreadsheet m_data;
 };
-
-using AutoDataset = std::shared_ptr<Dataset>;
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_DATASET_HPP
+#endif // PHONOMETRICA_SPREADSHEET_VIEW_HPP

@@ -32,7 +32,7 @@
 #include <QTabWidget>
 #include <phon/runtime/runtime.hpp>
 #include <phon/gui/views/script_view.hpp>
-#include <phon/gui/views/data_view.hpp>
+#include <phon/gui/views/query_view.hpp>
 
 namespace phonometrica {
 
@@ -60,7 +60,7 @@ public slots:
 
     void openScriptView(AutoScript script);
 
-    void openDataView(AutoDataset);
+    void openTableView(AutoDataset table);
 
     void openScript(const String &path);
 

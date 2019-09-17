@@ -22,40 +22,17 @@
  *                                                                                                                     *
  * Created: 14/03/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: Display tabular data.                                                                                      *
+ * Purpose: Display results of a query.                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-
-/**********************************************************************************************************************
- *                                                                                                                    *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                           *
- *                                                                                                                    *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public  *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any     *
- * later version.                                                                                                     *
- *                                                                                                                    *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more      *
- * details.                                                                                                           *
- *                                                                                                                    *
- * You should have received a copy of the GNU General Public License along with this program. If not, see             *
- * <http://www.gnu.org/licenses/>.                                                                                    *
- *                                                                                                                    *
- * Created: 14/03/2019                                                                                                *
- *                                                                                                                    *
- * Purpose: Display tabular data.                                                                                     *
- *                                                                                                                    *
- **********************************************************************************************************************/
-
-#ifndef PHONOMETRICA_DATA_VIEW_HPP
-#define PHONOMETRICA_DATA_VIEW_HPP
+#ifndef PHONOMETRICA_QUERY_VIEW_HPP
+#define PHONOMETRICA_QUERY_VIEW_HPP
 
 #include <QTableWidget>
 #include <QCheckBox>
 #include <phon/runtime/runtime.hpp>
 #include <phon/gui/views/view.hpp>
-#include <phon/application/dataset.hpp>
 #include <phon/application/annotation.hpp>
 #include <phon/application/query_table.hpp>
 
@@ -64,13 +41,13 @@ namespace phonometrica {
 class AudioPlayer;
 
 
-class DataView final : public View
+class QueryView final : public View
 {
     Q_OBJECT
 
 public:
 
-    DataView(QWidget *parent, Runtime &rt, std::shared_ptr<Dataset> data);
+    QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data);
 
 	void save() override;
 
@@ -107,15 +84,13 @@ private:
 
 	void openInAnnotation(int i);
 
-	QueryTable *getQueryDataset() const { return dynamic_cast<QueryTable*>(m_data.get()); }
-
 	void enableQueryButtons(bool enable);
 
 	void stopPlayer();
 
 	Runtime &runtime;
 
-    std::shared_ptr<Dataset> m_data;
+    std::shared_ptr<QueryTable> m_data;
 
     QTableWidget *m_table;
 
@@ -136,4 +111,4 @@ private:
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_DATA_VIEW_HPP
+#endif //PHONOMETRICA_QUERY_VIEW_HPP

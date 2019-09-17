@@ -60,9 +60,7 @@ public:
 
 	bool empty() const override;
 
-	bool is_query_dataset() const override { return true; }
-
-	bool is_spreadsheet() const override { return false; }
+	bool is_query_table() const override { return true; }
 
 	const AutoQueryMatch & get_match(intptr_t i) { return m_matches[i]; }
 
@@ -105,6 +103,7 @@ private:
 	int m_flags = 0;
 };
 
+using AutoQueryTable = std::shared_ptr<QueryTable>;
 
 } // namespace phonometrica
 
