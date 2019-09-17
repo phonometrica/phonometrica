@@ -180,8 +180,8 @@ void AnnotationView::saveAnnotation(bool)
 		if (path.isEmpty()) {
 			return; // cancelled
 		}
-		if (!path.endsWith(".phon-annot")) {
-			path.append(".phon-annot");
+		if (!path.endsWith(PHON_EXT_ANNOTATION)) {
+			path.append(PHON_EXT_ANNOTATION);
 		}
 		annot->set_path(path, true);
 	}

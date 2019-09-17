@@ -80,6 +80,9 @@ private:
     Array<String> history;
 
     intptr_t current_cmd = 0;
+
+    // Flag used to indicate that text has been printed to the console.
+    bool dirty = false;
 };
 
 } // phonometrica

@@ -26,27 +26,6 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-
-# Register functions in the 'phon' namespace.
-
-phon.load_plugins = function()
-    var load_plugin = function(plugin)
-        var init_file = system.join_path(plugin, "init.phon")
-
-        if system.is_file(init_file) then
-            load(init_file)
-        end
-    end
-
-    var plugin_dir = phon.config.plugin_directory
-    var dirs = system.list_directory(plugin_dir, false)
-
-    foreach var v in dirs do
-        var path = system.join_path(plugin_dir, v)
-        load_plugin(path)
-    end
-end
-
 # Create settings directory and subdirectories
 var config = phon.config
 

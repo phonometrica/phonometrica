@@ -615,7 +615,7 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent)
 
 	std::shared_ptr<VFile> vfile;
 
-	if (ext == ".phon-annot" || ext == ".textgrid")
+	if (ext == PHON_EXT_ANNOTATION || ext == ".textgrid")
 	{
 	    auto annot = std::make_shared<Annotation>(parent.get(), std::move(path));
 		vfile = upcast<VFile>(annot);

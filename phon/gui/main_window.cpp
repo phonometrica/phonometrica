@@ -41,6 +41,7 @@
 #include <phon/runtime/object.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
+#include <phon/utils/file_system.hpp>
 
 
 #ifdef PHON_EMBED_SCRIPTS
@@ -348,6 +349,10 @@ void MainWindow::makeMenu(QWidget *panel)
         this->addWindowMenu(menubar);
     };
 
+    auto create_tool_menu = [=](Runtime &rt) {
+		this->addToolsMenu(menubar);
+    };
+
     runtime.get_global("phon");
     {
         runtime.add_method("add_menu", add_menu, 1);
@@ -363,6 +368,7 @@ void MainWindow::makeMenu(QWidget *panel)
         runtime.add_method("set_action_tooltip", set_action_tooltip, 2);
         runtime.add_method("bind_action", bind_action, 2);
         runtime.add_method("create_window_menu", create_window_menu, 0);
+        runtime.add_method("create_tool_menu", create_tool_menu, 0);
     }
     runtime.pop();
 
@@ -379,6 +385,21 @@ void MainWindow::makeMenu(QWidget *panel)
     setMenuBar(menubar);
 }
 
+void MainWindow::addToolsMenu(QMenuBar *menubar)
+{
+	tool_menu = new QMenu(tr("Tools"));
+	tool_separator = tool_menu->addSeparator();
+	auto extend_action = new QAction("How to extend this menu");
+	tool_menu->addAction(extend_action);
+	menubar->addMenu(tool_menu);
+
+	connect(extend_action, &QAction::triggered, [&](bool) {
+		runtime.do_string(R"__(
+		var page = phon.config.get_documentation_page("scripting/plugins.html")
+		phon.show_documentation(page)
+		)__");
+	});
+}
 
 void MainWindow::addWindowMenu(QMenuBar *menubar)
 {
@@ -674,22 +695,49 @@ void MainWindow::preInitialize()
     }
     catch (std::runtime_error &e)
     {
-        QMessageBox dlg(QMessageBox::Critical, tr("Post-initialization failed"), e.what());
+        QMessageBox dlg(QMessageBox::Critical, tr("Pre-initialization failed"), e.what());
         dlg.exec();
     }
 }
 
 void MainWindow::postInitialize()
 {
-    try
-    {
-        runtime.do_string("phon.load_plugins()");
-    }
-    catch (std::runtime_error &e)
-    {
-        QMessageBox dlg(QMessageBox::Critical, tr("Plugin initialization failed"), e.what());
-        dlg.exec();
-    }
+
+   Array<String> paths;
+
+   // System plugins.
+   String resources_dir = Settings::get_string(runtime, "resources_directory");
+   String dir = filesystem::join(resources_dir, "Plugins");
+
+   if (filesystem::exists(dir))
+   {
+       for (auto &name : filesystem::list_directory(dir))
+       {
+       	    String path = filesystem::join(dir, name);
+       	    if (filesystem::is_directory(path)) paths.append(path);
+       }
+   }
+
+   // User plugins.
+   dir = Settings::plugin_directory();
+   for (auto &name : filesystem::list_directory(dir))
+   {
+   	    String path = filesystem::join(dir, name);
+        if (filesystem::is_directory(path)) paths.append(path);
+   }
+
+   for (auto &path : paths)
+   {
+   	    try
+        {
+   	    	loadPlugin(path);
+        }
+   	    catch (std::exception &e)
+        {
+	        QMessageBox dlg(QMessageBox::Critical, tr("Plugin initialization failed"), e.what());
+	        dlg.exec();
+        }
+   }
 }
 
 void MainWindow::updateConsoleAction(bool)
@@ -809,6 +857,40 @@ void MainWindow::setDatabaseConnection()
 {
 	auto &db = Project::instance()->database();
 	connect(&db, &MetaDatabase::saving_metadata, this, &MainWindow::updateStatus);
+}
+
+void MainWindow::loadPlugin(const String &path)
+{
+	String msg("Loading plugin ");
+	msg.append(path);
+	updateStatus(msg);
+
+	auto menu = new QMenu;
+
+	// Callback to add actions to the plugin's menu.
+	auto callback = [=](String name, String target, String shortcut) {
+		auto action = new QAction(name);
+		if (!shortcut.empty()) action->setShortcut(QKeySequence(shortcut));
+		menu->addAction(action);
+
+		connect(action, &QAction::triggered, [target, this](bool) {
+			runtime.do_file(target);
+		});
+	};
+
+	try
+	{
+		auto plugin = std::make_shared<Plugin>(runtime, path, callback);
+		menu->setTitle(plugin->label());
+
+		tool_menu->insertMenu(tool_separator, menu);
+		plugins.append(std::move(plugin));
+	}
+	catch (...)
+	{
+		delete menu;
+		throw;
+	}
 }
 
 

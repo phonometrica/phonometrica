@@ -20,6 +20,7 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * utf8proc, by the Public Software Group (MIT), see `julialang.org/utf8proc <https://julialang.org/utf8proc>`_
 * Unicode routines in sol2, by ThePhD (MIT), see `sol2.rtfd.io <http://sol2.rtfd.io>`_
 * UTF8-CPP, by Nemanja Trifunovic (MIT-like), see `utfcpp.sourceforge.net <http://utfcpp.sourceforge.net/>`_
+* JSON for Modern C++, by Niels Lohmann (MIT), see `github.com/nlohmann/json <https://github.com/nlohmann/json>`_
 * CMake, by Kitware Inc. (BSD 3-clause), see `cmake.org <https://cmake.org/>`_
 
 Phonometrica also uses `GitHub <https://github.com>`_ to host its source code. The source code is available `here <https://github.com/phonometrica/phonometrica>`_.

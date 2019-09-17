@@ -36,6 +36,7 @@
 #include <phon/gui/property_editor.hpp>
 #include <phon/application/praat.hpp>
 #include <phon/application/settings.hpp>
+#include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
 
@@ -619,19 +620,19 @@ VFileList ProjectCtrl::get_vfiles(const QList<QTreeWidgetItem *> &items)
 
 void ProjectCtrl::textGridToNative(const AutoAnnotation &annot)
 {
-	QString dir = Settings::get_string(rt, "last_directory");
-	auto path = QFileDialog::getSaveFileName(this, tr("Save as annotation..."), dir, tr("Annotation (*.phon-annot)"));
+	String name = filesystem::split_ext(annot->path()).first;
+	name.append(PHON_EXT_ANNOTATION);
+	auto p = QFileDialog::getSaveFileName(this, tr("Save as annotation..."), name, tr("Annotation (*.phon-annot)"));
 
-	if (path.isEmpty()) {
+	if (p.isEmpty()) {
 		return; // cancelled
 	}
-	if (!path.endsWith(".phon-annot")) {
-		path.append(".phon-annot");
+	if (!p.endsWith(PHON_EXT_ANNOTATION)) {
+		p.append(PHON_EXT_ANNOTATION);
 	}
+	String path = p;
 	annot->write_as_native(path);
 
-	// TODO: import annotation on export
-#if 0
 	auto reply = QMessageBox::question(this, tr("Import file?"), tr("Would you like to import this annotation into the current project?"),
 	                                   QMessageBox::Yes|QMessageBox::No);
 
@@ -641,7 +642,6 @@ void ProjectCtrl::textGridToNative(const AutoAnnotation &annot)
 		project->import_file(path);
 		emit project->notify_update();
 	}
-#endif
 }
 
 void ProjectCtrl::nativeToTextGrid(const AutoAnnotation &annot)

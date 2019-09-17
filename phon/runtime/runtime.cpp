@@ -26,6 +26,8 @@
 #include <phon/runtime/object.hpp>
 #include <phon/utils/print.hpp>
 #include <phon/utils/alloc.hpp>
+#include "runtime.hpp"
+
 
 namespace phonometrica {
 
@@ -146,21 +148,24 @@ panic_callback_t Runtime::at_panic(panic_callback_t panic)
 
 int Runtime::do_string(const String &source)
 {
-
+	if (initialize_script) initialize_script();
     this->load_string("[string]", source);
     push_null();
     call(0);
     pop(1);
+    if (finalize_script) finalize_script();
 
     return 0;
 }
 
 int Runtime::do_file(const String &filename)
 {
+	if (initialize_script) initialize_script();
     load_file(filename);
     push_null();
     call(0);
     pop(1);
+    if (finalize_script) finalize_script();
 
     return 0;
 }
@@ -2256,7 +2261,6 @@ void Runtime::clear_stack()
 	--bot;
 //    top = --bot;
 }
-
 
 
 } // namespace phonometrica

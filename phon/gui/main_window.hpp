@@ -32,6 +32,7 @@
 #include <QMainWindow>
 #include <QSplitter>
 #include <phon/runtime/runtime.hpp>
+#include <phon/application/plugin.hpp>
 #include <phon/gui/file_manager.hpp>
 #include <phon/gui/main_area.hpp>
 #include <phon/gui/splitter.hpp>
@@ -83,6 +84,8 @@ private:
 
     void addWindowMenu(QMenuBar *menubar);
 
+    void addToolsMenu(QMenuBar *menubar);
+
     void setShellFunctions();
 
     void initialize();
@@ -103,6 +106,8 @@ private:
 
     void setDatabaseConnection();
 
+    void loadPlugin(const String &path);
+
     Splitter *splitter;
 
     Runtime &runtime;
@@ -114,6 +119,12 @@ private:
     QAction *show_project, *show_console, *show_info, *restore_layout;
 
     QueryEditor *query_editor = nullptr; // cache last query
+
+    QMenu *tool_menu = nullptr;
+
+    QAction *tool_separator = nullptr;
+
+    Array<AutoPlugin> plugins;
 };
 
 } // phonometrica

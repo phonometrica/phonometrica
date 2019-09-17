@@ -37,6 +37,14 @@ static const size_t COMMAND_MAX = 30;
 Console::Console(Runtime &rt, QWidget *parent) :
 		QPlainTextEdit(parent), runtime(rt), prompt(">> ")
 {
+	runtime.initialize_script = [=]() {
+		this->dirty = false;
+	};
+
+	runtime.finalize_script = [=]() {
+		if (this->dirty) this->setPrompt();
+	};
+
     auto font = get_monospace_font();
     setFont(font);
 
@@ -45,6 +53,7 @@ Console::Console(Runtime &rt, QWidget *parent) :
     {
         rt.print = [&](const String &s) {
             this->print(s);
+            this->dirty = true;
         };
 
         // Clear console.

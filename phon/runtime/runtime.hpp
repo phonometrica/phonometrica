@@ -313,6 +313,8 @@ public:
 
     bool is_stack_empty() const { return stack == top; }
 
+	std::function<void()> initialize_script, finalize_script;
+
 private:
 
     void initialize();
@@ -340,7 +342,6 @@ private:
     void init_date();
 
     void init_system();
-
 
 public:
 

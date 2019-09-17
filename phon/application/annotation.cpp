@@ -110,7 +110,7 @@ Annotation::Type Annotation::guess_type()
 	{
 		auto ext = filesystem::ext(m_path, true);
 
-		if (ext == ".phon-annot") {
+		if (ext == PHON_EXT_ANNOTATION) {
 			return Type::Native;
 		}
 		if (ext == ".textgrid") {

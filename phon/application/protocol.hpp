@@ -20,72 +20,50 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 20/02/2019                                                                                                 *
+ * Created: 17/09/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: common definitions.                                                                                        *
+ * Purpose: a query protocol defines the semantics of a coding scheme. It is translated as a widget with clickable     *
+ * buttons, which is presented to the user in a query editor. The user's input is translated back into a regular       *
+ * expression which is passed as a search pattern to a query.                                                          *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_DEFINITIONS_HPP
-#define PHONOMETRICA_DEFINITIONS_HPP
+#ifndef PHONOMETRICA_PROTOCOL_HPP
+#define PHONOMETRICA_PROTOCOL_HPP
 
-#include <cassert>
-#include <cstdint>
-#include <cstdlib>
-#include <limits>
-
-/* Detect architecture (either 32 bit or 64 bit) */
-#ifdef _WIN64
-	#define PHON_ARCH64
-#elif defined(_WIN32)
-	#define PHON_ARCH32
-#elif defined(__i386__)
-	#define PHON_ARCH32
-#elif defined(__x86_64__)
-	#define PHON_ARCH64
-#elif defined(__GNUC__)
-#ifdef __LP64__
-		#define PHON_ARCH64
-	#else
-		#define PHON_ARCH32
-	#endif
-#else
-	#error "Unsupported platform."
-#endif
-
-#define PHON_MAC_SIDEBAR_COLOR "#E5E7EC"
-
-#define PHON_EXT_ANNOTATION ".phon-annot"
+#include <memory>
+#include <phon/string.hpp>
+#include <phon/runtime/runtime.hpp>
 
 namespace phonometrica {
 
-namespace meta {
-constexpr size_t pointer_size = sizeof(void*);
-static constexpr bool is_arch32 = (pointer_size == 4);
-static constexpr bool is_arch64 = (pointer_size == 8);
-
-} // namespace meta
-
-// Color for the garbage collector. Objects that are acyclic (i.e. contain no cyclic reference)
-// are green. Base types such as string and regex are acyclic because there is no way they
-// can store a reference to themselves. Collections (list, table, etc.) are considered cyclic
-// and are therefore candidates for GC.
-enum class GCColor
+class Protocol final
 {
-	Green,      // object which is not collectable
-	Black,      // Assumed to be alive
-	Grey,       // Possible member of a GC cycle
-	White,      // Possibly dead
-	Purple      // Root candidate for a GC cycle
+public:
+
+	Protocol(Runtime &rt, const String &path);
+
+	String version() const { return m_version; }
+
+	String layer_name() const { return m_layer_name; }
+
+	int layer_index() const { return m_layer_index; }
+
+private:
+
+	Runtime &runtime;
+
+	String m_path;
+
+	String m_version;
+
+	String m_layer_name;
+
+	int m_layer_index = -1;
 };
 
-// Type for interned strings in the scripting engine.
-typedef int32_t literal;
-static const literal unknown_symbol = (std::numeric_limits<literal>::min)();
-
+using AutoProtocol = std::shared_ptr<Protocol>;
 
 } // namespace phonometrica
 
-
-
-#endif // PHONOMETRICA_DEFINITIONS_HPP
+#endif // PHONOMETRICA_PROTOCOL_HPP

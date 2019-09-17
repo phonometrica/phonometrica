@@ -310,5 +310,10 @@ void Settings::set_value(Runtime &rt, const String &category, const String &key,
     rt.pop(3);
 }
 
+String Settings::get_std_plugin_directory()
+{
+	return String();
+}
+
 
 } // namespace phonometrica

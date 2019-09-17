@@ -82,6 +82,8 @@ public:
 
     static void initialize(Runtime &rt);
 
+    static String get_std_plugin_directory();
+
     static String get_std_script(Runtime &rt, String name);
 
     static String get_last_directory(Runtime &rt);
