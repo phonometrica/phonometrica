@@ -46,7 +46,7 @@ QFont get_monospace_font()
     font.setFamily("Consolas");
 #else
     font.setPointSize(11);
-    font.setFamily("Monospace");
+    font.setFamily("Noto Sans Mono");
 #endif
 
     return font;

@@ -76,7 +76,7 @@ protected:
 
 private:
 
-	void fill_table();
+	void fillTable();
 
 	int getQueryFlags();
 
@@ -90,6 +90,8 @@ private:
 
 	void stopPlayer();
 
+	bool isMatchCell(int jj) const;
+
 	Runtime &runtime;
 
     std::shared_ptr<QueryTable> m_data;
@@ -101,6 +103,8 @@ private:
     QAction *context_action = nullptr;
 
     QAction *info_action = nullptr;
+
+    QAction *match_action = nullptr;
 
     QAction *play_action = nullptr;
 

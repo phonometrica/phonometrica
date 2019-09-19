@@ -84,7 +84,7 @@ public:
 
 	QString name() const;
 
-	QString regex() const;
+	QString get_pattern() const;
 
 	QString tierNamePattern() const;
 
@@ -105,6 +105,8 @@ private:
 	bool allChecked() const;
 
 	bool noneChecked() const;
+
+	void checkAll();
 };
 
 } // namespace phonometrica

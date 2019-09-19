@@ -52,6 +52,8 @@ protected:
 
 private:
 
+	String get_pattern();
+
 	AutoProtocol protocol;
 
 	QList<FieldBox*> m_fields;

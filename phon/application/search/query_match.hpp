@@ -104,7 +104,7 @@ using QueryMatchList = Array<AutoQueryMatch>;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class Concordance final : public QueryMatch
+class Concordance : public QueryMatch
 {
 public:
 
@@ -116,10 +116,29 @@ public:
 
 	String right() const { return m_right; }
 
-private:
+protected:
 
 	// Left and right contexts of the concordance.
 	String m_left, m_right;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+class ProtocolConcordance final : public Concordance
+{
+public:
+
+	ProtocolConcordance(const AutoAnnotation &annot, int layer, const AutoEvent &e, const String &text, int pos,
+			String left, String right, Array<String> fields) :
+		Concordance(annot, layer, e, text, pos, std::move(left), std::move(right)), m_fields(std::move(fields))
+	{ }
+
+	String get_field(intptr_t i) const { return m_fields[i]; }
+
+private:
+
+	// Matched text broken down into fields according to the query protocol.
+	Array<String> m_fields;
 };
 
 } // namespace phonometrica

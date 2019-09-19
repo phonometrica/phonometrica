@@ -85,9 +85,9 @@ String SearchOperator::to_string() const
 
 //----------------------------------------------------------------------------------------------------------------------
 
-SearchConstraint::SearchConstraint(int context_length, int index, int layer_index, const String &layer_name, bool case_sensitive,
-                                   SearchConstraint::Opcode op, SearchConstraint::Relation rel, String value) :
-		index(index), layer_index(layer_index),
+SearchConstraint::SearchConstraint(AutoProtocol p, int context_length, int index, int layer_index, const String &layer_name,
+		bool case_sensitive, SearchConstraint::Opcode op, SearchConstraint::Relation rel, String value) :
+		m_protocol(std::move(p)), index(index), layer_index(layer_index),
 		value_pattern(op == Opcode::Matches ? Regex(value, case_sensitive ? Regex::None : Regex::ICase) : Regex()),
 		layer_pattern(layer_name.empty() ? nullptr : std::make_unique<Regex>(layer_name)),
 		case_sensitive(case_sensitive), op(op), relation(rel), value(std::move(value))
@@ -167,7 +167,27 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 			it = end;
 			auto left = Annotation::left_context(events, i, start, context_length, sep);
 			auto right = Annotation::right_context(events, i, end, context_length, sep);
-			matches.insert(std::make_shared<Concordance>(annot, layer_index, event, match, ++match_index, left, right));
+
+			// For regular expressions only, we split the match into fields if there is a query protocol.
+			std::shared_ptr<Concordance> conc;
+			if (m_protocol)
+			{
+				auto count = value_pattern.count();
+				assert(count == m_protocol->field_count());
+				Array<String> fields(count);
+				for (intptr_t c = 1; c <= count; c++) {
+					fields.append(value_pattern.capture(c));
+				}
+
+				conc = std::make_shared<ProtocolConcordance>(annot, layer_index, event, match, ++match_index, left,
+						right, std::move(fields));
+			}
+			else
+			{
+				conc = std::make_shared<Concordance>(annot, layer_index, event, match, ++match_index, left, right);
+			}
+
+			matches.insert(std::move(conc));
 		}
 	}
 

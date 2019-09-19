@@ -105,7 +105,7 @@ QString FieldValueWidget::match() const
 FieldBox::FieldBox(const SearchField &field, QString allValues, QWidget *parent) :
     QWidget(parent)
 {
-    matchall = field.match_all;
+    matchall = "(" + QString(field.match_all) + ")";
     m_name = field.name;
 	m_layer_pattern = field.layer_pattern;
     QVBoxLayout *dummy = new QVBoxLayout;
@@ -145,27 +145,22 @@ void FieldBox::toggleAll(bool checked)
         value->setChecked(checked);
 }
 
-QString FieldBox::regex() const
+QString FieldBox::get_pattern() const
 {
     if (allChecked() || noneChecked())
     {
-	    return this->matchall;
+	    return matchall;
     }
-    else
+
+    QStringList values;
+
+    for (FieldValueWidget *box : value_list)
     {
-        QStringList values;
-
-        for (FieldValueWidget *box : value_list)
-        {
-            if (box->isChecked())
-                values << box->match();
-        }
-
-        if (values.count() == 1)
-            return values.at(0); // FIXME: why is this non-capturing?
-        else
-            return QString("(%1)").arg(values.join("|"));
+        if (box->isChecked())
+            values << box->match();
     }
+
+    return QString("(%1)").arg(values.join("|"));
 }
 
 QString FieldBox::tierNamePattern() const
@@ -213,6 +208,14 @@ bool FieldBox::noneChecked() const
     }
 
     return true;
+}
+
+void FieldBox::checkAll()
+{
+    for (FieldValueWidget *value : value_list)
+    {
+        value->setChecked(true);
+    }
 }
 
 } // namespace phonometrica

@@ -52,7 +52,7 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 		m_version = it->get<std::string>();
 	}
 
-	it = js.find("separator");
+	it = js.find("field_separator");
 	if (it != js.end()) {
 		m_separator = it->get<std::string>();
 	}
@@ -192,5 +192,10 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 
 		m_fields.append(std::move(search_field));
 	}
+}
+
+String Protocol::get_field_name(intptr_t i) const
+{
+	return m_fields[i].name;
 }
 } // namespace phonometrica

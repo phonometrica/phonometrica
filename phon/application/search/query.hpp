@@ -45,7 +45,7 @@ class Query final : public QObject
 
 public:
 
-	Query(const String &label, AnnotationSet annotations, Array<AutoMetaNode> metadata, AutoSearchNode tree);
+	Query(AutoProtocol p, const String &label, AnnotationSet annotations, Array<AutoMetaNode> metadata, AutoSearchNode tree);
 
 	Query(const Query &) = delete;
 
@@ -72,6 +72,8 @@ private:
 	QueryMatchList filter_data();
 
 	static int the_id;
+
+	AutoProtocol m_protocol; // may be null
 
 	String m_label;
 

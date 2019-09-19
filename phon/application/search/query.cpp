@@ -33,8 +33,9 @@ namespace phonometrica {
 
 int Query::the_id = 1;
 
-Query::Query(const String &label, AnnotationSet annotations, Array<AutoMetaNode> metadata, AutoSearchNode tree) :
-		m_label(label), annotations(std::move(annotations)), metadata(std::move(metadata)), search_tree(std::move(tree))
+Query::Query(AutoProtocol p, const String &label, AnnotationSet annotations, Array<AutoMetaNode> metadata, AutoSearchNode tree) :
+		m_protocol(std::move(p)), m_label(label), annotations(std::move(annotations)), metadata(std::move(metadata)),
+		search_tree(std::move(tree))
 {
 	m_id = the_id++;
 }
@@ -42,7 +43,7 @@ Query::Query(const String &label, AnnotationSet annotations, Array<AutoMetaNode>
 AutoDataset Query::execute()
 {
 	filter_metadata();
-	return std::make_shared<QueryTable>(filter_data(), m_label);
+	return std::make_shared<QueryTable>(m_protocol, filter_data(), m_label);
 }
 
 void Query::filter_metadata()

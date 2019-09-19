@@ -35,9 +35,9 @@ static const int BASE_COLUMN_COUNT = 7;
 static const int INFO_FILE_COUNT = 4;
 static const int CONTEXT_COUNT = 2;
 
-QueryTable::QueryTable(QueryMatchList matches, String label) :
-		Dataset(nullptr), m_matches(std::move(matches)), m_categories(Property::get_categories()),
-		m_label(std::move(label))
+QueryTable::QueryTable(AutoProtocol p, QueryMatchList matches, String label) :
+		Dataset(nullptr), m_protocol(std::move(p)), m_matches(std::move(matches)),
+		m_categories(Property::get_categories()), m_label(std::move(label))
 {
 
 }
@@ -58,17 +58,44 @@ String QueryTable::get_cell(intptr_t i, intptr_t j) const
 			return get_end_time(i);
 		case 5:
 			return get_left_context(i);
-		case 6:
-			return get_matched_text(i);
-		case 7:
-			return get_right_context(i);
+//		case 6:
+//			return get_matched_text(i);
+//		case 7:
+//			return get_right_context(i);
 		default:
 			break;
 	}
+
+	intptr_t field_count = has_split_fields() ? m_protocol->field_count() : 0;
+
+	if (has_split_fields())
+	{
+		intptr_t k = j - 5; // discard previous columns
+
+		if (k <= field_count)
+		{
+			auto conc = dynamic_cast<ProtocolConcordance*>(m_matches[i].get());
+			return conc->get_field(k);
+		}
+
+		// fall through
+	}
+
+	// Pretend there is a single match column if the match is split.
+	if (has_split_fields()) j -= field_count - 1;
+
+	if (j == 6)
+	{
+		return get_matched_text(i);
+	}
+	else if (j == 7)
+	{
+		return get_right_context(i);
+	}
+
 	auto it = m_categories.begin();
 	std::advance(it, (j - BASE_COLUMN_COUNT - 1));
 	auto &category = *it;
-//	auto view = category.view();
 	return get_property(i, category);
 }
 
@@ -86,11 +113,11 @@ intptr_t QueryTable::column_count() const
 	 * - start time (ShowFileInfo)
 	 * - end time (ShowFileInfo)
 	 * - left context (ShowMatchContext)
-	 * - match
+	 * - match, which may be split (ShowFields)
 	 * - right context (ShowMatchContext)
 	 * - one additional column per property category (ShowProperties)
 	 */
-	intptr_t col_count = 1;
+	intptr_t col_count = 0;
 
 	if (m_flags & ShowFileInfo)
 		col_count += INFO_FILE_COUNT;
@@ -98,6 +125,11 @@ intptr_t QueryTable::column_count() const
 		col_count += CONTEXT_COUNT;
 	if (m_flags & ShowProperties)
 		col_count += category_count();
+
+	if (m_flags & ShowFields)
+		col_count += m_protocol->field_count();
+	else
+		col_count++; // single match
 
 	return col_count;
 }
@@ -174,13 +206,39 @@ String QueryTable::get_header(intptr_t j) const
 			return "End time";
 		case 5:
 			return "Left context";
-		case 6:
-			return "Match";
-		case 7:
-			return "Right context";
+//		case 6:
+//			return "Match";
+//		case 7:
+//			return "Right context";
 		default:
 			break;
 	}
+
+	intptr_t field_count = has_split_fields() ? m_protocol->field_count() : 0;
+
+	if (has_split_fields())
+	{
+		intptr_t k = j - 5; // discard previous columns
+		if (k <= field_count)
+		{
+			return m_protocol->get_field_name(k);
+		}
+
+		// fall through
+	}
+
+	// Pretend there is a single match column if the match is split.
+	if (has_split_fields()) j -= field_count - 1;
+
+	if (j == 6)
+	{
+		return "Match";
+	}
+	else if (j == 7)
+	{
+		return "Right context";
+	}
+
 	auto it = m_categories.begin();
 	std::advance(it, (j - BASE_COLUMN_COUNT - 1));
 	auto &category = *it;
@@ -195,6 +253,8 @@ bool QueryTable::empty() const
 
 intptr_t QueryTable::adjust_column(intptr_t j) const
 {
+	// Don't handle split field here. This is done when we request a header label or cell.
+
 	if (!(m_flags & ShowFileInfo))
 		j += INFO_FILE_COUNT;
 	if (!(m_flags & ShowMatchContext))
@@ -276,6 +336,16 @@ bool QueryTable::has_textgrid() const
 	}
 
 	return false;
+}
+
+bool QueryTable::has_split_fields() const
+{
+	return m_flags & ShowFields;
+}
+
+int QueryTable::field_count() const
+{
+	return m_protocol ? m_protocol->field_count() : 0;
 }
 
 } // namespace phonometrica

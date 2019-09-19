@@ -346,7 +346,8 @@ AutoSearchNode DefaultSearchBox::parseConstraint(int layout_index)
 		}
 	}
 
-	return std::make_shared<SearchConstraint>(context_length, layout_index, layer_index, layer_name, case_sensitive, op, rel, std::move(value));
+	return std::make_shared<SearchConstraint>(nullptr, context_length, layout_index, layer_index, layer_name,
+			case_sensitive, op, rel, std::move(value));
 }
 
 std::pair<bool, bool> DefaultSearchBox::getParentheses(int layout_index)

@@ -31,6 +31,7 @@
 
 #include <phon/application/dataset.hpp>
 #include <phon/application/search/query_match.hpp>
+#include <phon/application/protocol.hpp>
 
 namespace phonometrica {
 
@@ -41,12 +42,13 @@ public:
 	enum Flags
 	{
 		ShowNothing      = 0,
-		ShowFileInfo     = 1,
-		ShowMatchContext = 2,
-		ShowProperties   = 4
+		ShowFields       = 1,
+		ShowFileInfo     = 2,
+		ShowMatchContext = 4,
+		ShowProperties   = 8
 	};
 
-	explicit QueryTable(QueryMatchList matches, String label);
+	explicit QueryTable(AutoProtocol p, QueryMatchList matches, String label);
 
 	String get_header(intptr_t j) const override;
 
@@ -72,6 +74,12 @@ public:
 
 	bool has_textgrid() const;
 
+	bool has_protocol() const { return m_protocol != nullptr; }
+
+	bool has_split_fields() const;
+
+	int field_count() const;
+
 private:
 
 	void load() override;
@@ -95,6 +103,8 @@ private:
 	String get_right_context(intptr_t i) const;
 
 	String get_property(intptr_t i, const String &category) const;
+
+	AutoProtocol m_protocol; // may be null
 
 	QueryMatchList m_matches;
 

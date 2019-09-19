@@ -41,6 +41,7 @@
 #include <phon/application/praat.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/gui/views/query_view.hpp>
+#include <phon/gui/font.hpp>
 #include <phon/gui/popup_text_editor.hpp>
 #include <phon/utils/file_system.hpp>
 
@@ -103,10 +104,15 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
     auto column_menu = new QMenu;
 	info_action = new QAction(tr("Show file information"), this);
     info_action->setCheckable(true);
+    match_action = new QAction(tr("Split match"), this);
+    match_action->setCheckable(true);
+    match_action->setChecked(m_data->has_protocol());
+    match_action->setEnabled(m_data->has_protocol());
 	context_action = new QAction(tr("Show match context"), this);
 	context_action->setCheckable(true);
 	property_action = new QAction(tr("Show properties"), this);
 	property_action->setCheckable(true);
+	column_menu->addAction(match_action);
 	column_menu->addAction(info_action);
 	column_menu->addAction(context_action);
 	column_menu->addAction(property_action);
@@ -131,6 +137,7 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	};
 
 	connect(info_action, &QAction::triggered, this, &QueryView::refreshTable);
+	connect(match_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(context_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(property_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(view_action, &QAction::triggered, this, view_event);
@@ -147,7 +154,7 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 
 	layout->addWidget(m_table);
 	setLayout(layout);
-	fill_table();
+	fillTable();
 
 	m_table->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_table, SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(provideContextMenu(const QPoint &)));
@@ -158,11 +165,10 @@ void QueryView::save()
 	// TODO: implement QueryView::save()
 }
 
-void QueryView::fill_table()
+void QueryView::fillTable()
 {
-	//auto font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-	QFont font("Noto Sans Mono");
-	//font.setStyleHint(QFont::Monospace);
+	QFont font = get_monospace_font();
+	font.setPointSize(10);
 	auto bold_font = font;
 	bold_font.setBold(true);
 	QColor red("red");
@@ -194,7 +200,7 @@ void QueryView::fill_table()
 			{
 				item->setTextAlignment(Qt::AlignRight);
 			}
-			else if (jj == 6)
+			else if (isMatchCell(jj))
 			{
 				item->setTextColor(red);
 				item->setFont(bold_font);
@@ -216,6 +222,8 @@ int QueryView::getQueryFlags()
 {
 	int flags = QueryTable::ShowNothing;
 
+	if (match_action->isChecked())
+		flags |= QueryTable::ShowFields;
 	if (info_action->isChecked())
 		flags |= QueryTable::ShowFileInfo;
 	if (context_action->isChecked())
@@ -232,7 +240,7 @@ void QueryView::refreshTable(bool)
 	m_data->set_flags(getQueryFlags());
 	int ncol = m_data->column_count();
 	m_table->setColumnCount(ncol);
-	fill_table();
+	fillTable();
 }
 
 void QueryView::onCellDoubleClicked(int i, int)
@@ -379,7 +387,9 @@ void QueryView::stopPlayer()
 
 void QueryView::exportToCsv(bool)
 {
-	String dir = Settings::get_last_directory(runtime);
+	String name = m_data->label();
+	name.append(".csv");
+	String dir = filesystem::join(Settings::get_last_directory(runtime), name);
 	auto p = QFileDialog::getSaveFileName(this, tr("Save as CSV file..."), dir);
 	if (p.isNull()) return;
 	String path = p;
@@ -434,6 +444,14 @@ void QueryView::provideContextMenu(const QPoint &pos)
 	});
 
 	menu.exec(m_table->mapToGlobal(pos));
+}
+
+bool QueryView::isMatchCell(int jj) const
+{
+	const int match_pos = 6;
+	if (jj < match_pos) return false;
+
+	return jj == match_pos || (m_data->has_split_fields() && jj - match_pos < m_data->field_count());
 }
 
 } // namespace phonometrica

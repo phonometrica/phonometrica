@@ -264,7 +264,7 @@ AutoQuery QueryEditor::buildQuery()
 	String label = query_name_edit->text().trimmed();
 	if (label.empty()) label = "Untitled query";
 
-	return std::make_shared<Query>(label, getAnnotations(), getMetadata(), getSearchTree());
+	return std::make_shared<Query>(protocol, label, getAnnotations(), getMetadata(), getSearchTree());
 }
 
 Array<AutoMetaNode> QueryEditor::getMetadata()

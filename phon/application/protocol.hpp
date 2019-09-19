@@ -74,11 +74,15 @@ public:
 
 	String name() const { return m_name; }
 
-	String separator() const { return m_separator; }
+	String field_separator() const { return m_separator; }
+
+	intptr_t field_count() const { return m_fields.size(); }
 
 	int fields_per_row() const { return m_fields_per_row; }
 
 	const Array<SearchField> &fields() const { return m_fields; }
+
+	String get_field_name(intptr_t i) const;
 
 private:
 

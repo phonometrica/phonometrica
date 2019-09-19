@@ -39,7 +39,13 @@ ProtocolSearchBox::ProtocolSearchBox(const AutoProtocol &protocol, QWidget *pare
 
 AutoSearchNode ProtocolSearchBox::buildSearchTree()
 {
-	return AutoSearchNode();
+	auto p = protocol.get();
+	auto op = SearchConstraint::Opcode::Matches;
+	auto rel = SearchConstraint::Relation::None;
+	String value = this->get_pattern();
+
+	return std::make_shared<SearchConstraint>(protocol, context_length, 1, p->layer_index(), p->layer_pattern(),
+			p->case_sensitive(), op, rel, std::move(value));
 }
 
 void ProtocolSearchBox::setupUi()
@@ -76,6 +82,17 @@ void ProtocolSearchBox::setupUi()
 	}
 
 	setLayout(layout);
+}
+
+String ProtocolSearchBox::get_pattern()
+{
+	QStringList values;
+
+	for (auto fb : m_fields) {
+		values << fb->get_pattern();
+	}
+
+	return values.join(protocol->field_separator());
 }
 
 } // namespace phonometrica

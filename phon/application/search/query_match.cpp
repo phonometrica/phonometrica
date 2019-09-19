@@ -102,4 +102,8 @@ size_t QueryMatch::hash() const
 {
 	return annotation()->path().hash() + std::hash<int>{}(layer_index()) + text().hash() + std::hash<int>{}(position());
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
 } // namespace phonometrica

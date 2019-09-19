@@ -31,6 +31,7 @@
 
 #include <memory>
 #include <phon/regex.hpp>
+#include <phon/application/protocol.hpp>
 #include <phon/application/search/query_match.hpp>
 
 namespace phonometrica {
@@ -99,8 +100,8 @@ public:
 		Precedence
 	};
 
-	SearchConstraint(int context_length, int index, int layer_index, const String &layer_name, bool case_sensitive,
-			Opcode op, Relation rel, String value);
+	SearchConstraint(AutoProtocol p, int context_length, int index, int layer_index, const String &layer_name,
+			bool case_sensitive, Opcode op, Relation rel, String value);
 
 	QueryMatchSet filter(const AutoAnnotation &annotation, const QueryMatchSet &matches) override;
 
@@ -116,6 +117,8 @@ private:
 	QueryMatchSet find_matches(const AutoAnnotation &annot, int layer_index, std::true_type use_regex);
 
 	QueryMatchSet find_matches(const AutoAnnotation &annot, int layer_index, std::false_type use_regex);
+
+	AutoProtocol m_protocol; // may be null
 
 	Regex value_pattern;
 
