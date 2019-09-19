@@ -100,8 +100,6 @@ void PreferenceEditor::setupGeneralTab()
 
     gen_layout->addWidget(new QLabel(tr("Resources folder:")));
     gen_layout->addLayout(hbox_resources);
-    gen_layout->addSpacing(20);
-    gen_layout->addWidget(new QLabel(tr("Praat path:")));
     gen_layout->addSpacing(10);
     gen_layout->addLayout(hbox_context);
     gen_layout->addWidget(checkbox_autoload);

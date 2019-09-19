@@ -508,7 +508,7 @@ bool is_file(const String &path)
 #if PHON_WINDOWS
 		bool result;
 		auto p = path.to_wide(); 
-		result = PathFileExists((LPCWSTR)p.data()) && PathIsDirectory((LPCWSTR)p.data());
+		result = PathFileExists((LPCWSTR)p.data()) && !PathIsDirectory((LPCWSTR)p.data());
 
 		return result;
 #else

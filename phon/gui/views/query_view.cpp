@@ -212,6 +212,12 @@ void QueryView::fillTable()
 
 	m_table->setHorizontalHeaderLabels(hheaders);
 	m_table->setVerticalHeaderLabels(vheaders);
+
+#if PHON_WINDOWS
+	m_table->horizontalHeader()->setFont(bold_font);
+	m_table->verticalHeader()->setFont(bold_font);
+#endif
+
 	m_table->resizeColumnsToContents();
 
 	connect(m_table, &QTableWidget::cellClicked, this, &QueryView::onCellClicked);
