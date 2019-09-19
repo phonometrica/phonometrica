@@ -152,6 +152,7 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->horizontalHeader()->setHighlightSections(false);
 
+	layout->setContentsMargins(10, 5, 10, 10);
 	layout->addWidget(m_table);
 	setLayout(layout);
 	fillTable();
@@ -168,7 +169,9 @@ void QueryView::save()
 void QueryView::fillTable()
 {
 	QFont font = get_monospace_font();
+#if PHON_WINDOWS
 	font.setPointSize(10);
+#endif
 	auto bold_font = font;
 	bold_font.setBold(true);
 	QColor red("red");
@@ -198,7 +201,7 @@ void QueryView::fillTable()
 			}
 			if (jj == 5)
 			{
-				item->setTextAlignment(Qt::AlignRight);
+				//item->setTextAlignment(Qt::AlignRight);
 			}
 			else if (isMatchCell(jj))
 			{

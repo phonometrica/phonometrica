@@ -90,7 +90,7 @@ private:
 
 		void set(intptr_t i, T value) { data[i] = std::move(value); }
 
-		void resize(intptr_t size) { data.resize(size); }
+		void resize(intptr_t size) override { data.resize(size); }
 
 		Array<T> data;
 	};

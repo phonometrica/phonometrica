@@ -30,7 +30,7 @@
 #define PHONOMETRICA_PLUGIN_HPP
 
 #include <functional>
-#include <variant>
+#include <phon/utils/any.hpp>
 #include <phon/application/protocol.hpp>
 
 namespace phonometrica {
@@ -40,7 +40,9 @@ class Plugin final
 public:
 
 	// Helper structure to add a script or a protocol to a the plugin's menu.
-	using MenuEntry = std::variant<String, AutoProtocol>;
+	// FIXME: this should be std::variant<String,AutoProtocol> but Apple has broken support for C++17 on macOS 10.13
+	//  and I can't seem to get any variant alternative to work properly.
+	using MenuEntry = std::any;
 
 	// Callback to add entries to the plugin's menu.
 	using Callback = std::function<void(String, MenuEntry, String)>;

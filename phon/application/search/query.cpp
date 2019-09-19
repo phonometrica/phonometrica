@@ -90,7 +90,12 @@ QueryMatchList Query::filter_data()
 
 		for (auto it = matches.begin(); it != matches.end(); /* nothing */)
 		{
-			results.append(std::move(matches.extract(it++).value()));
+		    // I hate you, Apple.
+#if PHON_MACOS
+            results.append(*it); it++;
+#else
+		    results.append(std::move(matches.extract(it++).value()));
+#endif
 		}
 	}
 	progress.setValue(count);

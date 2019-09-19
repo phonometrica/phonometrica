@@ -139,7 +139,11 @@ QueryMatchSet SearchConstraint::search(const AutoAnnotation &annot)
 
 		for (auto it = subset.begin(); it != subset.end(); )
 		{
+#if PHON_MACOS
+            results.insert(*it); it++;
+#else
 			results.insert(std::move(subset.extract(it++)));
+#endif
 		}
 	}
 

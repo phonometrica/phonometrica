@@ -74,6 +74,7 @@ void QueryEditor::setupUi(int context_length)
 	name_layout->addWidget(query_name_edit);
 	name_layout->addStretch(1);
 	auto help_button = new QPushButton(QIcon(":/icons/question.png"), QString());
+	help_button->setFlat(true);
 	help_button->setToolTip(tr("Show help page"));
 	name_layout->addWidget(help_button);
 

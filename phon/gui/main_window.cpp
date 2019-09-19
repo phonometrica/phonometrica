@@ -36,12 +36,14 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QDir>
+#include <phon/runtime/variant.hpp>
 #include <phon/gui/main_window.hpp>
 #include <phon/gui/preference_editor.hpp>
 #include <phon/runtime/object.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>
+#include <phon/utils/any.hpp>
 #include <phon/utils/zip.hpp>
 
 #ifdef PHON_EMBED_SCRIPTS
@@ -934,16 +936,16 @@ void MainWindow::loadPlugin(const String &path)
 		if (!shortcut.empty()) action->setShortcut(QKeySequence(shortcut));
 		menu->addAction(action);
 
-		if (std::holds_alternative<String>(target))
+		if (target.type() == typeid(String))
 		{
-			auto &script = std::get<String>(target);
+			auto script = std::any_cast<String>(target);
 			connect(action, &QAction::triggered, [script, this](bool) {
 				runtime.do_file(script);
 			});
 		}
 		else
 		{
-			auto &protocol = std::get<AutoProtocol>(target);
+			auto protocol = std::any_cast<AutoProtocol>(target);
 			connect(action, &QAction::triggered, [protocol, this](bool) {
 				openQueryEditor(protocol);
 			});
