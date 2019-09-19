@@ -43,7 +43,7 @@ static Regex pattern_name("name\\s+=\\s+\"(.*)\"");
 static Regex pattern_size("size\\s+=\\s+(\\d*)");
 
 static Regex pattern_interval("intervals\\s+\\[\\d*\\]:");
-static Regex pattern_xmin("xmin\\s+=\\s+(\\d+\\.?\\d*)");
+static Regex pattern_xmin("xmin\\s+=\\s+-?(\\d+\\.?\\d*)"); // Some files have -0 in the Seoul Speech Corpus
 static Regex pattern_xmax("xmax\\s+=\\s+(\\d+\\.?\\d*)");
 static Regex pattern_text("text\\s+=\\s+\"(.*)\"", Regex::Multiline);
 

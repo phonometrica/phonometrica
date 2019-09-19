@@ -106,7 +106,6 @@ ProjectCtrl::ProjectCtrl(Runtime &rt, QWidget *parent) :
     connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(onItemDoubleClicked(QTreeWidgetItem*)));
     connect(this, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(onItemSelected(QTreeWidgetItem*)));
     connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(onRightClick(const QPoint &)));
-
 }
 
 void ProjectCtrl::setProjectLabel(const QString &name)
@@ -131,7 +130,7 @@ void ProjectCtrl::refresh()
 	queries->setText(0, tr("Queries"));
 	queries->setIcon(0, QIcon(":/icons/search.png"));
     data = new TreeItem(this, queries, data_folder);
-    data->setText(0, tr("Datasets"));
+    data->setText(0, tr("Data tables"));
     data->setIcon(0, QIcon(":/icons/data.png"));
     scripts = new TreeItem(this, data, scripts_folder);
     scripts->setText(0, tr("Scripts"));

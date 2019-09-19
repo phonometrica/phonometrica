@@ -638,6 +638,24 @@ void MainWindow::setShellFunctions()
         }
     };
 
+    auto get_plugin_version = [this](Runtime &rt) {
+    	auto name = rt.to_string(1);
+        auto plugin = findPlugin(name);
+        if (plugin) {
+        	rt.push(plugin->version());
+        }
+        else {
+        	rt.push_null();
+        }
+    };
+
+    auto get_plugin_resource = [this](Runtime &rt) {
+    	auto plugin = rt.to_string(1);
+    	auto name = rt.to_string(2);
+    	auto resource = filesystem::join(Settings::plugin_directory(), "Resources", name);
+		rt.push(std::move(resource));
+    };
+
     runtime.get_global("phon");
     {
         runtime.add_method("warning", warning, 1);
@@ -662,6 +680,8 @@ void MainWindow::setShellFunctions()
         runtime.add_method("run_script", run_script, 1);
         runtime.add_method("open_query_editor", open_query_editor, 0);
         runtime.add_method("run_last_query", run_last_query, 0);
+        runtime.add_method("get_plugin_version", get_plugin_version, 1);
+        runtime.add_method("get_plugin_resource", get_plugin_resource, 2);
 
         // Define 'phon.config'
         Settings::initialize(runtime);
@@ -1003,6 +1023,18 @@ void MainWindow::installPlugin(bool)
 		QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("Plugin installation failed."));
 		msg.exec();
 	}
+}
+
+Plugin *MainWindow::findPlugin(const String &name)
+{
+	for (auto &plugin : plugins)
+	{
+		if (plugin->label() == name) {
+			return plugin.get();
+		}
+	}
+
+	return nullptr;
 }
 
 } // phonometrica

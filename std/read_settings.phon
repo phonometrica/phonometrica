@@ -49,7 +49,7 @@ phon.settings = {
 
 	hide_info: false,
 
-	match_window_length: 30,
+	match_window_length: 40,
 
 	autosave: false,
 
@@ -72,14 +72,10 @@ phon.settings = {
 
 # Platform-specific default settings
 if system.name == "windows" then
-	phon.settings.praat_path = "C:\\Program Files\\Praat.exe"
 	phon.settings.resources_directory = "C:\\Program Files\\Phonometrica"
-
 elsif system.name == "macos" then
-	phon.settings.praat_path = "/Applications/Praat.app/MacOS/Praat"
 	phon.settings.resources_directory = "/Applications/Phonometrica.app/Contents/Resources"
 else
-	phon.settings.praat_path = "/usr/bin/praat"
 	phon.settings.resources_directory = "/usr/local/share/phonometrica"
 end
 

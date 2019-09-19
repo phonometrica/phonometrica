@@ -22,7 +22,7 @@ Phonometrica is a free, open-source software toolbox for the analysis of speech 
    * Standard-based: Phonometrica files are encoded in XML and Unicode.
    * Scripting engine: Phonometrica can be configured and extended with an easy-to-use scripting language.
 
-Phonometrica runs on all major platforms (Windows, macOS and GNU/Linux) and is freely available under the terms of the GNU General Public License (version 3 or later).
+Phonometrica runs on all major platforms (Windows, macOS and GNU/Linux) and is freely available under the terms of the CECILL license (version 2.1).
 The latest version of Phonometrica can be downloaded from https://phonometrica.github.io. If you encounter any problem or bug, please write to the authors.
 
 Download

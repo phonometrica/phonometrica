@@ -63,8 +63,6 @@ public slots:
 
 private slots:
 
-    void setPraatPath();
-
     void setResourcesPath();
 
 private:
@@ -73,7 +71,7 @@ private:
     QDialogButtonBox *box_buttons;
     QVBoxLayout *main_layout, *gen_layout, *sound_layout;
     QTabWidget *tabs;
-    QLineEdit *edit_praat, *edit_resources, *edit_quality;
+    QLineEdit *edit_resources, *edit_quality;
     QWidget *tab_general, *tab_advanced;
     QSpinBox *spinbox_match_context_window;
     QCheckBox *checkbox_mouse_tracking, *checkbox_autosave, *checkbox_autoload;

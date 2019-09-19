@@ -69,6 +69,8 @@ public:
 
 	String description() const { return m_description; }
 
+	String version() const { return m_version; }
+
 private:
 
 	void parse_description(Callback &callback);

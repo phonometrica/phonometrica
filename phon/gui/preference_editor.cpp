@@ -80,15 +80,6 @@ void PreferenceEditor::setupGeneralTab()
     hbox_resources->addWidget(edit_resources);
     hbox_resources->addWidget(resources_btn);
 
-    // Praat Path
-    auto hbox_praat = new QHBoxLayout;
-    auto praat_path_btn = new QPushButton("Choose...");
-    edit_praat = new QLineEdit;
-    edit_praat->setText(Settings::get_string(rt, "praat_path"));
-    hbox_praat->addWidget(edit_praat);
-    hbox_praat->addWidget(praat_path_btn);
-    connect(praat_path_btn, SIGNAL(clicked()), this, SLOT(setPraatPath()));
-
     // Context window
     QHBoxLayout *hbox_context = new QHBoxLayout;
 	QLabel *contextLabel = new QLabel(tr("Match context window:"));
@@ -111,7 +102,6 @@ void PreferenceEditor::setupGeneralTab()
     gen_layout->addLayout(hbox_resources);
     gen_layout->addSpacing(20);
     gen_layout->addWidget(new QLabel(tr("Praat path:")));
-    gen_layout->addLayout(hbox_praat);
     gen_layout->addSpacing(10);
     gen_layout->addLayout(hbox_context);
     gen_layout->addWidget(checkbox_autoload);
@@ -139,7 +129,6 @@ void PreferenceEditor::accept()
 	// General tab
 
 	Settings::set_value(rt, "resources_directory", edit_resources->text());
-    Settings::set_value(rt, "praat_path", edit_praat->text());
 
 	double len = spinbox_match_context_window->value();
     Settings::set_value(rt, "match_window_length", len);
@@ -161,11 +150,6 @@ void PreferenceEditor::accept()
     Settings::set_value(rt, "resampling_quality", double(quality));
 
 	QDialog::accept();
-}
-
-void PreferenceEditor::setPraatPath()
-{
-    this->setLineEditFile(edit_praat);
 }
 
 void PreferenceEditor::setResourcesPath()

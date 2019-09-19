@@ -21,6 +21,7 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * Unicode routines in sol2, by ThePhD (MIT), see `sol2.rtfd.io <http://sol2.rtfd.io>`_
 * UTF8-CPP, by Nemanja Trifunovic (MIT-like), see `utfcpp.sourceforge.net <http://utfcpp.sourceforge.net/>`_
 * JSON for Modern C++, by Niels Lohmann (MIT), see `github.com/nlohmann/json <https://github.com/nlohmann/json>`_
+* zip, by Kuba Podgórski, based on miniz, by Rich Geldreich (public domain), see `github.com/kuba--/zip <https://github.com/kuba--/zip>`_
 * CMake, by Kitware Inc. (BSD 3-clause), see `cmake.org <https://cmake.org/>`_
 
 Phonometrica also uses `GitHub <https://github.com>`_ to host its source code. The source code is available `here <https://github.com/phonometrica/phonometrica>`_.

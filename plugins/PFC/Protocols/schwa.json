@@ -31,8 +31,7 @@
                 {"match": "5", 	"text": "metathesis"}
             ]
         },
-        
-           
+
         {"name": "Left context", "match_all": "[1-5]",
             "values": [
                 {"match": "1", 	"text": "vowel"},
