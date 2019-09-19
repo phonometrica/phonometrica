@@ -1601,4 +1601,17 @@ String::const_iterator String::ifind(Substring substring, String::const_iterator
 	return this->cend();
 }
 
+bool String::is_ascii() const
+{
+	auto str = this->begin();
+	auto end = this->end();
+
+	while (str != end)
+	{
+		if (*str++ < 0) return false;
+	}
+
+	return true;
+}
+
 } // namespace phonometrica

@@ -32,6 +32,7 @@
 
 #include <memory>
 #include <QObject>
+#include <phon/application/protocol.hpp>
 #include <phon/application/query_table.hpp>
 #include <phon/application/search/meta_node.hpp>
 #include <phon/application/search/search_node.hpp>

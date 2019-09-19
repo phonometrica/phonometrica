@@ -213,6 +213,8 @@ public:
 
     void from_xml(xml_node graph_node);
 
+    AutoEvent get_event(intptr_t layer, intptr_t event) const;
+
 private:
 
 	void insert_event(intptr_t index, Anchor *start, Anchor *end, const String &text);

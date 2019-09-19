@@ -70,6 +70,8 @@ public:
 
 	const char *class_name() const override;
 
+	bool has_textgrid() const;
+
 private:
 
 	void load() override;

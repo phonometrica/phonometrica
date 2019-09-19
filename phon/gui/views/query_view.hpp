@@ -68,6 +68,8 @@ private slots:
 
 	void exportToCsv(bool);
 
+	void provideContextMenu(const QPoint &pos);
+
 protected:
 
 	void keyPressEvent(QKeyEvent *event) override;

@@ -20,117 +20,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 20/02/2019                                                                                                 *
+ * Created: 18/09/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: translate a query protocol into a search box that can be attached to a query editor.                       *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <ctime>
-#include <sstream>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <phon/string.hpp>
+#ifndef PHONOMETRICA_PROTOCOL_SEARCH_BOX_HPP
+#define PHONOMETRICA_PROTOCOL_SEARCH_BOX_HPP
 
-#if PHON_WINDOWS
-#	include <wchar.h>
-#else
-#	include <cstring>
-#endif
+#include <phon/application/protocol.hpp>
+#include <phon/gui/search_box.hpp>
 
-#include <phon/utils/helpers.hpp>
+namespace phonometrica {
 
-namespace phonometrica { namespace utils {
+class FieldBox;
 
-static size_t the_random_seed = 0;
-
-size_t random_seed()
+class ProtocolSearchBox final : public SearchBox
 {
-	return the_random_seed;
-}
+	Q_OBJECT
 
-void init_random_seed()
-{
-	srand((unsigned int) time(nullptr));
-    the_random_seed = (size_t) rand();
-}
+public:
 
-FILE *open_file(const String &path, const char *mode)
-{
-#if PHON_WINDOWS
-	auto wpath = path.to_wide();
-    auto wmode = String::to_wide(mode);
+	ProtocolSearchBox(const AutoProtocol &protocol, QWidget *parent, int context_length);
 
-    return _wfopen(wpath.data(), wmode.data());
-#else
-	return fopen(path.data(), mode);
-#endif
-}
+	AutoSearchNode buildSearchTree() override;
 
-FILE *reopen_file(const String &path, const char *mode, FILE *stream)
-{
-#if PHON_WINDOWS
-	auto wpath = path.to_wide();
-    auto wmode = String::to_wide(mode);
+protected:
 
-    return _wfreopen(wpath.data(), wmode.data(), stream);
-#else
-	return freopen(path.data(), mode, stream);
-#endif
-}
+	 void setupUi() override;
 
-#if !defined(PHON_ENDIANNES_KNOWN) && !PHON_WINDOWS
-bool is_big_endian()
-{
-	union {
-		uint32_t i;
-		char c[4];
-	} val = {0x01020304};
+private:
 
-	return val.c[0] == 1;
-}
-#endif // check endianness
+	AutoProtocol protocol;
 
+	QList<FieldBox*> m_fields;
+};
 
-std::string new_uuid()
-{
-    auto uuid = boost::uuids::random_generator()();
-    std::ostringstream os;
-    os << uuid;
+} // namespace phonometrica
 
-    return os.str();
-}
-
-std::string get_version()
-{
-    std::ostringstream os;
-    os << PHON_VERSION_MAJOR << "." << PHON_VERSION_MINOR << "." << PHON_VERSION_MICRO;
-
-    if (PHON_VERSION_NANO > 0)
-    {
-    	os << " (test " << PHON_VERSION_NANO << ")";
-    }
-
-    return os.str();
-}
-
-std::string get_date()
-{
-    std::ostringstream os;
-
-    if (PHON_RELEASE_DATE_DAY < 10) {
-        os << "0";
-    }
-    os << PHON_RELEASE_DATE_DAY << "/";
-
-    if (PHON_RELEASE_DATE_MONTH < 10) {
-        os << "0";
-    }
-    os << PHON_RELEASE_DATE_MONTH << "/";
-    os << PHON_RELEASE_DATE_YEAR;
-
-    return os.str();
-}
-
-}} // namespace::utils
+#endif // PHONOMETRICA_PROTOCOL_SEARCH_BOX_HPP

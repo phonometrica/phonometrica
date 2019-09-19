@@ -1,0 +1,55 @@
+{
+	"name": "Schwa coding",
+	"version": "0.1",
+    
+    "separator": "",
+	"layer_index": 2,
+    "fields_per_row": 3,
+
+    "fields": [
+        {"name": "Spelling", "match_all": ".",
+            "values": [
+               {"match": "e", "text": "graphical e"},
+               {"match": "[^e]", "text": "no e"}
+            ]
+        },
+
+        {"name": "Schwa", "match_all": "[0-2]",
+            "values": [
+               {"match": "0", "text": "Absent"},
+               {"match": "1", "text": "Present"},
+               {"match": "2", "text": "Uncertain"}
+            ]
+        },
+           
+        {"name": "Position", "match_all": "[1-5]", 
+            "values": [
+                {"match": "1", 	"text": "monosyllable"},
+                {"match": "2", 	"text": "initial syllable"},
+                {"match": "3", 	"text": "median syllable"},
+                {"match": "4", 	"text": "final syllable"},
+                {"match": "5", 	"text": "metathesis"}
+            ]
+        },
+        
+           
+        {"name": "Left context", "match_all": "[1-5]",
+            "values": [
+                {"match": "1", 	"text": "vowel"},
+                {"match": "2", 	"text": "consonant"},
+                {"match": "3", 	"text": "start of an intonational phrase"},
+                {"match": "4", 	"text": "uncertain vowel"},
+                {"match": "5", 	"text": "simplified cluster"}
+            ]		
+        },
+        
+        {"name": "Right context", "match_all": "[1-4]",
+            "values": [
+                {"match": "1", "text": "vowel"},
+                {"match": "2", "text": "consonant"},
+                {"match": "3", "text": "weak prosodic boundary"},
+                {"match": "4", "text": "strong prosodic boundary"}
+            ]
+        }   
+    ]
+}

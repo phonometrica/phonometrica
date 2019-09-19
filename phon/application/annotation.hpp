@@ -93,6 +93,8 @@ public:
 
 	void write_as_textgrid(const String &path = String());
 
+	AutoEvent get_event(intptr_t layer, intptr_t event) const;
+
 protected:
 
 	bool content_modified() const override;

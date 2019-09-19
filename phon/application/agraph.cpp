@@ -712,4 +712,21 @@ void AGraph::parse_events(xml_node events_node)
 	}
 }
 
+AutoEvent AGraph::get_event(intptr_t layer, intptr_t event) const
+{
+	intptr_t count = 0;
+
+	for (auto &e : m_events)
+	{
+		if (e->layer_index() == layer) {
+			++count;
+		}
+		if (count == event) {
+			return e;
+		}
+	}
+
+	return nullptr;
+}
+
 } // namespace phonometrica

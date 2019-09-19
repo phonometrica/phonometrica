@@ -40,6 +40,7 @@
 #include <phon/gui/check_list.hpp>
 #include <phon/gui/number_edit.hpp>
 #include <phon/gui/boolean_edit.hpp>
+#include <phon/gui/protocol_search_box.hpp>
 #include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
@@ -53,8 +54,8 @@ enum {
 	IndexDoesntMatch
 };
 
-QueryEditor::QueryEditor(Runtime &rt, QWidget *parent, int context_length) :
-	QDialog(parent), runtime(rt)
+QueryEditor::QueryEditor(Runtime &rt, AutoProtocol protocol, QWidget *parent, int context_length) :
+	QDialog(parent), runtime(rt), protocol(std::move(protocol))
 {
 	setupUi(context_length);
 	setWindowFlags(Qt::Window);
@@ -76,7 +77,14 @@ void QueryEditor::setupUi(int context_length)
 	help_button->setToolTip(tr("Show help page"));
 	name_layout->addWidget(help_button);
 
-	search_box = new DefaultSearchBox(main_widget, context_length);
+	if (protocol)
+	{
+		search_box = new ProtocolSearchBox(protocol, main_widget, context_length);
+	}
+	else
+	{
+		search_box = new DefaultSearchBox(main_widget, context_length);
+	}
 	search_box->postInitialize();
 
 	auto scroll_area = new QScrollArea;

@@ -59,6 +59,12 @@
     (((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24))
 #endif
 
+namespace phonometrica
+{
+    class String;
+}
+
+
 namespace phonometrica { namespace utils {
 
 
@@ -109,15 +115,16 @@ intptr_t find_capacity(intptr_t requested, intptr_t capacity = 8)
 	return capacity;
 }
 
-FILE *open_file(const String &path, const char *mode);
-
-FILE *reopen_file(const String &path, const char *mode, FILE *stream);
-
 std::string new_uuid();
 
 std::string get_version();
 
 std::string get_date();
+
+
+FILE *open_file(const String &path, const char *mode);
+
+FILE *reopen_file(const String &path, const char *mode, FILE *stream);
 
 }} // namespace::utils
 

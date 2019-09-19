@@ -20,117 +20,62 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 20/02/2019                                                                                                 *
+ * Created: 18/09/2019                                                                                                 *
  *                                                                                                                     *
  * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <ctime>
-#include <sstream>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <phon/string.hpp>
+#include <phon/gui/protocol_search_box.hpp>
+#include <phon/gui/field_box.hpp>
 
-#if PHON_WINDOWS
-#	include <wchar.h>
-#else
-#	include <cstring>
-#endif
+namespace phonometrica {
 
-#include <phon/utils/helpers.hpp>
-
-namespace phonometrica { namespace utils {
-
-static size_t the_random_seed = 0;
-
-size_t random_seed()
+ProtocolSearchBox::ProtocolSearchBox(const AutoProtocol &protocol, QWidget *parent, int context_length) :
+		SearchBox(parent, protocol->name(), context_length), protocol(protocol)
 {
-	return the_random_seed;
+
 }
 
-void init_random_seed()
+AutoSearchNode ProtocolSearchBox::buildSearchTree()
 {
-	srand((unsigned int) time(nullptr));
-    the_random_seed = (size_t) rand();
+	return AutoSearchNode();
 }
 
-FILE *open_file(const String &path, const char *mode)
+void ProtocolSearchBox::setupUi()
 {
-#if PHON_WINDOWS
-	auto wpath = path.to_wide();
-    auto wmode = String::to_wide(mode);
+	auto layout = new QGridLayout;
+	layout->setContentsMargins(0,0,0,0);
+    layout->setSpacing(0);
 
-    return _wfopen(wpath.data(), wmode.data());
-#else
-	return fopen(path.data(), mode);
-#endif
+    auto &fields = protocol->fields();
+
+	int col = 0;
+	int row = 0;
+	QString label("All values");
+
+	for (int i = 1; i <= fields.size(); i++)
+	{
+		auto &field = fields[i];
+		QStringList values;
+		for (auto &v: field.values) {
+			values << v.text;
+		}
+
+		auto field_box = new FieldBox(field, label);
+		layout->addWidget(field_box, row, col);
+		m_fields << field_box;
+
+		if (i % protocol->fields_per_row() == 0)
+		{
+			row++;
+			col = 0;
+		}
+		else
+			col++;
+	}
+
+	setLayout(layout);
 }
 
-FILE *reopen_file(const String &path, const char *mode, FILE *stream)
-{
-#if PHON_WINDOWS
-	auto wpath = path.to_wide();
-    auto wmode = String::to_wide(mode);
-
-    return _wfreopen(wpath.data(), wmode.data(), stream);
-#else
-	return freopen(path.data(), mode, stream);
-#endif
-}
-
-#if !defined(PHON_ENDIANNES_KNOWN) && !PHON_WINDOWS
-bool is_big_endian()
-{
-	union {
-		uint32_t i;
-		char c[4];
-	} val = {0x01020304};
-
-	return val.c[0] == 1;
-}
-#endif // check endianness
-
-
-std::string new_uuid()
-{
-    auto uuid = boost::uuids::random_generator()();
-    std::ostringstream os;
-    os << uuid;
-
-    return os.str();
-}
-
-std::string get_version()
-{
-    std::ostringstream os;
-    os << PHON_VERSION_MAJOR << "." << PHON_VERSION_MINOR << "." << PHON_VERSION_MICRO;
-
-    if (PHON_VERSION_NANO > 0)
-    {
-    	os << " (test " << PHON_VERSION_NANO << ")";
-    }
-
-    return os.str();
-}
-
-std::string get_date()
-{
-    std::ostringstream os;
-
-    if (PHON_RELEASE_DATE_DAY < 10) {
-        os << "0";
-    }
-    os << PHON_RELEASE_DATE_DAY << "/";
-
-    if (PHON_RELEASE_DATE_MONTH < 10) {
-        os << "0";
-    }
-    os << PHON_RELEASE_DATE_MONTH << "/";
-    os << PHON_RELEASE_DATE_YEAR;
-
-    return os.str();
-}
-
-}} // namespace::utils
+} // namespace phonometrica

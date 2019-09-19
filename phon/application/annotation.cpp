@@ -159,12 +159,12 @@ void Annotation::initialize(Runtime &rt)
     };
 
     auto annot_path = [](Runtime &rt) {
-        auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
+        auto annot = rt.cast_user_data<AutoAnnotation>(0);
         rt.push(annot->path());
     };
 
     auto add_property = [](Runtime &rt) {
-    	auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
+    	auto annot = rt.cast_user_data<AutoAnnotation>(0);
     	auto category = rt.to_string(1);
     	std::any value;
     	if (rt.is_boolean(2))
@@ -179,14 +179,14 @@ void Annotation::initialize(Runtime &rt)
     };
 
     auto remove_property = [](Runtime &rt) {
-    	auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
+    	auto annot = rt.cast_user_data<AutoAnnotation>(0);
     	auto category = rt.to_string(1);
     	annot->remove_property(category);
     	rt.push_null();
     };
 
     auto bind_to_sound = [](Runtime &rt) {
-    	auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
+    	auto annot = rt.cast_user_data<AutoAnnotation>(0);
     	auto path = rt.to_string(1);
     	auto project = Project::instance();
     	project->import_file(path);
@@ -196,7 +196,7 @@ void Annotation::initialize(Runtime &rt)
     };
 
     auto get_property = [](Runtime &rt) {
-    	auto annot = rt.cast_user_data<std::shared_ptr<Annotation>>(0);
+    	auto annot = rt.cast_user_data<AutoAnnotation>(0);
     	auto category = rt.to_string(1);
     	auto prop = annot->get_property(category);
 
@@ -219,6 +219,21 @@ void Annotation::initialize(Runtime &rt)
 	    }
     };
 
+    auto get_event_text = [](Runtime &rt) {
+    	auto annot = rt.cast_user_data<AutoAnnotation>(0);
+    	auto layer = rt.to_integer(1);
+    	auto event = rt.to_integer(2);
+    	auto e = annot->get_event(layer, event);
+    	if (e)
+    	{
+		    rt.push(e->text());
+    	}
+	    else
+	    {
+	    	throw error("Couldn't find event % on layer %", event, layer);
+	    }
+    };
+
     rt.push(metaobject);
     {
         rt.add_accessor("path", annot_path);
@@ -226,6 +241,7 @@ void Annotation::initialize(Runtime &rt)
 	    rt.add_method("Annotation.meta.remove_property", remove_property, 2);
 	    rt.add_method("Annotation.meta.get_property", get_property, 2);
         rt.add_method("Annotation.meta.bind_to_sound", bind_to_sound, 1);
+        rt.add_method("Annotation.meta.get_event_text", get_event_text, 3);
     }
     rt.new_native_constructor(new_annot, new_annot, "Annotation", 1);
     rt.def_global("Annotation", PHON_DONTENUM);
@@ -365,5 +381,10 @@ void Annotation::metadata_from_xml(xml_node meta_node)
 			return;
 		}
 	}
+}
+
+AutoEvent Annotation::get_event(intptr_t layer, intptr_t event) const
+{
+	return m_graph.get_event(layer, event);
 }
 } // namespace phonometrica

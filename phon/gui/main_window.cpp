@@ -42,7 +42,7 @@
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>
-
+#include <phon/utils/zip.hpp>
 
 #ifdef PHON_EMBED_SCRIPTS
 #include <phon/include/initialize_phon.hpp>
@@ -389,9 +389,16 @@ void MainWindow::addToolsMenu(QMenuBar *menubar)
 {
 	tool_menu = new QMenu(tr("Tools"));
 	tool_separator = tool_menu->addSeparator();
-	auto extend_action = new QAction("How to extend this menu");
+
+	auto install_action = new QAction(tr("Install plugin..."));
+	tool_menu->addAction(install_action);
+	tool_menu->addSeparator();
+
+	auto extend_action = new QAction(tr("How to extend this menu"));
 	tool_menu->addAction(extend_action);
 	menubar->addMenu(tool_menu);
+
+	connect(install_action, &QAction::triggered, this, &MainWindow::installPlugin);
 
 	connect(extend_action, &QAction::triggered, [&](bool) {
 		runtime.do_string(R"__(
@@ -702,42 +709,66 @@ void MainWindow::preInitialize()
 
 void MainWindow::postInitialize()
 {
+	// Load system plugins and scripts, and then the user's plugins and scripts.
+	String resources_dir = Settings::get_string(runtime, "resources_directory");
+	String user_dir = Settings::settings_directory();
+	loadPluginsAndScripts(resources_dir);
+	loadPluginsAndScripts(user_dir);
+}
 
-   Array<String> paths;
+void MainWindow::loadPluginsAndScripts(const String &root)
+{
+	String plugin_dir = filesystem::join(root, "Plugins");
 
-   // System plugins.
-   String resources_dir = Settings::get_string(runtime, "resources_directory");
-   String dir = filesystem::join(resources_dir, "Plugins");
+	if (filesystem::exists(plugin_dir))
+	{
+		auto files = filesystem::list_directory(plugin_dir);
+		std::sort(files.begin(), files.end());
 
-   if (filesystem::exists(dir))
-   {
-       for (auto &name : filesystem::list_directory(dir))
-       {
-       	    String path = filesystem::join(dir, name);
-       	    if (filesystem::is_directory(path)) paths.append(path);
-       }
-   }
+		for (auto &name : files)
+		{
+			String path = filesystem::join(plugin_dir, name);
+			if (filesystem::is_directory(path))
+			{
+				try
+				{
+					loadPlugin(path);
+				}
+				catch (std::exception &e)
+				{
+					QMessageBox dlg(QMessageBox::Critical, tr("Plugin initialization failed"), e.what());
+					dlg.exec();
+				}
+			}
+		}
+	}
 
-   // User plugins.
-   dir = Settings::plugin_directory();
-   for (auto &name : filesystem::list_directory(dir))
-   {
-   	    String path = filesystem::join(dir, name);
-        if (filesystem::is_directory(path)) paths.append(path);
-   }
+	String scripts_dir = filesystem::join(root, "Scripts");
 
-   for (auto &path : paths)
-   {
-   	    try
-        {
-   	    	loadPlugin(path);
-        }
-   	    catch (std::exception &e)
-        {
-	        QMessageBox dlg(QMessageBox::Critical, tr("Plugin initialization failed"), e.what());
-	        dlg.exec();
-        }
-   }
+	if (filesystem::exists(scripts_dir))
+	{
+		auto files = filesystem::list_directory(scripts_dir);
+		std::sort(files.begin(), files.end());
+
+		for (auto &name : files)
+		{
+			String path = filesystem::join(scripts_dir, name);
+
+			if (filesystem::is_file(path))
+			{
+				try
+				{
+					runtime.do_file(path);
+				}
+				catch (std::exception &e)
+				{
+					auto msg = utils::format("Error in script %: %", path, e.what());
+					QMessageBox dlg(QMessageBox::Critical, tr("Post-initialization error"), QString::fromStdString(msg));
+					dlg.exec();
+				}
+			}
+		}
+	}
 }
 
 void MainWindow::updateConsoleAction(bool)
@@ -806,8 +837,13 @@ void MainWindow::maximizeViewer()
 
 void MainWindow::openQueryEditor()
 {
+	openQueryEditor(nullptr);
+}
+
+void MainWindow::openQueryEditor(AutoProtocol protocol)
+{
 	int context_length = (int) Settings::get_number(runtime, "match_window_length");
-	auto editor = new QueryEditor(runtime, this, context_length);
+	auto editor = new QueryEditor(runtime, std::move(protocol), this, context_length);
 	connect(editor, &QueryEditor::queryReady, this, &MainWindow::executeQuery);
 	editor->resize(1100, 800);
 	editor->show();
@@ -867,23 +903,62 @@ void MainWindow::loadPlugin(const String &path)
 
 	auto menu = new QMenu;
 
-	// Callback to add actions to the plugin's menu.
-	auto callback = [=](String name, String target, String shortcut) {
+	// Create callback to add a separator, a script or a protocol to the plugin's menu.
+	auto script_callback = [=](String name, Plugin::MenuEntry target, String shortcut) {
+		if (name.empty())
+		{
+			menu->addSeparator();
+			return;
+		}
 		auto action = new QAction(name);
 		if (!shortcut.empty()) action->setShortcut(QKeySequence(shortcut));
 		menu->addAction(action);
 
-		connect(action, &QAction::triggered, [target, this](bool) {
-			runtime.do_file(target);
-		});
+		if (std::holds_alternative<String>(target))
+		{
+			auto &script = std::get<String>(target);
+			connect(action, &QAction::triggered, [script, this](bool) {
+				runtime.do_file(script);
+			});
+		}
+		else
+		{
+			auto &protocol = std::get<AutoProtocol>(target);
+			connect(action, &QAction::triggered, [protocol, this](bool) {
+				openQueryEditor(protocol);
+			});
+		}
 	};
 
 	try
 	{
-		auto plugin = std::make_shared<Plugin>(runtime, path, callback);
-		menu->setTitle(plugin->label());
+		auto plugin = std::make_shared<Plugin>(runtime, path, script_callback);
 
-		tool_menu->insertMenu(tool_separator, menu);
+		if (plugin->has_entries())
+		{
+			String label = plugin->label();
+			menu->setTitle(label);
+			auto desc = plugin->description();
+
+			if (!desc.empty())
+			{
+				menu->addSeparator();
+				String title("About ");
+				title.append(label);
+				auto about_action = new QAction(title);
+				menu->addAction(about_action);
+
+				connect(about_action, &QAction::triggered, [=](bool) {
+					QMessageBox::about(this, title, desc);
+				});
+			}
+
+			tool_menu->insertMenu(tool_separator, menu);
+		}
+		else
+		{
+			delete menu;
+		}
 		plugins.append(std::move(plugin));
 	}
 	catch (...)
@@ -893,6 +968,42 @@ void MainWindow::loadPlugin(const String &path)
 	}
 }
 
+void MainWindow::installPlugin(bool)
+{
+	String dir = Settings::get_last_directory(runtime);
+	auto path = QFileDialog::getOpenFileName(this, tr("Select plugin..."), dir, "ZIP (*.zip)");
+	if (path.isNull()) return;
+	String archive = path;
+
+	// Compare list of plugins before and after the installation to find the one that was installed.
+	auto plugin_dir = Settings::plugin_directory();
+	auto plugins1 = filesystem::list_directory(plugin_dir);
+
+	utils::unzip(archive, plugin_dir);
+
+	auto plugins2 = filesystem::list_directory(plugin_dir);
+	std::sort(plugins1.begin(), plugins1.end());
+	std::sort(plugins2.begin(), plugins2.end());
+	std::vector<String> diff;
+	std::set_difference(plugins2.begin(), plugins2.end(), plugins1.begin(), plugins1.end(),
+			std::inserter(diff, diff.begin()));
+
+	if (diff.size() == 1)
+	{
+		String path = filesystem::join(plugin_dir, diff.front());
+		loadPlugin(path);
+		String label = plugins.last()->label();
+		auto msg = utils::format("The \"%\" plugin has been installed!", label);
+
+		QMessageBox dlg(QMessageBox::Information, tr("Success"), QString::fromStdString(msg));
+		dlg.exec();
+	}
+	else
+	{
+		QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("Plugin installation failed."));
+		msg.exec();
+	}
+}
 
 } // phonometrica
 

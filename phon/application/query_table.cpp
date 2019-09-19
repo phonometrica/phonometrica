@@ -265,4 +265,17 @@ const char *QueryTable::class_name() const
 	return "QueryTable";
 }
 
+bool QueryTable::has_textgrid() const
+{
+	for (auto &match : m_matches)
+	{
+		auto &annot = match->annotation();
+		if (annot->is_textgrid()) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 } // namespace phonometrica

@@ -30,6 +30,7 @@
 #define PHONOMETRICA_PLUGIN_HPP
 
 #include <functional>
+#include <variant>
 #include <phon/application/protocol.hpp>
 
 namespace phonometrica {
@@ -38,7 +39,11 @@ class Plugin final
 {
 public:
 
-	using Callback = std::function<void(String, String, String)>;
+	// Helper structure to add a script or a protocol to a the plugin's menu.
+	using MenuEntry = std::variant<String, AutoProtocol>;
+
+	// Callback to add entries to the plugin's menu.
+	using Callback = std::function<void(String, MenuEntry, String)>;
 
 	Plugin(Runtime &rt, String path, Callback menu_handle);
 
@@ -46,7 +51,7 @@ public:
 
 	String path() const { return m_path; }
 
-	String label() const;
+	String label() const { return m_label; }
 
 	String get_script_directory() const;
 
@@ -60,15 +65,29 @@ public:
 
 	String get_protocol(const String &name) const;
 
+	bool has_entries() const;
+
+	String description() const { return m_description; }
+
 private:
 
 	void parse_description(Callback &callback);
+
+	void parse_protocols(Callback &callback);
 
 	Runtime &runtime;
 
 	String m_path;
 
+	String m_label;
+
+	String m_version;
+
+	String m_description;
+
 	Array<AutoProtocol> m_protocols;
+
+	bool has_scripts = false;
 };
 
 using AutoPlugin = std::shared_ptr<Plugin>;

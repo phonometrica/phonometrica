@@ -20,117 +20,93 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 20/02/2019                                                                                                 *
+ * Created: 18/09/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: represent a field in a protocol search box.                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <ctime>
-#include <sstream>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <phon/string.hpp>
+#ifndef PHONOMETRICA_FIELD_BOX_HPP
+#define PHONOMETRICA_FIELD_BOX_HPP
 
-#if PHON_WINDOWS
-#	include <wchar.h>
-#else
-#	include <cstring>
-#endif
+#include <QWidget>
+#include <QCheckBox>
+#include <QListWidget>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QComboBox>
+#include <QGroupBox>
+#include <QLabel>
+#include <phon/application/protocol.hpp>
+#include <phon/third_party/qxt/qxtcheckcombobox.h>
 
-#include <phon/utils/helpers.hpp>
+namespace phonometrica {
 
-namespace phonometrica { namespace utils {
-
-static size_t the_random_seed = 0;
-
-size_t random_seed()
+// Helper class for FieldBox
+class FieldValueWidget : public QWidget
 {
-	return the_random_seed;
-}
+	Q_OBJECT
 
-void init_random_seed()
+public:
+
+	FieldValueWidget(const SearchValue &value, QWidget *parent = nullptr);
+
+	bool isChecked() const;
+
+	void setChecked(bool checked);
+
+	QString match() const;
+
+	QString layerName() const { return layer_name; }
+
+public slots:
+
+	void toggle(bool checked);
+
+private:
+
+	QCheckBox *m_button;
+	QxtCheckComboBox *choice_box;
+	QString matchall, layer_name;
+	QHash<QString, QString> choice_hash;
+	bool hasChoices;
+};
+
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
+class FieldBox : public QWidget
 {
-	srand((unsigned int) time(nullptr));
-    the_random_seed = (size_t) rand();
-}
+Q_OBJECT
 
-FILE *open_file(const String &path, const char *mode)
-{
-#if PHON_WINDOWS
-	auto wpath = path.to_wide();
-    auto wmode = String::to_wide(mode);
+public:
+	explicit FieldBox(const SearchField &field, QString allValues = tr("All values"), QWidget *parent = nullptr);
 
-    return _wfopen(wpath.data(), wmode.data());
-#else
-	return fopen(path.data(), mode);
-#endif
-}
+	QString name() const;
 
-FILE *reopen_file(const String &path, const char *mode, FILE *stream)
-{
-#if PHON_WINDOWS
-	auto wpath = path.to_wide();
-    auto wmode = String::to_wide(mode);
+	QString regex() const;
 
-    return _wfreopen(wpath.data(), wmode.data(), stream);
-#else
-	return freopen(path.data(), mode, stream);
-#endif
-}
+	QString tierNamePattern() const;
 
-#if !defined(PHON_ENDIANNES_KNOWN) && !PHON_WINDOWS
-bool is_big_endian()
-{
-	union {
-		uint32_t i;
-		char c[4];
-	} val = {0x01020304};
+signals:
 
-	return val.c[0] == 1;
-}
-#endif // check endianness
+public slots:
 
+private slots:
 
-std::string new_uuid()
-{
-    auto uuid = boost::uuids::random_generator()();
-    std::ostringstream os;
-    os << uuid;
+	void toggleAll(bool);
 
-    return os.str();
-}
+private:
 
-std::string get_version()
-{
-    std::ostringstream os;
-    os << PHON_VERSION_MAJOR << "." << PHON_VERSION_MINOR << "." << PHON_VERSION_MICRO;
+	QString matchall, m_name, m_layer_pattern;
 
-    if (PHON_VERSION_NANO > 0)
-    {
-    	os << " (test " << PHON_VERSION_NANO << ")";
-    }
+	QList<FieldValueWidget *> value_list;
 
-    return os.str();
-}
+	bool allChecked() const;
 
-std::string get_date()
-{
-    std::ostringstream os;
+	bool noneChecked() const;
+};
 
-    if (PHON_RELEASE_DATE_DAY < 10) {
-        os << "0";
-    }
-    os << PHON_RELEASE_DATE_DAY << "/";
+} // namespace phonometrica
 
-    if (PHON_RELEASE_DATE_MONTH < 10) {
-        os << "0";
-    }
-    os << PHON_RELEASE_DATE_MONTH << "/";
-    os << PHON_RELEASE_DATE_YEAR;
-
-    return os.str();
-}
-
-}} // namespace::utils
+#endif // PHONOMETRICA_FIELD_BOX_HPP

@@ -52,7 +52,7 @@ class QueryEditor final : public QDialog
 
 public:
 
-	QueryEditor(Runtime &rt, QWidget *parent, int context_length = 30);
+	QueryEditor(Runtime &rt, AutoProtocol protocol, QWidget *parent, int context_length = 30);
 
 	void resurrect();
 
@@ -85,6 +85,8 @@ private:
 	AutoSearchNode getSearchTree();
 
 	Runtime &runtime;
+
+	AutoProtocol protocol;
 
 	QLineEdit *query_name_edit;
 

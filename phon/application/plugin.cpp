@@ -47,15 +47,7 @@ Plugin::Plugin(Runtime &rt, String path, Callback menu_handle) :
 		runtime.do_file(script);
 	}
 
-	auto protocol_directory = get_protocol_directory();
-	if (filesystem::exists(protocol_directory))
-	{
-		for (auto &name : filesystem::list_directory(protocol_directory))
-		{
-			auto path = filesystem::join(protocol_directory, name);
-			m_protocols.append(std::make_shared<Protocol>(runtime, path));
-		}
-	}
+	parse_protocols(menu_handle);
 }
 
 Plugin::~Plugin()
@@ -79,58 +71,69 @@ void Plugin::parse_description(Callback &callback)
 	auto content = File::read_all(desc_path);
 	auto js = json::parse(content);
 
-	auto name_iter = js.find("name");
-	if (name_iter == js.end()) {
+	auto it = js.find("name");
+	if (it == js.end()) {
 		throw error("Plugin % has no \"name\" key in description.json", label());
 	}
-	String name = name_iter->get<std::string>();
+	m_label = it->get<std::string>();
 
-	String version;
-	auto version_iter = js.find("version");
-	if (version_iter != js.end()) {
-		version = version_iter->get<std::string>();
+	it = js.find("version");
+	if (it != js.end()) {
+		m_version = it->get<std::string>();
 	}
 
-	auto actions_iter = js.find("actions");
-	if (actions_iter != js.end())
+	it = js.find("description");
+	if (it != js.end()) {
+		if (it->is_array())
+		{
+			for (auto line : *it)
+			{
+				m_description.append(line.get<std::string>());
+			}
+		}
+		else
+		{
+			m_description = it->get<std::string>();
+		}
+	}
+
+	it = js.find("actions");
+	if (it != js.end())
 	{
 		// Fields "name" and "target" are compulsory, and represent the action's name and the target script, respectively.
 		// Additionally, the user may specify a "shortcut".
-		for (auto action : *actions_iter)
+		auto actions = *it;
+		for (auto action : actions)
 		{
 			if (!action.is_object()) {
 				throw error("Error in plugin %: actions in description.json must be objects", label());
 			}
 
-			auto iter = action.find("name");
-			if (iter == action.end()) {
+			it = action.find("name");
+			if (it == action.end()) {
 				throw error("Error in plugin %: action in description.json has no \"name\" key", label());
 			}
-			String name = iter->get<std::string>();
+			String name = it->get<std::string>();
 
-			iter = action.find("target");
-			if (iter == action.end()) {
+			it = action.find("target");
+			if (it == action.end()) {
 				throw error("Error in plugin %: action in description.json has no \"target\" key", label());
 			}
-			String target = iter->get<std::string>();
+			String target = it->get<std::string>();
 			auto script = get_script(target);
 			if (!filesystem::is_file(script)) {
 				throw error("Error in plugin %: cannot find script \"%\"", label(), script);
 			}
 			String shortcut;
-			iter = action.find("shortcut");
-			if (iter != action.end()) {
-				shortcut = iter->get<std::string>();
+			it = action.find("shortcut");
+			if (it != action.end()) {
+				shortcut = it->get<std::string>();
 			}
 
 			callback(name, script, shortcut);
+			has_scripts = true;
 		}
 	}
-}
-
-String Plugin::label() const
-{
-	return filesystem::base_name(m_path);
 }
 
 String Plugin::get_script_directory() const
@@ -155,12 +158,41 @@ String Plugin::get_resource(const String &name) const
 
 String Plugin::get_protocol_directory() const
 {
-	return filesystem::join(m_path, "Resources");
+	return filesystem::join(m_path, "Protocols");
 }
 
 String Plugin::get_protocol(const String &name) const
 {
 	return filesystem::join(get_protocol_directory(), name);
+}
+
+void Plugin::parse_protocols(Plugin::Callback &callback)
+{
+	auto protocol_directory = get_protocol_directory();
+	bool has_separator = false;
+
+	if (filesystem::exists(protocol_directory))
+	{
+		for (auto &name : filesystem::list_directory(protocol_directory))
+		{
+			auto path = filesystem::join(protocol_directory, name);
+			auto protocol = std::make_shared<Protocol>(runtime, path);
+			String label = protocol->name();
+
+			if (!has_separator)
+			{
+				callback(String(), String(), String());
+				has_separator = true;
+			}
+			callback(label, protocol, String());
+			m_protocols.append(std::move(protocol));
+		}
+	}
+}
+
+bool Plugin::has_entries() const
+{
+	return has_scripts || !m_protocols.empty();
 }
 
 } // namespace phonometrica

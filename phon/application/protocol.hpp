@@ -37,6 +37,27 @@
 
 namespace phonometrica {
 
+// Helper structures.
+
+struct SearchChoice final
+{
+	String match, text;
+};
+
+struct SearchValue final
+{
+	String match, text, layer_name;
+	Array<SearchChoice> choices;
+};
+
+struct SearchField final
+{
+	String name, match_all, layer_pattern;
+	Array<SearchValue> values;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
 class Protocol final
 {
 public:
@@ -45,21 +66,45 @@ public:
 
 	String version() const { return m_version; }
 
-	String layer_name() const { return m_layer_name; }
+	String layer_pattern() const { return m_layer_pattern; }
 
 	int layer_index() const { return m_layer_index; }
+
+	bool case_sensitive() const { return m_case_sensitive; }
+
+	String name() const { return m_name; }
+
+	String separator() const { return m_separator; }
+
+	int fields_per_row() const { return m_fields_per_row; }
+
+	const Array<SearchField> &fields() const { return m_fields; }
 
 private:
 
 	Runtime &runtime;
 
+	Array<SearchField> m_fields;
+
 	String m_path;
+
+	String m_name;
 
 	String m_version;
 
-	String m_layer_name;
+	String m_layer_pattern;
 
-	int m_layer_index = -1;
+	String m_separator;
+
+	int m_layer_index = 0; // search everywhere by default
+
+	int m_fields_per_row = 3;
+
+	int m_layer_selecting_field = -1;
+
+	int m_layer_field = 0; // if this is positive, indicates which field is used to select the tier.
+
+	bool m_case_sensitive = false;
 };
 
 using AutoProtocol = std::shared_ptr<Protocol>;

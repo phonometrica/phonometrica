@@ -76,6 +76,8 @@ private slots:
 
     void updateStatus(const String &);
 
+    void installPlugin(bool);
+
 private:
 
     bool finalize();
@@ -100,11 +102,15 @@ private:
 
     void openQueryEditor();
 
+    void openQueryEditor(AutoProtocol protocol);
+
     void runLastQuery();
 
     void cacheQueryEditor(QueryEditor *ed);
 
     void setDatabaseConnection();
+
+    void loadPluginsAndScripts(const String &dir);
 
     void loadPlugin(const String &path);
 

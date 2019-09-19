@@ -49,6 +49,7 @@ namespace phonometrica {
 QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
     View(parent), runtime(rt), m_data(std::move(data))
 {
+	bool use_praat = m_data->has_textgrid();
 	auto layout = new QVBoxLayout;
 
 	// Toolbar.
@@ -56,9 +57,18 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	play_action = toolbar->addAction(QIcon(":/icons/play.png"), tr("Play selected match"));
 	stop_action = toolbar->addAction(QIcon(":/icons/stop.png"), tr("Stop selected match"));
 	auto view_action = toolbar->addAction(QIcon(":/icons/eye.png"), tr("View match in annotation"));
-	auto praat_action = toolbar->addAction(QIcon(":/icons/praat.png"), tr("Open match in Praat"));
-	auto praat_path = Settings::get_string(runtime, "praat_path");
-	praat_action->setEnabled(filesystem::exists(praat_path));
+
+	if (use_praat)
+	{
+		auto praat_action = toolbar->addAction(QIcon(":/icons/praat.png"), tr("Open match in Praat"));
+
+		auto open_in_praat = [=](bool) {
+			auto index = m_table->currentIndex();
+			if (index.isValid()) openMatchInPraat(index.row());
+		};
+
+		connect(praat_action, &QAction::triggered, this, open_in_praat);
+	}
 
 	edit_action = toolbar->addAction(QIcon(":/icons/edit_row.png"), tr("Edit event label"));
 	enableQueryButtons(false);
@@ -120,19 +130,12 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 		if (index.isValid()) openInAnnotation(index.row());
 	};
 
-	auto open_in_praat = [=](bool) {
-		auto index = m_table->currentIndex();
-		if (index.isValid()) openMatchInPraat(index.row());
-	};
-
 	connect(info_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(context_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(property_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(view_action, &QAction::triggered, this, view_event);
-	connect(praat_action, &QAction::triggered, this, open_in_praat);
 
 	m_data->set_flags(getQueryFlags());
-
 
 	int nrow = m_data->row_count();
 	int ncol = m_data->column_count();
@@ -145,6 +148,9 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	layout->addWidget(m_table);
 	setLayout(layout);
 	fill_table();
+
+	m_table->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(m_table, SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(provideContextMenu(const QPoint &)));
 }
 
 void QueryView::save()
@@ -389,6 +395,45 @@ void QueryView::exportToCsv(bool)
 		project->import_file(path);
 		emit project->notify_update();
 	}
+}
+
+void QueryView::provideContextMenu(const QPoint &pos)
+{
+	auto index = m_table->currentIndex();
+	if (!index.isValid()) return;
+	int row = index.row();
+	auto &event = m_data->get_match(row + 1);
+	auto &annot = event->annotation();
+	QMenu menu;
+
+	auto play_action = menu.addAction(tr("Play selection"));
+	menu.addSeparator();
+	auto annot_action = menu.addAction(tr("Open in annotation"));
+
+	if (annot->is_textgrid())
+	{
+		auto praat_action = menu.addAction(tr("Open in Praat"));
+		connect(praat_action, &QAction::triggered, [=](bool) {
+			openMatchInPraat(row);
+		});
+	}
+
+	menu.addSeparator();
+	auto event_action = menu.addAction(tr("Edit event text"));
+
+	connect(play_action, &QAction::triggered, [=](bool) {
+		playMatch(row);
+	});
+
+	connect(annot_action, &QAction::triggered, [=](bool) {
+		openInAnnotation(row);
+	});
+
+	connect(event_action, &QAction::triggered, [=](bool) {
+		editEvent(row);
+	});
+
+	menu.exec(m_table->mapToGlobal(pos));
 }
 
 } // namespace phonometrica

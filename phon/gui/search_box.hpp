@@ -40,6 +40,7 @@
 class QPushButton;
 class QTextEdit;
 class QSpinBox;
+class QComboBox;
 
 namespace phonometrica {
 

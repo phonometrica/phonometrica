@@ -333,6 +333,8 @@ public:
 	// Case-insensitive find
 	const_iterator ifind(Substring substring, const_iterator from) const;
 
+	bool is_ascii() const;
+
 private:
 
 	friend struct Variant;
