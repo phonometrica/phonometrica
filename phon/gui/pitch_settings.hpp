@@ -31,7 +31,8 @@
 
 #include <QDialog>
 #include <QLineEdit>
-
+#include <QSlider>
+#include <QLabel>
 
 namespace phonometrica {
 
@@ -53,13 +54,19 @@ private slots:
 
     void reset(bool);
 
+    void updatePitchThreshold(int value);
+
 private:
 
     void displayValues();
 
     Runtime &rt;
 
-    QLineEdit *min_edit, *max_edit, *step_edit, *threshold_edit;
+    QLineEdit *min_edit, *max_edit, *step_edit;
+
+    QLabel *threshold_label;
+
+    QSlider *slider;
 };
 
 } // namespace phonometrica

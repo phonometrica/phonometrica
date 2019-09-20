@@ -62,11 +62,11 @@ files.
 Import metadata
 ~~~~~~~~~~~~~~~
 
-Phonometrica lets you import metadata from a CSV file. The CSV file must have the following structure:
+Phonometrica lets you import metadata from a tab-separated file. The file must have the following structure:
 
-* the first line must be header
-* the first column must contain the name of file to which we want to add metadata
-* the separator must be the semicolon (``";"``)
+* the first line must be a header: the first field is ignored, and the following fields correspond to property categories.
+* the first column must contain the name of file to which we want to add metadata, and the following properties are values for the corresponding categories. Cells can be left empty for files files which doesn't have a certain property.
+* the separator must be the tabulation character
 
 
 The cells in the first column represent file names, as they are normally displayed by your operating system. For instance,
@@ -78,12 +78,8 @@ to define a *file name pattern* instead of an exact file name. To use a regular 
 can use any valid regular expression supported by Phonometrica, including capturing parentheses. You can refer to the whole matched pattern or to any subgroup in subsequent fields, using either ``%%`` or the placeholders ``%1`` to ``%9``, respectively. 
 
 
-The header of each column (except for the first one) is interpreted as a property category, and the corresponding
-cell for each file is interpreted as a category value. (Empty values are ignored.)
-
-In addition, there are two special fields for columns: ``%SOUND%`` and ``%DESCRIPTION%``. ``%SOUND%`` allows you
-to provide the full path of a sound file for an annotation. IF the sound file exists and the file is indeed an 
+By default, properties are assigned the type ``text``. You can add the suffixes ``.bool``, ``.num`` or ``.text`` to the category in 
+the header line to indicate that the property is a Boolean, a number or a text string, respectively. In addition, there are two special fields for columns: ``%SOUND%`` and ``%DESCRIPTION%``. ``%SOUND%`` allows you
+to provide the full path of a sound file for an annotation. If the sound file exists and the file is indeed an 
 annotation, Phonometrica will bind the annotation to the sound; otherwise, the value will be dismissed. ``%DESCRIPTION%`` 
-allows you to set the description of any file. Keep in mind that this field should not contain the character ``";"`` since it
-is used as a separator. 
-
+allows you to set the description field of a file.

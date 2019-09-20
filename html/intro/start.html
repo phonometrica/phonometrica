@@ -130,11 +130,11 @@ files.</p>
 </div>
 <div class="section" id="import-metadata">
 <h2>Import metadata<a class="headerlink" href="#import-metadata" title="Permalink to this headline">¶</a></h2>
-<p>Phonometrica lets you import metadata from a CSV file. The CSV file must have the following structure:</p>
+<p>Phonometrica lets you import metadata from a tab-separated file. The file must have the following structure:</p>
 <ul class="simple">
-<li>the first line must be header</li>
-<li>the first column must contain the name of file to which we want to add metadata</li>
-<li>the separator must be the semicolon (<code class="docutils literal notranslate"><span class="pre">&quot;;&quot;</span></code>)</li>
+<li>the first line must be a header: the first field is ignored, and the following fields correspond to property categories.</li>
+<li>the first column must contain the name of file to which we want to add metadata, and the following properties are values for the corresponding categories. Cells can be left empty for files files which doesn’t have a certain property.</li>
+<li>the separator must be the tabulation character</li>
 </ul>
 <p>The cells in the first column represent file names, as they are normally displayed by your operating system. For instance,
 if you want to tag the file <code class="docutils literal notranslate"><span class="pre">C:\Test\loc1f26.wav</span></code>, i.e. a file named <code class="docutils literal notranslate"><span class="pre">loc1f26.wav</span></code> located in a directory named
@@ -143,13 +143,11 @@ is case sensitive, so <code class="docutils literal notranslate"><span class="pr
 to define a <em>file name pattern</em> instead of an exact file name. To use a regular expression, the file name pattern must start with <code class="docutils literal notranslate"><span class="pre">^</span></code>
 (the metacharacter that indicates the beginning of a string) and end with <code class="docutils literal notranslate"><span class="pre">$</span></code> (the metacharacter that indicates the end of a string). You
 can use any valid regular expression supported by Phonometrica, including capturing parentheses. You can refer to the whole matched pattern or to any subgroup in subsequent fields, using either <code class="docutils literal notranslate"><span class="pre">%%</span></code> or the placeholders <code class="docutils literal notranslate"><span class="pre">%1</span></code> to <code class="docutils literal notranslate"><span class="pre">%9</span></code>, respectively.</p>
-<p>The header of each column (except for the first one) is interpreted as a property category, and the corresponding
-cell for each file is interpreted as a category value. (Empty values are ignored.)</p>
-<p>In addition, there are two special fields for columns: <code class="docutils literal notranslate"><span class="pre">%SOUND%</span></code> and <code class="docutils literal notranslate"><span class="pre">%DESCRIPTION%</span></code>. <code class="docutils literal notranslate"><span class="pre">%SOUND%</span></code> allows you
-to provide the full path of a sound file for an annotation. IF the sound file exists and the file is indeed an
+<p>By default, properties are assigned the type <code class="docutils literal notranslate"><span class="pre">text</span></code>. You can add the suffixes <code class="docutils literal notranslate"><span class="pre">.bool</span></code>, <code class="docutils literal notranslate"><span class="pre">.num</span></code> or <code class="docutils literal notranslate"><span class="pre">.text</span></code> to the category in
+the header line to indicate that the property is a Boolean, a number or a text string, respectively. In addition, there are two special fields for columns: <code class="docutils literal notranslate"><span class="pre">%SOUND%</span></code> and <code class="docutils literal notranslate"><span class="pre">%DESCRIPTION%</span></code>. <code class="docutils literal notranslate"><span class="pre">%SOUND%</span></code> allows you
+to provide the full path of a sound file for an annotation. If the sound file exists and the file is indeed an
 annotation, Phonometrica will bind the annotation to the sound; otherwise, the value will be dismissed. <code class="docutils literal notranslate"><span class="pre">%DESCRIPTION%</span></code>
-allows you to set the description of any file. Keep in mind that this field should not contain the character <code class="docutils literal notranslate"><span class="pre">&quot;;&quot;</span></code> since it
-is used as a separator.</p>
+allows you to set the description field of a file.</p>
 </div>
 </div>
 

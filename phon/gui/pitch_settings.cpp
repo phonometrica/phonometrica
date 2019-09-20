@@ -26,7 +26,6 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <QLabel>
 #include <QLayout>
 #include <QPushButton>
 #include <QDialogButtonBox>
@@ -46,7 +45,6 @@ PitchSettings::PitchSettings(Runtime &rt, QWidget *parent) :
     min_edit = new QLineEdit;
     max_edit = new QLineEdit;
     step_edit = new QLineEdit;
-    threshold_edit = new QLineEdit;
 
     auto layout = new QVBoxLayout;
     layout->addWidget(new QLabel("Minimum pitch (Hz):"));
@@ -55,8 +53,16 @@ PitchSettings::PitchSettings(Runtime &rt, QWidget *parent) :
     layout->addWidget(max_edit);
     layout->addWidget(new QLabel("Time step (seconds):"));
     layout->addWidget(step_edit);
-    layout->addWidget(new QLabel("Voicing threshold (0.5 ≥ t ≥ 0.2):"));
-    layout->addWidget(threshold_edit);
+    layout->addWidget(new QLabel("Voicing threshold:"));
+    auto voicing_layout = new QHBoxLayout;
+    threshold_label = new QLabel;
+    slider = new QSlider(Qt::Horizontal);
+    slider->setMinimum(0);
+    slider->setMaximum(30);
+    slider->setTickInterval(1);
+    voicing_layout->addWidget(threshold_label);
+    voicing_layout->addWidget(slider);
+    layout->addLayout(voicing_layout);
     layout->addSpacing(10);
 
     auto hl = new QHBoxLayout;
@@ -72,6 +78,7 @@ PitchSettings::PitchSettings(Runtime &rt, QWidget *parent) :
     connect(button_box, &QDialogButtonBox::accepted, this, &PitchSettings::validate);
     connect(button_box, &QDialogButtonBox::rejected, this, &PitchSettings::reject);
     connect(reset_button, &QPushButton::clicked, this, &PitchSettings::reset);
+    connect(slider, &QSlider::valueChanged, this, &PitchSettings::updatePitchThreshold);
 }
 
 void PitchSettings::validate()
@@ -103,9 +110,10 @@ void PitchSettings::validate()
     }
     Settings::set_value(rt, category, "time_step", value);
 
-    value = threshold_edit->text().toDouble(&ok);
+    value = threshold_label->text().toDouble(&ok);
     if (!ok || value > 0.5 || value < 0.2)
     {
+    	// Should never happen
         QMessageBox::critical(this, "Error", "Invalid voicing threshold");
         return;
     }
@@ -141,6 +149,14 @@ void PitchSettings::displayValues()
     step_edit->setText(QString::number(step));
 
     auto thres = Settings::get_number(rt, category, "voicing_threshold");
-    threshold_edit->setText(QString::number(thres));
+    int value = int((thres - 0.2) * 100);
+    slider->setValue(value);
+    threshold_label->setText(QString::number(thres));
+}
+
+void PitchSettings::updatePitchThreshold(int value)
+{
+	double thres = 0.2 + (double(value) / 100);
+	threshold_label->setText(QString::number(thres, 'g', 2));
 }
 } // namespace phonometrica

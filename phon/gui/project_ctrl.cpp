@@ -430,6 +430,7 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
             {
                 auto path = file->path();
                 auto action = new QAction(tr("Open sound in Praat"), this);
+                menu.addAction(action);
                 connect(action, &QAction::triggered, [=](bool) {
                 	try {
 		                praat::open_sound(path);
