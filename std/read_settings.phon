@@ -30,8 +30,6 @@ phon.settings = {
 	recent_projects: [],
 
 	last_directory: "",
-	
-	use_antialiasing: true,
 
 	project_ratio: 0.17,
 
@@ -57,7 +55,7 @@ phon.settings = {
 
 	enable_mouse_tracking: true,
 
-	resampling_quality: 5,
+	resampling_quality: 6,
 
 	pitch_tracking: {
         minimum_pitch: 70,

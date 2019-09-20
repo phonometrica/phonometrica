@@ -38,6 +38,8 @@
 
 #ifdef PHON_EMBED_SCRIPTS
 #include <phon/include/write_settings_phon.hpp>
+#include <phon/include/reset_general_settings_phon.hpp>
+#include <phon/include/reset_sound_settings_phon.hpp>
 #endif
 
 namespace phonometrica {
@@ -313,6 +315,16 @@ void Settings::set_value(Runtime &rt, const String &category, const String &key,
 String Settings::get_std_plugin_directory()
 {
 	return String();
+}
+
+void Settings::reset_general_settings(Runtime &rt)
+{
+	run_script(rt, reset_general_settings);
+}
+
+void Settings::reset_sound_settings(Runtime &rt)
+{
+	run_script(rt, reset_sound_settings);
 }
 
 

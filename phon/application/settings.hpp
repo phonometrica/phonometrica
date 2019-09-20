@@ -89,6 +89,10 @@ public:
     static String get_last_directory(Runtime &rt);
 
     static void set_last_directory(Runtime &rt, const String &path);
+
+    static void reset_general_settings(Runtime &rt);
+
+    static void reset_sound_settings(Runtime &rt);
 };
 
 } // namespace phonometrica

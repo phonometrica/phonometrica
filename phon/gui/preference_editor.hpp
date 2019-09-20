@@ -38,13 +38,12 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QSpacerItem>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QWidget>
 #include <QSpinBox>
 #include <QPushButton>
 #include <QFileDialog>
 #include <QCheckBox>
+#include <QSlider>
 #include <phon/runtime/runtime.hpp>
 
 namespace phonometrica {
@@ -65,16 +64,21 @@ private slots:
 
     void setResourcesPath();
 
+	void updateResamplingQuality(int value);
+
+	void resetSettings(bool);
+
 private:
 
-    Runtime &rt;
+    Runtime &runtime;
     QDialogButtonBox *box_buttons;
-    QVBoxLayout *main_layout, *gen_layout, *sound_layout;
     QTabWidget *tabs;
-    QLineEdit *edit_resources, *edit_quality;
+    QLineEdit *edit_resources;
     QWidget *tab_general, *tab_advanced;
     QSpinBox *spinbox_match_context_window;
     QCheckBox *checkbox_mouse_tracking, *checkbox_autosave, *checkbox_autoload;
+    QSlider *resampling_slider;
+    QLabel *quality_label;
 
     void setupUi();
 

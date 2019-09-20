@@ -6,8 +6,6 @@ phon.settings = {
 	recent_projects: [],
 
 	last_directory: "",
-	
-	use_antialiasing: true,
 
 	project_ratio: 0.17,
 
@@ -25,7 +23,7 @@ phon.settings = {
 
 	hide_info: false,
 
-	match_window_length: 30,
+	match_window_length: 40,
 
 	autosave: false,
 
@@ -33,7 +31,7 @@ phon.settings = {
 
 	enable_mouse_tracking: true,
 
-	resampling_quality: 5,
+	resampling_quality: 6,
 
 	pitch_tracking: {
         minimum_pitch: 70,
@@ -47,14 +45,10 @@ phon.settings = {
 }
 
 if system.name == "windows" then
-	phon.settings.praat_path = "C:\\Program Files\\Praat.exe"
 	phon.settings.resources_directory = "C:\\Program Files\\Phonometrica"
-
 elsif system.name == "macos" then
-	phon.settings.praat_path = "/Applications/Praat.app/MacOS/Praat"
 	phon.settings.resources_directory = "/Applications/Phonometrica.app/Contents/Resources"
 else
-	phon.settings.praat_path = "/usr/bin/praat"
 	phon.settings.resources_directory = "/usr/local/share/phonometrica"
 end
 

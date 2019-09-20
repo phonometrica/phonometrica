@@ -33,7 +33,6 @@
 #include <phon/utils/file_system.hpp>
 
 extern "C" char *sendpraat (void *display, const char *programName, long timeOut, const char *text);
-extern "C" wchar_t *sendpraatW (void *display, const wchar_t *programName, long timeOut, const wchar_t *text);
 
 namespace phonometrica { namespace praat {
 
@@ -163,33 +162,11 @@ static void run_temp_script(const String &script)
 	outfile.write(script);
 	outfile.close();
 	auto args = String("execute %1").arg(path);
-
-	// sendpraatW doesn't seem to work. For now, we try to use sendpraat.
-#if PHON_WINDOWS
-	if (!path.is_ascii()) {
-		throw error("Path \"%\" contains non-ASCII characters: this is not supported by sendpraat");
-	}
-#endif
-#if 0
-//#if PHON_WINDOWS
-    auto wargs = args.to_wide();
-    auto result = sendpraatW(nullptr, L"praat", 0, wargs.data());
-
-    if (result != nullptr)
-    {
-		String msg(result);
-		throw error(msg);
-    }
-#else
 	auto result = sendpraat(nullptr, "praat", 0, args.data());
 
 	if (result != nullptr)
 		throw error(result);
-#endif
-	
-	//filesystem::remove_file(path);
 }
-
 
 void open_textgrid(const String &tgd, const String &snd)
 {
