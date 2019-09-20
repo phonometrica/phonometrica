@@ -163,7 +163,7 @@ void PreferenceEditor::resetSettings(bool)
 	if (tabs->currentIndex() == 0)
 	{
 		Settings::reset_general_settings(runtime);
-		
+
 		auto dir = Settings::get_string(runtime, "resources_directory");
 		edit_resources->setText(dir);
 
