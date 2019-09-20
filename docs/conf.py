@@ -63,7 +63,7 @@ master_doc = 'index'
 # General information about the project.
 project = 'Phonometrica'
 copyright = '2019, Julien Eychenne & Léa Courdès-Murphy'
-author = 'Julien Eychenne'
+author = 'Julien Eychenne & Léa Courdès-Murphy'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -241,7 +241,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'phonometrica_manual.tex', 'Phonometrica Documentation',
-     'Julien Eychenne', 'manual'),
+     'Julien Eychenne \& Léa Courdès-Murphy', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
