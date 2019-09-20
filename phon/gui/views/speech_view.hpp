@@ -41,11 +41,10 @@
 #include <phon/gui/pitch_plot.hpp>
 #include <phon/gui/space_line.hpp>
 #include <phon/gui/y_axis_widget.hpp>
+#include <phon/gui/toolbar.hpp>
 #include <phon/application/audio_player.hpp>
 #include <phon/application/audio_data.hpp>
 #include <phon/runtime/runtime.hpp>
-
-class QToolBar;
 
 namespace phonometrica {
 
@@ -95,17 +94,17 @@ protected slots:
 
 protected:
 
-    QToolBar *makeToolbar();
+    Toolbar *makeToolbar();
 
     void setPlayIcon();
 
     void setPauseIcon();
 
-    virtual void addEditButtons(QToolBar *) { }
+    virtual void addEditButtons(Toolbar *toolbar) { }
 
-    virtual void addAnnotationMenu(QToolBar *) { }
+    virtual void addAnnotationMenu(Toolbar *toolbar) { }
 
-    virtual void addAnnotationLayers(QVBoxLayout *) { }
+    virtual void addAnnotationLayers(QVBoxLayout *layout) { }
 
     void setInitialWindow();
 

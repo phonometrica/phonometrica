@@ -26,11 +26,11 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <QToolBar>
 #include <QMenu>
 #include <QDebug>
 #include <QMessageBox>
 #include <QToolButton>
+#include <phon/gui/toolbar.hpp>
 #include <phon/gui/views/speech_view.hpp>
 #include <phon/gui/time_selection_dialog.hpp>
 #include <phon/gui/pitch_settings.hpp>
@@ -153,7 +153,7 @@ void SpeechView::post_initialize()
     setInitialWindow();
 }
 
-QToolBar *SpeechView::makeToolbar()
+Toolbar *SpeechView::makeToolbar()
 {
     auto pitch_menu = new QMenu;
     auto action_enable_pitch = new QAction(tr("Show pitch"), this);
@@ -187,7 +187,7 @@ QToolBar *SpeechView::makeToolbar()
 //    action_spectrogram->setEnabled(false);
 //    action_pitch->setEnabled(false);
 
-    auto toolbar = new QToolBar(this);
+    auto toolbar = new Toolbar(this);
     play_action = new QAction(QIcon(":/icons/play.png"), "Play");
     auto stop = new QAction(QIcon(":/icons/stop.png"), "Stop");
     auto zoom_in = new QAction(QIcon(":/icons/zoom+.png"), "Zoom in");
@@ -244,9 +244,13 @@ QToolBar *SpeechView::makeToolbar()
     toolbar->addSeparator();
     toolbar->addWidget(options_button);
 
+#if PHON_MACOS
+    toolbar->addStretch();
+#else
     auto spacing = new QWidget;
     spacing->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     toolbar->addWidget(spacing);
+#endif
     toolbar->addAction(doc);
 
     connect(play_action, &QAction::triggered, this, &SpeechView::play);
@@ -263,11 +267,6 @@ QToolBar *SpeechView::makeToolbar()
     connect(action_pitch_settings, &QAction::triggered, this, &SpeechView::changePitchSettings);
     connect(action_enable_intensity, &QAction::triggered, this, &SpeechView::showIntensity);
     connect(waveform, &SpeechPlot::windowHasChanged, this, &SpeechView::setWindowTimes);
-
-#if PHON_MACOS
-    toolbar->setMaximumHeight(30);
-    toolbar->setStyleSheet("QToolBar{spacing:0px;}");
-#endif
 
     return toolbar;
 }

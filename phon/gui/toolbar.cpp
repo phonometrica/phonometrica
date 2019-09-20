@@ -20,87 +20,65 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 15/03/2019                                                                                                 *
+ * Created: 20/09/2019                                                                                                 *
  *                                                                                                                     *
  * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <QGridLayout>
-#include <phon/gui/views/start_view.hpp>
+#include <QToolButton>
 #include <phon/gui/button_stylesheet.hpp>
-#include <phon/runtime/runtime.hpp>
+#include <phon/gui/toolbar.hpp>
 
 namespace phonometrica {
 
-StartView::StartView(QWidget *parent, Runtime &rt) :
-    View(parent), rt(rt)
+MacToolbar::MacToolbar(QWidget *parent)
 {
-    auto layout = new QVBoxLayout;
-    auto grid = new QGridLayout;
-    auto new_folder = makeButton(this, QIcon(":/icons/100x100/new_folder.png"), tr("Add files to project"));
-    auto folder = makeButton(this, QIcon(":/icons/100x100/folder.png"), tr("Open existing project"));
-    auto doc = makeButton(this, QIcon(":/icons/100x100/help.png"), tr("Documentation"));
-    auto settings = makeButton(this, QIcon(":/icons/100x100/settings.png"), tr("Settings"));
-
-    connect(new_folder, SIGNAL(clicked(bool)), this, SLOT(onAddFiles()));
-    connect(folder, SIGNAL(clicked(bool)), this, SLOT(onOpenProject()));
-    connect(doc, SIGNAL(clicked(bool)), this, SLOT(onOpenDoc()));
-    connect(settings, SIGNAL(clicked(bool)), this, SLOT(onOpenSettings()));
-
-    auto wgt = new QWidget;
-    wgt->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    wgt->setLayout(grid);
-
-    //grid->setSpacing(100);
-    grid->addWidget(new_folder, 0, 0);
-    grid->addWidget(folder, 0, 1);
-    grid->addWidget(doc, 1, 0);
-    grid->addWidget(settings, 1, 1);
-
-    layout->addWidget(wgt);
-    setLayout(layout);
+	stylesheet = flat_button_stylesheet;
+	layout = new QHBoxLayout;
+	setLayout(layout);
+	setFixedHeight(50);
+	layout->setContentsMargins(0, 5, 0, 5);
+	layout->setSpacing(0);
 }
 
-void StartView::onAddFiles()
+QAction *MacToolbar::addAction(const QIcon &icon, const QString &text)
 {
-    rt.do_string("phon.add_files()");
+	auto action = new QAction(icon, text);
+	addAction(action);
+
+	return action;
 }
 
-void StartView::onOpenProject()
+void MacToolbar::addWidget(QWidget *w)
 {
-    rt.do_string("phon.open_project()");
+	w->setFixedSize(40, 40);
+	w->setStyleSheet(stylesheet);
+	auto button = dynamic_cast<QToolButton*>(w);
+	if (button) button->setIconSize(QSize(20, 20));
+
+	layout->addWidget(w);
 }
 
-void StartView::onOpenSettings()
+void MacToolbar::addStretch(int factor)
 {
-    rt.do_string("phon.edit_settings()");
+	layout->addStretch(factor);
 }
 
-void StartView::onOpenDoc()
+void MacToolbar::addSpacing(int spacing)
 {
-    rt.do_string("phon.show_help()");
+	layout->addSpacing(spacing);
 }
 
-void StartView::save()
+void MacToolbar::addAction(QAction *action)
 {
-    // nothing to do
+	auto button = new QToolButton;
+	button->setDefaultAction(action);
+	addWidget(button);
 }
 
-QToolButton *StartView::makeButton(QWidget *parent, const QIcon &icon, const QString &text)
+void MacToolbar::addSeparator()
 {
-    auto button = new QToolButton(parent);
-    button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    button->setIcon(icon);
-    button->setText(text);
-    button->setIconSize(QSize(100, 100));
-    button->setFixedSize(300, 150);
-#if PHON_MACOS
-	button->setStyleSheet(flat_button_stylesheet);
-#else
-    button->setAutoRaise(true);
-#endif
-    return button;
+	layout->addWidget(new Separator);
 }
-
 } // namespace phonometrica

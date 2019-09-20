@@ -41,7 +41,7 @@ AnnotationView::AnnotationView(Runtime &rt, std::shared_ptr<Annotation> annot, Q
     this->annot->open();
 }
 
-void AnnotationView::addEditButtons(QToolBar *toolbar)
+void AnnotationView::addEditButtons(Toolbar *toolbar)
 {
 	auto save_action = new QAction(QIcon(":/icons/save.png"), "Save annotation");
 	toolbar->addAction(save_action);
@@ -50,7 +50,7 @@ void AnnotationView::addEditButtons(QToolBar *toolbar)
 	connect(save_action, &QAction::triggered, this, &AnnotationView::saveAnnotation);
 }
 
-void AnnotationView::addAnnotationMenu(QToolBar *toolbar)
+void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 {
     auto layer_action = new QAction(QIcon(":/icons/layers.png"), "Manage layers");
     auto anchor_action = new QAction(QIcon(":/icons/anchor.png"), "Manage anchors");

@@ -32,6 +32,7 @@
 #include <phon/gui/views/speech_view.hpp>
 #include <phon/gui/layer_widget.hpp>
 #include <phon/application/annotation.hpp>
+#include <phon/gui/toolbar.hpp>
 
 namespace phonometrica {
 
@@ -49,9 +50,9 @@ public:
 
 protected:
 
-	void addEditButtons(QToolBar *toolbar) override;
+	void addEditButtons(Toolbar *toolbar) override;
 
-    void addAnnotationMenu(QToolBar *toolbar) override;
+    void addAnnotationMenu(Toolbar *toolbar) override;
 
     void addAnnotationLayers(QVBoxLayout *layout) override;
 

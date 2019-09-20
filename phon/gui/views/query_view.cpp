@@ -28,7 +28,6 @@
 
 #include <QLabel>
 #include <QKeyEvent>
-#include <QToolBar>
 #include <QToolButton>
 #include <QHeaderView>
 #include <QFontDatabase>
@@ -40,6 +39,7 @@
 #include <phon/application/audio_player.hpp>
 #include <phon/application/praat.hpp>
 #include <phon/application/settings.hpp>
+#include <phon/gui/toolbar.hpp>
 #include <phon/gui/views/query_view.hpp>
 #include <phon/gui/font.hpp>
 #include <phon/gui/popup_text_editor.hpp>
@@ -54,7 +54,7 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	auto layout = new QVBoxLayout;
 
 	// Toolbar.
-	auto toolbar = new QToolBar;
+	auto toolbar = new Toolbar;
 	play_action = toolbar->addAction(QIcon(":/icons/play.png"), tr("Play selected match"));
 	stop_action = toolbar->addAction(QIcon(":/icons/stop.png"), tr("Stop selected match"));
 	auto view_action = toolbar->addAction(QIcon(":/icons/eye.png"), tr("View match in annotation"));
@@ -76,11 +76,6 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 
 	auto csv_action = toolbar->addAction(QIcon(":/icons/export_csv.png"), tr("Export to tab-separated value file"));
 
-#if PHON_MACOS
-	toolbar->setMaximumHeight(30);
-    toolbar->setStyleSheet("QToolBar{spacing:0px;}");
-#endif
-
     auto play = [=](bool) {
         auto index = m_table->currentIndex();
         if (index.isValid()) onCellDoubleClicked(index.row(), index.column());
@@ -94,6 +89,10 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
         auto index = m_table->currentIndex();
         if (index.isValid()) editEvent(index.row());
     };
+
+#if PHON_MACOS
+    toolbar->addStretch();
+#endif
 
     connect(play_action, &QAction::triggered, play);
     connect(stop_action, &QAction::triggered, stop);
