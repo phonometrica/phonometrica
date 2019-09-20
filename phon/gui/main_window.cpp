@@ -902,7 +902,7 @@ void MainWindow::executeQuery(AutoQuery query)
 
 	if (dataset->empty())
 	{
-		QMessageBox dlg(QMessageBox::Information, tr("Information"), tr("Not match found!"));
+		QMessageBox dlg(QMessageBox::Information, tr("Information"), tr("No match found!"));
 		dlg.exec();
 	}
 	else

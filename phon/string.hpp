@@ -237,7 +237,7 @@ public:
     String &trim();
 	String &ltrim();
 	String &rtrim();
-
+	String &trim_new_line();
 	void clear(bool flush = true);
 
 	intptr_t count(Substring substring) const;

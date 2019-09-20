@@ -777,6 +777,40 @@ String &String::trim(String::Option flag)
 	return *this;
 }
 
+String &String::trim_new_line()
+{
+	intptr_t len = this->size();
+	intptr_t last = len;
+
+	for (; last > 0; --last)
+	{
+		char c = impl->data[last - 1];
+
+		if (c != '\n' && c != '\r') {
+			break;
+		}
+	}
+
+	intptr_t new_size = last - 0;
+
+	if (new_size != len)
+	{
+		// Unshare manually to avoid copying and moving.
+		if (this->shared())
+		{
+			String tmp(this->data(), new_size);
+			this->swap(tmp);
+		}
+		else
+		{
+			char_traits::move(begin(), begin(), new_size);
+			adjust(new_size);
+		}
+	}
+
+	return *this;
+}
+
 void String::clear(bool flush)
 {
 	if (!flush && this->unique())

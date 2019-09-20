@@ -39,8 +39,9 @@ Array<Array<String>> parse_csv(const String &path, std::string_view splitter)
 	while (!infile.at_end())
 	{
 		auto line = infile.read_line();
+		line.trim_new_line();
 		if (line.empty()) continue;
-		auto fields = line.rtrim().split(splitter);
+		auto fields = line.split(splitter);
 		csv.append(std::move(fields));
 	}
 	infile.close();
