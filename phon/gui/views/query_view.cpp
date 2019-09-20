@@ -168,9 +168,6 @@ void QueryView::save()
 void QueryView::fillTable()
 {
 	QFont font = get_monospace_font();
-#if PHON_WINDOWS
-	font.setPointSize(10);
-#endif
 	auto bold_font = font;
 	bold_font.setBold(true);
 	QColor red("red");

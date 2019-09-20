@@ -736,6 +736,11 @@ void MainWindow::postInitialize()
 	String user_dir = Settings::settings_directory();
 	loadPluginsAndScripts(resources_dir);
 	loadPluginsAndScripts(user_dir);
+
+#if PHON_WINDOWS
+	QFontDatabase::addApplicationFont(":/fonts/NotoSansMono-Regular.ttf");
+	QFontDatabase::addApplicationFont(":/fonts/NotoSansMono-Bold.ttf");
+#endif
 }
 
 void MainWindow::loadPluginsAndScripts(const String &root)

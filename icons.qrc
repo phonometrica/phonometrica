@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
+        <file>fonts/NotoSansMono-Regular.ttf</file>
+        <file>fonts/NotoSansMono-Bold.ttf</file>
         <file>icons/annotation.png</file>
         <file>icons/sound.png</file>
         <file>icons/bookmark.png</file>

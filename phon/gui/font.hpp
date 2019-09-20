@@ -40,7 +40,7 @@ QFont get_monospace_font()
     font.setFixedPitch(true);
 #if PHON_WINDOWS
     font.setPointSize(10);
-    font.setFamily("Monospace");
+    font.setFamily("Noto Sans Mono");
 #elif PHON_MACOS
     font.setPointSize(14);
     font.setFamily("Consolas");
