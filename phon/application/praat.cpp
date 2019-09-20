@@ -267,7 +267,7 @@ void open_interval(intptr_t tier, double xmin, const String &textgrid, const Str
 				"sound$ = selected$(\"LongSound\", -1)\n"
 				"Read from file: \"%\"\n"
 				"textgrid$ = selected$(\"TextGrid\", -1)\n"
-				"interval = Get interval at time: uTier %\n"
+				"interval = Get interval at time: uTier, %\n"
 				"begin = Get starting point: uTier, interval\n"
 				"begin = begin + 0.0001\n"
 				"end = Get end point: uTier, interval\n\n"
