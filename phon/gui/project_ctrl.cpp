@@ -130,7 +130,7 @@ void ProjectCtrl::refresh()
 	queries->setText(0, tr("Queries"));
 	queries->setIcon(0, QIcon(":/icons/search.png"));
     data = new TreeItem(this, queries, data_folder);
-    data->setText(0, tr("Data tables"));
+    data->setText(0, tr("Datasets"));
     data->setIcon(0, QIcon(":/icons/data.png"));
     scripts = new TreeItem(this, data, scripts_folder);
     scripts->setText(0, tr("Scripts"));
