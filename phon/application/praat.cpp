@@ -158,14 +158,18 @@ static void run_temp_script(const String &script)
 {
 	using namespace filesystem;
 	auto path = join(temp_directory(), "temp.praat");
-	//path.append(".praat");
 	
 	File outfile(path, File::Write);
 	outfile.write(script);
 	outfile.close();
 	auto args = String("execute %1").arg(path);
 
-	// sendpraatW doesn't seem to work. For now, we use sendpraat.
+	// sendpraatW doesn't seem to work. For now, we try to use sendpraat.
+#if PHON_WINDOWS
+	if (!path.is_ascii()) {
+		throw error("Path \"%\" contains non-ASCII characters: this is not supported by sendpraat");
+	}
+#endif
 #if 0
 //#if PHON_WINDOWS
     auto wargs = args.to_wide();
