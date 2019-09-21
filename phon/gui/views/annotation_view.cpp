@@ -190,5 +190,12 @@ void AnnotationView::saveAnnotation(bool)
 	Project::instance()->notify_update();
 }
 
+void AnnotationView::addLayersToYAxis()
+{
+	for (auto &layer : layers) {
+		y_axis->addWidget(layer);
+	}
+}
+
 
 } // namespace phonometrica

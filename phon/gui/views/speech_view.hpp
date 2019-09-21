@@ -106,6 +106,8 @@ protected:
 
     virtual void addAnnotationLayers(QVBoxLayout *layout) { }
 
+    virtual void addLayersToYAxis() { }
+
     void setInitialWindow();
 
     Runtime &rt;

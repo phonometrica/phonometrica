@@ -100,10 +100,12 @@ void SpeechView::post_initialize()
     inner_layout->setSpacing(0);
 
     y_axis = new YAxisWidget;
-    y_axis->addPlot(waveform);
-    y_axis->addPlot(pitch_plot);
-    y_axis->addPlot(intensity_plot);
-    y_axis->setFixedWidth(60);
+	y_axis->setFixedWidth(60);
+	y_axis->addWidget(waveform);
+	y_axis->addWidget(pitch_plot);
+	y_axis->addWidget(intensity_plot);
+	addLayersToYAxis();
+
     outer_layout->addWidget(y_axis);
     outer_layout->addLayout(inner_layout);
     outer_layout->addSpacing(10);

@@ -32,6 +32,9 @@
 #include <phon/application/agraph.hpp>
 #include <phon/gui/speech_widget.hpp>
 
+class QPushButton;
+class QDialog;
+
 namespace phonometrica {
 
 class LayerWidget final : public SpeechWidget
@@ -127,6 +130,12 @@ private:
     bool hasDroppedAnchor() const { return dropped_anchor_time > 0; }
 
     void clearResizingEvent();
+
+	// Metadata button displayed in the y axis.
+    QPushButton *button;
+
+    // Metadata dialog controlled by the button.
+    QDialog *dialog;
 
     AGraph &graph;
 

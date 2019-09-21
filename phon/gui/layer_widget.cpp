@@ -28,6 +28,8 @@
 
 #include <cmath>
 #include <QDebug>
+#include <QPushButton>
+#include <QDialog>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QMessageBox>
@@ -36,6 +38,8 @@
 #include <phon/gui/popup_text_editor.hpp>
 #include <phon/gui/space_line.hpp>
 
+#include <QVBoxLayout>
+#include <QLabel>
 
 namespace phonometrica {
 
@@ -45,11 +49,52 @@ LayerWidget::LayerWidget(AGraph &graph, double duration, intptr_t layer_index, Q
     setMinimumHeight(50);
     setMaximumHeight(70);
     setMouseTracking(true);
+
+	button = new QPushButton;
+	button->setIcon(QIcon(":/icons/info.png"));
+	button->setFlat(true);
+	button->setCheckable(true);
+
+	dialog = new QDialog(this, Qt::Window|Qt::FramelessWindowHint);
+	auto layer = graph.get(layer_index);
+	QString label = QString("<b>Layer %1</b>").arg(layer_index);
+	if (!layer->label.empty()) label.append(QString(": %1").arg(layer->label));
+	label.append("<br/><b>Event type</b>: ");
+	if (layer->has_instants) {
+		label.append("instants");
+	}
+	else {
+		label.append("intervals");
+	}
+	button->setToolTip(label);
+
+	auto w = new QLabel(label);
+	auto vl = new QVBoxLayout;
+	vl->addWidget(w);
+	dialog->setLayout(vl);
 }
 
 void LayerWidget::drawYAxis(QWidget *y_axis, int y1, int y2)
 {
+	int side = 20;
+	int y = y1 - (side / 2) + (y2 - y1) / 2;
 
+	if (!button->parentWidget())
+	{
+		button->setParent(y_axis);
+		button->setFixedSize(side, side);
+	}
+	button->move(20, y);
+	button->show();
+	int y3 = y - dialog->size().height() - 10;
+	auto pt = y_axis->mapToGlobal(QPoint(30, y3)); // 30 is half the fixed size of the axis
+	int x = pt.x() - (dialog->size().width() / 2);
+	pt.setX(x);
+	dialog->move(pt);
+
+	connect(button, &QPushButton::clicked, [this](bool checked) {
+		dialog->setVisible(checked);
+	});
 }
 
 void LayerWidget::paintEvent(QPaintEvent *e)

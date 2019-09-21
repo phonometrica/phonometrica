@@ -29,8 +29,10 @@
 #ifndef PHONOMETRICA_Y_AXIS_WIDGET_HPP
 #define PHONOMETRICA_Y_AXIS_WIDGET_HPP
 
+#include <set>
 #include <QWidget>
 #include <phon/array.hpp>
+#include <phon/gui/speech_widget.hpp>
 
 namespace phonometrica {
 
@@ -44,9 +46,11 @@ public:
 
     YAxisWidget(QWidget *parent = nullptr);
 
-    void addPlot(SpeechPlot *plot);
+    void addWidget(SpeechWidget *widget);
 
-    void clearPlots();
+    void removeWidget(SpeechWidget *widget);
+
+    void clearWidgets();
 
 public slots:
 
@@ -58,8 +62,8 @@ protected:
 
 private:
 
-    // Non-owning references to visible plots (in vertical order)
-    Array<SpeechPlot*> plots;
+    // Non-owning references to visible widgets (in vertical order)
+    std::set<SpeechWidget*> widgets;
 
 };
 

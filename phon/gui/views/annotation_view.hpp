@@ -56,6 +56,7 @@ protected:
 
     void addAnnotationLayers(QVBoxLayout *layout) override;
 
+	void addLayersToYAxis() override;
 
 private slots:
 

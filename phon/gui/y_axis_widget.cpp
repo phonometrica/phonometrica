@@ -38,28 +38,33 @@ YAxisWidget::YAxisWidget(QWidget *parent) :
 
 }
 
-void YAxisWidget::addPlot(SpeechPlot *plot)
+void YAxisWidget::addWidget(SpeechWidget *widget)
 {
-    plots.append(plot);
+    widgets.insert(widget);
 }
 
-void YAxisWidget::clearPlots()
+void YAxisWidget::removeWidget(SpeechWidget *widget)
 {
-    plots.clear();
+	widgets.erase(widget);
+}
+
+void YAxisWidget::clearWidgets()
+{
+    widgets.clear();
 }
 
 void YAxisWidget::paintEvent(QPaintEvent *)
 {
-    for (auto plot : plots)
+    for (auto widget : widgets)
     {
-        if (plot->isVisible())
+        if (widget->isVisible())
         {
             // Get absolute vertical bounds
-            auto geom = plot->geometry();
+            auto geom = widget->geometry();
             int y1 = geom.y();
-            int y2 = geom.y() + plot->height();
+            int y2 = geom.y() + widget->height();
 
-            plot->drawYAxis(this, y1, y2);
+            widget->drawYAxis(this, y1, y2);
         }
     }
 }
