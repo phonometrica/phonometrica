@@ -9,7 +9,7 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * Speex, maintained by Jean-Marc Valin and contributors (BSD license), see `www.speex.org <http://www.speex.org>`_
 * RTAudio, by Gary P. Scavone (MIT), see `www.music.mcgill.ca/~gary/rtaudio <http://www.music.mcgill.ca/~gary/rtaudio/>`_
 * FFTS, by Anthony M. Blake (BSD 3-clause), see `github.com/anthonix/ffts <https://github.com/anthonix/ffts/>`_
-* swipe, by Kyle Gorman (MIT), see `github.com/kylebgorman/swipe <https://github.com/kylebgorman/swipe>`_
+* SWIPE, by Kyle Gorman (MIT), see `github.com/kylebgorman/swipe <https://github.com/kylebgorman/swipe>`_
 * pugixml, by Arseny Kapoulkine (MIT), see `pugixml.org <https://pugixml.org>`_
 * sendpraat, by Paul Boersma, see `www.praat.org <http://www.fon.hum.uva.nl/praat/sendpraat.html>`_
 * FLAC, by Josh Coalson and contributors (BSD), see `flac.sourceforge.net <http://flac.sourceforge.net>`_
@@ -23,6 +23,7 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * JSON for Modern C++, by Niels Lohmann (MIT), see `github.com/nlohmann/json <https://github.com/nlohmann/json>`_
 * zip, by Kuba Podgórski, based on miniz, by Rich Geldreich (public domain), see `github.com/kuba--/zip <https://github.com/kuba--/zip>`_
 * CMake, by Kitware Inc. (BSD 3-clause), see `cmake.org <https://cmake.org/>`_
+* Noto fonts, by Google (SIL Open Font License v1.1), see `www.google.com/get/noto/ <https://www.google.com/get/noto/>`_
 
 Phonometrica also uses `GitHub <https://github.com>`_ to host its source code. The source code is available `here <https://github.com/phonometrica/phonometrica>`_.
 
