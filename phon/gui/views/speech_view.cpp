@@ -228,8 +228,6 @@ Toolbar *SpeechView::makeToolbar()
 
     toolbar->addAction(play_action);
     toolbar->addAction(stop);
-    toolbar->addSeparator();
-    addEditButtons(toolbar);
     toolbar->addAction(move_back);
     toolbar->addAction(move_next);
     toolbar->addAction(zoom_out);

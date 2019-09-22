@@ -100,8 +100,6 @@ protected:
 
     void setPauseIcon();
 
-    virtual void addEditButtons(Toolbar *toolbar) { }
-
     virtual void addAnnotationMenu(Toolbar *toolbar) { }
 
     virtual void addAnnotationLayers(QVBoxLayout *layout) { }

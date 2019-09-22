@@ -56,6 +56,9 @@ bool Annotation::is_annotation() const
 
 void Annotation::load()
 {
+	// Newly created annotations don't have a path yet.
+	if (m_path.empty() && is_native()) return;
+
 	if (m_type == Undefined) {
 		m_type = guess_type();
 	}

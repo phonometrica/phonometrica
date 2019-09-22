@@ -1,6 +1,35 @@
 Release notes
 -------------
 
+0.4.1 (21/09/2019)
+~~~~~~~~~~~~~~~~~~
+
+This version brings the following fixes and enhancements:
+
+-  fix communication with Praat on Windows when the user's directory contains non-ASCII characters
+-  better monospace font on Windows
+-  improved preferences dialog
+
+
+0.4.0 (20/09/2019)
+~~~~~~~~~~~~~~~~~~
+
+This is the first functional version of Phonometrica. It brings the following features:
+
+-  project management
+-  native format for annotations based on annotation graphs
+-  conversion between Praat TextGrids and Phonometrica annotations
+-  typed properties (Boolean, numeric or textual)
+-  query editor for single layer queries
+-  query protocols
+-  plugins
+
+
+0.3.0 (30/08/2019)
+~~~~~~~~~~~~~~~~~~
+
+-  initial implementation of annotation views
+
 
 0.2.0 (17/03/2019)
 ~~~~~~~~~~~~~~~~~~

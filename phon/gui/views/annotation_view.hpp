@@ -50,8 +50,6 @@ public:
 
 protected:
 
-	void addEditButtons(Toolbar *toolbar) override;
-
     void addAnnotationMenu(Toolbar *toolbar) override;
 
     void addAnnotationLayers(QVBoxLayout *layout) override;

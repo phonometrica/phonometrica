@@ -397,7 +397,6 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
             connect(view_action, &QAction::triggered, [=](bool){
                 emit view_file(file);
             });
-            menu.addSeparator();
 
             if (file->is_annotation())
             {
@@ -440,6 +439,16 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
 		                QMessageBox msg(QMessageBox::Critical, tr("Cannot open sound in Praat"), e.what());
 		                msg.exec();
 	                }
+                });
+
+                menu.addSeparator();
+                auto sound = downcast<Sound>(file);
+                action = new QAction(tr("Create annotation..."), this);
+                menu.addAction(action);
+                connect(action, &QAction::triggered, [=](bool) {
+                	auto annot = std::make_shared<Annotation>();
+                	annot->set_sound(sound, false);
+                	emit view_file(annot);
                 });
             }
             else if (file->is_script())

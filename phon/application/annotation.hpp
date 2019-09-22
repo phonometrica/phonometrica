@@ -49,6 +49,11 @@ public:
 		WaveSurfer
 	};
 
+	// Constructor used to create a new annotation from a sound file.
+	Annotation() :
+		Annotation(nullptr, String())
+	{ m_type = Native; }
+
 	explicit Annotation(VFolder *parent, String path = String());
 
 	const char *class_name() const override;

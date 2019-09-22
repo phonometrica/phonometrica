@@ -48,5 +48,8 @@
         <file>icons/praat.png</file>
         <file>icons/export_csv.png</file>
         <file>icons/query.png</file>
+        <file>icons/link.png</file>
+        <file>icons/broken_link.png</file>
+        <file>icons/delete.png</file>
     </qresource>
 </RCC>

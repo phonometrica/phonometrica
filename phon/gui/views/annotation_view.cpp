@@ -29,6 +29,8 @@
 #include <QToolBar>
 #include <QFileDialog>
 #include <QSpacerItem>
+#include <QMenu>
+#include <QToolButton>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/gui/views/annotation_view.hpp>
@@ -41,22 +43,49 @@ AnnotationView::AnnotationView(Runtime &rt, std::shared_ptr<Annotation> annot, Q
     this->annot->open();
 }
 
-void AnnotationView::addEditButtons(Toolbar *toolbar)
+void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 {
 	auto save_action = new QAction(QIcon(":/icons/save.png"), "Save annotation");
 	toolbar->addAction(save_action);
 	toolbar->addSeparator();
 
 	connect(save_action, &QAction::triggered, this, &AnnotationView::saveAnnotation);
-}
 
-void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
-{
-    auto layer_action = new QAction(QIcon(":/icons/layers.png"), "Manage layers");
-    auto anchor_action = new QAction(QIcon(":/icons/anchor.png"), "Manage anchors");
+	// Manage layers.
+	auto layer_menu = new QMenu;
+	auto layer_button = new QToolButton;
+	layer_button->setIcon(QIcon(":/icons/layers.png"));
+	layer_button->setToolTip(tr("Manage layers"));
+	layer_button->setMenu(layer_menu);
+	layer_button->setPopupMode(QToolButton::InstantPopup);
+	auto add_layer_action = layer_menu->addAction(tr("Add layer"));
+	auto remove_layer_action = layer_menu->addAction(tr("Remove layer"));
 
-    toolbar->addAction(layer_action);
-    toolbar->addAction(anchor_action);
+	// Manage anchors.
+	auto link_button = new QToolButton;
+	QIcon link_icon(":/icons/link.png");
+	QIcon unlink_icon(":/icons/broken_link.png");
+	link_button->setIcon(link_icon);
+	link_button->setCheckable(true);
+	link_button->setChecked(false);
+	link_button->setToolTip("Share/unshare anchors");
+    auto anchor_action = new QAction(QIcon(":/icons/anchor.png"), "Add anchor");
+	auto delete_action = new QAction(QIcon(":/icons/delete.png"), "Remove anchor");
+
+    toolbar->addWidget(layer_button);
+    toolbar->addWidget(link_button);
+	toolbar->addAction(anchor_action);
+    toolbar->addAction(delete_action);
+    toolbar->addSeparator();
+
+    connect(link_button, &QToolButton::clicked, [=](bool checked) {
+    	if (checked) {
+    		link_button->setIcon(unlink_icon);
+    	}
+    	else {
+    		link_button->setIcon(link_icon);
+    	}
+    });
 }
 
 void AnnotationView::addAnnotationLayers(QVBoxLayout *layout)
