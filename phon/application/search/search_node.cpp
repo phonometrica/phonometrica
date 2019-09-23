@@ -152,7 +152,7 @@ QueryMatchSet SearchConstraint::search(const AutoAnnotation &annot)
 
 QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int layer_index, std::true_type)
 {
-	EventList events = annot->get_layer_events(layer_index);
+	auto &events = annot->get_layer_events(layer_index);
 	QueryMatchSet matches;
 	static String sep(" ");
 
@@ -200,7 +200,7 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 
 QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int layer_index, std::false_type)
 {
-	EventList events = annot->get_layer_events(layer_index);
+	auto &events = annot->get_layer_events(layer_index);
 	QueryMatchSet matches;
 	static String sep(" ");
 

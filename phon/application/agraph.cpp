@@ -148,7 +148,7 @@ void AGraph::insert_event(intptr_t index, Anchor *start, Anchor *end, const Stri
 
 	start->outgoing.push_back(e.get());
 	end->incoming.push_back(e.get());
-	m_events.push_back(std::move(e));
+	layer->append_event(std::move(e));
 }
 
 Anchor *AGraph::get_anchor(double time)
@@ -176,141 +176,34 @@ void AGraph::check_free_anchor(const Array<Event *> &events, intptr_t index)
 	}
 }
 
-EventList AGraph::get_layer_events(intptr_t index) const
+const EventList & AGraph::get_layer_events(intptr_t index) const
 {
-	EventList events;
-	intptr_t anchor_index = 1;
-
-	if (m_anchors.empty()) {
-		return events;
-	}
-
-	intptr_t anchor_count = m_anchors.size();
-	auto anchor = m_anchors.front().get();
-
-	while (anchor && anchor_index <= anchor_count)
-	{
-		bool found = false;
-
-		for (auto e : anchor->outgoing)
-		{
-			// Does this anchor belong to our layer?
-			if (e->layer_index() == index)
-			{
-				events.push_back(e->shared_from_this());
-
-				if (e->is_instant()) {
-					// Try next anchor. This may be the last anchor since an instant's start and end point to the same
-					// anchor.
-					if (++anchor_index < anchor_count) {
-						anchor = m_anchors[anchor_index].get();
-					}
-					else {
-						anchor = nullptr; // done
-					}
-				}
-				else
-				{
-					// Use right anchor as a start point
-					anchor = e->end_anchor();
-					auto it = std::lower_bound(m_anchors.begin(), m_anchors.end(), anchor->time, AnchorLess());
-					assert(it != m_anchors.end());
-					anchor_index = intptr_t(it - m_anchors.begin());
-				}
-
-				found = true;
-				break; // There can only be one event on this node on a given layer
-			}
-		}
-
-		// Scan the next anchor
-		if (! found)
-		{
-			if (++anchor_index < anchor_count) {
-				anchor = m_anchors[anchor_index].get();
-			}
-			else {
-				anchor = nullptr; // done
-			}
-		}
-	}
-
-	return events;
+	return m_layers[index]->events;
 }
 
 EventList AGraph::get_layer_events(intptr_t index, double t1, double t2) const
 {
-	EventList events;
-	intptr_t anchor_index = 1;
+	EventList result;
+	auto &events = get_layer_events(index);
+	auto from = std::lower_bound(events.begin(), events.end(), t1, EventLess());
 
-	if (m_anchors.empty()) {
-		return events;
+	if (from == events.end()) {
+		return result;
+	}
+	auto to = std::upper_bound(events.begin(), events.end(), t2, EventLess());
+	result.reserve(to - from);
+
+	for (auto it = from; it < to; it++) {
+		result.append(*it);
 	}
 
-	intptr_t anchor_count = m_anchors.size();
-	auto anchor = m_anchors[1].get();
-
-	while (anchor && anchor_index <= anchor_count)
-	{
-		bool found = false;
-
-		for (auto e : anchor->outgoing)
-		{
-			// Is this anchor in our time window?
-			if (e->end_time() < t1)
-				continue;
-			if (e->start_time() > t2)
-				break; // done
-
-			// Does this anchor belong to our layer?
-			if (e->layer_index() == index)
-			{
-				events.push_back(e->shared_from_this());
-
-				if (e->is_instant()) {
-					// Try next anchor. This may be the last anchor since an instant's start and end point to the same
-					// anchor.
-					if (++anchor_index < anchor_count) {
-						anchor = m_anchors[anchor_index].get();
-					}
-					else {
-						anchor = nullptr; // done
-					}
-				}
-				else
-				{
-					// Use right anchor as a start point
-					anchor = e->end_anchor();
-					auto it = std::lower_bound(m_anchors.begin(), m_anchors.end(), anchor->time, AnchorLess());
-					assert(it != m_anchors.end());
-					anchor_index = intptr_t(it - m_anchors.begin());
-				}
-
-				found = true;
-				break; // There can only be one event on this node on a given layer
-			}
-		}
-
-		// Scan the next anchor
-		if (! found)
-		{
-			if (++anchor_index <= anchor_count) {
-				anchor = m_anchors[anchor_index].get();
-			}
-			else {
-				anchor = nullptr; // done
-			}
-		}
-	}
-
-	return events;
+	return result;
 }
 
 
 void AGraph::read_textgrid(const String &path)
 {
 	File infile(path);
-	//std::cerr << "\nParsing textgrid " << path.str() << "\n\n";
 
 	do
 	{
@@ -321,7 +214,7 @@ void AGraph::read_textgrid(const String &path)
 		if (praat::parse_tier_header(infile, line, header))
 		{
 			add_layer(-1, header.label, header.has_points);
-//			std::cerr << "Parsed tier " << header.label << std::endl;
+			m_layers.last()->events.reserve(header.size);
 		}
 		else if (!m_layers.empty())
 		{
@@ -330,8 +223,6 @@ void AGraph::read_textgrid(const String &path)
 			if (praat::parse_interval(infile, line, interval))
 			{
 				add_interval(-1, interval.xmin, interval.xmax, interval.text);
-//				std::cerr << "Parsed interval \"" << interval.xmin << " to " << interval.xmax << "\"\n";
-//				std::cerr << "Label: " << interval.text << std::endl;
 			}
 			else
 			{
@@ -340,7 +231,6 @@ void AGraph::read_textgrid(const String &path)
 				if (praat::parse_point(infile, line, point))
 				{
 					add_instant(-1, point.time, point.text);
-					//std::cerr << "Parsed point \"" << text.str() << "\"\n";
 				}
 			}
 		}
@@ -364,7 +254,7 @@ void AGraph::write_textgrid(const String &path)
 	for (intptr_t i = 1; i <= layer_count; ++i)
 	{
 		auto layer = m_layers[i].get();
-		auto layer_events = get_layer_events(i);
+		auto &layer_events = get_layer_events(i);
 		String kind = layer->has_instants ? "TextTier" : "IntervalTier";
 
 		// Write tier header
@@ -593,18 +483,21 @@ void AGraph::to_xml(xml_node graph_node)
 
 	auto events_node = graph_node.append_child("Events");
 
-	for (auto &event : m_events)
+	for (auto &layer : layers())
 	{
-		auto event_node = events_node.append_child("Event");
-		auto attr = event_node.append_attribute("layer");
-		attr.set_value(event->layer_index());
-		auto start_node = event_node.append_child("Start");
-		attr = start_node.append_attribute("anchor");
-		attr.set_value(anchor_map[event->m_start]);
-		auto end_node = event_node.append_child("End");
-		attr = end_node.append_attribute("anchor");
-		attr.set_value(anchor_map[event->m_end]);
-		add_data_node(event_node, "Text", event->text().data());
+		for (auto &event : layer->events)
+		{
+			auto event_node = events_node.append_child("Event");
+			auto attr = event_node.append_attribute("layer");
+			attr.set_value(event->layer_index());
+			auto start_node = event_node.append_child("Start");
+			attr = start_node.append_attribute("anchor");
+			attr.set_value(anchor_map[event->m_start]);
+			auto end_node = event_node.append_child("End");
+			attr = end_node.append_attribute("anchor");
+			attr.set_value(anchor_map[event->m_end]);
+			add_data_node(event_node, "Text", event->text().data());
+		}
 	}
 }
 
@@ -636,7 +529,6 @@ void AGraph::clear()
 {
 	m_anchors.clear();
 	m_layers.clear();
-	m_events.clear();
 }
 
 void AGraph::parse_anchors(xml_node anchors_node)
@@ -714,19 +606,8 @@ void AGraph::parse_events(xml_node events_node)
 
 AutoEvent AGraph::get_event(intptr_t layer, intptr_t event) const
 {
-	intptr_t count = 0;
-
-	for (auto &e : m_events)
-	{
-		if (e->layer_index() == layer) {
-			++count;
-		}
-		if (count == event) {
-			return e;
-		}
-	}
-
-	return nullptr;
+	auto &events = m_layers[layer]->events;
+	return events[event];
 }
 
 } // namespace phonometrica

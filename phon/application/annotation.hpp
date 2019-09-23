@@ -68,7 +68,7 @@ public:
 
 	void set_sound(const std::shared_ptr<Sound> &value, bool mutate = true);
 
-	EventList get_layer_events(intptr_t i) const;
+	const EventList &get_layer_events(intptr_t i) const;
 
 	bool is_textgrid() const { return m_type == TextGrid; }
 

@@ -641,7 +641,25 @@ void ProjectCtrl::textGridToNative(const AutoAnnotation &annot)
 	}
 	String path = p;
 	annot->write_as_native(path);
+	askImportFile(path);
+}
 
+void ProjectCtrl::nativeToTextGrid(const AutoAnnotation &annot)
+{
+	String dir = annot->path();
+	dir.replace_last(PHON_EXT_ANNOTATION, ".TextGrid");
+	auto path = QFileDialog::getSaveFileName(this, tr("Save as TextGrid..."), dir, tr("TextGrid (*.TextGrid)"));
+
+	if (path.isEmpty()) {
+		return; // cancelled
+	}
+
+	annot->write_as_textgrid(path);
+	askImportFile(path);
+}
+
+void ProjectCtrl::askImportFile(const String &path)
+{
 	auto reply = QMessageBox::question(this, tr("Import file?"), tr("Would you like to import this annotation into the current project?"),
 	                                   QMessageBox::Yes|QMessageBox::No);
 
@@ -651,18 +669,6 @@ void ProjectCtrl::textGridToNative(const AutoAnnotation &annot)
 		project->import_file(path);
 		emit project->notify_update();
 	}
-}
-
-void ProjectCtrl::nativeToTextGrid(const AutoAnnotation &annot)
-{
-	QString dir = Settings::get_string(rt, "last_directory");
-	auto path = QFileDialog::getSaveFileName(this, tr("Save as TextGrid..."), dir, tr("TextGrid (*.TextGrid)"));
-
-	if (path.isEmpty()) {
-		return; // cancelled
-	}
-
-	annot->write_as_textgrid(path);
 }
 
 } // phonometrica

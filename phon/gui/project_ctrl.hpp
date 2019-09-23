@@ -102,6 +102,8 @@ private:
 
     VFileList get_vfiles(const QList<QTreeWidgetItem*> &items);
 
+    void askImportFile(const String &path);
+
     Runtime &rt;
 
     QTreeWidgetItem *corpus,*data, *queries, *scripts, *bookmarks;

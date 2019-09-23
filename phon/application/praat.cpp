@@ -101,7 +101,11 @@ bool parse_tier_header(File &infile, const String &line, TierHeader &header)
 		header.xmin = validate(tmp);
 		search(infile, pattern_xmax, tmp);
 		header.xmax = validate(tmp);
-		search(infile, pattern_size, tmp); // discard
+		search(infile, pattern_size, tmp);
+
+		bool ok;
+		int item_count = int(pattern_size.capture(1).to_int(&ok));
+		if (ok) header.size = item_count;
 
 		return true;
 	}

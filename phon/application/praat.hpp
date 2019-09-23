@@ -40,6 +40,7 @@ struct TierHeader
 	String label;
 	double xmin;
 	double xmax;
+	int size = 0;
 	bool has_points;
 };
 

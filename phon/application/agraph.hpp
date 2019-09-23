@@ -53,7 +53,7 @@ public:
     {}
 
     // Unique time stamp.
-    const double time;
+    double time;
 
     // Events starting from this anchor (pointers are not owned).
     Array<Event *> outgoing;
@@ -76,7 +76,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // An event is an edge in the annotation graph. It represents a speech event anchored in the audio stream
-class Event : public std::enable_shared_from_this<Event>
+class Event final : public std::enable_shared_from_this<Event>
 {
 public:
 
@@ -149,6 +149,17 @@ struct Layer // ref-counted
     intptr_t index;
     String label;
     bool has_instants;
+
+    void insert_event(intptr_t i, AutoEvent e) { events.insert(i, std::move(e)); }
+
+    void append_event(AutoEvent e) { events.append(std::move(e)); }
+
+private:
+
+	friend class AGraph;
+
+    // Sorted list of events.
+    Array<AutoEvent> events;
 };
 
 
@@ -175,7 +186,7 @@ public:
 
     void add_instant(intptr_t index, double time, const String &text);
 
-    EventList get_layer_events(intptr_t index) const;
+    const EventList & get_layer_events(intptr_t index) const;
 
     EventList get_layer_events(intptr_t index, double t1, double t2) const;
 
@@ -240,9 +251,6 @@ private:
 	// Sorted list of anchors.
     AnchorList m_anchors;
 
-    // Unsorted list of events.
-    EventList m_events;
-
     // Sorted list of Layers.
     LayerList m_layers;
 
@@ -256,14 +264,19 @@ private:
 // Find event in a sorted list of events.
 struct EventLess
 {
-    bool operator()(const std::shared_ptr<Event> &lhs, const std::shared_ptr<Event> &rhs) const
+    bool operator()(const AutoEvent &lhs, const AutoEvent &rhs) const
     {
         return lhs->end_time() < rhs->start_time();
     }
 
-    bool operator()(const std::shared_ptr<Event> &e, double time) const
+    bool operator()(const AutoEvent &e, double time) const
     {
         return e->end_time() < time;
+    }
+
+    bool operator()(double time, const AutoEvent &e) const
+    {
+    	return time < e->start_time();
     }
 };
 

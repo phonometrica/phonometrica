@@ -127,7 +127,7 @@ Annotation::Type Annotation::guess_type()
 	return Type::Undefined;
 }
 
-EventList Annotation::get_layer_events(intptr_t i) const
+const EventList & Annotation::get_layer_events(intptr_t i) const
 {
 	return m_graph.get_layer_events(i);
 }
