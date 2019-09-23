@@ -36,6 +36,7 @@
 
 #if PHON_WINDOWS
 	#include <Shlwapi.h>
+	#include <ShlObj.h>
 #else
 
 	#include <sys/stat.h>
@@ -127,8 +128,21 @@ String full_path(const String &relative_path)
 
 String user_directory()
 {
+#if PHON_WINDOWS
+	WCHAR path[256];
+
+	if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, path))) 
+	{
+		return String(path);
+	}
+	else
+	{
+		return String();
+	}
+#else
 	char *dir = getenv(PHON_USER_DIRECTORY);
 	return dir ? String(dir) : String();
+#endif
 }
 
 String current_directory()
@@ -209,9 +223,9 @@ String temp_directory()
 {
 #if PHON_WINDOWS
 	int length;
-	TCHAR path[128];
+	wchar_t path[256];
 
-	length = GetTempPath(128, path);
+	length = GetTempPathW(256, path);
 	return String(path, intptr_t(length));
 
 #elif defined(P_tmpdir)
