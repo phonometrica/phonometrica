@@ -390,4 +390,24 @@ AutoEvent Annotation::get_event(intptr_t layer, intptr_t event) const
 {
 	return m_graph.get_event(layer, event);
 }
+
+intptr_t Annotation::layer_count() const
+{
+	return m_graph.layer_count();
+}
+
+void Annotation::create_layer(intptr_t index, const String &name, bool has_instants)
+{
+	if (index > this->layer_count()) {
+		index = -1;
+	}
+	auto layer = m_graph.add_layer(index, name, has_instants);
+
+	// Create one empty interval that spans the whole file.
+	if (!has_instants)
+	{
+		m_graph.add_interval(layer->index, 0, m_sound->duration(), String());
+	}
+	m_graph.set_modified(true);
+}
 } // namespace phonometrica

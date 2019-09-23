@@ -180,7 +180,7 @@ public:
 
     AGraph(const AGraph &) = delete;
 
-    void add_layer(intptr_t index = -1, const String &label = String(), bool has_instants = false);
+    AutoLayer add_layer(intptr_t index = -1, const String &label = String(), bool has_instants = false);
 
     void add_interval(intptr_t index, double start, double end, const String &text);
 

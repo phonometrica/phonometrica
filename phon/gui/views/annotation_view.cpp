@@ -34,6 +34,7 @@
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/gui/views/annotation_view.hpp>
+#include <phon/gui/new_layer_dialog.hpp>
 
 namespace phonometrica {
 
@@ -58,8 +59,8 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	layer_button->setToolTip(tr("Manage layers"));
 	layer_button->setMenu(layer_menu);
 	layer_button->setPopupMode(QToolButton::InstantPopup);
-	auto add_layer_action = layer_menu->addAction(tr("Add layer"));
-	auto remove_layer_action = layer_menu->addAction(tr("Remove layer"));
+	auto add_layer_action = layer_menu->addAction(tr("Add new layer..."));
+	auto remove_layer_action = layer_menu->addAction(tr("Remove selected layer"));
 
 	// Manage anchors.
 	auto link_button = new QToolButton;
@@ -78,6 +79,8 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
     toolbar->addAction(delete_action);
     toolbar->addSeparator();
 
+    connect(add_layer_action, &QAction::triggered, this, &AnnotationView::createLayer);
+
     connect(link_button, &QToolButton::clicked, [=](bool checked) {
     	if (checked) {
     		link_button->setIcon(unlink_icon);
@@ -94,32 +97,39 @@ void AnnotationView::addAnnotationLayers(QVBoxLayout *layout)
 
     for (intptr_t i = 1; i <= count; i++)
     {
-        auto duration = annot->sound()->duration();
-        auto widget = new LayerWidget(annot->graph(), duration, i);
-        //layout->addSpacing(2);
-        layout->addWidget(widget);
-        layers.append(widget);
-        connect(widget, &LayerWidget::got_focus, this, &AnnotationView::focusLayer);
-        connect(widget, &LayerWidget::current_time, waveform, &Waveform::setCurrentTime);
-        connect(widget, &LayerWidget::current_time, pitch_plot, &PitchPlot::setCurrentTime);
-        connect(widget, &LayerWidget::current_time, intensity_plot, &IntensityPlot::setCurrentTime);
-
-        connect(widget, &LayerWidget::interval_selected, waveform, &Waveform::setSelection);
-        connect(widget, &LayerWidget::interval_selected, pitch_plot, &PitchPlot::setSelection);
-        connect(widget, &LayerWidget::interval_selected, intensity_plot, &IntensityPlot::setSelection);
-
-        connect(widget, &LayerWidget::focus_event, this, &AnnotationView::focusEvent);
-        connect(widget, &LayerWidget::modified, this, &AnnotationView::modified);
-        connect(widget, &LayerWidget::anchor_moving, this, &AnnotationView::setMovingAnchor);
-        connect(widget, &LayerWidget::anchor_has_moved, this, &AnnotationView::resetAnchorMovement);
-        // When a layer triggers a window shift, we need to update the scrollbar and the plots
-        connect(widget, &LayerWidget::window_moved, wavebar, &WaveBar::setTimeSelection);
-        connect(widget, &LayerWidget::window_moved, waveform, &Waveform::setWindow);
-        connect(widget, &LayerWidget::window_moved, pitch_plot, &PitchPlot::setWindow);
-        connect(widget, &LayerWidget::window_moved, intensity_plot, &IntensityPlot::setWindow);
-
-        connect(waveform, &Waveform::windowHasChanged, widget, &LayerWidget::setWindow);
+		auto widget = addAnnotationLayer(i);
+	    layout->addWidget(widget);
     }
+}
+
+LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
+{
+	auto duration = annot->sound()->duration();
+	auto widget = new LayerWidget(annot->graph(), duration, i);
+	//layout->addSpacing(2);
+
+	layers.append(widget);
+	connect(widget, &LayerWidget::got_focus, this, &AnnotationView::focusLayer);
+	connect(widget, &LayerWidget::current_time, waveform, &Waveform::setCurrentTime);
+	connect(widget, &LayerWidget::current_time, pitch_plot, &PitchPlot::setCurrentTime);
+	connect(widget, &LayerWidget::current_time, intensity_plot, &IntensityPlot::setCurrentTime);
+
+	connect(widget, &LayerWidget::interval_selected, waveform, &Waveform::setSelection);
+	connect(widget, &LayerWidget::interval_selected, pitch_plot, &PitchPlot::setSelection);
+	connect(widget, &LayerWidget::interval_selected, intensity_plot, &IntensityPlot::setSelection);
+
+	connect(widget, &LayerWidget::focus_event, this, &AnnotationView::focusEvent);
+	connect(widget, &LayerWidget::modified, this, &AnnotationView::modified);
+	connect(widget, &LayerWidget::anchor_moving, this, &AnnotationView::setMovingAnchor);
+	connect(widget, &LayerWidget::anchor_has_moved, this, &AnnotationView::resetAnchorMovement);
+	// When a layer triggers a window shift, we need to update the scrollbar and the plots
+	connect(widget, &LayerWidget::window_moved, wavebar, &WaveBar::setTimeSelection);
+	connect(widget, &LayerWidget::window_moved, waveform, &Waveform::setWindow);
+	connect(widget, &LayerWidget::window_moved, pitch_plot, &PitchPlot::setWindow);
+	connect(widget, &LayerWidget::window_moved, intensity_plot, &IntensityPlot::setWindow);
+	connect(waveform, &Waveform::windowHasChanged, widget, &LayerWidget::setWindow);
+
+	return widget;
 }
 
 void AnnotationView::save()
@@ -224,6 +234,33 @@ void AnnotationView::addLayersToYAxis()
 	for (auto &layer : layers) {
 		y_axis->addWidget(layer);
 	}
+}
+
+void AnnotationView::createLayer(bool)
+{
+	NewLayerDialog dlg(this, annot->layer_count());
+
+	if (dlg.exec() == QDialog::Accepted)
+	{
+		String name = dlg.layerName();
+		intptr_t index = dlg.layerIndex();
+		bool has_instants = dlg.hasInstants();
+		annot->create_layer(index, name, has_instants);
+		int i = widgetIndex(index);
+		auto layer = addAnnotationLayer(index);
+		inner_layout->insertWidget(i, layer);
+		y_axis->addWidget(layer);
+		// TODO: signal that view was modified and update y axis info.
+	}
+}
+
+int AnnotationView::widgetIndex(int layer_index)
+{
+	// Calculate index from the end, discarding the wave bar widgets.
+	int last_index = inner_layout->count() - 3;
+	int neg_index = annot->layer_count() - layer_index;
+
+	return last_index - neg_index;
 }
 
 

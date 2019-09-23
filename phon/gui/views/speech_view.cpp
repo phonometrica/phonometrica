@@ -48,111 +48,8 @@ SpeechView::SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWid
 
 void SpeechView::post_initialize()
 {
-    // Create objects first so that we can connect them to signals
-    waveform = new Waveform(rt, m_data, this);
-
-    pitch_plot = new PitchPlot(rt, m_data, this);
-    pitch_plot->setMaximumHeight(100);
-
-    intensity_plot = new IntensityPlot(rt, m_data, this);
-    intensity_plot->setMaximumHeight(100);
-
-    auto zoom = new SoundZoom(this);
-    wavebar = new WaveBar(m_data, this);
-    waveform->setMagnitude(wavebar->magnitude());
-
-    bool track = Settings::get_boolean(rt, "enable_mouse_tracking");
-    waveform->enableMouseTracking(track);
-    pitch_plot->enableMouseTracking(track);
-    intensity_plot->enableMouseTracking(track);
-
-    // The outer layout hold the Y axis widget and the inner layout which contains plots.
-    auto outer_layout = new QHBoxLayout;
-
-    auto inner_layout = new QVBoxLayout;
-    auto toolbar = makeToolbar();
-
-    auto hl = new QHBoxLayout;
-    label_start = new QLabel;
-    label_end = new QLabel;
-    hl->addWidget(label_start);
-    hl->addStretch();
-    hl->addWidget(label_end);
-    label_start->setFixedHeight(20);
-    label_start->setText(QString::number(0.0, 'f'));
-    label_end->setFixedHeight(20);
-    label_end->setText(QString::number(m_data->duration(), 'f'));
-
-    inner_layout->addWidget(toolbar);
-    inner_layout->addLayout(hl);
-    inner_layout->addWidget(waveform);
-    inner_layout->addWidget(new SpaceLine);
-    inner_layout->addWidget(pitch_plot);
-    pitch_line = new SpaceLine;
-    inner_layout->addWidget(pitch_line);
-    inner_layout->addWidget(intensity_plot);
-    intensity_line = new SpaceLine;
-    inner_layout->addWidget(intensity_line);
-    addAnnotationLayers(inner_layout);
-    inner_layout->addWidget(zoom);
-    inner_layout->addWidget(wavebar);
-    inner_layout->addSpacing(5);
-    inner_layout->setSpacing(0);
-
-    y_axis = new YAxisWidget;
-	y_axis->setFixedWidth(60);
-	y_axis->addWidget(waveform);
-	y_axis->addWidget(pitch_plot);
-	y_axis->addWidget(intensity_plot);
-	addLayersToYAxis();
-
-    outer_layout->addWidget(y_axis);
-    outer_layout->addLayout(inner_layout);
-    outer_layout->addSpacing(10);
-    outer_layout->setContentsMargins(0, 0, 0, 0);
-    setLayout(outer_layout);
-
-    plots.append(waveform);
-    plots.append(pitch_plot);
-    plots.append(intensity_plot);
-
-    // All updates of the scrollbar update the zoomer, but only updates created by the user also update the plots
-    connect(wavebar, &WaveBar::updatedXAxisSelection, zoom, &SoundZoom::setXAxisSelection);
-    connect(wavebar, &WaveBar::selectionStarted, zoom, &SoundZoom::hideSelection);
-    connect(wavebar, &WaveBar::timeSelection, waveform, &Waveform::setWindow);
-    connect(wavebar, &WaveBar::timeSelection, pitch_plot, &PitchPlot::setWindow);
-    connect(wavebar, &WaveBar::timeSelection, intensity_plot, &PitchPlot::setWindow);
-    connect(waveform, &Waveform::timeSelection, wavebar, &WaveBar::setTimeSelection);
-    connect(pitch_plot, &PitchPlot::timeSelection, wavebar, &WaveBar::setTimeSelection);
-    connect(intensity_plot, &IntensityPlot::timeSelection, wavebar, &WaveBar::setTimeSelection);
-
-    connect(pitch_plot, &PitchPlot::yAxisModified, y_axis, &YAxisWidget::refresh);
-
-    for (auto plot1 : plots)
-    {
-        for (auto plot2 : plots)
-        {
-            if (plot1 != plot2)
-            {
-                connect(plot1, &SpeechPlot::currentTime, plot2, &SpeechPlot::setCurrentTime);
-                connect(plot1, &SpeechPlot::timeSelection, plot2, &SpeechPlot::setSelection);
-                connect(plot1, &SpeechPlot::selectionStarted, plot2, &SpeechPlot::invalidateCurrentTime);
-            }
-        }
-    }
-
-
-//    connect(waveform, &Waveform::windowHasChanged, this, &SpeechView::setWindowTimes);
-//    connect(waveform, &Waveform::windowHasChanged, pitch_plot, &PitchPlot::setWindow);
-
-//    connect(waveform, &Waveform::windowHasChanged, pitch_plot, &PitchPlot::setWindow);
-//    connect(pitch_plot, &PitchPlot::windowHasChanged, waveform, &Waveform::setWindow);
-
-    connect(&player, &AudioPlayer::current_time, waveform, &Waveform::updateTick);
-    connect(&player, &AudioPlayer::finished, waveform, &Waveform::hideTick);
-    connect(&player, &AudioPlayer::done, this, &SpeechView::onPlayingFinished);
-
-    setInitialWindow();
+	setupUi();
+	setInitialWindow();
 }
 
 Toolbar *SpeechView::makeToolbar()
@@ -447,6 +344,138 @@ void SpeechView::setInitialWindow()
     wavebar->setInitialSelection();
     // Let the layers know about the size of the window
     waveform->informWindow();
+}
+
+void SpeechView::setupUi()
+{
+	// Create objects first so that we can connect them to signals
+	waveform = new Waveform(rt, m_data, this);
+
+	pitch_plot = new PitchPlot(rt, m_data, this);
+	pitch_plot->setMaximumHeight(100);
+
+	intensity_plot = new IntensityPlot(rt, m_data, this);
+	intensity_plot->setMaximumHeight(100);
+
+	auto zoom = new SoundZoom(this);
+	wavebar = new WaveBar(m_data, this);
+	waveform->setMagnitude(wavebar->magnitude());
+
+	bool track = Settings::get_boolean(rt, "enable_mouse_tracking");
+	waveform->enableMouseTracking(track);
+	pitch_plot->enableMouseTracking(track);
+	intensity_plot->enableMouseTracking(track);
+
+	main_layout = new QHBoxLayout;
+
+
+	auto toolbar = makeToolbar();
+
+	auto hl = new QHBoxLayout;
+	label_start = new QLabel;
+	label_end = new QLabel;
+	hl->addWidget(label_start);
+	hl->addStretch();
+	hl->addWidget(label_end);
+	label_start->setFixedHeight(20);
+	label_start->setText(QString::number(0.0, 'f'));
+	label_end->setFixedHeight(20);
+	label_end->setText(QString::number(m_data->duration(), 'f'));
+
+	inner_layout = new QVBoxLayout;
+	inner_layout->addWidget(toolbar);
+	inner_layout->addLayout(hl);
+	inner_layout->addWidget(waveform);
+	inner_layout->addWidget(new SpaceLine);
+	inner_layout->addWidget(pitch_plot);
+	pitch_line = new SpaceLine;
+	inner_layout->addWidget(pitch_line);
+	inner_layout->addWidget(intensity_plot);
+	intensity_line = new SpaceLine;
+	inner_layout->addWidget(intensity_line);
+	layer_start = 8;
+	addAnnotationLayers(inner_layout);
+	inner_layout->addWidget(zoom);
+	inner_layout->addWidget(wavebar);
+	inner_layout->addSpacing(5);
+	inner_layout->setSpacing(0);
+
+	y_axis = new YAxisWidget;
+	y_axis->setFixedWidth(60);
+	y_axis->addWidget(waveform);
+	y_axis->addWidget(pitch_plot);
+	y_axis->addWidget(intensity_plot);
+	addLayersToYAxis();
+
+	main_layout->addWidget(y_axis);
+	main_layout->addLayout(inner_layout);
+	main_layout->addSpacing(10);
+	main_layout->setContentsMargins(0, 0, 0, 0);
+	setLayout(main_layout);
+
+	plots.append(waveform);
+	plots.append(pitch_plot);
+	plots.append(intensity_plot);
+
+	// All updates of the scrollbar update the zoomer, but only updates created by the user also update the plots
+	connect(wavebar, &WaveBar::updatedXAxisSelection, zoom, &SoundZoom::setXAxisSelection);
+	connect(wavebar, &WaveBar::selectionStarted, zoom, &SoundZoom::hideSelection);
+	connect(wavebar, &WaveBar::timeSelection, waveform, &Waveform::setWindow);
+	connect(wavebar, &WaveBar::timeSelection, pitch_plot, &PitchPlot::setWindow);
+	connect(wavebar, &WaveBar::timeSelection, intensity_plot, &PitchPlot::setWindow);
+	connect(waveform, &Waveform::timeSelection, wavebar, &WaveBar::setTimeSelection);
+	connect(pitch_plot, &PitchPlot::timeSelection, wavebar, &WaveBar::setTimeSelection);
+	connect(intensity_plot, &IntensityPlot::timeSelection, wavebar, &WaveBar::setTimeSelection);
+
+	connect(pitch_plot, &PitchPlot::yAxisModified, y_axis, &YAxisWidget::refresh);
+
+	for (auto plot1 : plots)
+	{
+		for (auto plot2 : plots)
+		{
+			if (plot1 != plot2)
+			{
+				connect(plot1, &SpeechPlot::currentTime, plot2, &SpeechPlot::setCurrentTime);
+				connect(plot1, &SpeechPlot::timeSelection, plot2, &SpeechPlot::setSelection);
+				connect(plot1, &SpeechPlot::selectionStarted, plot2, &SpeechPlot::invalidateCurrentTime);
+			}
+		}
+	}
+
+
+//    connect(waveform, &Waveform::windowHasChanged, this, &SpeechView::setWindowTimes);
+//    connect(waveform, &Waveform::windowHasChanged, pitch_plot, &PitchPlot::setWindow);
+
+//    connect(waveform, &Waveform::windowHasChanged, pitch_plot, &PitchPlot::setWindow);
+//    connect(pitch_plot, &PitchPlot::windowHasChanged, waveform, &Waveform::setWindow);
+
+	connect(&player, &AudioPlayer::current_time, waveform, &Waveform::updateTick);
+	connect(&player, &AudioPlayer::finished, waveform, &Waveform::hideTick);
+	connect(&player, &AudioPlayer::done, this, &SpeechView::onPlayingFinished);
+}
+
+void SpeechView::refreshUi()
+{
+	clearLayout(main_layout);
+}
+
+void SpeechView::clearLayout(QLayout *layout)
+{
+	QLayoutItem *item;
+
+	while ((item = layout->takeAt(0)) != nullptr)
+	{
+		if (item->layout())
+		{
+			clearLayout(item->layout());
+			delete item->layout();
+		}
+		if (item->widget())
+		{
+			delete item->widget();
+		}
+		delete item;
+	}
 }
 
 } // namespace phonometrica

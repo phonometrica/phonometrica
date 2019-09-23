@@ -98,19 +98,30 @@ void Event::set_text(const String &txt)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void AGraph::add_layer(intptr_t index, const String &label, bool has_instants)
+AutoLayer AGraph::add_layer(intptr_t index, const String &label, bool has_instants)
 {
 	assert(index != 0);
+	AutoLayer layer;
 
 	if (index < 0)
 	{
 		index = m_layers.size() + 1;
-		m_layers.append(std::make_shared<Layer>(index, label, has_instants));
+		layer = std::make_shared<Layer>(index, label, has_instants);
+		m_layers.append(layer);
 	}
 	else
 	{
-		m_layers.insert(m_layers.begin() + index, std::make_shared<Layer>(index, label, has_instants));
+		layer = std::make_shared<Layer>(index, label, has_instants);
+		m_layers.insert(m_layers.begin() + index, layer);
+
+		// Adjust indices.
+		for (intptr_t i = index + 1; i <= m_layers.size(); i++)
+		{
+			m_layers[i]->index = i;
+		}
 	}
+
+	return layer;
 }
 
 void AGraph::add_interval(intptr_t index, double start, double end, const String &text)

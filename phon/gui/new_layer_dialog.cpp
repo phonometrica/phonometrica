@@ -20,134 +20,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 20/03/2019                                                                                                 *
+ * Created: 23/09/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: base class for sound views and annotation views. They are essentially the same thing, except for the fact  *
- * that annotation views can display annotation layers in addition to sound plots.                                     *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SPEECH_VIEW_HPP
-#define PHONOMETRICA_SPEECH_VIEW_HPP
-
 #include <QLabel>
-#include <QAction>
-#include <QVBoxLayout>
-#include <phon/gui/views/view.hpp>
-#include <phon/gui/wave_bar.hpp>
-#include <phon/gui/sound_zoom.hpp>
-#include <phon/gui/waveform.hpp>
-#include <phon/gui/intensity_plot.hpp>
-#include <phon/gui/pitch_plot.hpp>
-#include <phon/gui/space_line.hpp>
-#include <phon/gui/y_axis_widget.hpp>
-#include <phon/gui/toolbar.hpp>
-#include <phon/application/audio_player.hpp>
-#include <phon/application/audio_data.hpp>
-#include <phon/runtime/runtime.hpp>
+#include <QLayout>
+#include <QDialogButtonBox>
+#include <phon/gui/new_layer_dialog.hpp>
 
 namespace phonometrica {
 
-class SpeechView : public View
+NewLayerDialog::NewLayerDialog(QWidget *parent, int layer_count) :
+	QDialog(parent)
 {
-    Q_OBJECT
+	setWindowTitle(tr("Add new layer..."));
+	auto layout = new QGridLayout;
 
-public:
+	name_edit = new QLineEdit;
 
-    SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWidget *parent = nullptr);
+	type_combo = new QComboBox;
+	type_combo->addItem(tr("intervals"));
+	type_combo->addItem(tr("instants"));
+	type_combo->setCurrentIndex(0);
 
-    void post_initialize() override;
+	index_box = new QSpinBox;
+	index_box->setMinimum(1);
+	index_box->setMaximum(layer_count+1);
+	index_box->setValue(layer_count+1);
 
-	void setSelection(double t1, double t2);
+	auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+	connect(button_box, &QDialogButtonBox::accepted, this, &NewLayerDialog::accept);
+	connect(button_box, &QDialogButtonBox::rejected, this, &NewLayerDialog::reject);
 
-protected slots:
+	layout->addWidget(new QLabel(tr("Name:")), 0, 0);
+	layout->addWidget(name_edit, 0, 1);
+	layout->addWidget(new QLabel(tr("Event type:")), 1, 0);
+	layout->addWidget(type_combo, 1, 1);
+	layout->addWidget(new QLabel(tr("Layer index:")), 2, 0);
+	layout->addWidget(index_box, 2, 1);
 
-	void zoomToSelection(bool);
-
-    void zoomIn(bool);
-
-    void zoomOut(bool);
-
-    void viewAll(bool);
-
-    void moveForward(bool);
-
-    void moveBackward(bool);
-
-    void chooseSelection(bool);
-
-    void play(bool);
-
-    void stop(bool);
-
-    void setWindowTimes(double, double);
-
-    void onPlayingFinished();
-
-    void enableMouseTracking(bool enable);
-
-    void showPitch(bool);
-
-    void showIntensity(bool);
-
-    void changePitchSettings(bool);
-
-protected:
-
-	void setupUi();
-
-	void refreshUi();
-
-    Toolbar *makeToolbar();
-
-    void setPlayIcon();
-
-    void setPauseIcon();
-
-    virtual void addAnnotationMenu(Toolbar *toolbar) { }
-
-    virtual void addAnnotationLayers(QVBoxLayout *layout) { }
-
-    virtual void addLayersToYAxis() { }
-
-    void setInitialWindow();
-
-    void clearLayout(QLayout *layout);
-
-    Runtime &rt;
-
-    std::shared_ptr<AudioData> m_data;
-
-    AudioPlayer player;
-
-    Waveform *waveform;
-
-	// The main layout hold the Y axis widget and the inner layout which contains plots.
-	QHBoxLayout *main_layout;
-
-	// Layout toolbar, speech plots and annotation layers.
-	QVBoxLayout *inner_layout;
-
-    PitchPlot *pitch_plot;
-
-    IntensityPlot *intensity_plot;
-
-    Array<SpeechPlot*> plots; // keep plots together to make it easier to connect them
-
-    SpaceLine *pitch_line, *intensity_line;
-
-    YAxisWidget *y_axis;
-
-    WaveBar *wavebar;
-
-    QLabel *label_start, *label_end; // display start and end of sound file
-
-    QAction *play_action;
-
-    // Index of the first layer in the inner layout (for annotation views).
-    int layer_start = 0;
-};
+	auto main_layout = new QVBoxLayout;
+	main_layout->addLayout(layout);
+	main_layout->addWidget(button_box);
+	setLayout(main_layout);
+}
 
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_SPEECH_VIEW_HPP

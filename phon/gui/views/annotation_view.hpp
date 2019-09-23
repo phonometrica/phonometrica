@@ -68,7 +68,13 @@ private slots:
 
     void saveAnnotation(bool);
 
+    void createLayer(bool);
+
+    int widgetIndex(int layer_index);
+
 private:
+
+	LayerWidget * addAnnotationLayer(intptr_t i);
 
     std::shared_ptr<Annotation> annot;
 
