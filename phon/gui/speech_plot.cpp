@@ -242,7 +242,7 @@ void SpeechPlot::mouseMoveEvent(QMouseEvent *event)
     else
     {
         current_time = (x >= 0 && x < width()) ? time : -1;
-        emit currentTime(current_time, false);
+        emit currentTime(current_time, MouseTracking::Disabled);
     }
 
     repaint();
@@ -326,16 +326,23 @@ void SpeechPlot::leaveEvent(QEvent *)
 
 void SpeechPlot::enableMouseTracking(bool enable)
 {
-    mouse_tracking_enabled = enable;
+    mouse_tracking_enabled = enable ? MouseTracking::Enabled : MouseTracking::Disabled;
 }
 
-void SpeechPlot::setCurrentTime(double time, bool force)
+void SpeechPlot::setCurrentTime(double time, MouseTracking tracking)
 {
-    if (mouse_tracking_enabled || force)
+	mouse_state = tracking;
+
+	if (time < 0)
+	{
+		// FIXME: this is not properly cleared for instants when the mouse is released
+		//  (see LayerWidget::mouseReleaseEvent).
+		clearCurrentTime();
+	}
+    else if (mouse_tracking_enabled != MouseTracking::Disabled || tracking != MouseTracking::Disabled)
     {
         current_time = time;
-        force_mouse_tracking = force;
-        repaint();
+	    repaint();
     }
 }
 
@@ -349,7 +356,7 @@ void SpeechPlot::setSelection(double start_time, double end_time)
 void SpeechPlot::clearCurrentTime()
 {
     invalidateCurrentTime();
-    force_mouse_tracking = false;
+    mouse_state = MouseTracking::Disabled;
     repaint();
 }
 
@@ -360,7 +367,8 @@ bool SpeechPlot::needsRefresh() const
 
 bool SpeechPlot::trackCursor() const
 {
-    return hasCurrentTime() && (mouse_tracking_enabled || force_mouse_tracking);
+    return hasCurrentTime() &&
+	    (mouse_tracking_enabled != MouseTracking::Disabled || mouse_state != MouseTracking::Disabled);
 }
 
 void SpeechPlot::setInitialWindow()

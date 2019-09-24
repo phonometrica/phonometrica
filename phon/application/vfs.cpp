@@ -86,7 +86,7 @@ bool VNode::is_folder() const
 	return false;
 }
 
-void VNode::reset_modifications()
+void VNode::discard_changes()
 {
 	m_content_modified = false;
 }
@@ -224,13 +224,13 @@ const char *VFolder::class_name() const
 	return "VFolder";
 }
 
-void VFolder::reset_modifications()
+void VFolder::discard_changes()
 {
 	for (auto &f : m_content) {
-		f->reset_modifications();
+		f->discard_changes();
 	}
 
-	VNode::reset_modifications();
+	VNode::discard_changes();
 }
 
 void VFolder::to_xml(xml_node root)

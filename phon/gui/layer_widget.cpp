@@ -217,9 +217,12 @@ void LayerWidget::paintEvent(QPaintEvent *e)
     QWidget::paintEvent(e);
 }
 
-void LayerWidget::mousePressEvent(QMouseEvent *event)
+void LayerWidget::mousePressEvent(QMouseEvent *e)
 {
-    dragging_anchor = true;
+/*	auto t = timeAtCursor(e);
+	auto event = findEvent(t);
+	if (event) */
+	dragging_anchor = true;
 
     // need to set resizing event here
 //    auto t = xPosToTime(event->localPos().x());
@@ -231,6 +234,7 @@ void LayerWidget::mousePressEvent(QMouseEvent *event)
 void LayerWidget::mouseReleaseEvent(QMouseEvent *e)
 {
     dragging_anchor = false;
+	setCursor(Qt::ArrowCursor);
 
     if (hasDroppedAnchor())
     {
@@ -277,6 +281,30 @@ void LayerWidget::mouseReleaseEvent(QMouseEvent *e)
     }
     setFocus();
     setSelectedEvent(*it);
+    // Invalidate current time
+	emit current_time(-1, MouseTracking::Disabled);
+}
+
+void LayerWidget::mouseMoveEvent(QMouseEvent *e)
+{
+	auto t = timeAtCursor(e);
+
+	if (dragging_anchor && dragged_anchor_time >= 0)
+	{
+		if (has_instants()) setCursor(Qt::SizeHorCursor);
+		dropped_anchor_time = t;
+		emit anchor_moving(layer->index, t);
+		repaint();
+	}
+	else
+	{
+		if (has_instants()) setCursor(Qt::ArrowCursor);
+		trackAnchor(t);
+	}
+
+	// Force tracking in the plot if the anchor is being dragged.
+	auto state = dragging_anchor ? MouseTracking::Anchored : MouseTracking::Disabled;
+	emit current_time(t, state);
 }
 
 void LayerWidget::setWindow(double start_time, double end_time)
@@ -317,30 +345,12 @@ void LayerWidget::drawAnchor(QPainter &painter, double time, bool is_instant)
     }
 }
 
-void LayerWidget::mouseMoveEvent(QMouseEvent *e)
-{
-    auto t = xPosToTime(e->localPos().x());
-
-    if (dragging_anchor && dragged_anchor_time >= 0)
-    {
-        dropped_anchor_time = t;
-        emit anchor_moving(layer->index, t);
-        repaint();
-    }
-    else
-    {
-        trackAnchor(t);
-    }
-
-    // Don't force tracking in the plots.
-    emit current_time(t, false);
-}
-
 void LayerWidget::setSelectedAnchor(const AutoEvent &event, double time, bool selected)
 {
     if (selected && time != 0 && time != m_duration)
     {
-        setCursor(Qt::SizeHorCursor);
+    	auto shape = has_instants() ? Qt::PointingHandCursor : Qt::SizeHorCursor;
+        setCursor(shape);
         dragged_anchor_time = time;
         // The event might not actually be resized if the anchor is not clicked, but we store it here
         // to avoid recalculating it when/if the user clicks on the anchor.
@@ -406,7 +416,6 @@ void LayerWidget::trackAnchor(double t)
         if (greater != event_cache.end())
         {
             selected = eventHasCursor(**greater, t, &target_time);
-            if (selected) qDebug() << "selected from the right";
         }
         setSelectedAnchor(event, target_time, selected);
     }
@@ -414,32 +423,9 @@ void LayerWidget::trackAnchor(double t)
 
 void LayerWidget::mouseDoubleClickEvent(QMouseEvent *e)
 {
-	double x = e->localPos().x();
-    auto t = xPosToTime(x);
-
-    if (this->has_intervals())
-    {
-        auto it = std::lower_bound(event_cache.begin(), event_cache.end(), t, EventLess());
-        if (it != event_cache.end()) editEvent(*it);
-    }
-    else
-    {
-    	auto it = std::lower_bound(event_cache.begin(), event_cache.end(), t, EventLess());
-
-    	if (it != event_cache.end() && matchInstantTime((*it)->start_time(), x))
-    	{
-    		editEvent(*it);
-    	}
-    	else
-	    {
-    		it = std::upper_bound(event_cache.begin(), event_cache.end(), t, EventLess());
-
-    		if (it != event_cache.end() && matchInstantTime((*it)->start_time(), x))
-		    {
-    			editEvent(*it);
-		    }
-	    }
-    }
+    auto t = timeAtCursor(e);
+	auto event = findEvent(t);
+	if (event) editEvent(event);
 }
 
 void LayerWidget::unfocus()
@@ -562,22 +548,24 @@ void LayerWidget::updateEvents()
 void LayerWidget::setSelectedEvent(const AutoEvent &event)
 {
     selected_event = event;
-    emit interval_selected(event->start_time(), event->end_time());
+    emit event_selected(event->start_time(), event->end_time());
     repaint();
 }
 
 void LayerWidget::setEventFocus(double time)
 {
-    auto it = std::lower_bound(event_cache.begin(), event_cache.end(), time, EventLess());
+	AutoEvent event = findEvent(time);
 
-    if (it == event_cache.end())
-    {
-        unfocus(); // shouldn't happen
-        return;
-    }
-    has_focus = true;
-    setFocus();
-    setSelectedEvent(*it);
+	if (event)
+	{
+		has_focus = true;
+		setFocus();
+		setSelectedEvent(event);
+	}
+	else
+	{
+		unfocus();
+	}
 }
 
 void LayerWidget::editEvent(AutoEvent &event)
@@ -619,15 +607,43 @@ void LayerWidget::followMovingAnchor(double time)
     repaint();
 }
 
-bool LayerWidget::matchInstantTime(double time, double xpos) const
-{
-	double pos = timeToXPos(time);
-	return std::abs(pos - xpos) <= 5;
-}
-
 void LayerWidget::setAnchorSharing(bool value)
 {
 	sharing_anchors = !value;
+}
+
+AutoEvent LayerWidget::findEvent(double time)
+{
+	if (has_instants())
+	{
+		auto it = std::lower_bound(event_cache.begin(), event_cache.end(), time, EventLess());
+
+		if (it != event_cache.end() && anchorHasCursor((*it)->start_time(), time))
+		{
+			return *it;
+		}
+		else
+		{
+			it = std::upper_bound(event_cache.begin(), event_cache.end(), time, EventLess());
+
+			if (it != event_cache.end() && anchorHasCursor((*it)->start_time(), time))
+			{
+				return *it;
+			}
+		}
+	}
+	else
+	{
+		auto it = std::lower_bound(event_cache.begin(), event_cache.end(), time, EventLess());
+		if (it != event_cache.end()) return *it;
+	}
+
+	return nullptr;
+}
+
+double LayerWidget::timeAtCursor(QMouseEvent *e) const
+{
+	return xPosToTime(e->localPos().x());
 }
 
 } // namespace phonometrica

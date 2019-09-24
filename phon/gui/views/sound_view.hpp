@@ -42,8 +42,6 @@ public:
 
     SoundView(Runtime &rt, std::shared_ptr<Sound> sound, QWidget *parent = nullptr);
 
-    void save() override;
-
 private:
 
     std::shared_ptr<Sound> m_sound;

@@ -416,4 +416,15 @@ void Annotation::remove_layer(intptr_t index)
 	m_graph.remove_layer(index);
 	m_graph.set_modified(true);
 }
+
+void Annotation::clear_layer(intptr_t index)
+{
+	m_graph.clear_layer(index);
+}
+
+void Annotation::discard_changes()
+{
+	VNode::discard_changes();
+	m_graph.set_modified(false);
+}
 } // namespace phonometrica

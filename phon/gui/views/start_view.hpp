@@ -43,9 +43,8 @@ class StartView final : public View
 Q_OBJECT
 
 public:
-    StartView(QWidget *parent, Runtime &rt);
 
-    void save() override;
+    StartView(QWidget *parent, Runtime &rt);
 
 private slots:
 

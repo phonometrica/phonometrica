@@ -31,6 +31,7 @@
 
 #include <phon/application/agraph.hpp>
 #include <phon/gui/speech_widget.hpp>
+#include <phon/gui/mouse_tracking.hpp>
 
 class QPushButton;
 class QDialog;
@@ -61,9 +62,9 @@ signals:
 
     void got_focus(intptr_t i);
 
-    void current_time(double t, bool force);
+    void current_time(double t, MouseTracking tracking);
 
-    void interval_selected(double, double);
+    void event_selected(double, double);
 
     void focus_event(intptr_t layer, double time);
 
@@ -133,7 +134,9 @@ private:
 
     void clearResizingEvent();
 
-    bool matchInstantTime(double time, double xpos) const;
+    AutoEvent findEvent(double time);
+
+    double timeAtCursor(QMouseEvent *e) const;
 
 	// Metadata button displayed in the y axis.
     QPushButton *button;

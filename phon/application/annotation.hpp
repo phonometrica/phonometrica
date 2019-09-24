@@ -106,6 +106,10 @@ public:
 
 	void remove_layer(intptr_t index);
 
+	void clear_layer(intptr_t index);
+
+	void discard_changes() override;
+
 protected:
 
 	bool content_modified() const override;

@@ -634,4 +634,13 @@ void AGraph::remove_layer(intptr_t index)
 	}
 }
 
+void AGraph::clear_layer(intptr_t index)
+{
+	for (auto &e : m_layers[index]->events)
+	{
+		e->set_text(String());
+	}
+	set_modified(true);
+}
+
 } // namespace phonometrica

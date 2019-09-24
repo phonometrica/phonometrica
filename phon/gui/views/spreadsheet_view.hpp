@@ -44,7 +44,7 @@ public:
 
 	SpreadsheetView(QWidget *parent, Runtime &rt, AutoSpreadsheet data);
 
-	void save() override;
+	bool save() override;
 
 private:
 

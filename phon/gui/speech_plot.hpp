@@ -32,6 +32,7 @@
 #include <QPainter>
 #include <phon/application/audio_data.hpp>
 #include <phon/gui/speech_widget.hpp>
+#include <phon/gui/mouse_tracking.hpp>
 
 namespace phonometrica {
 
@@ -73,7 +74,7 @@ signals:
 
     void yAxisModified();
 
-    void currentTime(double, bool);
+    void currentTime(double, MouseTracking);
 
     void selectionStarted();
 
@@ -87,7 +88,7 @@ public slots:
 
     void hideTick();
 
-    void setCurrentTime(double time, bool force);
+    void setCurrentTime(double time, MouseTracking tracking);
 
     void invalidateCurrentTime() { current_time = -1.0; }
 
@@ -152,11 +153,9 @@ protected:
     // track mouse button
     bool button_pressed = false;
 
-    // Let the user enable/disable mouse tracking
-    bool mouse_tracking_enabled = true;
-
-    // When an anchor is moved in an annotation, we track the mouse cursor no matter what the user's setting is.
-    bool force_mouse_tracking = false;
+    // Mouse tracking occurs if a user checks the mouse tracking option or if an anchor is being dragged.
+    MouseTracking mouse_tracking_enabled = MouseTracking::Enabled;
+    MouseTracking mouse_state = MouseTracking::Disabled;
 };
 
 } // namespace phonometrica

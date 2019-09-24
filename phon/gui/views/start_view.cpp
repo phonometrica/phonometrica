@@ -82,11 +82,6 @@ void StartView::onOpenDoc()
     rt.do_string("phon.show_help()");
 }
 
-void StartView::save()
-{
-    // nothing to do
-}
-
 QToolButton *StartView::makeButton(QWidget *parent, const QIcon &icon, const QString &text)
 {
     auto button = new QToolButton(parent);

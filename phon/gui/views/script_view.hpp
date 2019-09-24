@@ -51,7 +51,7 @@ public:
 
     explicit ScriptView(Runtime &rt, std::shared_ptr<Script> script, QWidget *parent = nullptr);
 
-    void save() override;
+    bool save() override;
 
     void makeFocused() override;
 

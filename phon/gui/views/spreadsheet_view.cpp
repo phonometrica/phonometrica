@@ -38,8 +38,9 @@ SpreadsheetView::SpreadsheetView(QWidget *parent, Runtime &rt, AutoSpreadsheet d
 	setupUi();
 }
 
-void SpreadsheetView::save()
+bool SpreadsheetView::save()
 {
+	return true;
 	//m_data->save();
 }
 

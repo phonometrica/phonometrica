@@ -42,7 +42,7 @@ class View : public QWidget
 public:
     explicit View(QWidget *parent = nullptr);
 
-    virtual void save() = 0;
+    virtual bool save() { return true; }
 
     virtual void makeFocused() { }
 

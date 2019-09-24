@@ -530,7 +530,7 @@ void Project::write_corpus(xml_node root)
 		file->to_xml(root);
 	}
 
-	m_corpus->reset_modifications();
+	m_corpus->discard_changes();
 }
 
 void Project::write_metadata(xml_node root)
@@ -557,7 +557,7 @@ void Project::write_bookmarks(xml_node root)
 		file->to_xml(root);
 	}
 
-	m_bookmarks->reset_modifications();
+	m_bookmarks->discard_changes();
 }
 
 void Project::write_scripts(xml_node root)
@@ -566,7 +566,7 @@ void Project::write_scripts(xml_node root)
 		file->to_xml(root);
 	}
 
-	m_scripts->reset_modifications();
+	m_scripts->discard_changes();
 }
 
 void Project::write_data(xml_node root)
@@ -575,7 +575,7 @@ void Project::write_data(xml_node root)
 		file->to_xml(root);
 	}
 
-	m_scripts->reset_modifications();
+	m_scripts->discard_changes();
 }
 
 void Project::write()
@@ -1069,7 +1069,7 @@ void Project::trigger(const String &event)
 
 void Project::import_metadata(const String &path)
 {
-	auto csv = utils::parse_csv(path, ";");
+	auto csv = utils::parse_csv(path, "\t");
 	auto header = csv.take_first();
 	const char *placeholders[] = { "%1", "%2", "%3", "%4", "%5", "%6", "%7", "%8", "%9" };
 

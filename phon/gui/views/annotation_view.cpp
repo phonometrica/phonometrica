@@ -62,6 +62,7 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	layer_button->setPopupMode(QToolButton::InstantPopup);
 	auto add_layer_action = layer_menu->addAction(tr("Add new layer..."));
 	auto remove_layer_action = layer_menu->addAction(tr("Remove selected layer"));
+	auto clear_layer_action = layer_menu->addAction(tr("Clear current layer"));
 
 	// Manage anchors.
 	link_button = new QToolButton;
@@ -82,6 +83,7 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 
     connect(add_layer_action, &QAction::triggered, this, &AnnotationView::createLayer);
 	connect(remove_layer_action, &QAction::triggered, this, &AnnotationView::removeLayer);
+	connect(clear_layer_action, &QAction::triggered, this, &AnnotationView::clearLayer);
 
     connect(link_button, &QToolButton::clicked, [=](bool checked) {
     	if (checked) {
@@ -116,9 +118,9 @@ LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 	connect(widget, &LayerWidget::current_time, pitch_plot, &PitchPlot::setCurrentTime);
 	connect(widget, &LayerWidget::current_time, intensity_plot, &IntensityPlot::setCurrentTime);
 
-	connect(widget, &LayerWidget::interval_selected, waveform, &Waveform::setSelection);
-	connect(widget, &LayerWidget::interval_selected, pitch_plot, &PitchPlot::setSelection);
-	connect(widget, &LayerWidget::interval_selected, intensity_plot, &IntensityPlot::setSelection);
+	connect(widget, &LayerWidget::event_selected, waveform, &Waveform::setSelection);
+	connect(widget, &LayerWidget::event_selected, pitch_plot, &PitchPlot::setSelection);
+	connect(widget, &LayerWidget::event_selected, intensity_plot, &IntensityPlot::setSelection);
 
 	connect(widget, &LayerWidget::focus_event, this, &AnnotationView::focusEvent);
 	connect(widget, &LayerWidget::modified, this, &AnnotationView::modified);
@@ -135,17 +137,27 @@ LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 	return widget;
 }
 
-void AnnotationView::save()
+bool AnnotationView::save()
 {
-    if (annot->modified())
-    {
+    if (!annot->modified()) return true;
+
+	auto reply = QMessageBox::question(this, tr("Save annotation?"),
+			tr("This annotation has been modified. Would you like to write the changes to disk?\n"
+	  "If you answer 'no', your changes will still be visible until the project is closed."),
+	  QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+
+	if (reply == QMessageBox::Cancel) {
+		return false;
+	}
+	else if (reply == QMessageBox::Yes)
+	{
         if (!annot->has_path())
         {
-            QString dir = Settings::get_string(rt, "last_directory");
+            QString dir = Settings::get_string(runtime, "last_directory");
             auto path = QFileDialog::getSaveFileName(this, tr("Save annotation..."), dir, tr("Annotation (*.annot)"));
 
             if (path.isEmpty()) {
-                return; // cancelled
+                return false; // cancelled
             }
             annot->set_path(path, true);
             Project::instance()->register_file(path, annot);
@@ -153,6 +165,14 @@ void AnnotationView::save()
         annot->save();
         emit saved();
     }
+	else
+	{
+		// Ensure that we don't ask users twice (once now, once when the project is closed) whether they want
+		// to save the changes.
+		annot->discard_changes();
+	}
+
+	return true;
 }
 
 void AnnotationView::focusLayer(intptr_t index)
@@ -189,7 +209,7 @@ void AnnotationView::setMovingAnchor(intptr_t layer, double time)
             layers[i]->followMovingAnchor(time);
         }
     }
-    waveform->setCurrentTime(time, true);
+    waveform->setCurrentTime(time, MouseTracking::Anchored);
 }
 
 void AnnotationView::resetAnchorMovement(intptr_t layer)
@@ -216,7 +236,7 @@ void AnnotationView::saveAnnotation(bool)
 {
 	if (!annot->has_path())
 	{
-		QString dir = Settings::get_string(rt, "last_directory");
+		QString dir = Settings::get_string(runtime, "last_directory");
 		auto path = QFileDialog::getSaveFileName(this, tr("Save annotation..."), dir, tr("Annotation (*.phon-annot)"));
 
 		if (path.isEmpty()) {
@@ -253,7 +273,8 @@ void AnnotationView::createLayer(bool)
 		auto layer = addAnnotationLayer(index);
 		inner_layout->insertWidget(i, layer);
 		y_axis->addWidget(layer);
-		// TODO: signal that view was modified and update y axis info.
+		emit modified();
+		// TODO: update y axis info.
 	}
 }
 
@@ -280,10 +301,28 @@ void AnnotationView::removeLayer(bool)
 		auto layer = qobject_cast<LayerWidget*>(item->widget());
 		y_axis->removeWidget(layer);
 		delete item;
+		emit modified();
 	}
 	else
 	{
 		QMessageBox msg(QMessageBox::Critical, tr("Cannot remove layer"), "No selected layer!");
+		msg.exec();
+	}
+}
+
+void AnnotationView::clearLayer(bool)
+{
+	int index = getFocusedLayer();
+
+	if (index > 0)
+	{
+		annot->clear_layer(index);
+		layers[index]->repaint();
+		emit modified();
+	}
+	else
+	{
+		QMessageBox msg(QMessageBox::Critical, tr("Cannot clear layer"), "No selected layer!");
 		msg.exec();
 	}
 }

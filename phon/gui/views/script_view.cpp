@@ -67,11 +67,13 @@ ScriptView::ScriptView(Runtime &rt, std::shared_ptr<Script> script, QWidget *par
     connect(m_editor, &QPlainTextEdit::textChanged, this, &ScriptView::scriptChanged);
 }
 
-void ScriptView::save()
+bool ScriptView::save()
 {
     if (m_script->modified() && !isEmpty()) {
         saveScript(false);
     }
+
+    return true;
 }
 
 void ScriptView::runScript(bool)

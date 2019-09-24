@@ -37,8 +37,4 @@ SoundView::SoundView(Runtime &rt, std::shared_ptr<Sound> sound, QWidget *parent)
 
 }
 
-void SoundView::save()
-{
-
-}
 } // namespace phonometrica

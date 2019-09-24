@@ -160,8 +160,9 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	connect(m_table, SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(provideContextMenu(const QPoint &)));
 }
 
-void QueryView::save()
+bool QueryView::save()
 {
+	return true;
 	// TODO: implement QueryView::save()
 }
 

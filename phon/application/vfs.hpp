@@ -76,7 +76,7 @@ public:
 
 	virtual const char *class_name() const = 0;
 
-	virtual void reset_modifications();
+	virtual void discard_changes();
 
 	virtual void to_xml(xml_node root) = 0;
 
@@ -145,7 +145,7 @@ public:
 
 	const char *class_name() const override;
 
-	void reset_modifications() override;
+	void discard_changes() override;
 
 	void to_xml(xml_node root) override;
 

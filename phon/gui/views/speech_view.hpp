@@ -114,7 +114,7 @@ protected:
 
     void clearLayout(QLayout *layout);
 
-    Runtime &rt;
+    Runtime &runtime;
 
     std::shared_ptr<AudioData> m_data;
 

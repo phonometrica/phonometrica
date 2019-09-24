@@ -46,7 +46,7 @@ public:
 
     AnnotationView(Runtime &rt, std::shared_ptr<Annotation> annot, QWidget *parent = nullptr);
 
-    void save() override;
+    bool save() override;
 
     void openSelection(intptr_t layer, double from, double to);
 
@@ -73,6 +73,8 @@ private slots:
     void createLayer(bool);
 
     void removeLayer(bool);
+
+    void clearLayer(bool);
 
 private:
 

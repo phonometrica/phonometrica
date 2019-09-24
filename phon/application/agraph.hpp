@@ -230,6 +230,8 @@ public:
 
     void remove_layer(intptr_t index);
 
+    void clear_layer(intptr_t index);
+
 private:
 
 	void insert_event(intptr_t index, Anchor *start, Anchor *end, const String &text);
