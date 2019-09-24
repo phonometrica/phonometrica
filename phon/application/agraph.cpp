@@ -57,7 +57,11 @@ struct AnchorLess
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+Event::~Event()
+{
+	m_start->outgoing.remove(this);
+	if (!is_instant()) m_end->incoming.remove(this);
+}
 
 Anchor *Event::start_anchor() const
 {
@@ -619,6 +623,15 @@ AutoEvent AGraph::get_event(intptr_t layer, intptr_t event) const
 {
 	auto &events = m_layers[layer]->events;
 	return events[event];
+}
+
+void AGraph::remove_layer(intptr_t index)
+{
+	m_layers.remove_at(index);
+
+	for (intptr_t i = index; i <= m_layers.size(); i++) {
+		m_layers[i]->index--;
+	}
 }
 
 } // namespace phonometrica

@@ -30,6 +30,7 @@
 #include <QFileDialog>
 #include <QSpacerItem>
 #include <QMenu>
+#include <QMessageBox>
 #include <QToolButton>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
@@ -80,6 +81,7 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
     toolbar->addSeparator();
 
     connect(add_layer_action, &QAction::triggered, this, &AnnotationView::createLayer);
+	connect(remove_layer_action, &QAction::triggered, this, &AnnotationView::removeLayer);
 
     connect(link_button, &QToolButton::clicked, [=](bool checked) {
     	if (checked) {
@@ -261,6 +263,40 @@ int AnnotationView::widgetIndex(int layer_index)
 	int neg_index = annot->layer_count() - layer_index;
 
 	return last_index - neg_index;
+}
+
+void AnnotationView::removeLayer(bool)
+{
+	int index = getFocusedLayer();
+
+	if (index > 0)
+	{
+		// Calculate index *before* removing the layer.
+		int i = widgetIndex(index);
+		annot->remove_layer(index);
+		layers.remove_at(index);
+		auto item = inner_layout->takeAt(i);
+		auto layer = qobject_cast<LayerWidget*>(item->widget());
+		y_axis->removeWidget(layer);
+		delete item;
+	}
+	else
+	{
+		QMessageBox msg(QMessageBox::Critical, tr("Cannot remove layer"), "No selected layer!");
+		msg.exec();
+	}
+}
+
+int AnnotationView::getFocusedLayer() const
+{
+	for (intptr_t i = 1; i <= layers.size(); i++)
+	{
+		if (layers[i]->hasFocus()) {
+			return i;
+		}
+	}
+
+	return -1;
 }
 
 

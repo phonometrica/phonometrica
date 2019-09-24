@@ -70,9 +70,13 @@ private slots:
 
     void createLayer(bool);
 
-    int widgetIndex(int layer_index);
+    void removeLayer(bool);
 
 private:
+
+	int widgetIndex(int layer_index);
+
+	int getFocusedLayer() const;
 
 	LayerWidget * addAnnotationLayer(intptr_t i);
 

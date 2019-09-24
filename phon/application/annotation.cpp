@@ -410,4 +410,10 @@ void Annotation::create_layer(intptr_t index, const String &name, bool has_insta
 	}
 	m_graph.set_modified(true);
 }
+
+void Annotation::remove_layer(intptr_t index)
+{
+	m_graph.remove_layer(index);
+	m_graph.set_modified(true);
+}
 } // namespace phonometrica

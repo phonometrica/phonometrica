@@ -44,7 +44,7 @@
 namespace phonometrica {
 
 LayerWidget::LayerWidget(AGraph &graph, double duration, intptr_t layer_index, QWidget *parent) :
-    SpeechWidget(parent), graph(graph), layer_index(layer_index), m_duration(duration)
+    SpeechWidget(parent), graph(graph), layer(graph.get(layer_index)), m_duration(duration)
 {
     setMinimumHeight(50);
     setMaximumHeight(70);
@@ -56,7 +56,7 @@ LayerWidget::LayerWidget(AGraph &graph, double duration, intptr_t layer_index, Q
 	button->setCheckable(true);
 
 	dialog = new QDialog(this, Qt::Window|Qt::FramelessWindowHint);
-	auto layer = graph.get(layer_index);
+	auto layer = graph.get(layer_index).get();
 	QString label = QString("<b>Layer %1</b>").arg(layer_index);
 	if (!layer->label.empty()) label.append(QString(": %1").arg(layer->label));
 	label.append("<br/><b>Event type</b>: ");
@@ -148,9 +148,10 @@ void LayerWidget::paintEvent(QPaintEvent *e)
         auto end_time = event->end_time();
         bool is_instant = event->is_instant();
 
-        if (start_time != last_time)
+
+	    if (start_time != last_time)
         {
-            drawAnchor(painter, start_time);
+	        drawAnchor(painter, start_time, is_instant);
 
             if (is_instant)
             {
@@ -158,14 +159,14 @@ void LayerWidget::paintEvent(QPaintEvent *e)
             }
             else
             {
-                drawAnchor(painter, end_time);
+	            drawAnchor(painter, end_time, false);
                 last_time = end_time;
             }
         }
         else
         {
             assert(end_time != last_time);
-            drawAnchor(painter, end_time);
+	        drawAnchor(painter, end_time, false);
             last_time = end_time;
         }
 
@@ -204,7 +205,7 @@ void LayerWidget::paintEvent(QPaintEvent *e)
         painter.setPen(old_pen);
     }
 
-    if (layer_index < graph.layer_count())
+    if (layer->index < graph.layer_count())
     {
         auto pen = painter.pen();
         pen.setWidth(2);
@@ -255,14 +256,14 @@ void LayerWidget::mouseReleaseEvent(QMouseEvent *e)
             box.exec();
         }
         clearResizingEvent();
-        emit anchor_has_moved(layer_index);
+        emit anchor_has_moved(layer->index);
         repaint();
     }
 
     if (e->modifiers() == Qt::NoModifier)
     {
         has_focus = true;
-        emit got_focus(layer_index);
+        emit got_focus(layer->index);
     }
     auto t = xPosToTime(e->localPos().x());
     // Set selection if we clicked an interval
@@ -285,7 +286,7 @@ void LayerWidget::setWindow(double start_time, double end_time)
     repaint();
 }
 
-void LayerWidget::drawAnchor(QPainter &painter, double time)
+void LayerWidget::drawAnchor(QPainter &painter, double time, bool is_instant)
 {
     // If an anchor is being dragged, don't paint the anchor but paint its drop target.
     if (hasDroppedAnchor() && dragged_anchor_time == time)
@@ -302,7 +303,17 @@ void LayerWidget::drawAnchor(QPainter &painter, double time)
     else
     {
         auto x = timeToXPos(time);
-        painter.drawLine(QPointF(x, 0), QPointF(x, height()));
+
+        if (is_instant)
+        {
+        	int third = height() / 3;
+	        painter.drawLine(QPointF(x, 0), QPointF(x, third));
+	        painter.drawLine(QPointF(x, third*2), QPointF(x, height()));
+        }
+        else
+        {
+	        painter.drawLine(QPointF(x, 0), QPointF(x, height()));
+        }
     }
 }
 
@@ -313,7 +324,7 @@ void LayerWidget::mouseMoveEvent(QMouseEvent *e)
     if (dragging_anchor && dragged_anchor_time >= 0)
     {
         dropped_anchor_time = t;
-        emit anchor_moving(layer_index, t);
+        emit anchor_moving(layer->index, t);
         repaint();
     }
     else
@@ -434,7 +445,7 @@ void LayerWidget::keyPressEvent(QKeyEvent *e)
     {
         if (selected_event)
         {
-            auto index = layer_index;
+            auto index = layer->index;
 
             if (index > 1) {
                 emit focus_event(index - 1, selected_event->center_time());
@@ -445,7 +456,7 @@ void LayerWidget::keyPressEvent(QKeyEvent *e)
     {
         if (selected_event)
         {
-            auto index = layer_index;
+            auto index = layer->index;
 
             if (index < graph.layer_count()) {
                 emit focus_event(index + 1, selected_event->center_time());
@@ -468,7 +479,7 @@ void LayerWidget::focusPreviousEvent()
     
     if (selected_event == *event_cache.begin())
     {
-        auto previous_event = graph.previous_event(layer_index, selected_event);
+        auto previous_event = graph.previous_event(layer->index, selected_event);
         if (!previous_event) return;
         auto duration = windowDuration();
         auto delta = duration / 20; // 5%
@@ -499,7 +510,7 @@ void LayerWidget::focusNextEvent()
     {
         if (selected_event == event_cache.last())
         {
-            auto next_event = graph.next_event(layer_index, selected_event);
+            auto next_event = graph.next_event(layer->index, selected_event);
             if (!next_event) return;
             auto duration = windowDuration();
             auto delta = duration / 20; // 5%

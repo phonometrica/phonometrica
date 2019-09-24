@@ -84,6 +84,8 @@ public:
             m_start(start), m_end(end), m_layer(layer_), m_text(std::move(text))
     { /* The annotation graph will anchor events after they are created */ }
 
+    ~Event();
+
     Anchor *start_anchor() const;
 
     void set_start_anchor(Anchor *start);
@@ -194,9 +196,9 @@ public:
 
     void write_textgrid(const String &path);
 
-    Layer *get(intptr_t i) { return m_layers[i].get(); }
+    AutoLayer &get(intptr_t i) { return m_layers[i]; }
 
-    const Layer *get(intptr_t i) const { return m_layers[i].get(); }
+    const AutoLayer &get(intptr_t i) const { return m_layers[i]; }
 
     bool empty() const
     { return m_anchors.empty(); }
@@ -225,6 +227,8 @@ public:
     void from_xml(xml_node graph_node);
 
     AutoEvent get_event(intptr_t layer, intptr_t event) const;
+
+    void remove_layer(intptr_t index);
 
 private:
 
@@ -257,6 +261,7 @@ private:
     // Has modifications?
     bool m_modified = false;
 };
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

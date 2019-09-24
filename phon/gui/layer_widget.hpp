@@ -95,7 +95,7 @@ protected:
 
 private:
 
-    void drawAnchor(QPainter &painter, double time);
+    void drawAnchor(QPainter &painter, double time, bool is_instant);
 
     bool needsRefresh() const;
 
@@ -117,11 +117,11 @@ private:
 
     void updateEvents();
 
-    bool has_instants() const { return graph.get(layer_index)->has_instants; }
+    bool has_instants() const { return layer->has_instants; }
 
     bool has_intervals() const { return !has_instants(); }
 
-    EventList filter_events(double t1, double t2) const { return graph.get_layer_events(layer_index, t1, t2); }
+    EventList filter_events(double t1, double t2) const { return graph.get_layer_events(layer->index, t1, t2); }
 
     double clipLeft(double time) const { return (std::max)(0.0, time); }
 
@@ -139,7 +139,7 @@ private:
 
     AGraph &graph;
 
-    intptr_t layer_index;
+    AutoLayer layer;
 
     // Duration of the sound file
     double m_duration;

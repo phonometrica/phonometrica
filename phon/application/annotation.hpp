@@ -104,6 +104,8 @@ public:
 
 	void create_layer(intptr_t index, const String &name, bool has_instants);
 
+	void remove_layer(intptr_t index);
+
 protected:
 
 	bool content_modified() const override;
