@@ -79,6 +79,8 @@ public slots:
 
     void setWindow(double start_time, double end_time);
 
+	void setAnchorSharing(bool value);
+
 protected:
 
     void paintEvent(QPaintEvent *) override;
@@ -103,7 +105,7 @@ private:
 
     bool eventHasCursor(const Event &event, double time, double *out_time);
 
-    void setSelectedAnchor(const std::shared_ptr<Event> &event, double time, bool selected = true);
+    void setSelectedAnchor(const AutoEvent &event, double time, bool selected = true);
 
     void trackAnchor(double time);
 
@@ -111,9 +113,9 @@ private:
 
     void focusNextEvent();
 
-    void setSelectedEvent(const std::shared_ptr<Event> &event);
+    void setSelectedEvent(const AutoEvent &event);
 
-    void editEvent(std::shared_ptr<Event> &event);
+    void editEvent(AutoEvent &event);
 
     void updateEvents();
 
@@ -131,6 +133,8 @@ private:
 
     void clearResizingEvent();
 
+    bool matchInstantTime(double time, double xpos) const;
+
 	// Metadata button displayed in the y axis.
     QPushButton *button;
 
@@ -146,13 +150,13 @@ private:
 
     EventList event_cache;
 
-    std::shared_ptr<Event> selected_event;
+    AutoEvent selected_event;
 
     double cached_start = -1;
     double cached_end = -1;
 
     // Event being resized
-    std::shared_ptr<Event> resizing_event;
+    AutoEvent resizing_event;
 
     // Anchor clicked by the user, which is about to be moved. If this is a valid value, the anchor is not
     // painted. Instead, we look up dropped_anchor_time and paint that one.
@@ -173,9 +177,12 @@ private:
     // Layer currently selected by the user
     bool has_focus = false;
 
+    // Flag to share/unshare anchors on all layers
+	bool sharing_anchors = true;
+
     // If the user moves an event editor, we record the shift to display the next one
     // at the same height. This avoids hiding useful information when a user needs information
-    // from several tiers.
+    // from several layers.
     int edit_y_shift = 0;
 };
 

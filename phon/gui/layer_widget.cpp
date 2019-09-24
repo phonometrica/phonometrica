@@ -336,7 +336,7 @@ void LayerWidget::mouseMoveEvent(QMouseEvent *e)
     emit current_time(t, false);
 }
 
-void LayerWidget::setSelectedAnchor(const std::shared_ptr<Event> &event, double time, bool selected)
+void LayerWidget::setSelectedAnchor(const AutoEvent &event, double time, bool selected)
 {
     if (selected && time != 0 && time != m_duration)
     {
@@ -414,13 +414,31 @@ void LayerWidget::trackAnchor(double t)
 
 void LayerWidget::mouseDoubleClickEvent(QMouseEvent *e)
 {
-    auto t = xPosToTime(e->localPos().x());
+	double x = e->localPos().x();
+    auto t = xPosToTime(x);
 
     if (this->has_intervals())
     {
         auto it = std::lower_bound(event_cache.begin(), event_cache.end(), t, EventLess());
-        auto &event = *it;
-        editEvent(event);
+        if (it != event_cache.end()) editEvent(*it);
+    }
+    else
+    {
+    	auto it = std::lower_bound(event_cache.begin(), event_cache.end(), t, EventLess());
+
+    	if (it != event_cache.end() && matchInstantTime((*it)->start_time(), x))
+    	{
+    		editEvent(*it);
+    	}
+    	else
+	    {
+    		it = std::upper_bound(event_cache.begin(), event_cache.end(), t, EventLess());
+
+    		if (it != event_cache.end() && matchInstantTime((*it)->start_time(), x))
+		    {
+    			editEvent(*it);
+		    }
+	    }
     }
 }
 
@@ -541,7 +559,7 @@ void LayerWidget::updateEvents()
     cached_end = window_end;
 }
 
-void LayerWidget::setSelectedEvent(const std::shared_ptr<Event> &event)
+void LayerWidget::setSelectedEvent(const AutoEvent &event)
 {
     selected_event = event;
     emit interval_selected(event->start_time(), event->end_time());
@@ -562,18 +580,18 @@ void LayerWidget::setEventFocus(double time)
     setSelectedEvent(*it);
 }
 
-void LayerWidget::editEvent(std::shared_ptr<Event> &event)
+void LayerWidget::editEvent(AutoEvent &event)
 {
-    // Find center of the interval
-    auto x1 = timeToXPos(event->start_time());
-    auto x2 = timeToXPos(event->end_time());
-    int x = int(x1 + (x2-x1)/2);
-    QPoint pos(x, 0);
-    pos = mapToGlobal(pos);
-    pos.setY(pos.y() + edit_y_shift);
+	// Find center of the interval
+	auto x1 = timeToXPos(event->start_time());
+	auto x2 = timeToXPos(event->end_time());
+	int x = int(x1 + (x2-x1)/2);
+	QPoint pos(x, 0);
+	pos = mapToGlobal(pos);
+	pos.setY(pos.y() + edit_y_shift);
+	QString text = event->text();
 
-    QString text = event->text();
-    PopupTextEditor editor(text, pos, this);
+	PopupTextEditor editor(text, pos, this);
 
     if (editor.exec() == QDialog::Accepted)
     {
@@ -599,6 +617,17 @@ void LayerWidget::followMovingAnchor(double time)
 {
     moving_anchor_time = time;
     repaint();
+}
+
+bool LayerWidget::matchInstantTime(double time, double xpos) const
+{
+	double pos = timeToXPos(time);
+	return std::abs(pos - xpos) <= 5;
+}
+
+void LayerWidget::setAnchorSharing(bool value)
+{
+	sharing_anchors = !value;
 }
 
 } // namespace phonometrica

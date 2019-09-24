@@ -64,7 +64,7 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	auto remove_layer_action = layer_menu->addAction(tr("Remove selected layer"));
 
 	// Manage anchors.
-	auto link_button = new QToolButton;
+	link_button = new QToolButton;
 	QIcon link_icon(":/icons/link.png");
 	QIcon unlink_icon(":/icons/broken_link.png");
 	link_button->setIcon(link_icon);
@@ -130,6 +130,7 @@ LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 	connect(widget, &LayerWidget::window_moved, pitch_plot, &PitchPlot::setWindow);
 	connect(widget, &LayerWidget::window_moved, intensity_plot, &IntensityPlot::setWindow);
 	connect(waveform, &Waveform::windowHasChanged, widget, &LayerWidget::setWindow);
+	connect(link_button, &QToolButton::clicked, widget, &LayerWidget::setAnchorSharing);
 
 	return widget;
 }

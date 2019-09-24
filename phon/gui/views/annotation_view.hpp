@@ -22,7 +22,7 @@
  *                                                                                                                     *
  * Created: 23/03/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: display annotation.                                                                                        *
+ * Purpose: display and edit annotation.                                                                               *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -33,6 +33,8 @@
 #include <phon/gui/layer_widget.hpp>
 #include <phon/application/annotation.hpp>
 #include <phon/gui/toolbar.hpp>
+
+class QToolButton;
 
 namespace phonometrica {
 
@@ -79,6 +81,8 @@ private:
 	int getFocusedLayer() const;
 
 	LayerWidget * addAnnotationLayer(intptr_t i);
+
+	QToolButton *link_button = nullptr;
 
     std::shared_ptr<Annotation> annot;
 
