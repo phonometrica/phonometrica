@@ -262,9 +262,9 @@ file_menu = [
 	["Quit", phon.quit, "ctrl+q"]
 ]
 
-query_menu = [
-	["New query...", new_query, "alt+q"],
-	["Run last query", run_last_query, "ctrl+alt+q"]
+edit_menu = [
+	["Edit new query...", new_query, "alt+q"],
+	["Edit last query", run_last_query, "ctrl+alt+q"]
 ]
 
 help_menu = [
@@ -284,7 +284,7 @@ help_menu = [
 phon.actions = {} 
 
 create_menu(file_menu, "File")
-create_menu(query_menu, "Query")
+create_menu(edit_menu, "Edit")
 phon.create_window_menu() # Handled in C++ code
 phon.create_tool_menu()   # Handled in C++ code
 create_menu(help_menu, "Help")

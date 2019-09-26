@@ -184,10 +184,7 @@ void Viewer::openScript(const String &path)
 
 void Viewer::newScript()
 {
-    auto parent = Project::instance()->scripts();
-    auto script = std::make_shared<Script>(parent.get());
-    // Don't mutate the parent because we don't want empty scripts to be remembered.
-    parent->append(script, false);
+    auto script = std::make_shared<Script>(nullptr);
     Project::updated();
     openScriptView(std::move(script));
 }
@@ -265,5 +262,6 @@ void Viewer::closeCurrentView()
 {
 	closeTab(currentIndex());
 }
+
 
 } // phonometrica

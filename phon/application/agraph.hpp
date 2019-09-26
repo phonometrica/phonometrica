@@ -221,9 +221,9 @@ public:
 
     void write_textgrid(const String &path);
 
-    AutoLayer &get(intptr_t i) { return m_layers[i]; }
+    AutoLayer &get(intptr_t i) { return m_layers.at(i); }
 
-    const AutoLayer &get(intptr_t i) const { return m_layers[i]; }
+    const AutoLayer &get(intptr_t i) const { return m_layers.at(i); }
 
     bool empty() const
     { return m_anchors.empty(); }

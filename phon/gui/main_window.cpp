@@ -662,6 +662,24 @@ void MainWindow::setShellFunctions()
     	main_area->viewer()->closeCurrentView();
     };
 
+    auto view_annotation = [this](Runtime &rt) {
+	    auto annot = rt.cast_user_data<AutoAnnotation>(1);
+	    intptr_t layer = 1;
+	    double from = 0.0;
+	    double to = 10.0;
+	    if (rt.arg_count() >= 2)
+	    {
+	    	layer = rt.to_integer(2);
+	    }
+	    if (rt.arg_count() == 4)
+	    {
+	    	from = rt.to_number(3);
+	    	to = rt.to_number(4);
+	    }
+	    main_area->viewer()->editAnnotation(std::move(annot), layer, from, to);
+	    rt.push_null();
+    };
+
     runtime.get_global("phon");
     {
         runtime.add_method("warning", warning, 1);
@@ -689,6 +707,7 @@ void MainWindow::setShellFunctions()
         runtime.add_method("get_plugin_version", get_plugin_version, 1);
         runtime.add_method("get_plugin_resource", get_plugin_resource, 2);
         runtime.add_method("close_current_view", close_current_view, 0);
+        runtime.add_method("view_annotation", view_annotation, 4);
 
         // Define 'phon.config'
         Settings::initialize(runtime);

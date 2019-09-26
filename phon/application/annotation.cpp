@@ -167,6 +167,7 @@ void Annotation::initialize(Runtime &rt)
 
     auto add_property = [](Runtime &rt) {
     	auto annot = rt.cast_user_data<AutoAnnotation>(0);
+    	annot->open();
     	auto category = rt.to_string(1);
     	std::any value;
     	if (rt.is_boolean(2))
@@ -182,6 +183,7 @@ void Annotation::initialize(Runtime &rt)
 
     auto remove_property = [](Runtime &rt) {
     	auto annot = rt.cast_user_data<AutoAnnotation>(0);
+    	annot->open();
     	auto category = rt.to_string(1);
     	annot->remove_property(category);
     	rt.push_null();
@@ -199,6 +201,7 @@ void Annotation::initialize(Runtime &rt)
 
     auto get_property = [](Runtime &rt) {
     	auto annot = rt.cast_user_data<AutoAnnotation>(0);
+    	annot->open();
     	auto category = rt.to_string(1);
     	auto prop = annot->get_property(category);
 
@@ -221,20 +224,98 @@ void Annotation::initialize(Runtime &rt)
 	    }
     };
 
+
+	auto get_layer_count = [](Runtime &rt) {
+		auto annot = rt.cast_user_data<AutoAnnotation>(0);
+		annot->open();
+		rt.push_int(annot->layer_count());
+	};
+
+	auto get_event_count = [](Runtime &rt) {
+		auto annot = rt.cast_user_data<AutoAnnotation>(0);
+		annot->open();
+		auto layer_index = rt.to_integer(1);
+
+		try
+		{
+			auto layer = annot->graph().get(layer_index);
+			rt.push_int(layer->count());
+		}
+		catch (...)
+		{
+			throw error("Couldn't find layer %", layer_index);
+		}
+	};
+
+	auto get_event_start = [](Runtime &rt) {
+		auto annot = rt.cast_user_data<AutoAnnotation>(0);
+		annot->open();
+		auto layer = rt.to_integer(1);
+		auto event = rt.to_integer(2);
+
+		try
+		{
+			auto e = annot->get_event(layer, event);
+			rt.push(e->start_time());
+		}
+		catch (...)
+		{
+			throw error("Couldn't find event % on layer %", event, layer);
+		}
+	};
+
+	auto get_event_end = [](Runtime &rt) {
+		auto annot = rt.cast_user_data<AutoAnnotation>(0);
+		annot->open();
+		auto layer = rt.to_integer(1);
+		auto event = rt.to_integer(2);
+
+		try
+		{
+			auto e = annot->get_event(layer, event);
+			rt.push(e->end_time());
+		}
+		catch (...)
+		{
+			throw error("Couldn't find event % on layer %", event, layer);
+		}
+	};
+
     auto get_event_text = [](Runtime &rt) {
     	auto annot = rt.cast_user_data<AutoAnnotation>(0);
+    	annot->open();
     	auto layer = rt.to_integer(1);
     	auto event = rt.to_integer(2);
-    	auto e = annot->get_event(layer, event);
-    	if (e)
-    	{
-		    rt.push(e->text());
-    	}
-	    else
+
+	    try
 	    {
-	    	throw error("Couldn't find event % on layer %", event, layer);
+		    auto e = annot->get_event(layer, event);
+		    rt.push(e->text());
+	    }
+	    catch (...)
+	    {
+		    throw error("Couldn't find event % on layer %", event, layer);
 	    }
     };
+
+	auto set_event_text = [](Runtime &rt) {
+		auto annot = rt.cast_user_data<AutoAnnotation>(0);
+		annot->open();
+		auto layer = rt.to_integer(1);
+		auto event = rt.to_integer(2);
+		auto text = rt.to_string(3);
+
+		try
+		{
+			auto e = annot->get_event(layer, event);
+			e->set_text(text);
+			rt.push_null();
+		}
+		catch (...)
+		{
+			throw error("Couldn't find event % on layer %", event, layer);
+		}
+	};
 
     rt.push(metaobject);
     {
@@ -243,12 +324,15 @@ void Annotation::initialize(Runtime &rt)
 	    rt.add_method("Annotation.meta.remove_property", remove_property, 2);
 	    rt.add_method("Annotation.meta.get_property", get_property, 2);
         rt.add_method("Annotation.meta.bind_to_sound", bind_to_sound, 1);
-        rt.add_method("Annotation.meta.get_event_text", get_event_text, 3);
+	    rt.add_method("Annotation.meta.get_event_start", get_event_start, 3);
+	    rt.add_method("Annotation.meta.get_event_end", get_event_end, 3);
+	    rt.add_method("Annotation.meta.get_event_text", get_event_text, 3);
+	    rt.add_method("Annotation.meta.set_event_text", set_event_text, 4);
+	    rt.add_method("Annotation.meta.get_layer_count", get_layer_count, 1);
+	    rt.add_method("Annotation.meta.get_event_count", get_event_count, 2);
     }
     rt.new_native_constructor(new_annot, new_annot, "Annotation", 1);
     rt.def_global("Annotation", PHON_DONTENUM);
-
-
 }
 
 bool Annotation::modified() const

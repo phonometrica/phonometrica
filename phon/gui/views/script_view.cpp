@@ -73,7 +73,7 @@ bool ScriptView::save()
         saveScript(false);
     }
 
-    return true;
+	return true;
 }
 
 void ScriptView::runScript(bool)
@@ -129,7 +129,17 @@ void ScriptView::saveScript(bool)
             return; // cancelled
         }
         m_script->set_path(path, true);
-        Project::instance()->register_file(path, m_script);
+
+	    auto reply = QMessageBox::question(this, tr("Import file?"),
+	                                       tr("Would you like to import this script into the current project?"),
+	                                       QMessageBox::Yes|QMessageBox::No);
+
+	    if (reply == QMessageBox::Yes)
+	    {
+		    auto project = Project::instance();
+		    project->import_file(m_script->path());
+		    emit project->notify_update();
+	    }
     }
 
     m_script->set_content(m_editor->toPlainText());

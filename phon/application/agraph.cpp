@@ -722,8 +722,8 @@ void AGraph::parse_events(xml_node events_node)
 
 AutoEvent AGraph::get_event(intptr_t layer, intptr_t event) const
 {
-	auto &events = m_layers[layer]->events;
-	return events[event];
+	auto &events = m_layers.at(layer)->events;
+	return events.at(event);
 }
 
 void AGraph::remove_layer(intptr_t index)
