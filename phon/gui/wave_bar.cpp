@@ -89,8 +89,9 @@ void WaveBar::paintEvent(QPaintEvent *event)
     col = col.lighter(160);
     col.setAlpha(60);
 
-    auto w = int(round(to - from));
-    auto x = int(round(from));
+    // If the user if making a selection backward, make sure that it is displayed properly
+    auto w = int(round(std::abs(to - from)));
+    auto x = int(round((from < to) ? from : to));
 
     if (w <= 1)
     {
@@ -135,8 +136,6 @@ void WaveBar::mouseReleaseEvent(QMouseEvent *event)
 void WaveBar::mouseMoveEvent(QMouseEvent *event)
 {
     to = event->localPos().x();
-    // Only inform the zoomer.
-    //emit updatedXAxisSelection(from, to);
     repaint();
 }
 
@@ -188,6 +187,8 @@ void WaveBar::notifySelection()
     auto t2 = xPosToTime(to);
     assert(t1 >= 0 && t2 <= m_data->duration());
     emit timeSelection(t1, t2);
+    // FIXME: force repaint because leftward selection doesn't seem to get redrawn, somehow...
+    repaint();
 }
 
 double WaveBar::timeToXPos(double t)

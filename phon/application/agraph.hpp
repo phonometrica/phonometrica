@@ -69,6 +69,8 @@ public:
 
     bool empty()
     { return incoming.empty() && outgoing.empty(); }
+
+    bool exists(intptr_t layer) const;
 };
 
 
@@ -80,13 +82,15 @@ class Event final : public std::enable_shared_from_this<Event>
 {
 public:
 
-    Event(Anchor *start, Anchor *end, Layer *layer_, String text = String()) :
-            m_start(start), m_end(end), m_layer(layer_), m_text(std::move(text))
+    Event(Anchor *start, Anchor *end, Layer *layer, String text = String()) :
+            m_start(start), m_end(end), m_layer(layer), m_text(std::move(text))
     { /* The annotation graph will anchor events after they are created */ }
 
     ~Event();
 
-    Anchor *start_anchor() const;
+	bool valid() const;
+
+	Anchor *start_anchor() const;
 
     void set_start_anchor(Anchor *start);
 
@@ -116,6 +120,19 @@ public:
         return start_time() + (end_time() - start_time()) / 2;
     }
 
+    double center_time(double window_start, double window_end) const;
+
+	void detach();
+
+    void detach_left();
+
+    void detach_right();
+
+    void attach_left(Anchor *a);
+
+    void attach_right(Anchor *a);
+
+    void attach(Anchor *left, Anchor *right);
 
 private:
 
@@ -142,6 +159,8 @@ using EventList = Array<AutoEvent>;
 
 struct Layer // ref-counted
 {
+	using event_iterator = Array<AutoEvent>::iterator;
+
     Layer(intptr_t index, String label, bool has_instants = false) :
             index(index), label(std::move(label)), has_instants(has_instants)
     {}
@@ -152,9 +171,13 @@ struct Layer // ref-counted
     String label;
     bool has_instants;
 
+    intptr_t count() const { return events.size(); }
+
     void insert_event(intptr_t i, AutoEvent e) { events.insert(i, std::move(e)); }
 
     void append_event(AutoEvent e) { events.append(std::move(e)); }
+
+    event_iterator find_event(double time);
 
 private:
 
@@ -232,12 +255,18 @@ public:
 
     void clear_layer(intptr_t index);
 
+    void add_anchor(intptr_t layer_index, double time);
+
+    void remove_anchor(intptr_t layer_index, double time);
+
 private:
 
-	void insert_event(intptr_t index, Anchor *start, Anchor *end, const String &text);
+	void append_event(intptr_t layer_index, Anchor *start, Anchor *end, const String &text);
 
 	// Get anchor at the given time. The anchor is created if it does not exist.
 	Anchor *get_anchor(double time);
+
+	AnchorList::iterator get_anchor_iter(double time);
 
 	// Check that there is no events in a given anchor's outgoing or incoming nodes on a given layer.
 	void check_free_anchor(const Array<Event *> &events, intptr_t index);

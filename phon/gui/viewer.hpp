@@ -46,6 +46,8 @@ public:
 
     explicit Viewer(Runtime &rt, QWidget *parent = nullptr);
 
+    void closeCurrentView();
+
 signals:
 
 public slots:

@@ -19,7 +19,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.phon",
-				"match": "\\b(and|as|do|downto|else|elsif|end|field|for|foreach|function|if|in|new|not|or|pass|return|then|throw|var|while)\\b"
+				"match": "\\b(and|as|do|downto|else|elsif|end|field|for|foreach|function|if|in|new|not|or|pass|return|step|then|to|var|while)\\b"
 			},
 			{
 				"name": "constant.numeric.phon",

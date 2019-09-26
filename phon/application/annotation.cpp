@@ -142,7 +142,6 @@ void Annotation::save_metadata()
 
 void Annotation::set_path(String path, bool mutate)
 {
-	assert(!loaded());
 	VFile::set_path(std::move(path), mutate);
 	m_type = guess_type();
 }

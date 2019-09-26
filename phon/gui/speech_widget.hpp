@@ -41,6 +41,12 @@ public:
 
     virtual void drawYAxis(QWidget *y_axis, int y1, int y2) = 0;
 
+	virtual void setAddingAnchor(bool value) { adding_anchor = value; }
+
+	virtual void setRemovingAnchor(bool value) { removing_anchor = value; }
+
+	std::pair<double,double> currentWindow() const { return { window_start, window_end }; }
+
 protected:
 
     double xPosToTime(double x) const;
@@ -52,6 +58,12 @@ protected:
 
     // Current window (in seconds)
     double window_start, window_end;
+
+	// True when the "Add anchor" button has been clicked, and until the user adds an anchor or unchecks the button.
+	bool adding_anchor = false;
+
+	// True when the "Remove button" has been clicked, and until the user removes an anchor or unchecks the button.
+	bool removing_anchor = false;
 };
 
 } // namespace phonometrica

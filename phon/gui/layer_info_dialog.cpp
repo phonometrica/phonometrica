@@ -20,91 +20,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 23/03/2019                                                                                                 *
+ * Created: 26/03/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: display and edit annotation.                                                                               *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_ANNOTATION_VIEW_HPP
-#define PHONOMETRICA_ANNOTATION_VIEW_HPP
-
-#include <phon/gui/views/speech_view.hpp>
-#include <phon/gui/layer_widget.hpp>
-#include <phon/application/annotation.hpp>
-#include <phon/gui/toolbar.hpp>
-
-class QAction;
-class QToolButton;
+#include <QLabel>
+#include <QLayout>
+#include <phon/gui/layer_info_dialog.hpp>
 
 namespace phonometrica {
 
-class AnnotationView final : public SpeechView
+LayerInfoDialog::LayerInfoDialog(QWidget *parent, AutoLayer layer) :
+	QDialog(parent, Qt::Window|Qt::FramelessWindowHint), layer(std::move(layer))
 {
-    Q_OBJECT
+	info_label = new QLabel(label());
+	auto vl = new QVBoxLayout;
+	vl->addWidget(info_label);
+	setLayout(vl);
+}
 
-public:
+QString LayerInfoDialog::label() const
+{
+	QString text = QString("<b>Layer %1</b>").arg(layer->index);
+	if (!layer->label.empty()) text.append(QString(": %1").arg(layer->label));
+	text.append("<br/><b>Event type</b>: ");
+	if (layer->has_instants) {
+		text.append("instants");
+	}
+	else {
+		text.append("intervals");
+	}
+	text.append("<br/><b>Number of events</b>: ");
+	text.append(QString::number(layer->count()));
 
-    AnnotationView(Runtime &rt, std::shared_ptr<Annotation> annot, QWidget *parent = nullptr);
+	return text;
+}
 
-    bool save() override;
+QString LayerInfoDialog::updateInfo()
+{
+	auto text = label();
+	info_label->setText(text);
 
-    void openSelection(intptr_t layer, double from, double to);
-
-protected:
-
-    void addAnnotationMenu(Toolbar *toolbar) override;
-
-    void addAnnotationLayers(QVBoxLayout *layout) override;
-
-	void addLayersToYAxis() override;
-
-private slots:
-
-    void focusLayer(intptr_t i);
-
-    void focusEvent(intptr_t layer, double time);
-
-    void setMovingAnchor(intptr_t layer, double time);
-
-    void resetAnchorMovement(intptr_t layer);
-
-    void saveAnnotation(bool);
-
-    void createLayer(bool);
-
-    void removeLayer(bool);
-
-    void clearLayer(bool);
-
-    void setAddAnchorEnabled(bool checked);
-
-    void setRemoveAnchorEnabled(bool checked);
-
-    void notifyAnchorAdded();
-
-    void notifyAnchorRemoved();
-
-private:
-
-	int widgetIndex(int layer_index);
-
-	int getFocusedLayer() const;
-
-	LayerWidget * addAnnotationLayer(intptr_t i);
-
-	QToolButton *link_button = nullptr;
-
-	QAction *add_anchor_action = nullptr;
-
-	QAction *remove_anchor_action = nullptr;
-
-    std::shared_ptr<Annotation> annot;
-
-    // Layer widgets, in the order they are stored and displayed
-    Array<LayerWidget*> layers;
-};
-
+	return text;
+}
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_ANNOTATION_VIEW_HPP

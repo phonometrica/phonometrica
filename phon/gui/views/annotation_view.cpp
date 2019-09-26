@@ -72,18 +72,22 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	link_button->setCheckable(true);
 	link_button->setChecked(false);
 	link_button->setToolTip("Share/unshare anchors");
-    auto anchor_action = new QAction(QIcon(":/icons/anchor.png"), "Add anchor");
-	auto delete_action = new QAction(QIcon(":/icons/delete.png"), "Remove anchor");
+    add_anchor_action = new QAction(QIcon(":/icons/anchor.png"), "Add anchor");
+	remove_anchor_action = new QAction(QIcon(":/icons/delete.png"), "Remove anchor");
+	add_anchor_action->setCheckable(true);
+	remove_anchor_action->setCheckable(true);
 
     toolbar->addWidget(layer_button);
     toolbar->addWidget(link_button);
-	toolbar->addAction(anchor_action);
-    toolbar->addAction(delete_action);
+	toolbar->addAction(add_anchor_action);
+    toolbar->addAction(remove_anchor_action);
     toolbar->addSeparator();
 
     connect(add_layer_action, &QAction::triggered, this, &AnnotationView::createLayer);
 	connect(remove_layer_action, &QAction::triggered, this, &AnnotationView::removeLayer);
 	connect(clear_layer_action, &QAction::triggered, this, &AnnotationView::clearLayer);
+	connect(add_anchor_action, &QAction::triggered, this, &AnnotationView::setAddAnchorEnabled);
+	connect(remove_anchor_action, &QAction::triggered, this, &AnnotationView::setRemoveAnchorEnabled);
 
     connect(link_button, &QToolButton::clicked, [=](bool checked) {
     	if (checked) {
@@ -109,32 +113,35 @@ void AnnotationView::addAnnotationLayers(QVBoxLayout *layout)
 LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 {
 	auto duration = annot->sound()->duration();
-	auto widget = new LayerWidget(annot->graph(), duration, i);
-	//layout->addSpacing(2);
+	auto layer = new LayerWidget(annot->graph(), duration, i);
+	auto win = waveform->currentWindow();
+	layer->setWindow(win.first, win.second);
 
-	layers.append(widget);
-	connect(widget, &LayerWidget::got_focus, this, &AnnotationView::focusLayer);
-	connect(widget, &LayerWidget::current_time, waveform, &Waveform::setCurrentTime);
-	connect(widget, &LayerWidget::current_time, pitch_plot, &PitchPlot::setCurrentTime);
-	connect(widget, &LayerWidget::current_time, intensity_plot, &IntensityPlot::setCurrentTime);
+	layers.insert(i, layer);
+	connect(layer, &LayerWidget::got_focus, this, &AnnotationView::focusLayer);
+	connect(layer, &LayerWidget::current_time, waveform, &Waveform::setCurrentTime);
+	connect(layer, &LayerWidget::current_time, pitch_plot, &PitchPlot::setCurrentTime);
+	connect(layer, &LayerWidget::current_time, intensity_plot, &IntensityPlot::setCurrentTime);
 
-	connect(widget, &LayerWidget::event_selected, waveform, &Waveform::setSelection);
-	connect(widget, &LayerWidget::event_selected, pitch_plot, &PitchPlot::setSelection);
-	connect(widget, &LayerWidget::event_selected, intensity_plot, &IntensityPlot::setSelection);
+	connect(layer, &LayerWidget::event_selected, waveform, &Waveform::setSelection);
+	connect(layer, &LayerWidget::event_selected, pitch_plot, &PitchPlot::setSelection);
+	connect(layer, &LayerWidget::event_selected, intensity_plot, &IntensityPlot::setSelection);
 
-	connect(widget, &LayerWidget::focus_event, this, &AnnotationView::focusEvent);
-	connect(widget, &LayerWidget::modified, this, &AnnotationView::modified);
-	connect(widget, &LayerWidget::anchor_moving, this, &AnnotationView::setMovingAnchor);
-	connect(widget, &LayerWidget::anchor_has_moved, this, &AnnotationView::resetAnchorMovement);
+	connect(layer, &LayerWidget::focus_event, this, &AnnotationView::focusEvent);
+	connect(layer, &LayerWidget::modified, this, &AnnotationView::modified);
+	connect(layer, &LayerWidget::anchor_moving, this, &AnnotationView::setMovingAnchor);
+	connect(layer, &LayerWidget::anchor_has_moved, this, &AnnotationView::resetAnchorMovement);
 	// When a layer triggers a window shift, we need to update the scrollbar and the plots
-	connect(widget, &LayerWidget::window_moved, wavebar, &WaveBar::setTimeSelection);
-	connect(widget, &LayerWidget::window_moved, waveform, &Waveform::setWindow);
-	connect(widget, &LayerWidget::window_moved, pitch_plot, &PitchPlot::setWindow);
-	connect(widget, &LayerWidget::window_moved, intensity_plot, &IntensityPlot::setWindow);
-	connect(waveform, &Waveform::windowHasChanged, widget, &LayerWidget::setWindow);
-	connect(link_button, &QToolButton::clicked, widget, &LayerWidget::setAnchorSharing);
+	connect(layer, &LayerWidget::window_moved, wavebar, &WaveBar::setTimeSelection);
+	connect(layer, &LayerWidget::window_moved, waveform, &Waveform::setWindow);
+	connect(layer, &LayerWidget::window_moved, pitch_plot, &PitchPlot::setWindow);
+	connect(layer, &LayerWidget::window_moved, intensity_plot, &IntensityPlot::setWindow);
+	connect(waveform, &Waveform::windowHasChanged, layer, &LayerWidget::setWindow);
+	connect(link_button, &QToolButton::clicked, layer, &LayerWidget::setAnchorSharing);
+	connect(layer, &LayerWidget::anchor_added, this, &AnnotationView::notifyAnchorAdded);
+	connect(layer, &LayerWidget::anchor_removed, this, &AnnotationView::notifyAnchorRemoved);
 
-	return widget;
+	return layer;
 }
 
 bool AnnotationView::save()
@@ -234,7 +241,9 @@ void AnnotationView::openSelection(intptr_t layer, double from, double to)
 
 void AnnotationView::saveAnnotation(bool)
 {
-	if (!annot->has_path())
+	bool has_path = annot->has_path();
+
+	if (!has_path)
 	{
 		QString dir = Settings::get_string(runtime, "last_directory");
 		auto path = QFileDialog::getSaveFileName(this, tr("Save annotation..."), dir, tr("Annotation (*.phon-annot)"));
@@ -249,7 +258,21 @@ void AnnotationView::saveAnnotation(bool)
 	}
 
 	annot->save();
-	Project::instance()->notify_update();
+	emit modified();
+
+	if (!has_path)
+	{
+		auto reply = QMessageBox::question(this, tr("Import file?"),
+				tr("Would you like to import this annotation into the current project?"),
+		                                   QMessageBox::Yes|QMessageBox::No);
+
+		if (reply == QMessageBox::Yes)
+		{
+			auto project = Project::instance();
+			project->import_file(annot->path());
+			emit project->notify_update();
+		}
+	}
 }
 
 void AnnotationView::addLayersToYAxis()
@@ -337,6 +360,50 @@ int AnnotationView::getFocusedLayer() const
 	}
 
 	return -1;
+}
+
+void AnnotationView::setAddAnchorEnabled(bool checked)
+{
+	if (checked)
+	{
+		remove_anchor_action->setChecked(false);
+		setRemoveAnchorEnabled(false);
+	}
+
+	for (auto &layer : layers) {
+		layer->setAddingAnchor(checked);
+	}
+	for (auto plot : plots) {
+		plot->setAddingAnchor(checked);
+	}
+}
+
+void AnnotationView::setRemoveAnchorEnabled(bool checked)
+{
+	if (checked)
+	{
+		add_anchor_action->setChecked(false);
+		setAddAnchorEnabled(false);
+	}
+
+	for (auto &layer : layers) {
+		layer->setRemovingAnchor(checked);
+	}
+	for (auto plot : plots) {
+		plot->setRemovingAnchor(checked);
+	}
+}
+
+void AnnotationView::notifyAnchorAdded()
+{
+	add_anchor_action->setChecked(false);
+	setAddAnchorEnabled(false);
+}
+
+void AnnotationView::notifyAnchorRemoved()
+{
+	remove_anchor_action->setChecked(false);
+	setRemoveAnchorEnabled(false);
 }
 
 

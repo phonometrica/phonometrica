@@ -38,6 +38,9 @@ class QDialog;
 
 namespace phonometrica {
 
+class LayerInfoDialog;
+
+
 class LayerWidget final : public SpeechWidget
 {
     Q_OBJECT
@@ -52,11 +55,13 @@ public:
 
     void setEventFocus(double time);
 
-    static QColor lineColor();
-
     void followMovingAnchor(double time);
 
     void clearMovingAnchor() { followMovingAnchor(-1); }
+
+	void setAddingAnchor(bool value) override;
+
+    void setRemovingAnchor(bool value) override;
 
 signals:
 
@@ -75,6 +80,10 @@ signals:
     void anchor_moving(intptr_t layer, double time);
 
     void anchor_has_moved(intptr_t layer);
+
+    void anchor_added(bool);
+
+    void anchor_removed(bool);
 
 public slots:
 
@@ -95,6 +104,8 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 
     void keyPressEvent(QKeyEvent *event) override;
+
+    void leaveEvent(QEvent *event) override;
 
 private:
 
@@ -138,11 +149,19 @@ private:
 
     double timeAtCursor(QMouseEvent *e) const;
 
+    bool createAnchor(double time);
+
+    bool removeAnchor(double time);
+
+	void updateInfo();
+
+	void updateUi();
+
 	// Metadata button displayed in the y axis.
     QPushButton *button;
 
     // Metadata dialog controlled by the button.
-    QDialog *dialog;
+    LayerInfoDialog *dialog;
 
     AGraph &graph;
 
@@ -170,6 +189,9 @@ private:
 
     // When an anchor is moved on another layer, we track it
     double moving_anchor_time = -1;
+
+    // When an anchor is being added, we track its time so that we can display a "ghost" anchor.
+    double edit_anchor_time = -1;
 
     // Which edge of the selected event was clicked? For instants, this is always the end.
     bool event_start_selected = false;

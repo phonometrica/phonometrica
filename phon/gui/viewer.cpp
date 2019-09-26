@@ -261,4 +261,9 @@ void Viewer::editAnnotation(AutoAnnotation annot, intptr_t layer, double from, d
 	view->openSelection(layer, from, to);
 }
 
+void Viewer::closeCurrentView()
+{
+	closeTab(currentIndex());
+}
+
 } // phonometrica

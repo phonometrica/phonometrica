@@ -658,6 +658,10 @@ void MainWindow::setShellFunctions()
 		rt.push(std::move(resource));
     };
 
+    auto close_current_view = [this](Runtime &rt) {
+    	main_area->viewer()->closeCurrentView();
+    };
+
     runtime.get_global("phon");
     {
         runtime.add_method("warning", warning, 1);
@@ -684,6 +688,7 @@ void MainWindow::setShellFunctions()
         runtime.add_method("run_last_query", run_last_query, 0);
         runtime.add_method("get_plugin_version", get_plugin_version, 1);
         runtime.add_method("get_plugin_resource", get_plugin_resource, 2);
+        runtime.add_method("close_current_view", close_current_view, 0);
 
         // Define 'phon.config'
         Settings::initialize(runtime);

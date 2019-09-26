@@ -257,6 +257,8 @@ file_menu = [
 	null,
 	["Import metadata from CSV file...", import_metadata],
 	null,
+	["Close current view", phon.close_current_view, "ctrl+w"],
+	null,
 	["Quit", phon.quit, "ctrl+q"]
 ]
 

@@ -33,14 +33,14 @@ The latest version of Phonometrica can be downloaded from https://phonometrica.g
 Download
 ========
 
-Phonometrica 0.4.1
+Phonometrica 0.5.0
 ------------------
 
 -  Windows 7 and later:
-   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.4.1/setup_phonometrica.exe>`__
+   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.5.0/setup_phonometrica.exe>`__
 -  MacOS 10.7 and later:
-   `phonometrica.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.4.1/phonometrica.dmg>`__
--  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.4.1.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.4.1/phonometrica-0.4.1.deb>`__
+   `phonometrica.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.5.0/phonometrica.dmg>`__
+-  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.5.0.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.5.0/phonometrica-0.5.0.deb>`__
 -  source code: available on `GitHub <https://github.com/phonometrica/phonometrica>`__
 
   
@@ -49,7 +49,7 @@ Manual
 
 **Note: Phonometrica is currently under development and the documentation is a work in progress...**
 
-Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.4.1/phonometrica_manual.pdf>`_ file.
+Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.5.0/phonometrica_manual.pdf>`_ file.
 
 
 Topics

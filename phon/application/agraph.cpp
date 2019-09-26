@@ -57,10 +57,40 @@ struct AnchorLess
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+bool Anchor::exists(intptr_t layer) const
+{
+	for (auto e : incoming)
+	{
+		if (e->layer_index() == layer) {
+			return true;
+		}
+	}
+	for (auto e : outgoing)
+	{
+		if (e->layer_index() == layer) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Event::~Event()
 {
-	m_start->outgoing.remove(this);
-	if (!is_instant()) m_end->incoming.remove(this);
+	if (valid())
+	{
+		m_start->outgoing.remove(this);
+		if (!is_instant()) m_end->incoming.remove(this);
+	}
+}
+
+bool Event::valid() const
+{
+	return m_start != nullptr && m_end != nullptr;
 }
 
 Anchor *Event::start_anchor() const
@@ -98,6 +128,58 @@ void Event::set_text(const String &txt)
 	m_text = txt;
 }
 
+void Event::detach()
+{
+	detach_left();
+	if (!is_instant()) detach_right();
+}
+
+void Event::detach_left()
+{
+	m_start->outgoing.remove(this);
+	m_start = nullptr;
+}
+
+void Event::detach_right()
+{
+	m_end->incoming.remove(this);
+	m_end = nullptr;
+}
+
+void Event::attach_left(Anchor *a)
+{
+	a->outgoing.append(this);
+	m_start = a;
+}
+
+void Event::attach_right(Anchor *a)
+{
+	a->incoming.append(this);
+	m_end = a;
+}
+
+void Event::attach(Anchor *left, Anchor *right)
+{
+	attach_left(left);
+	attach_right(right);
+}
+
+double Event::center_time(double window_start, double window_end) const
+{
+	double start = (std::max)(window_start, start_time());
+	double end = (std::min)(window_end, end_time());
+	return start + (end - start) / 2;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Layer::event_iterator Layer::find_event(double time)
+{
+	return std::lower_bound(events.begin(), events.end(), time, EventLess());
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,7 +198,7 @@ AutoLayer AGraph::add_layer(intptr_t index, const String &label, bool has_instan
 	else
 	{
 		layer = std::make_shared<Layer>(index, label, has_instants);
-		m_layers.insert(m_layers.begin() + index, layer);
+		m_layers.insert(index, layer);
 
 		// Adjust indices.
 		for (intptr_t i = index + 1; i <= m_layers.size(); i++)
@@ -137,7 +219,7 @@ void AGraph::add_interval(intptr_t index, double start, double end, const String
 
 	check_free_anchor(start_anchor->outgoing, index);
 	check_free_anchor(end_anchor->incoming, index);
-	insert_event(index, start_anchor, end_anchor, text);
+	append_event(index, start_anchor, end_anchor, text);
 }
 
 void AGraph::add_instant(intptr_t index, double time, const String &text)
@@ -147,18 +229,18 @@ void AGraph::add_instant(intptr_t index, double time, const String &text)
 
 	check_free_anchor(anch->incoming, index);
 	check_free_anchor(anch->outgoing, index);
-	insert_event(index, anch, anch, text);
+	append_event(index, anch, anch, text);
 }
 
-void AGraph::insert_event(intptr_t index, Anchor *start, Anchor *end, const String &text)
+void AGraph::append_event(intptr_t layer_index, Anchor *start, Anchor *end, const String &text)
 {
-	assert(index != 0);
+	assert(layer_index != 0);
 
-	if (index < 0) {
-		index = m_layers.size();
+	if (layer_index < 0) {
+		layer_index = m_layers.size();
 	}
 
-	auto layer = m_layers[index].get();
+	auto layer = m_layers[layer_index].get();
 	auto e = std::make_shared<Event>(start, end, layer, text);
 
 	start->outgoing.push_back(e.get());
@@ -166,19 +248,21 @@ void AGraph::insert_event(intptr_t index, Anchor *start, Anchor *end, const Stri
 	layer->append_event(std::move(e));
 }
 
-Anchor *AGraph::get_anchor(double time)
+AnchorList::iterator AGraph::get_anchor_iter(double time)
 {
 	auto it = std::lower_bound(m_anchors.begin(), m_anchors.end(), time, AnchorLess());
 
 	if (it == m_anchors.end() || time < it->get()->time)
 	{
-		auto a = m_anchors.insert(it, std::make_unique<Anchor>(time));
-		return a->get();
+		return m_anchors.insert(it, std::make_unique<Anchor>(time));
 	}
-	else
-	{
-		return it->get();
-	}
+
+	return it;
+}
+
+Anchor *AGraph::get_anchor(double time)
+{
+	return get_anchor_iter(time)->get();
 }
 
 void AGraph::check_free_anchor(const Array<Event *> &events, intptr_t index)
@@ -614,7 +698,7 @@ void AGraph::parse_events(xml_node events_node)
 			intptr_t id2 = String::to_int(attr.value());
 			auto anchor2 = m_anchors[id2].get();
 			auto label = node.child_value("Text");
-			insert_event(layer, anchor1, anchor2, label);
+			append_event(layer, anchor1, anchor2, label);
 		}
 	}
 }
@@ -640,6 +724,101 @@ void AGraph::clear_layer(intptr_t index)
 	{
 		e->set_text(String());
 	}
+	set_modified(true);
+}
+
+void AGraph::add_anchor(intptr_t layer_index, double time)
+{
+	auto layer = m_layers[layer_index].get();
+
+	auto new_anchor = get_anchor(time);
+
+	if (layer->has_instants)
+	{
+		auto new_event = std::make_shared<Event>(new_anchor, new_anchor, layer);
+		new_event->attach(new_anchor, new_anchor);
+		auto it = layer->find_event(time);
+		layer->events.insert(it, std::move(new_event));
+	}
+	else
+	{
+		if (new_anchor->exists(layer_index)) {
+			throw error("Anchor already exists at time % on layer %", time, layer_index);
+		}
+
+		// Split interval.
+		auto it = layer->find_event(time);
+		auto old_event = it->get();
+		assert(old_event);
+		it++;
+		auto end_anchor = old_event->end_anchor();
+		auto new_event = std::make_shared<Event>(new_anchor, end_anchor, layer);
+		old_event->detach_right();
+		old_event->attach_right(new_anchor);
+		new_event->attach_left(new_anchor);
+		new_event->attach_right(end_anchor);
+		layer->events.insert(it, std::move(new_event));
+	}
+
+	set_modified(true);
+}
+
+void AGraph::remove_anchor(intptr_t layer_index, double time)
+{
+	auto layer = m_layers[layer_index].get();
+	auto anchor = get_anchor(time);
+	assert(!anchor->empty()); // can't have been created here.
+
+	auto lambda = [=](Event *e) {
+		return e->layer_index() == layer_index;
+	};
+
+	if (layer->has_instants)
+	{
+		auto &list = anchor->incoming;
+		auto it = std::find_if(list.begin(), list.end(), lambda);
+		assert(it != list.end());
+		auto e = *it;
+		e->detach();
+
+		if (anchor->empty())
+		{
+			auto it = get_anchor_iter(anchor->time);
+			m_anchors.remove(*it);
+		}
+
+		layer->events.remove(e->shared_from_this());
+	}
+	else
+	{
+		auto &list1 = anchor->incoming;
+		auto &list2 = anchor->outgoing;
+		auto it1 = std::find_if(list1.begin(), list1.end(), lambda);
+		auto it2 = std::find_if(list2.begin(), list2.end(), lambda);
+		assert(it1 != list1.end());
+		assert(it2 != list2.end());
+		auto e1 = *it1; auto e2 = *it2;
+//		auto v1 = e1->text().view();
+//		auto v2 = e2->text().view();
+		// Merge e1 and e2 into e2.
+		auto text = e1->text();
+		text.append(e2->text());
+		e2->set_text(text);
+		auto first_anchor = e1->start_anchor();
+		auto mid_anchor = e1->end_anchor();
+		e1->detach();
+		e2->detach_left();
+		e2->attach_left(first_anchor);
+
+		if (mid_anchor->empty())
+		{
+			auto it = get_anchor_iter(mid_anchor->time);
+			m_anchors.remove(*it);
+		}
+
+		layer->events.remove(e1->shared_from_this());
+	}
+
 	set_modified(true);
 }
 
