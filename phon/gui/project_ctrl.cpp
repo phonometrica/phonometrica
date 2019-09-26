@@ -393,13 +393,18 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
             auto file = downcast<VFile>(vnode->shared_from_this());
 
             auto view_action = new QAction(tr("View file"), this);
-            menu.addAction(view_action);
             connect(view_action, &QAction::triggered, [=](bool){
                 emit view_file(file);
             });
 
             if (file->is_annotation())
             {
+            	auto action = new QAction(tr("Annotation actions"), this);
+            	action->setEnabled(false);
+            	menu.addAction(action);
+            	menu.addSeparator();
+	            menu.addAction(view_action);
+
                 auto annot = downcast<Annotation>(file);
 
                 if (annot->is_textgrid())
@@ -427,8 +432,14 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
             }
             else if (file->is_sound())
             {
+	            auto action = new QAction(tr("Sound actions"), this);
+	            action->setEnabled(false);
+	            menu.addAction(action);
+	            menu.addSeparator();
+	            menu.addAction(view_action);
+
                 auto path = file->path();
-                auto action = new QAction(tr("Open sound in Praat"), this);
+                action = new QAction(tr("Open sound in Praat"), this);
                 menu.addAction(action);
                 connect(action, &QAction::triggered, [=](bool) {
                 	try {
@@ -453,9 +464,14 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
             }
             else if (file->is_script())
             {
+	            auto action = new QAction(tr("Script actions"), this);
+	            action->setEnabled(false);
+	            menu.addAction(action);
+	            menu.addSeparator();
+
                 auto script = downcast<Script>(file);
                 auto path = script->path();
-                auto action = new QAction(tr("Run"), this);
+                action = new QAction(tr("Run"), this);
                 menu.addAction(action);
                 connect(action, &QAction::triggered, this, [=](bool) {
                     if (!path.empty())
@@ -523,8 +539,13 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
 
             if ((n1->is_annotation() && n2->is_sound()) || (n2->is_annotation() && n1->is_sound()))
             {
-                std::shared_ptr<Annotation> annot;
-                std::shared_ptr<Sound> snd;
+	            auto action = new QAction(tr("Sound && Annotation actions"), this);
+	            action->setEnabled(false);
+	            menu.addAction(action);
+	            menu.addSeparator();
+
+                AutoAnnotation annot;
+                AutoSound snd;
 
                 if (n1->is_annotation())
                 {
@@ -537,7 +558,7 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
                     snd = downcast<Sound>(n1->shared_from_this());
                 }
 
-                auto action = new QAction(tr("Bind annotation to sound file"), this);
+                action = new QAction(tr("Bind annotation to sound file"), this);
                 menu.addAction(action);
                 connect(action, &QAction::triggered, [=](bool) {
                     annot->set_sound(snd);

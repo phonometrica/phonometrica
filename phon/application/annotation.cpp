@@ -426,4 +426,9 @@ void Annotation::discard_changes()
 	VNode::discard_changes();
 	m_graph.set_modified(false);
 }
+
+void Annotation::duplicate_layer(intptr_t index, intptr_t new_index)
+{
+	m_graph.duplicate_layer(index, new_index);
+}
 } // namespace phonometrica

@@ -180,6 +180,23 @@ Layer::event_iterator Layer::find_event(double time)
 	return std::lower_bound(events.begin(), events.end(), time, EventLess());
 }
 
+std::shared_ptr<Layer> Layer::duplicate(intptr_t new_index)
+{
+	auto new_layer = std::make_shared<Layer>(new_index, this->label, this->has_instants);
+	new_layer->events.reserve(this->count());
+
+	for (auto &event : this->events)
+	{
+		auto left = event->start_anchor();
+		auto right = event->end_anchor();
+		auto new_event = std::make_shared<Event>(left, right, new_layer.get(), event->text());
+		new_event->attach(left, right);
+		new_layer->events.append(std::move(new_event));
+	}
+
+	return new_layer;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -201,7 +218,7 @@ AutoLayer AGraph::add_layer(intptr_t index, const String &label, bool has_instan
 		m_layers.insert(index, layer);
 
 		// Adjust indices.
-		for (intptr_t i = index + 1; i <= m_layers.size(); i++)
+		for (intptr_t i = 1; i <= m_layers.size(); i++)
 		{
 			m_layers[i]->index = i;
 		}
@@ -798,8 +815,6 @@ void AGraph::remove_anchor(intptr_t layer_index, double time)
 		assert(it1 != list1.end());
 		assert(it2 != list2.end());
 		auto e1 = *it1; auto e2 = *it2;
-//		auto v1 = e1->text().view();
-//		auto v2 = e2->text().view();
 		// Merge e1 and e2 into e2.
 		auto text = e1->text();
 		text.append(e2->text());
@@ -819,6 +834,19 @@ void AGraph::remove_anchor(intptr_t layer_index, double time)
 		layer->events.remove(e1->shared_from_this());
 	}
 
+	set_modified(true);
+}
+
+void AGraph::duplicate_layer(intptr_t index, intptr_t new_index)
+{
+	auto layer = m_layers[index].get();
+	auto new_layer = layer->duplicate(new_index);
+	m_layers.insert(new_index, std::move(new_layer));
+	// Adjust indices.
+	for (intptr_t i = 1; i <= m_layers.size(); i++)
+	{
+		m_layers[i]->index = i;
+	}
 	set_modified(true);
 }
 

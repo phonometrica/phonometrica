@@ -31,6 +31,7 @@
 #include <QSpacerItem>
 #include <QMenu>
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QToolButton>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
@@ -62,7 +63,10 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	layer_button->setPopupMode(QToolButton::InstantPopup);
 	auto add_layer_action = layer_menu->addAction(tr("Add new layer..."));
 	auto remove_layer_action = layer_menu->addAction(tr("Remove selected layer"));
-	auto clear_layer_action = layer_menu->addAction(tr("Clear current layer"));
+	layer_menu->addSeparator();
+	auto dup_layer_action = layer_menu->addAction(tr("Duplicate selected layer"));
+	auto rename_layer_action = layer_menu->addAction(tr("Rename selected layer"));
+	auto clear_layer_action = layer_menu->addAction(tr("Clear selected layer"));
 
 	// Manage anchors.
 	link_button = new QToolButton;
@@ -85,7 +89,9 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 
     connect(add_layer_action, &QAction::triggered, this, &AnnotationView::createLayer);
 	connect(remove_layer_action, &QAction::triggered, this, &AnnotationView::removeLayer);
+	connect(dup_layer_action, &QAction::triggered, this, &AnnotationView::duplicateLayer);
 	connect(clear_layer_action, &QAction::triggered, this, &AnnotationView::clearLayer);
+	connect(rename_layer_action, &QAction::triggered, this, &AnnotationView::renameLayer);
 	connect(add_anchor_action, &QAction::triggered, this, &AnnotationView::setAddAnchorEnabled);
 	connect(remove_anchor_action, &QAction::triggered, this, &AnnotationView::setRemoveAnchorEnabled);
 
@@ -296,8 +302,8 @@ void AnnotationView::createLayer(bool)
 		auto layer = addAnnotationLayer(index);
 		inner_layout->insertWidget(i, layer);
 		y_axis->addWidget(layer);
+		updateLayerInfo();
 		emit modified();
-		// TODO: update y axis info.
 	}
 }
 
@@ -319,11 +325,13 @@ void AnnotationView::removeLayer(bool)
 		// Calculate index *before* removing the layer.
 		int i = widgetIndex(index);
 		annot->remove_layer(index);
+		auto layer = layers[index];
 		layers.remove_at(index);
-		auto item = inner_layout->takeAt(i);
-		auto layer = qobject_cast<LayerWidget*>(item->widget());
+		inner_layout->removeWidget(layer);
 		y_axis->removeWidget(layer);
-		delete item;
+		layer->removeInfoButton();
+		delete layer;
+		updateLayerInfo();
 		emit modified();
 	}
 	else
@@ -346,6 +354,58 @@ void AnnotationView::clearLayer(bool)
 	else
 	{
 		QMessageBox msg(QMessageBox::Critical, tr("Cannot clear layer"), "No selected layer!");
+		msg.exec();
+	}
+}
+
+void AnnotationView::renameLayer(bool)
+{
+	int index = getFocusedLayer();
+
+	if (index > 0)
+	{
+		bool ok;
+		QString name = QInputDialog::getText(this, tr("Rename layer..."), tr("New name:"), QLineEdit::Normal,
+				QString(), &ok);
+
+		if (ok)
+		{
+			layers[index]->rename(name);
+			emit modified();
+		}
+	}
+	else
+	{
+		QMessageBox msg(QMessageBox::Critical, tr("Cannot rename layer"), "No selected layer!");
+		msg.exec();
+	}
+}
+
+void AnnotationView::duplicateLayer(bool)
+{
+	int index = getFocusedLayer();
+
+	if (index > 0)
+	{
+		bool ok;
+		int new_size = layers.size() + 1;
+		int new_index = QInputDialog::getInt(this, tr("Duplicate layer..."), tr("Position:"),
+				new_size, 1, new_size, 1, &ok);
+
+		if (ok)
+		{
+			annot->duplicate_layer(index, new_index);
+			int i = widgetIndex(new_index);
+			auto layer = addAnnotationLayer(new_index);
+			inner_layout->insertWidget(i, layer);
+			y_axis->addWidget(layer);
+			updateLayerInfo();
+			emit modified();
+		}
+	}
+	else
+	{
+		QMessageBox msg(QMessageBox::Critical, tr("Cannot duplicate layer"), "No selected layer!");
 		msg.exec();
 	}
 }
@@ -406,5 +466,12 @@ void AnnotationView::notifyAnchorRemoved()
 	setRemoveAnchorEnabled(false);
 }
 
+void AnnotationView::updateLayerInfo()
+{
+	for (auto layer : layers)
+	{
+		layer->updateInfo();
+	}
+}
 
 } // namespace phonometrica

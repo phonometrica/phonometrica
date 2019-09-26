@@ -49,6 +49,8 @@ public:
 
     LayerWidget(AGraph &graph, double duration, intptr_t layer_index, QWidget *parent = nullptr);
 
+    ~LayerWidget() = default;
+
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;
 
     void unfocus();
@@ -62,6 +64,12 @@ public:
 	void setAddingAnchor(bool value) override;
 
     void setRemovingAnchor(bool value) override;
+
+	void rename(const String &name);
+
+	void updateInfo();
+
+	void removeInfoButton();
 
 signals:
 
@@ -153,9 +161,9 @@ private:
 
     bool removeAnchor(double time);
 
-	void updateInfo();
-
 	void updateUi();
+
+	void setButtonIcon();
 
 	// Metadata button displayed in the y axis.
     QPushButton *button;

@@ -110,6 +110,8 @@ public:
 
 	void discard_changes() override;
 
+	void duplicate_layer(intptr_t index, intptr_t new_index);
+
 protected:
 
 	bool content_modified() const override;

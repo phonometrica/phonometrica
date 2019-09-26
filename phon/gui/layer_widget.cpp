@@ -52,7 +52,7 @@ LayerWidget::LayerWidget(AGraph &graph, double duration, intptr_t layer_index, Q
     setMouseTracking(true);
 
 	button = new QPushButton;
-	button->setIcon(QIcon(":/icons/info.png"));
+	setButtonIcon();
 	button->setFlat(true);
 	button->setCheckable(true);
 	dialog = new LayerInfoDialog(this, this->layer);
@@ -61,13 +61,14 @@ LayerWidget::LayerWidget(AGraph &graph, double duration, intptr_t layer_index, Q
 
 void LayerWidget::drawYAxis(QWidget *y_axis, int y1, int y2)
 {
-	int side = 20;
+	int side = 27;
 	int y = y1 - (side / 2) + (y2 - y1) / 2;
 
 	if (!button->parentWidget())
 	{
 		button->setParent(y_axis);
 		button->setFixedSize(side, side);
+		button->setIconSize(QSize(side-2, side-2));
 	}
 	button->move(20, y);
 	button->show();
@@ -752,6 +753,7 @@ void LayerWidget::updateInfo()
 {
 	auto text = dialog->updateInfo();
 	button->setToolTip(text);
+	setButtonIcon();
 }
 
 void LayerWidget::updateUi()
@@ -760,6 +762,27 @@ void LayerWidget::updateUi()
 	updateInfo();
 	repaint();
 	emit modified();
+}
+
+void LayerWidget::rename(const String &name)
+{
+	layer->label = name;
+	graph.set_modified(true);
+	updateInfo();
+}
+
+void LayerWidget::setButtonIcon()
+{
+	auto path = (layer->index <= 9) ? QString(":/icons/number/%1.png").arg(layer->index) : QString(":/icons/info.png");
+	button->setIcon(QIcon(path));
+
+}
+
+void LayerWidget::removeInfoButton()
+{
+	// Note: we can't put this in the destructor because the button is not owned by the widget.
+	delete button;
+	button = nullptr;
 }
 
 } // namespace phonometrica

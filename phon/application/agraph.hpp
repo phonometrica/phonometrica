@@ -179,6 +179,8 @@ struct Layer // ref-counted
 
     event_iterator find_event(double time);
 
+    std::shared_ptr<Layer> duplicate(intptr_t new_index);
+
 private:
 
 	friend class AGraph;
@@ -258,6 +260,8 @@ public:
     void add_anchor(intptr_t layer_index, double time);
 
     void remove_anchor(intptr_t layer_index, double time);
+
+	void duplicate_layer(intptr_t index, intptr_t new_index);
 
 private:
 

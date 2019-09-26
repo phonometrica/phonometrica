@@ -77,6 +77,10 @@ private slots:
 
     void clearLayer(bool);
 
+    void renameLayer(bool);
+
+    void duplicateLayer(bool);
+
     void setAddAnchorEnabled(bool checked);
 
     void setRemoveAnchorEnabled(bool checked);
@@ -90,6 +94,8 @@ private:
 	int widgetIndex(int layer_index);
 
 	int getFocusedLayer() const;
+
+	void updateLayerInfo();
 
 	LayerWidget * addAnnotationLayer(intptr_t i);
 
