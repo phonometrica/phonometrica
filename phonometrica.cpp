@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
         MainWindow win(rt);
         auto version = utils::get_version();
 
-        app.setOrganizationDomain("phonometrica.github.io");
+        app.setOrganizationDomain("phonometrica-ling.org");
         app.setApplicationName("Phonometrica");
         app.setApplicationVersion(version.data());
 

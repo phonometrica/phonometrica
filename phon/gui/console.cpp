@@ -124,6 +124,7 @@ void Console::printError(const QString &msg)
 {
     QString error = QString("<b><font color=\"red\">") + msg + String("</font></b>");
     appendHtml(error);
+    setPrompt();
 }
 
 void Console::keyPressEvent(QKeyEvent *e)

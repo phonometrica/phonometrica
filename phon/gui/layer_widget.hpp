@@ -71,6 +71,8 @@ public:
 
 	void removeInfoButton();
 
+	void clearGhostAnchor() { ghost_anchor_time = -1; }
+
 signals:
 
     void got_focus(intptr_t i);
@@ -93,11 +95,15 @@ signals:
 
     void anchor_removed(bool);
 
+    void anchor_selected(intptr_t layer, double time);
+
 public slots:
 
     void setWindow(double start_time, double end_time);
 
 	void setAnchorSharing(bool value);
+
+	void setGhostAnchorTime(double time);
 
 protected:
 
@@ -157,13 +163,19 @@ private:
 
     double timeAtCursor(QMouseEvent *e) const;
 
-    bool createAnchor(double time);
+    void createAnchor(double time);
 
     bool removeAnchor(double time);
 
 	void updateUi();
 
 	void setButtonIcon();
+
+	void clearEditAnchor() { edit_anchor_time = -1; }
+
+	bool hasEditAnchor() const { return edit_anchor_time >= 0; }
+
+	bool hasGhostAnchor() const { return ghost_anchor_time >= 0; }
 
 	// Metadata button displayed in the y axis.
     QPushButton *button;
@@ -198,8 +210,12 @@ private:
     // When an anchor is moved on another layer, we track it
     double moving_anchor_time = -1;
 
-    // When an anchor is being added, we track its time so that we can display a "ghost" anchor.
+    // When an anchor is being added, we track its time so that we can display a temporary anchor under the cursor.
     double edit_anchor_time = -1;
+
+    // A "ghost" anchor is displayed when we are in anchor adding mode, and an anchor has been clicked or added.
+    // Ghost anchors are displayed on all layers which don't have a real anchor at that time point.
+    double ghost_anchor_time = -1;
 
     // Which edge of the selected event was clicked? For instants, this is always the end.
     bool event_start_selected = false;

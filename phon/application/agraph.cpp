@@ -197,6 +197,11 @@ std::shared_ptr<Layer> Layer::duplicate(intptr_t new_index)
 	return new_layer;
 }
 
+bool Layer::validate(Layer::event_iterator it) const
+{
+	return it != events.end();
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -848,6 +853,16 @@ void AGraph::duplicate_layer(intptr_t index, intptr_t new_index)
 		m_layers[i]->index = i;
 	}
 	set_modified(true);
+}
+
+bool AGraph::anchor_exists(intptr_t layer_index, double time)
+{
+	auto it = get_anchor_iter(time);
+	if (it == m_anchors.end()) {
+		return false;
+	}
+
+	return (*it)->exists(layer_index);
 }
 
 } // namespace phonometrica

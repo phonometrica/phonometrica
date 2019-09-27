@@ -23,7 +23,7 @@ Phonometrica is a free, open-source software toolbox for the analysis of speech 
    * Scripting engine: Phonometrica can be configured and extended with an easy-to-use scripting language.
 
 Phonometrica runs on all major platforms (Windows, macOS and GNU/Linux) and is freely available under the terms of the CECILL license (version 2.1).
-The latest version of Phonometrica can be downloaded from https://phonometrica.github.io. If you encounter any problem or bug, please write to the authors.
+The latest version of Phonometrica can be downloaded from http://www.phonometrica-ling.org. If you encounter any problem or bug, please write to the authors.
 
 
 .. figure:: img/main_window.png
@@ -74,5 +74,5 @@ How to cite?
 
 To cite Phonometrica, you can use the following citation:
 
-.. [EYC2019] Eychenne, Julien & Léa Courdès-Murphy (2019). Phonometrica: an open-source platform for phonometrics [Computer program]. Version |release|, retrieved |today| from http://phonometrica.github.io
+.. [EYC2019] Eychenne, Julien & Léa Courdès-Murphy (2019). Phonometrica: an open-source platform for phonometrics [Computer program]. Version |release|, retrieved |today| from http://www.phonometrica-ling.org
 

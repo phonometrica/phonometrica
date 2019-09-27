@@ -1,6 +1,15 @@
 Release notes
 -------------
 
+0.5.0 (??/09/2019)
+~~~~~~~~~~~~~~~~~~
+
+-  new website at http://www.phonometrica-ling.org
+-  fix initialization on Windows when the user's directory contains non-ASCII characters
+-  create and edit annotations
+-  scripting API to access the content of annotations
+
+
 0.4.1 (21/09/2019)
 ~~~~~~~~~~~~~~~~~~
 

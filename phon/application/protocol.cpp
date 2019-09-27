@@ -43,7 +43,7 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 
 	it = js.find("name");
 	if (it == js.end()) {
-		throw error("Protocol % has no \"name\" key", path);
+		throw error("Protocol has no \"name\" key");
 	}
 	m_name = it->get<std::string>();
 
@@ -76,7 +76,7 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 	if (!m_layer_pattern.empty() || m_layer_field != 0) m_layer_index = -1;
 	// Sanity check.
 	if (m_layer_pattern.empty() && layer_index() < 0) {
-		throw error("Invalid negative layer index in protocol %", path);
+		throw error("Invalid negative layer index");
 	}
 
 	it = js.find("case_sensitive");
@@ -91,12 +91,12 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 
 	it = js.find("fields");
 	if (it == js.end()) {
-		throw error("Protocol % has no fields", path);
+		throw error("Protocol has no fields");
 	}
 
 	json fields = *it;
 	if (!fields.is_array()) {
-		throw error("\"fields\" must be an array in protocol %", path);
+		throw error("\"fields\" must be an array");
 	}
 	int f = 0; // for error reporting
 	for (auto field : fields)
@@ -105,7 +105,7 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 		SearchField search_field;
 
 		if (!field.is_object()) {
-			throw error("Field % is not an object in protocol %", f, path);
+			throw error("Field % is not an object", f);
 		}
 
 		it = field.find("name"); // can be anonymous
@@ -115,7 +115,7 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 
 		it = field.find("match_all"); // can be empty
 		if (it == field.end()) {
-			throw error("Field % has no \"match_all\" key in protocol %", f, path);
+			throw error("Field % has no \"match_all\" key", f);
 		}
 		search_field.match_all = it->get<std::string>();
 
@@ -123,19 +123,18 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 		it = field.find("layer_pattern");
 		if (it != field.end()) {
 			if (f != m_layer_selecting_field) {
-				throw error("Key \"layer_pattern\" can only be found in layer-selecting field in protocol %",
-						path);
+				throw error("Key \"layer_pattern\" can only be found in layer-selecting field");
 			}
 			search_field.layer_pattern = it->get<std::string>();
 		}
 
 		it = field.find("values");
 		if (it == field.end()) {
-			throw error("Field % has no values in protocol %", f, path);
+			throw error("Field % has no values", f);
 		}
 		json values = *it;
 		if (!values.is_array()) {
-			throw error("\"values\" must be an array in field % in protocol %", f, path);
+			throw error("\"values\" must be an array in field %", f);
 		}
 
 		for (auto value : values)
@@ -144,13 +143,13 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 
 			it = value.find("match");
 			if (it == value.end()) {
-				throw error("Value has no \"match\" key in field % in protocol %", f, path);
+				throw error("Value has no \"match\" key in field %", f);
 			}
 			search_value.match = it->get<std::string>();
 
 			it = value.find("text");
 			if (it == value.end()) {
-				throw error("Value has no \"text\" key in field % in protocol %", f, path);
+				throw error("Value has no \"text\" key in field %", f);
 			}
 			search_value.text = it->get<std::string>();
 
@@ -158,7 +157,7 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 			{
 				it = value.find("layer_name");
 				if (it == value.end()) {
-					throw error("Value has no \"layer_name\" key in field % in protocol %", f, path);
+					throw error("Value has no \"layer_name\" key in field %", f);
 				}
 				search_value.layer_name = it->get<std::string>();
 			}
@@ -169,7 +168,7 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 				String choices = it->get<std::string>();
 				auto it2 = value.find("display");
 				if (it2 == value.end()) {
-					throw error("Field % has choices but no \"display\" key in protocol %", f, path);
+					throw error("Field % has choices but no \"display\" key", f);
 				}
 				String display = it->get<std::string>();
 
@@ -177,7 +176,7 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 				auto display_items = display.split("|");
 
 				if (choice_items.size() != display_items.size()) {
-					throw error("Inconsistent number of choice and display items in field % in protocol %", f, path);
+					throw error("Inconsistent number of choice and display items in field %", f);
 				}
 
 				for (intptr_t i = 1; i <= choice_items.size(); i++) {

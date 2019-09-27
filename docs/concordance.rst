@@ -12,9 +12,9 @@ Simple queries
 --------------
 
 
-To run a new query, click on ``Query > New query...`` or use
+To run a new query, click on ``Edit > Edit new query...`` or use
 the shortcut ``alt+Q``. This will open a new
-search window, which lets you search through all the annotations in your corpus . 
+search window, which lets you search through all the annotations in your corpus. 
 
 The Files box
 ~~~~~~~~~~~~~

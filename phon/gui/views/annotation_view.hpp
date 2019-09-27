@@ -89,6 +89,8 @@ private slots:
 
     void notifyAnchorRemoved();
 
+    void onAnchorSelected(intptr_t layer_index, double time);
+
 private:
 
 	int widgetIndex(int layer_index);
@@ -96,6 +98,8 @@ private:
 	int getFocusedLayer() const;
 
 	void updateLayerInfo();
+
+	void clearGhostAnchors();
 
 	LayerWidget * addAnnotationLayer(intptr_t i);
 

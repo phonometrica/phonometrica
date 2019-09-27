@@ -76,6 +76,7 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	link_button->setCheckable(true);
 	link_button->setChecked(false);
 	link_button->setToolTip("Share/unshare anchors");
+	link_button->setEnabled(false);
     add_anchor_action = new QAction(QIcon(":/icons/anchor.png"), "Add anchor");
 	remove_anchor_action = new QAction(QIcon(":/icons/delete.png"), "Remove anchor");
 	add_anchor_action->setCheckable(true);
@@ -146,6 +147,7 @@ LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 	connect(link_button, &QToolButton::clicked, layer, &LayerWidget::setAnchorSharing);
 	connect(layer, &LayerWidget::anchor_added, this, &AnnotationView::notifyAnchorAdded);
 	connect(layer, &LayerWidget::anchor_removed, this, &AnnotationView::notifyAnchorRemoved);
+	connect(layer, &LayerWidget::anchor_selected, this, &AnnotationView::onAnchorSelected);
 
 	return layer;
 }
@@ -429,6 +431,10 @@ void AnnotationView::setAddAnchorEnabled(bool checked)
 		remove_anchor_action->setChecked(false);
 		setRemoveAnchorEnabled(false);
 	}
+	else
+	{
+		clearGhostAnchors();
+	}
 
 	for (auto &layer : layers) {
 		layer->setAddingAnchor(checked);
@@ -444,6 +450,7 @@ void AnnotationView::setRemoveAnchorEnabled(bool checked)
 	{
 		add_anchor_action->setChecked(false);
 		setAddAnchorEnabled(false);
+		clearGhostAnchors();
 	}
 
 	for (auto &layer : layers) {
@@ -471,6 +478,25 @@ void AnnotationView::updateLayerInfo()
 	for (auto layer : layers)
 	{
 		layer->updateInfo();
+	}
+}
+
+void AnnotationView::onAnchorSelected(intptr_t layer_index, double time)
+{
+	for (intptr_t i = 1; i <= layers.size(); i++)
+	{
+		if (i != layer_index) {
+			layers[i]->setGhostAnchorTime(time);
+		}
+	}
+}
+
+void AnnotationView::clearGhostAnchors()
+{
+	for (auto layer : layers)
+	{
+		layer->clearGhostAnchor();
+		layer->repaint();
 	}
 }
 

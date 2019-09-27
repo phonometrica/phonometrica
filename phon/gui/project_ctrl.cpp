@@ -267,9 +267,18 @@ void ProjectCtrl::rowsInserted(const QModelIndex &parent, int start, int end)
     {
         auto mv = std::move(mv_buffer.back());
         mv_buffer.pop();
-        mv->new_parent = itemFromIndex(parent);
-        mv->new_pos = start;
-        drop_queue.push(std::move(mv));
+        // TODO: fix null pointer when files are moved to a new (?) directory.
+        if (mv)
+        {
+	        mv->new_parent = itemFromIndex(parent);
+	        mv->new_pos = start;
+	        drop_queue.push(std::move(mv));
+        }
+        else
+        {
+        	QMessageBox msg(QMessageBox::Critical, tr("Internal error"),
+        			tr("Files could not be moved because of an internal bug. Please report this error."));
+        }
     }
 }
 

@@ -179,6 +179,8 @@ struct Layer // ref-counted
 
     event_iterator find_event(double time);
 
+    bool validate(event_iterator it) const;
+
     std::shared_ptr<Layer> duplicate(intptr_t new_index);
 
 private:
@@ -262,6 +264,8 @@ public:
     void remove_anchor(intptr_t layer_index, double time);
 
 	void duplicate_layer(intptr_t index, intptr_t new_index);
+
+	bool anchor_exists(intptr_t layer_index, double time);
 
 private:
 

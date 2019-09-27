@@ -217,14 +217,47 @@ void LayerWidget::paintEvent(QPaintEvent *e)
         painter.drawLine(0, height(), width(), height());
     }
 
-    // Paint "ghost" anchor which might get added if the user clicks on the layer.
-    if (adding_anchor && edit_anchor_time >= 0)
+	// Ghost anchor.
+	if (adding_anchor && hasGhostAnchor())
+	{
+		auto pen = painter.pen();
+		pen.setWidth(1);
+		pen.setColor(Qt::gray);
+		pen.setStyle(Qt::DotLine);
+		painter.setPen(pen);
+		drawAnchor(painter, ghost_anchor_time, has_instants());
+	}
+
+	// Paint temporary anchor which might get added if the user clicks on the layer.
+    if (adding_anchor && hasEditAnchor())
     {
-	    auto pen = painter.pen();
-	    pen.setWidth(3);
-	    pen.setColor(Qt::red);
-	    painter.setPen(pen);
-		drawAnchor(painter, edit_anchor_time, has_instants());
+    	auto it = layer->find_event(edit_anchor_time);
+		bool ok = layer->validate(it);
+    	// First try to find an existing anchor that is being hovered.
+    	if (ok && anchorHasCursor((*it)->start_time(), edit_anchor_time))
+	    {
+    		setCursor(Qt::PointingHandCursor);
+	    }
+    	else if (ok && (*it)->is_interval() && anchorHasCursor((*it)->end_time(), edit_anchor_time))
+	    {
+    		setCursor(Qt::PointingHandCursor);
+	    }
+    	// Next, do we have a ghost anchor?
+    	else if (anchorHasCursor(ghost_anchor_time, edit_anchor_time))
+	    {
+    		setCursor(Qt::PointingHandCursor);
+	    }
+    	// Then, display a temporary anchor.
+	    else
+	    {
+	    	setCursor(Qt::ArrowCursor);
+		    auto pen = painter.pen();
+		    pen.setWidth(3);
+		    pen.setColor(Qt::red);
+		    pen.setStyle(Qt::SolidLine);
+		    painter.setPen(pen);
+		    drawAnchor(painter, edit_anchor_time, has_instants());
+	    }
     }
 
     QWidget::paintEvent(e);
@@ -233,13 +266,13 @@ void LayerWidget::paintEvent(QPaintEvent *e)
 void LayerWidget::setAddingAnchor(bool value)
 {
 	SpeechWidget::setAddingAnchor(value);
-	edit_anchor_time = -1;
+	clearEditAnchor();
 }
 
 void LayerWidget::setRemovingAnchor(bool value)
 {
 	SpeechWidget::setRemovingAnchor(value);
-	edit_anchor_time = -1;
+	clearEditAnchor();
 }
 
 void LayerWidget::mousePressEvent(QMouseEvent *e)
@@ -247,11 +280,30 @@ void LayerWidget::mousePressEvent(QMouseEvent *e)
 	if (adding_anchor)
 	{
 		auto t = timeAtCursor(e);
-		if (createAnchor(t))
+
+		if (hasGhostAnchor() && anchorHasCursor(ghost_anchor_time, t))
 		{
-			edit_anchor_time = -1;
-			clearResizingEvent();
-			//emit anchor_added(false);
+			createAnchor(t);
+		}
+		else
+		{
+			// If the user clicks on an existing anchor in editing mode, create a ghost anchor on the other layers.
+			auto it = layer->find_event(t);
+			bool ok = layer->validate(it);
+
+			if (ok && anchorHasCursor((*it)->start_time(), t))
+			{
+				emit anchor_selected(layer->index, (*it)->start_time());
+			}
+			else if (ok && (*it)->is_interval() && anchorHasCursor((*it)->end_time(), t))
+			{
+				emit anchor_selected(layer->index, (*it)->end_time());
+			}
+			else
+			{
+				// No anchor found: create a new one.
+				createAnchor(t);
+			}
 		}
 	}
 	else if (removing_anchor)
@@ -259,9 +311,9 @@ void LayerWidget::mousePressEvent(QMouseEvent *e)
 		auto t = timeAtCursor(e);
 		if (removeAnchor(t))
 		{
-			edit_anchor_time = -1;
+			clearGhostAnchor();
+			clearEditAnchor();
 			clearResizingEvent();
-			//emit anchor_removed(false);
 		}
 	}
 	else
@@ -709,22 +761,22 @@ void LayerWidget::leaveEvent(QEvent *event)
 	QWidget::leaveEvent(event);
 }
 
-bool LayerWidget::createAnchor(double time)
+void LayerWidget::createAnchor(double time)
 {
 	try
 	{
 		graph.add_anchor(layer->index, time);
+		clearEditAnchor();
+		clearGhostAnchor();
+		clearResizingEvent();
 		updateUi();
-
-		return true;
+		emit anchor_selected(layer->index, time);
 	}
 	catch (std::exception &e)
 	{
 		QMessageBox msg(QMessageBox::Critical, tr("Cannot add anchor"), e.what());
 		msg.exec();
 	}
-
-	return false;
 }
 
 bool LayerWidget::removeAnchor(double time)
@@ -783,6 +835,19 @@ void LayerWidget::removeInfoButton()
 	// Note: we can't put this in the destructor because the button is not owned by the widget.
 	delete button;
 	button = nullptr;
+}
+
+void LayerWidget::setGhostAnchorTime(double time)
+{
+	if (graph.anchor_exists(layer->index, time))
+	{
+		clearGhostAnchor();
+	}
+	else
+	{
+		ghost_anchor_time = time;
+	}
+	repaint();
 }
 
 } // namespace phonometrica

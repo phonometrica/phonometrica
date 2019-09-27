@@ -176,16 +176,25 @@ void Plugin::parse_protocols(Plugin::Callback &callback)
 		for (auto &name : filesystem::list_directory(protocol_directory))
 		{
 			auto path = filesystem::join(protocol_directory, name);
-			auto protocol = std::make_shared<Protocol>(runtime, path);
-			String label = protocol->name();
 
-			if (!has_separator)
+			try
 			{
-				callback(String(), String(), String());
-				has_separator = true;
+				auto protocol = std::make_shared<Protocol>(runtime, path);
+				String label = protocol->name();
+
+				if (!has_separator)
+				{
+					callback(String(), String(), String());
+					has_separator = true;
+				}
+				callback(label, protocol, String());
+				m_protocols.append(std::move(protocol));
 			}
-			callback(label, protocol, String());
-			m_protocols.append(std::move(protocol));
+			catch (std::exception &e)
+			{
+				auto msg = utils::format("Error in protocol %: %", path, e.what());
+				throw error(msg);
+			}
 		}
 	}
 }
