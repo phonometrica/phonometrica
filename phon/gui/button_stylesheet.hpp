@@ -15,6 +15,14 @@ static const char *flat_button_stylesheet = R"__(
             border-right: 3px transparent;
             border-left: 3px transparent;
         ); }
+
+	QToolButton:checked{
+			background-color: rgb(186, 184, 179);
+			border-top: 3px transparent;
+            border-bottom: 3px transparent;
+            border-right: 3px transparent;
+            border-left: 3px transparent;
+	}
 )__";
 
 }
