@@ -34,9 +34,6 @@
 #include <phon/utils/file_system.hpp>
 #include <phon/utils/text.hpp>
 #include <phon/runtime/object.hpp>
-#include "project.hpp"
-#include "spreadsheet.hpp"
-
 
 namespace phonometrica {
 
@@ -378,6 +375,7 @@ void Project::parse_scripts(xml_node root, VFolder *folder)
 				auto script = std::make_shared<Script>(folder, std::move(path));
 				script->from_xml(node, m_directory);
 				folder->append(script, false);
+				register_file(script->path(), script);
 				trigger(script_loaded, script->class_name(), script);
 			}
 			else
@@ -420,6 +418,7 @@ void Project::parse_data(xml_node root, VFolder *folder)
 				auto dataset = std::make_shared<Spreadsheet>(folder, std::move(path));
 				dataset->from_xml(node, m_directory);
 				folder->append(dataset, false);
+				register_file(dataset->path(), dataset);
 				trigger(dataset_loaded, dataset->class_name(), dataset);
 			}
 			else
@@ -910,7 +909,7 @@ void Project::initialize(Runtime &rt)
         rt.push_null();
     };
 
-    auto get_annotations = [&](Runtime &rt) {
+    auto get_annotations = [](Runtime &rt) {
     	Array<Variant> result;
     	auto &files = Project::instance()->m_files;
     	for (auto &pair : files)
@@ -925,6 +924,20 @@ void Project::initialize(Runtime &rt)
     	rt.push(std::move(result));
     };
 
+    auto get_annotation = [](Runtime &rt) {
+    	auto path = rt.to_string(1);
+
+    	for (auto &pair : Project::instance()->m_files)
+	    {
+    		if (pair.second->is_annotation() && pair.first == path)
+    		{
+			    rt.new_user_data(Annotation::meta(), "Annotation", downcast<Annotation>(pair.second));
+    			return;
+    		}
+	    }
+    	rt.push_null();
+    };
+
     auto is_empty = [](Runtime &rt) {
         rt.push_boolean(Project::instance()->empty());
     };
@@ -935,9 +948,16 @@ void Project::initialize(Runtime &rt)
     	rt.push_null();
     };
 
+    auto export_metadata = [](Runtime &rt) {
+    	auto path = rt.to_string(1);
+    	Project::instance()->export_metadata(path);
+    	rt.push_null();
+    };
+
 	rt.get_global("phon");
 	{
 		rt.add_method("get_annotations", get_annotations, 0);
+		rt.add_method("get_annotation", get_annotation, 1);
 
         rt.push(new Object(rt, PHON_COBJECT, rt.object_meta));
         {
@@ -950,6 +970,7 @@ void Project::initialize(Runtime &rt)
             rt.add_method("save", save_project, 0);
             rt.add_method("is_empty", is_empty, 0);
             rt.add_method("import_metadata", import_metadata, 1);
+            rt.add_method("export_metadata", export_metadata, 1);
         }
         rt.set_field(-2, "project");
 	}
@@ -1122,6 +1143,65 @@ void Project::import_metadata(const String &path)
 
 	bind_annotations();
 	emit metadata_updated();
+}
+
+void Project::export_metadata(const String &path)
+{
+	auto paths = m_files.keys();
+	std::sort(paths.begin(), paths.end());
+	auto &categories = Property::get_categories();
+	Array<Array<String>> csv;
+	Array<String> header;
+	header.append("File");
+	header.append("%SOUND%");
+	header.append("%DESCRIPTION%");
+
+	for (auto cat : categories)
+	{
+		auto &type = Property::get_type(cat);
+		if (type == typeid(double)) {
+			cat.append(".num");
+		}
+		else if (type == typeid(bool)) {
+			cat.append(".bool");
+		}
+
+		header.append(std::move(cat));
+	}
+	csv.append(std::move(header));
+
+	for (auto &filename : paths)
+	{
+		auto file = m_files[filename];
+		Array<String> row;
+		row.append(file->path());
+		if (file->is_annotation())
+		{
+			auto annot = dynamic_cast<Annotation*>(file.get());
+			auto snd = annot->has_sound() ? annot->sound()->path() : String();
+			row.append(std::move(snd));
+		}
+		else
+		{
+			row.append(String());
+		}
+		row.append(file->description());
+
+		for (auto &cat : categories)
+		{
+			auto prop = file->get_property(cat);
+			if (prop.valid()) {
+				row.append(prop.value());
+			}
+			else {
+				row.append(String());
+			}
+		}
+
+		csv.append(std::move(row));
+	}
+
+	utils::write_csv(path, csv, "\t");
 }
 
 void Project::tag_file(std::shared_ptr<VFile> &file, const String &category, const String &value)

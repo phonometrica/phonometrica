@@ -1,5 +1,5 @@
-Concordance
-===========
+Queries
+=======
 
 
 Phonometrica offers a number of features to find concordances in a corpus. It

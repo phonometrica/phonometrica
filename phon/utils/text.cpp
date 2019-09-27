@@ -63,6 +63,17 @@ Array<Array<String>> parse_csv(const String &path, std::string_view splitter)
 	return csv;
 }
 
+void write_csv(const String &path, const Array<Array<String>> &csv, std::string_view separator)
+{
+	File outfile(path, File::Write);
+
+	for (auto &ln : csv)
+	{
+		outfile.write(String::join(ln, separator));
+		outfile.write('\n');
+	}
+}
+
 String matrix_to_csv(const Array<double> &matrix, std::string_view sep)
 {
 	assert(matrix.ndim() == 2);

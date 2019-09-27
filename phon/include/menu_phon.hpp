@@ -84,6 +84,17 @@ function import_metadata()
 	end
 end
 
+function export_metadata()
+	if (phon.project.is_empty()) then
+		phon.alert("Cannot export metadata: project is empty")
+		return
+	end
+	var path = phon.save_file_dialog("Export metadata to CSV file...", "CSV (*.csv)")
+	if path then
+		phon.project.export_metadata(path)
+	end
+end
+
 phon.open_project = function()
 	var path = phon.open_file_dialog("Open Phonometrica project", "Project (*.phon-project)")
 	if path then
@@ -175,8 +186,9 @@ function show_about()
 	var msg = "<b>Phonometrica " + phon.version + "</b><br/>\n" 
 		+ "Copyright (C) 2019 Julien Eychenne & Léa Courdès-Murphy<br/>" 
 		+ "Phonometrica is distributed under the CECILL license version 2.1.<br/>"
-		+ "See \"License\" for details.<br/><br/>"
-		+ "Icons by <a href=\"https://icons8.com\">Icon8</a>.<br/><br/>"
+		+ "See \"License\" for details.<br/>"
+		+ "Website: <a href=\"http://www.phonometrica-ling.org\">http://www.phonometrica-ling.org</a><br/>"
+		+ "Icons by <a href=\"https://icons8.com\">Icons8</a>.<br/>"
 		+ "Build date: " + phon.date
 	phon.about(title, msg)
 end
@@ -256,6 +268,7 @@ file_menu = [
 	["Settings...", phon.edit_settings],
 	null,
 	["Import metadata from CSV file...", import_metadata],
+	["Export project metadata to CSV file...", export_metadata],
 	null,
 	["Close current view", phon.close_current_view, "ctrl+w"],
 	null,

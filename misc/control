@@ -1,8 +1,8 @@
 Maintainer: Julien Eychenne <jeychenne@gmail.com>
 Architecture: amd64
-Version: 0.4.1
+Version: 0.5.0
 Section: science
-HomePage: <http://phonometrica.github.io>
+HomePage: <http://www.phonometrica-ling.org>
 Package: phonometrica
 Depends: libasound2, libsndfile1, libgtk2.0-0, libqt5gui5, libqt5widgets5, fonts-noto-mono
 Description: a platform for the analysis of speech corpora

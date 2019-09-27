@@ -30,6 +30,8 @@
 #include <QQueue>
 #include <QInputDialog>
 #include <QFileDialog>
+#include <QApplication>
+#include <QClipboard>
 #include <QMenu>
 #include <QFileIconProvider>
 #include <phon/gui/project_ctrl.hpp>
@@ -438,6 +440,7 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
                     	nativeToTextGrid(annot);
                     });
                 }
+	            menu.addSeparator();
             }
             else if (file->is_sound())
             {
@@ -461,7 +464,6 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
 	                }
                 });
 
-                menu.addSeparator();
                 auto sound = downcast<Sound>(file);
                 action = new QAction(tr("Create annotation..."), this);
                 menu.addAction(action);
@@ -470,6 +472,15 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
                 	annot->set_sound(sound, false);
                 	emit view_file(annot);
                 });
+
+                menu.addSeparator();
+            }
+            else if (file->is_dataset())
+            {
+ 	            auto action = new QAction(tr("Dataset actions"), this);
+	            action->setEnabled(false);
+	            menu.addAction(action);
+	            menu.addSeparator();
             }
             else if (file->is_script())
             {
@@ -497,6 +508,14 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
                     }
                 });
             }
+
+	        auto clipboard_action = new QAction(tr("Copy path to clipboard"), this);
+	        connect(clipboard_action, &QAction::triggered, [=](bool) {
+		        copyPathToClipboard(file->path());
+	        });
+
+	        menu.addAction(clipboard_action);
+
         }
         else if (vnode->is_folder())
         {
@@ -699,6 +718,12 @@ void ProjectCtrl::askImportFile(const String &path)
 		project->import_file(path);
 		emit project->notify_update();
 	}
+}
+
+void ProjectCtrl::copyPathToClipboard(const String &path)
+{
+	auto clipboard = QApplication::clipboard();
+	clipboard->setText(path);
 }
 
 } // phonometrica

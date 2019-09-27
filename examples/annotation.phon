@@ -24,7 +24,7 @@ assert(annot.get_property("????") == null) # missing property
 annot.remove_property("Validated")
 
 # Get number of layers in annotation
-print("Number of layers: " + annot.get_layer_count())
+print("Number of layers: " + annot.layer_count)
 
 # Query events events
 var layer = 1

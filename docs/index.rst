@@ -13,28 +13,31 @@ Phonometrica
 Overview
 ========
 
-Phonometrica is a free, open-source software toolbox for the analysis of speech data. It offers a user-friendly interface to manage, annotate and query language corpora. It is particularly well suited for dealing with time-aligned data. The main features it offers are:
+Phonometrica is a free, open-source software platform for the annotation and analysis of speech corpora.
+It offers a user-friendly interface to manage, annotate and query language corpora.
+It is particularly well suited for dealing with time-aligned data. The main features it offers are:
 
    * Project management: organize files into projects.
-   * Extensible metadata: files can be annotated with properties, which allow you to sort and organize your data.
-   * Interaction with Praat: Phonometrica can read and write TextGrid files and open files directly in Praat.
-   * Powerful search engine: build and save complex queries; search patterns across layers.
+   * Sound visualization and annotation: visualize and annotate speech sounds on multiple layers
+   * Extensible metadata: annotate files with properties, which allow you to sort and organize your corpus.
+   * Queries: build and save simple or complex queries; search strings or patterns across layers.
+   * Scripting engine: Phonometrica can be configured and extended with an easy-to-use scripting language and JSON files.
    * Standard-based: Phonometrica files are encoded in XML and Unicode.
-   * Scripting engine: Phonometrica can be configured and extended with an easy-to-use scripting language.
+   * Interaction with Praat: Phonometrica can read and write TextGrid files and open files directly in Praat.
 
 Phonometrica runs on all major platforms (Windows, macOS and GNU/Linux) and is freely available under the terms of the CECILL license (version 2.1).
-The latest version of Phonometrica can be downloaded from http://www.phonometrica-ling.org. If you encounter any problem or bug, please write to the authors.
+The latest version can be downloaded from http://www.phonometrica-ling.org. If you encounter any problem or bug, please write to the authors.
 
+**Note: Phonometrica is currently under development: the documentation is a still incomplete and some things might change before version 1.0 is released.**
 
 .. figure:: img/main_window.png
-
 
 
 Download
 ========
 
-Phonometrica 0.5.0
-------------------
+Phonometrica 0.5.0 (preview)
+----------------------------
 
 -  Windows 7 and later:
    `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.5.0/setup_phonometrica.exe>`__
@@ -46,8 +49,6 @@ Phonometrica 0.5.0
   
 Manual
 ------
-
-**Note: Phonometrica is currently under development and the documentation is a work in progress...**
 
 Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.5.0/phonometrica_manual.pdf>`_ file.
 
@@ -61,7 +62,7 @@ Topics
    intro/install
    intro/start
    annotation
-   concordance
+   query
    scripting/index
    scripting/plugins
    License <about/license>

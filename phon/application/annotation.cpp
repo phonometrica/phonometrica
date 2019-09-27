@@ -320,6 +320,7 @@ void Annotation::initialize(Runtime &rt)
     rt.push(metaobject);
     {
         rt.add_accessor("path", annot_path);
+	    rt.add_accessor("layer_count", get_layer_count);
         rt.add_method("Annotation.meta.add_property", add_property, 2);
 	    rt.add_method("Annotation.meta.remove_property", remove_property, 2);
 	    rt.add_method("Annotation.meta.get_property", get_property, 2);
@@ -328,7 +329,6 @@ void Annotation::initialize(Runtime &rt)
 	    rt.add_method("Annotation.meta.get_event_end", get_event_end, 3);
 	    rt.add_method("Annotation.meta.get_event_text", get_event_text, 3);
 	    rt.add_method("Annotation.meta.set_event_text", set_event_text, 4);
-	    rt.add_method("Annotation.meta.get_layer_count", get_layer_count, 1);
 	    rt.add_method("Annotation.meta.get_event_count", get_event_count, 2);
     }
     rt.new_native_constructor(new_annot, new_annot, "Annotation", 1);

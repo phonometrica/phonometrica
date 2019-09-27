@@ -35,6 +35,8 @@ namespace phonometrica { namespace utils {
 
 Array<Array<String>> parse_csv(const String &path, std::string_view splitter = ",");
 
+void write_csv(const String &path, const Array<Array<String>> &csv, std::string_view separator = ",");
+
 String matrix_to_csv(const Array<double> &matrix, std::string_view sep = ",");
 
 }} // namespace phonometrica::utils

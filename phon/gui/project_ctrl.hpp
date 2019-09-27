@@ -104,6 +104,8 @@ private:
 
     void askImportFile(const String &path);
 
+    static void copyPathToClipboard(const String &path);
+
     Runtime &rt;
 
     QTreeWidgetItem *corpus,*data, *queries, *scripts, *bookmarks;

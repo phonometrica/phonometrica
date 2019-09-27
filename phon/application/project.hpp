@@ -131,6 +131,8 @@ public:
 
     void import_metadata(const String &path);
 
+    void export_metadata(const String &path);
+
     bool empty() const;
 
     Array<AutoAnnotation> annotations() const;
