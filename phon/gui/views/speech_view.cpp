@@ -164,6 +164,7 @@ Toolbar *SpeechView::makeToolbar()
     connect(action_pitch_settings, &QAction::triggered, this, &SpeechView::changePitchSettings);
     connect(action_enable_intensity, &QAction::triggered, this, &SpeechView::showIntensity);
     connect(waveform, &SpeechPlot::windowHasChanged, this, &SpeechView::setWindowTimes);
+    connect(doc, &QAction::triggered, this, &SpeechView::showDocumentation);
 
     return toolbar;
 }
@@ -476,6 +477,14 @@ void SpeechView::clearLayout(QLayout *layout)
 		}
 		delete item;
 	}
+}
+
+void SpeechView::showDocumentation(bool)
+{
+	runtime.do_string(R"__(
+		var page = phon.config.get_documentation_page("annotation.html")
+		phon.show_documentation(page)
+		)__");
 }
 
 } // namespace phonometrica

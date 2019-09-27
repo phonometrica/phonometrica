@@ -76,7 +76,6 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	link_button->setCheckable(true);
 	link_button->setChecked(false);
 	link_button->setToolTip("Share/unshare anchors");
-	link_button->setEnabled(false);
     add_anchor_action = new QAction(QIcon(":/icons/anchor.png"), "Add anchor");
 	remove_anchor_action = new QAction(QIcon(":/icons/delete.png"), "Remove anchor");
 	add_anchor_action->setCheckable(true);
@@ -103,6 +102,7 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
     	else {
     		link_button->setIcon(link_icon);
     	}
+    	setAnchorSharing(!checked);
     });
 }
 
@@ -147,7 +147,11 @@ LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 	connect(link_button, &QToolButton::clicked, layer, &LayerWidget::setAnchorSharing);
 	connect(layer, &LayerWidget::anchor_added, this, &AnnotationView::notifyAnchorAdded);
 	connect(layer, &LayerWidget::anchor_removed, this, &AnnotationView::notifyAnchorRemoved);
+	connect(layer, &LayerWidget::anchor_moved, this, &AnnotationView::notifyAnchorMoved);
 	connect(layer, &LayerWidget::anchor_selected, this, &AnnotationView::onAnchorSelected);
+	connect(layer, &LayerWidget::editing_shared_anchor, this, &AnnotationView::onEditAnchor);
+	connect(layer, &LayerWidget::editing_shared_anchor, this, &AnnotationView::setMovingAnchor);
+	connect(layer, &LayerWidget::temporary_anchor, this, &AnnotationView::setTemporaryAnchor);
 
 	return layer;
 }
@@ -461,16 +465,46 @@ void AnnotationView::setRemoveAnchorEnabled(bool checked)
 	}
 }
 
-void AnnotationView::notifyAnchorAdded()
+void AnnotationView::notifyAnchorAdded(intptr_t layer_index, double time)
 {
-	add_anchor_action->setChecked(false);
-	setAddAnchorEnabled(false);
+	bool instants = layers[layer_index]->hasInstants();
+
+	for (intptr_t i = 1; i <= layers.size(); i++)
+	{
+		if (i != layer_index)
+		{
+			auto layer = layers[i];
+			if (layer->hasInstants() == instants) layer->createAnchor(time, true);
+		}
+	}
 }
 
-void AnnotationView::notifyAnchorRemoved()
+void AnnotationView::notifyAnchorRemoved(intptr_t layer_index, double time)
 {
-	remove_anchor_action->setChecked(false);
-	setRemoveAnchorEnabled(false);
+	bool instants = layers[layer_index]->hasInstants();
+
+	for (intptr_t i = 1; i <= layers.size(); i++)
+	{
+		if (i != layer_index)
+		{
+			auto layer = layers[i];
+			if (layer->hasInstants() == instants) layer->removeAnchor(time, true);
+		}
+	}
+}
+
+void AnnotationView::notifyAnchorMoved(intptr_t layer_index, double from, double to)
+{
+	bool instants = layers[layer_index]->hasInstants();
+
+	for (intptr_t i = 1; i <= layers.size(); i++)
+	{
+		if (i != layer_index)
+		{
+			auto layer = layers[i];
+			if (layer->hasInstants() == instants) layer->moveAnchor(from, to);
+		}
+	}
 }
 
 void AnnotationView::updateLayerInfo()
@@ -496,6 +530,36 @@ void AnnotationView::clearGhostAnchors()
 	for (auto layer : layers)
 	{
 		layer->clearGhostAnchor();
+		layer->repaint();
+	}
+}
+
+void AnnotationView::onEditAnchor(intptr_t layer_index, double time)
+{
+	for (intptr_t i = 1; i <= layers.size(); i++)
+	{
+		if (i != layer_index) {
+			layers[i]->hideAnchor(time);
+		}
+	}
+}
+
+void AnnotationView::setAnchorSharing(bool value)
+{
+	for (auto layer : layers) {
+		layer->setAnchorSharing(value);
+	}
+}
+
+void AnnotationView::setTemporaryAnchor(intptr_t layer_index, double time)
+{
+	auto instants = layers[layer_index]->hasInstants();
+
+	for (intptr_t i = 1; i <= layers.size(); i++)
+	{
+		auto layer = layers[i];
+		auto t = (layer->hasInstants() == instants) ? time : -1;
+		layer->setEditAnchor(t);
 		layer->repaint();
 	}
 }

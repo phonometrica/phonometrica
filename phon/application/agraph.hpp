@@ -134,6 +134,8 @@ public:
 
     void attach(Anchor *left, Anchor *right);
 
+    bool has_anchor(double time) const;
+
 private:
 
     friend class AGraph;
@@ -178,6 +180,8 @@ struct Layer // ref-counted
     void append_event(AutoEvent e) { events.append(std::move(e)); }
 
     event_iterator find_event(double time);
+
+    AutoEvent get_aligned_event(double time, bool start);
 
     bool validate(event_iterator it) const;
 
@@ -259,9 +263,9 @@ public:
 
     void clear_layer(intptr_t index);
 
-    void add_anchor(intptr_t layer_index, double time);
+    void add_anchor(intptr_t layer_index, double time, bool can_exist);
 
-    void remove_anchor(intptr_t layer_index, double time);
+    bool remove_anchor(intptr_t layer_index, double time);
 
 	void duplicate_layer(intptr_t index, intptr_t new_index);
 
@@ -324,12 +328,17 @@ struct EventLess
     }
 };
 
-struct IntervalLessEqual
+struct EventLessEqual
 {
     bool operator()(const std::shared_ptr<Event> &lhs, const std::shared_ptr<Event> &rhs) const
     {
         return lhs->end_time() <= rhs->start_time();
     }
+
+	bool operator()(double lhs, const std::shared_ptr<Event> &rhs) const
+	{
+		return lhs <= rhs->start_time();
+	}
 };
 
 } // namespace phonometrica

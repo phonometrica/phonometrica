@@ -85,11 +85,17 @@ private slots:
 
     void setRemoveAnchorEnabled(bool checked);
 
-    void notifyAnchorAdded();
+    void notifyAnchorAdded(intptr_t layer_index, double time);
 
-    void notifyAnchorRemoved();
+    void notifyAnchorRemoved(intptr_t layer_index, double time);
+
+	void notifyAnchorMoved(intptr_t layer_index, double from, double to);
 
     void onAnchorSelected(intptr_t layer_index, double time);
+
+    void onEditAnchor(intptr_t layer_index, double time);
+
+    void setTemporaryAnchor(intptr_t layer_index, double time);
 
 private:
 
@@ -100,6 +106,8 @@ private:
 	void updateLayerInfo();
 
 	void clearGhostAnchors();
+
+	void setAnchorSharing(bool value);
 
 	LayerWidget * addAnnotationLayer(intptr_t i);
 

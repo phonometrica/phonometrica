@@ -139,7 +139,7 @@ void LayerWidget::paintEvent(QPaintEvent *e)
         }
         else
         {
-            assert(end_time != last_time);
+            //assert(end_time != last_time);
 	        drawAnchor(painter, end_time, false);
             last_time = end_time;
         }
@@ -166,7 +166,8 @@ void LayerWidget::paintEvent(QPaintEvent *e)
     }
 
 	// Paint selected event
-	if (has_focus && selected_event)
+	// FIXME: crash when deleting an aligned event: check that the event is valid
+	if (has_focus && selected_event && selected_event->valid())
 	{
 		if (selected_event->is_instant())
 		{
@@ -199,22 +200,15 @@ void LayerWidget::paintEvent(QPaintEvent *e)
     {
         auto old_pen = painter.pen();
         auto new_pen = old_pen;
-        new_pen.setWidth(1);
+        // If anchors are shared, make the width the same as a regular anchor to indicate that it will be moved too.
+        int w = (sharing_anchors && hidden_anchor_time >= 0) ? 3 : 1;
+        new_pen.setWidth(w);
         new_pen.setColor(Qt::green);
         pen.setStyle(Qt::DotLine);
         painter.setPen(new_pen);
         auto x = timeToXPos(moving_anchor_time);
         painter.drawLine(QPointF(x, 0), QPointF(x, width()));
         painter.setPen(old_pen);
-    }
-
-    if (layer->index < graph.layer_count())
-    {
-        auto pen = painter.pen();
-        pen.setWidth(2);
-        pen.setColor(SpaceLine::lineColor());
-        painter.setPen(pen);
-        painter.drawLine(0, height(), width(), height());
     }
 
 	// Ghost anchor.
@@ -225,29 +219,20 @@ void LayerWidget::paintEvent(QPaintEvent *e)
 		pen.setColor(Qt::gray);
 		pen.setStyle(Qt::DotLine);
 		painter.setPen(pen);
-		drawAnchor(painter, ghost_anchor_time, has_instants());
+		drawAnchor(painter, ghost_anchor_time, hasInstants());
 	}
 
 	// Paint temporary anchor which might get added if the user clicks on the layer.
     if (adding_anchor && hasEditAnchor())
     {
-    	auto it = layer->find_event(edit_anchor_time);
-		bool ok = layer->validate(it);
-    	// First try to find an existing anchor that is being hovered.
-    	if (ok && anchorHasCursor((*it)->start_time(), edit_anchor_time))
+    	double anchor_time = findClosestAnchorTime(edit_anchor_time);
+
+    	// Try to find an existing anchor that is being hovered, or a ghost anchor
+    	if ((anchor_time >= 0) || anchorHasCursor(ghost_anchor_time, edit_anchor_time))
 	    {
     		setCursor(Qt::PointingHandCursor);
 	    }
-    	else if (ok && (*it)->is_interval() && anchorHasCursor((*it)->end_time(), edit_anchor_time))
-	    {
-    		setCursor(Qt::PointingHandCursor);
-	    }
-    	// Next, do we have a ghost anchor?
-    	else if (anchorHasCursor(ghost_anchor_time, edit_anchor_time))
-	    {
-    		setCursor(Qt::PointingHandCursor);
-	    }
-    	// Then, display a temporary anchor.
+    	// Otherwise, display a temporary anchor.
 	    else
 	    {
 	    	setCursor(Qt::ArrowCursor);
@@ -256,9 +241,20 @@ void LayerWidget::paintEvent(QPaintEvent *e)
 		    pen.setColor(Qt::red);
 		    pen.setStyle(Qt::SolidLine);
 		    painter.setPen(pen);
-		    drawAnchor(painter, edit_anchor_time, has_instants());
+		    drawAnchor(painter, edit_anchor_time, hasInstants());
 	    }
     }
+
+    // Paint separator between layers.
+	if (layer->index < graph.layer_count())
+	{
+		auto pen = painter.pen();
+		pen.setWidth(2);
+		pen.setColor(SpaceLine::lineColor());
+		pen.setStyle(Qt::SolidLine);
+		painter.setPen(pen);
+		painter.drawLine(0, height(), width(), height());
+	}
 
     QWidget::paintEvent(e);
 }
@@ -277,39 +273,32 @@ void LayerWidget::setRemovingAnchor(bool value)
 
 void LayerWidget::mousePressEvent(QMouseEvent *e)
 {
+	auto t = timeAtCursor(e);
+
 	if (adding_anchor)
 	{
-		auto t = timeAtCursor(e);
-
 		if (hasGhostAnchor() && anchorHasCursor(ghost_anchor_time, t))
 		{
-			createAnchor(t);
+			createAnchor(ghost_anchor_time, false);
 		}
 		else
 		{
+			double anchor_time = findClosestAnchorTime(t);
 			// If the user clicks on an existing anchor in editing mode, create a ghost anchor on the other layers.
-			auto it = layer->find_event(t);
-			bool ok = layer->validate(it);
-
-			if (ok && anchorHasCursor((*it)->start_time(), t))
+			if (anchor_time >= 0)
 			{
-				emit anchor_selected(layer->index, (*it)->start_time());
-			}
-			else if (ok && (*it)->is_interval() && anchorHasCursor((*it)->end_time(), t))
-			{
-				emit anchor_selected(layer->index, (*it)->end_time());
+				emit anchor_selected(layer->index, anchor_time);
 			}
 			else
 			{
 				// No anchor found: create a new one.
-				createAnchor(t);
+				createAnchor(t, false);
 			}
 		}
 	}
 	else if (removing_anchor)
 	{
-		auto t = timeAtCursor(e);
-		if (removeAnchor(t))
+		if (removeAnchor(t, false))
 		{
 			clearGhostAnchor();
 			clearEditAnchor();
@@ -318,6 +307,16 @@ void LayerWidget::mousePressEvent(QMouseEvent *e)
 	}
 	else
 	{
+		if (sharing_anchors)
+		{
+			// Show lines on the other layers as soon as the mouse is pressed.
+			double anchor_time = findClosestAnchorTime(t);
+
+			if (anchor_time >= 0)
+			{
+				emit editing_shared_anchor(layer->index, anchor_time);
+			}
+		}
 		dragging_anchor = true;
 	}
 }
@@ -327,23 +326,33 @@ void LayerWidget::mouseReleaseEvent(QMouseEvent *e)
     dragging_anchor = false;
 	setCursor(Qt::ArrowCursor);
 
+	if (sharing_anchors) {
+    	emit editing_shared_anchor(layer->index, -1);
+    }
+
     if (hasDroppedAnchor())
     {
         bool ok;
+		double from;
 
         if (event_start_selected)
         {
-            ok = graph.change_start_time(resizing_event, dropped_anchor_time);
+	        from = resizing_event->start_time();
+	        ok = graph.change_start_time(resizing_event, dropped_anchor_time);
         }
         else
         {
+	        from = resizing_event->end_time();
             ok = graph.change_end_time(resizing_event, dropped_anchor_time);
         }
 
         if (ok)
         {
-            emit modified();
             event_cache.clear();
+            if (sharing_anchors) {
+	            emit anchor_moved(layer->index, from, dropped_anchor_time);
+            }
+	        emit modified();
         }
         else
         {
@@ -391,7 +400,7 @@ void LayerWidget::mouseMoveEvent(QMouseEvent *e)
 	}
 	else if (adding_anchor)
 	{
-		edit_anchor_time = t;
+		setEditAnchor(t);
 		repaint();
 	}
 	else
@@ -403,6 +412,10 @@ void LayerWidget::mouseMoveEvent(QMouseEvent *e)
 	// Force tracking in the plot if an anchor is being dragged or added.
 	auto state = (dragging_anchor || adding_anchor) ? MouseTracking::Anchored : MouseTracking::Disabled;
 	emit current_time(t, state);
+	double time = (state == MouseTracking::Anchored) ? t : -1;
+	if (sharing_anchors) {
+		emit temporary_anchor(layer->index, time);
+	}
 }
 
 void LayerWidget::setWindow(double start_time, double end_time)
@@ -426,7 +439,11 @@ void LayerWidget::drawAnchor(QPainter &painter, double time, bool is_instant)
         painter.drawLine(QPointF(x, 0), QPointF(x, height()));
         painter.setPen(pen);
     }
-    else
+//    else if (sharing_anchors && moving_anchor_time == time)
+//    {
+//    	// pass
+//    }
+    else if (time != hidden_anchor_time)
     {
         auto x = timeToXPos(time);
 
@@ -630,7 +647,7 @@ void LayerWidget::focusNextEvent()
         EventList::iterator it;
         if (selected_event->is_interval())
         {
-	        it = std::upper_bound(event_cache.begin(), event_cache.end(), selected_event, IntervalLessEqual());
+	        it = std::upper_bound(event_cache.begin(), event_cache.end(), selected_event, EventLessEqual());
         }
         else
         {
@@ -711,7 +728,7 @@ void LayerWidget::clearResizingEvent()
 
 void LayerWidget::followMovingAnchor(double time)
 {
-    moving_anchor_time = time;
+	moving_anchor_time = time;
     repaint();
 }
 
@@ -722,7 +739,7 @@ void LayerWidget::setAnchorSharing(bool value)
 
 AutoEvent LayerWidget::findEvent(double time)
 {
-	if (has_instants())
+	if (hasInstants())
 	{
 		auto it = std::lower_bound(event_cache.begin(), event_cache.end(), time, EventLess());
 
@@ -756,21 +773,28 @@ double LayerWidget::timeAtCursor(QMouseEvent *e) const
 
 void LayerWidget::leaveEvent(QEvent *event)
 {
-	edit_anchor_time = -1;
+	clearEditAnchor();
+	if (sharing_anchors) {
+		emit temporary_anchor(layer->index, -1);
+	}
 	repaint();
 	QWidget::leaveEvent(event);
 }
 
-void LayerWidget::createAnchor(double time)
+void LayerWidget::createAnchor(double time, bool silent)
 {
 	try
 	{
-		graph.add_anchor(layer->index, time);
+		graph.add_anchor(layer->index, time, silent);
 		clearEditAnchor();
 		clearGhostAnchor();
 		clearResizingEvent();
 		updateUi();
 		emit anchor_selected(layer->index, time);
+		// Notify the other layers.
+		if (sharing_anchors && !silent) {
+			emit anchor_added(layer->index, time);
+		}
 	}
 	catch (std::exception &e)
 	{
@@ -779,17 +803,26 @@ void LayerWidget::createAnchor(double time)
 	}
 }
 
-bool LayerWidget::removeAnchor(double time)
+bool LayerWidget::removeAnchor(double time, bool silent)
 {
 	try
 	{
 		auto e = findEvent(time);
 		if (e && anchorHasCursor(e->end_time(), time))
 		{
-			graph.remove_anchor(layer->index, e->end_time());
-			updateUi();
+			bool removed = graph.remove_anchor(layer->index, e->end_time());
 
-			return true;
+			if (removed)
+			{
+				updateUi();
+
+				// Notify the other layers.
+				if (sharing_anchors && !silent) {
+					emit anchor_removed(layer->index, time);
+				}
+
+				return true;
+			}
 		}
 	}
 	catch (std::exception &e)
@@ -848,6 +881,80 @@ void LayerWidget::setGhostAnchorTime(double time)
 		ghost_anchor_time = time;
 	}
 	repaint();
+}
+
+double LayerWidget::findClosestAnchorTime(double time)
+{
+	// If the user clicks on an existing anchor in editing mode, create a ghost anchor on the other layers.
+	auto it = layer->find_event(time);
+
+	if (layer->validate(it))
+	{
+		auto event = *it;
+
+		if (anchorHasCursor(event->start_time(), time))
+		{
+			return event->start_time();
+		}
+		else if (event->is_interval() && anchorHasCursor(event->end_time(), time))
+		{
+			return event->end_time();
+		}
+	}
+
+	return -1;
+}
+
+void LayerWidget::hideAnchor(double time)
+{
+	auto it = layer->find_event(time);
+
+	if (layer->validate(it) && (*it)->has_anchor(time))
+	{
+		hidden_anchor_time = time;
+	}
+	else
+	{
+		hidden_anchor_time = -1;
+	}
+}
+
+bool LayerWidget::moveAnchor(double from, double to)
+{
+	bool ok = false;
+
+	if (layer->has_instants)
+	{
+		auto it = layer->find_event(from);
+		if (!layer->validate(it)) return false;
+
+		if ((*it)->start_time() == from)
+		{
+			ok = graph.change_end_time(*it, to);
+		}
+	}
+	else
+	{
+		auto it = layer->find_event(from);
+		if (!layer->validate(it)) return false;
+
+		if ((*it)->start_time() == from)
+		{
+			ok = graph.change_start_time(*it, to);
+		}
+		else if ((*it)->end_time() == from)
+		{
+			ok = graph.change_end_time(*it, to);
+		}
+	}
+
+	if (ok)
+	{
+		event_cache.clear();
+		emit modified();
+	}
+
+	return ok;
 }
 
 } // namespace phonometrica

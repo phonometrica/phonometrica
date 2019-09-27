@@ -92,6 +92,8 @@ protected slots:
 
     void changePitchSettings(bool);
 
+    void showDocumentation(bool);
+
 protected:
 
 	void setupUi();

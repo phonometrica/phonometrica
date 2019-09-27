@@ -1,7 +1,7 @@
 Release notes
 -------------
 
-0.5.0 (??/09/2019)
+0.5.0 (27/09/2019)
 ~~~~~~~~~~~~~~~~~~
 
 -  new website at http://www.phonometrica-ling.org

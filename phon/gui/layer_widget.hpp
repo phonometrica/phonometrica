@@ -73,6 +73,20 @@ public:
 
 	void clearGhostAnchor() { ghost_anchor_time = -1; }
 
+	void hideAnchor(double time);
+
+	void createAnchor(double time, bool silent);
+
+	bool removeAnchor(double time, bool silent);
+
+	bool moveAnchor(double from, double to);
+
+	bool hasInstants() const { return layer->has_instants; }
+
+	bool hasIntervals() const { return !hasInstants(); }
+
+	void setEditAnchor(double value) { edit_anchor_time = value; }
+
 signals:
 
     void got_focus(intptr_t i);
@@ -91,11 +105,17 @@ signals:
 
     void anchor_has_moved(intptr_t layer);
 
-    void anchor_added(bool);
+    void anchor_added(intptr_t layer, double time);
 
-    void anchor_removed(bool);
+    void anchor_removed(intptr_t layer, double time);
+
+    void anchor_moved(intptr_t layer, double from, double to);
 
     void anchor_selected(intptr_t layer, double time);
+
+    void editing_shared_anchor(intptr_t layer, double time);
+
+    void temporary_anchor(intptr_t layer, double time);
 
 public slots:
 
@@ -145,10 +165,6 @@ private:
 
     void updateEvents();
 
-    bool has_instants() const { return layer->has_instants; }
-
-    bool has_intervals() const { return !has_instants(); }
-
     EventList filter_events(double t1, double t2) const { return graph.get_layer_events(layer->index, t1, t2); }
 
     double clipLeft(double time) const { return (std::max)(0.0, time); }
@@ -163,19 +179,17 @@ private:
 
     double timeAtCursor(QMouseEvent *e) const;
 
-    void createAnchor(double time);
-
-    bool removeAnchor(double time);
-
 	void updateUi();
 
 	void setButtonIcon();
 
-	void clearEditAnchor() { edit_anchor_time = -1; }
+	void clearEditAnchor() { setEditAnchor(-1); }
 
 	bool hasEditAnchor() const { return edit_anchor_time >= 0; }
 
 	bool hasGhostAnchor() const { return ghost_anchor_time >= 0; }
+
+	double findClosestAnchorTime(double time);
 
 	// Metadata button displayed in the y axis.
     QPushButton *button;
@@ -216,6 +230,9 @@ private:
     // A "ghost" anchor is displayed when we are in anchor adding mode, and an anchor has been clicked or added.
     // Ghost anchors are displayed on all layers which don't have a real anchor at that time point.
     double ghost_anchor_time = -1;
+
+    // When an anchor is being moved on another layer in sharing mode, we hide this anchor (if it exists) on this layer.
+    double hidden_anchor_time = -1;
 
     // Which edge of the selected event was clicked? For instants, this is always the end.
     bool event_start_selected = false;

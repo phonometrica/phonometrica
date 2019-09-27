@@ -171,6 +171,11 @@ double Event::center_time(double window_start, double window_end) const
 	return start + (end - start) / 2;
 }
 
+bool Event::has_anchor(double time) const
+{
+	return start_time() == time || end_time() == time;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,6 +205,24 @@ std::shared_ptr<Layer> Layer::duplicate(intptr_t new_index)
 bool Layer::validate(Layer::event_iterator it) const
 {
 	return it != events.end();
+}
+
+AutoEvent Layer::get_aligned_event(double time, bool start)
+{
+	return nullptr;
+//	// Get an event aligned with an anchor
+//	if (this->has_instants)
+//	{
+//		auto it = std::lower_bound(events.begin(), events.end(), time, EventLess());
+//		return (it == events.end()) ? nullptr : *it;
+//	}
+//
+//	if (lower_bound) {
+//		return
+//	}
+//	else {
+//		return std::upper_bound(events.begin(), events.end(), time, EventLessEqual());
+//	}
 }
 
 
@@ -749,11 +772,14 @@ void AGraph::clear_layer(intptr_t index)
 	set_modified(true);
 }
 
-void AGraph::add_anchor(intptr_t layer_index, double time)
+void AGraph::add_anchor(intptr_t layer_index, double time, bool can_exist)
 {
 	auto layer = m_layers[layer_index].get();
-
 	auto new_anchor = get_anchor(time);
+
+	if (new_anchor->exists(layer_index) && !can_exist) {
+		throw error("Anchor already exists at time % on layer %", time, layer_index);
+	}
 
 	if (layer->has_instants)
 	{
@@ -764,10 +790,6 @@ void AGraph::add_anchor(intptr_t layer_index, double time)
 	}
 	else
 	{
-		if (new_anchor->exists(layer_index)) {
-			throw error("Anchor already exists at time % on layer %", time, layer_index);
-		}
-
 		// Split interval.
 		auto it = layer->find_event(time);
 		auto old_event = it->get();
@@ -785,11 +807,15 @@ void AGraph::add_anchor(intptr_t layer_index, double time)
 	set_modified(true);
 }
 
-void AGraph::remove_anchor(intptr_t layer_index, double time)
+bool AGraph::remove_anchor(intptr_t layer_index, double time)
 {
 	auto layer = m_layers[layer_index].get();
-	auto anchor = get_anchor(time);
-	assert(!anchor->empty()); // can't have been created here.
+	auto it = get_anchor_iter(time);
+
+	if (it == m_anchors.end()) {
+		return false;
+	}
+	auto anchor = it->get();
 
 	auto lambda = [=](Event *e) {
 		return e->layer_index() == layer_index;
@@ -840,6 +866,8 @@ void AGraph::remove_anchor(intptr_t layer_index, double time)
 	}
 
 	set_modified(true);
+
+	return true;
 }
 
 void AGraph::duplicate_layer(intptr_t index, intptr_t new_index)

@@ -103,8 +103,6 @@ MainWindow::MainWindow(Runtime &rt, QWidget *parent)
 
     setDatabaseConnection();
 
-    postInitialize();
-
 	if (Settings::get_boolean(rt, "full_screen"))
 	{
 		showMaximized();
@@ -146,6 +144,7 @@ MainWindow::MainWindow(Runtime &rt, QWidget *parent)
     }
 
     main_area->focusConsole();
+	postInitialize();
 
     // FIXME: We need to delay splitter adjustment, otherwise they won't show up in the right place.
     //  See: https://stackoverflow.com/questions/28795329/qsplitter-sizes-indicates-wrong-sizes

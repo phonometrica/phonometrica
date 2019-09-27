@@ -60,6 +60,7 @@ Topics
 	
    intro/install
    intro/start
+   annotation
    concordance
    scripting/index
    scripting/plugins
