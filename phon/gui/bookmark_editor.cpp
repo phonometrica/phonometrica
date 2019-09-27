@@ -61,21 +61,14 @@ BookmarkEditor::BookmarkEditor(QWidget *parent) : QDialog(parent)
 	connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
 }
 
-void BookmarkEditor::accept()
+QString BookmarkEditor::title() const
 {
-	String title = title_line->text();
+	return title_line->text();
+}
 
-	if (title.empty())
-	{
-		QMessageBox msg(QMessageBox::Warning, tr("Cannot create bookmark"), tr("This bookmark needs a title!"));
-	}
-	else
-	{
-//		auto bookmark = std::make_shared<Bookmark>(nullptr, title);
-////		m_bookmark->set_notes(notes_edit->toPlainText());
-//        emit bookmarkAvailable(std::move(bookmark));
-		QDialog::accept();
-	}
+QString BookmarkEditor::notes() const
+{
+	return notes_edit->toPlainText();
 }
 
 

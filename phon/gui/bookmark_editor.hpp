@@ -38,8 +38,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
-#include <phon/application/bookmark.hpp>
-
 namespace phonometrica {
 
 class BookmarkEditor final : public QDialog
@@ -50,16 +48,12 @@ public:
 
     BookmarkEditor(QWidget *parent = nullptr);
 
-    ~BookmarkEditor() = default;
+    QString title() const;
 
-signals:
-
-	void bookmarkAvailable(AutoBookmark);
-
-public slots:
-	void accept();
+    QString notes() const;
 
 private:
+
     QLineEdit   *title_line;
     QTextEdit   *notes_edit;
     QPushButton *ok_button, *cancel_button;

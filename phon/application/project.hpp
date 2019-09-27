@@ -137,6 +137,8 @@ public:
 
     Array<AutoAnnotation> annotations() const;
 
+    void add_bookmark(AutoBookmark bookmark);
+
 public slots:
 
 	void bind_annotation(const AutoAnnotation &annot, const String &sound_file);

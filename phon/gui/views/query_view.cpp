@@ -41,6 +41,7 @@
 #include <phon/application/settings.hpp>
 #include <phon/gui/toolbar.hpp>
 #include <phon/gui/views/query_view.hpp>
+#include <phon/gui/bookmark_editor.hpp>
 #include <phon/gui/font.hpp>
 #include <phon/gui/popup_text_editor.hpp>
 #include <phon/utils/file_system.hpp>
@@ -125,6 +126,8 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	column_button->setPopupMode(QToolButton::InstantPopup);
 	toolbar->addWidget(column_button);
 
+	auto bookmark_action = toolbar->addAction(QIcon(":/icons/favorite.png"), tr("Bookmark match"));
+
 	// Match result layout
 
 	auto label = QString("<b>%1 matches").arg(m_data->row_count());
@@ -135,11 +138,17 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 		if (index.isValid()) openInAnnotation(index.row());
 	};
 
+	auto bookmark_match = [=](bool) {
+		auto index = m_table->currentIndex();
+		if (index.isValid()) bookmarkMatch(index.row());
+	};
+
 	connect(info_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(match_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(context_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(property_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(view_action, &QAction::triggered, this, view_event);
+	connect(bookmark_action, &QAction::triggered, this, &QueryView::bookmarkMatch);
 
 	m_data->set_flags(getQueryFlags());
 
@@ -436,6 +445,8 @@ void QueryView::provideContextMenu(const QPoint &pos)
 
 	menu.addSeparator();
 	auto event_action = menu.addAction(tr("Edit event text"));
+	menu.addSeparator();
+	auto bookmark_action = menu.addAction(tr("Bookmark match"));
 
 	connect(play_action, &QAction::triggered, [=](bool) {
 		playMatch(row);
@@ -449,6 +460,10 @@ void QueryView::provideContextMenu(const QPoint &pos)
 		editEvent(row);
 	});
 
+	connect(bookmark_action, &QAction::triggered, [=](bool) {
+		bookmarkMatch(row);
+	});
+
 	menu.exec(m_table->mapToGlobal(pos));
 }
 
@@ -458,6 +473,26 @@ bool QueryView::isMatchCell(int jj) const
 	if (jj < match_pos) return false;
 
 	return jj == match_pos || (m_data->has_split_fields() && jj - match_pos < m_data->field_count());
+}
+
+void QueryView::bookmarkMatch(int i)
+{
+	BookmarkEditor ed(this);
+
+	if (ed.exec() == QDialog::Accepted)
+	{
+		String title = ed.title();
+
+		if (title.empty())
+		{
+			QMessageBox msg(QMessageBox::Warning, tr("Cannot create bookmark"), tr("This bookmark needs a title!"));
+			return;
+		}
+
+		String notes = ed.notes();
+		auto &match = m_data->get_match(i+1);
+		Project::instance()->add_bookmark(match->to_bookmark(title, notes));
+	}
 }
 
 } // namespace phonometrica

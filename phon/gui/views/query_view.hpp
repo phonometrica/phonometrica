@@ -70,6 +70,8 @@ private slots:
 
 	void provideContextMenu(const QPoint &pos);
 
+	void bookmarkMatch(int i);
+
 protected:
 
 	void keyPressEvent(QKeyEvent *event) override;

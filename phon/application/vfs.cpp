@@ -42,7 +42,7 @@ VNode::VNode(VFolder *parent) :
 
 void VNode::set_parent(VFolder *parent, bool mutate)
 {
-	m_parent->remove(this->shared_from_this(), mutate);
+	if (m_parent) m_parent->remove(this->shared_from_this(), mutate);
 	m_parent = parent;
 }
 

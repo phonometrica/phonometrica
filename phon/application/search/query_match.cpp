@@ -106,4 +106,13 @@ size_t QueryMatch::hash() const
 //----------------------------------------------------------------------------------------------------------------------
 
 
+AutoBookmark Concordance::to_bookmark(const String &title, const String &notes) const
+{
+
+	auto b = std::make_shared<AnnotationStamp>(nullptr, title, m_annot, layer_index(), start_time(),
+			end_time(), text(), left(), right());
+	b->set_notes(notes);
+
+	return b;
+}
 } // namespace phonometrica

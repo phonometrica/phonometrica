@@ -32,6 +32,7 @@
 #include <memory>
 #include <set>
 #include <phon/application/annotation.hpp>
+#include <phon/application/bookmark.hpp>
 
 namespace phonometrica {
 
@@ -68,6 +69,8 @@ public:
 	String text() const { return m_text; }
 
 	size_t hash() const;
+
+	virtual AutoBookmark to_bookmark(const String &title, const String &notes) const = 0;
 
 protected:
 
@@ -115,6 +118,8 @@ public:
 	String left() const { return m_left; }
 
 	String right() const { return m_right; }
+
+	AutoBookmark to_bookmark(const String &title, const String &notes) const override;
 
 protected:
 

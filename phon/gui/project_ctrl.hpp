@@ -64,6 +64,8 @@ signals:
 
     void view_file(const std::shared_ptr<VFile> &);
 
+    void view_annotation(AutoAnnotation annot, intptr_t layer, double from, double to);
+
 public slots:
 
     void setProjectLabel(const QString &name);

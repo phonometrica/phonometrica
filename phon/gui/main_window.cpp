@@ -100,6 +100,7 @@ MainWindow::MainWindow(Runtime &rt, QWidget *parent)
     connect(file_manager->tree(), &ProjectCtrl::no_selection, main_area->infoPanel(), &InfoPanel::showEmptySelection);
     connect(Project::instance(), &Project::request_save, viewer, &Viewer::saveViews);
     connect(file_manager->tree(), &ProjectCtrl::view_file, viewer, &Viewer::view);
+    connect(file_manager->tree(), &ProjectCtrl::view_annotation, viewer, &Viewer::editAnnotation);
 
     setDatabaseConnection();
 

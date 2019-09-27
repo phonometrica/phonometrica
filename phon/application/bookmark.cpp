@@ -55,9 +55,15 @@ bool Bookmark::is_bookmark() const
 	return true;
 }
 
-AnnotationStamp::AnnotationStamp(VFolder *parent, String title, std::shared_ptr<VFile> file, size_t layer,
+void Bookmark::set_notes(const String &value, bool mutate)
+{
+	m_notes = value;
+	m_content_modified |= mutate;
+}
+
+AnnotationStamp::AnnotationStamp(VFolder *parent, String title, AutoAnnotation annot, size_t layer,
 								 double start, double end, String match, String left, String right) :
-		Bookmark(parent, std::move(title)), m_file(std::move(file)), m_match(std::move(match)),
+		Bookmark(parent, std::move(title)), m_annot(std::move(annot)), m_match(std::move(match)),
 		m_left(std::move(left)), m_right(std::move(right))
 {
 	m_layer = layer;
@@ -76,7 +82,7 @@ void AnnotationStamp::to_xml(xml_node root)
 	auto attr = node.append_attribute("type");
 	attr.set_value(class_name());
 
-	String path(m_file->path());
+	String path(m_annot->path());
 	filesystem::compress(path, Project::instance()->directory());
 
 	add_data_node(node, "Title", m_title);
@@ -84,13 +90,30 @@ void AnnotationStamp::to_xml(xml_node root)
 	add_data_node(node, "LeftContext", m_left);
 	add_data_node(node, "Match", m_match);
 	add_data_node(node, "RightContext", m_right);
-	add_data_node(node, "File", path);
-
-//	std::ostringstream start;
-//	start << std::setprecision(6) << std::fixed;
-
-	add_data_node(node, "Layer", utils::format("%", m_layer).data());
-	add_data_node(node, "Start", utils::format("%", m_start).data());
-	add_data_node(node, "End", utils::format("%", m_end).data());
+	add_data_node(node, "Annotation", path);
+	add_data_node(node, "Layer", String::convert(intptr_t(m_layer)));
+	add_data_node(node, "Start", String::convert(m_start));
+	add_data_node(node, "End", String::convert(m_end));
 }
+
+String AnnotationStamp::tooltip() const
+{
+	String s("<b>File:</b><br/>");
+	s.append(filesystem::base_name(m_annot->path()));
+	s.append("<br/><b>Match:</b><br/>");
+	s.append(m_left);
+	s.append(" <font color = \"red\"><strong>");
+	s.append(m_match);
+	s.append("</string></font> ");
+	s.append(m_right);
+
+	if (! m_notes.empty())
+	{
+		s.append("<br/><b>Notes:</b><br/>");
+		s.append(m_notes);
+	}
+
+	return s;
+}
+
 } // namespace phonometrica

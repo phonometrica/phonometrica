@@ -185,7 +185,8 @@ void ProjectCtrl::fillFolder(QTreeWidgetItem *item, VFolder &folder)
         {
             auto &bookmark = dynamic_cast<Bookmark&>(*node);
             child->setIcon(0, bookmark_icon);
-            item->insertChild(i-1, child);
+	        child->setToolTip(0, bookmark.tooltip());
+	        item->insertChild(i-1, child);
         }
         else
         {
@@ -348,6 +349,15 @@ void ProjectCtrl::onItemDoubleClicked(QTreeWidgetItem *item)
     {
         auto file = downcast<VFile>(vnode->shared_from_this());
         emit view_file(file);
+    }
+    else if (vnode->is_bookmark())
+    {
+    	auto bookmark = downcast<Bookmark>(vnode->shared_from_this());
+    	if (bookmark->is_annotation_stamp())
+	    {
+    		auto stamp = downcast<AnnotationStamp>(bookmark);
+    		emit view_annotation(stamp->annotation(), stamp->layer(), stamp->start(), stamp->end());
+	    }
     }
 }
 

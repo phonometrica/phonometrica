@@ -5,9 +5,11 @@ Release notes
 ~~~~~~~~~~~~~~~~~~
 
 -  new website at http://www.phonometrica-ling.org
--  fix initialization on Windows when the user's directory contains non-ASCII characters
 -  create and edit annotations
 -  scripting API to access the content of annotations
+-  export metadata to CSV
+-  bookmarks
+-  fix initialization on Windows when the user's directory contains non-ASCII characters
 
 
 0.4.1 (21/09/2019)

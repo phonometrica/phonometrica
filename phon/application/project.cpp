@@ -461,7 +461,7 @@ void Project::parse_bookmarks(xml_node root, VFolder *folder)
 				auto match_node = node.child("Match");
 				auto left_node  = node.child("LeftContext");
 				auto right_node = node.child("RightContext");
-				auto file_node  = node.child("File");
+				auto file_node  = node.child("Annotation");
 				auto start_node = node.child("Start");
 				auto end_node   = node.child("End");
 
@@ -487,9 +487,19 @@ void Project::parse_bookmarks(xml_node root, VFolder *folder)
 				double start = start_node.text().as_double();
 				double end = end_node.text().as_double();
 
+				filesystem::interpolate(path, directory());
 				auto file = get_file_handle(path, "needed by bookmark");
-				auto bookmark = std::make_shared<AnnotationStamp>(folder, title, std::move(file), layer, start, end, match, left, right);
-				folder->append(std::move(bookmark), false);
+
+				if (file->is_annotation())
+				{
+					auto annot = downcast<Annotation>(file);
+					auto bookmark = std::make_shared<AnnotationStamp>(folder, title, std::move(annot), layer, start, end, match, left, right);
+					folder->append(std::move(bookmark), false);
+				}
+				else
+				{
+					throw error("Invalid file type in Bookmark \"%\": expected Annotation, got %", title, file->class_name());
+				}
 			}
 			else
 			{
@@ -1281,6 +1291,13 @@ void Project::reinitialize()
 	create_uuid();
 	open_database();
 	emit initialized();
+}
+
+void Project::add_bookmark(AutoBookmark bookmark)
+{
+	bookmark->set_parent(m_bookmarks.get());
+	m_bookmarks->append(std::move(bookmark));
+	emit notify_update();
 }
 
 } // namespace phonometrica

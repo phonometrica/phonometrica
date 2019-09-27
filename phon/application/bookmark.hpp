@@ -29,7 +29,7 @@
 #ifndef PHONOMETRICA_BOOKMARK_HPP
 #define PHONOMETRICA_BOOKMARK_HPP
 
-#include <phon/application/vfs.hpp>
+#include <phon/application/annotation.hpp>
 
 namespace phonometrica {
 
@@ -44,6 +44,12 @@ public:
 	String label() const override;
 
 	bool is_bookmark() const override;
+
+	void set_notes(const String &value, bool mutate = true);
+
+	virtual String tooltip() const { return String(); }
+
+	virtual bool is_annotation_stamp() const { return false; }
 
 protected:
 
@@ -60,18 +66,29 @@ class AnnotationStamp final : public Bookmark
 {
 public:
 
-	AnnotationStamp(VFolder *parent, String title, std::shared_ptr<VFile> file, size_t layer, double start,
-					double end, String match,
-					String left = String(), String right = String());
+	AnnotationStamp(VFolder *parent, String title, AutoAnnotation annot, size_t layer, double start,
+					double end, String match, String left, String right);
 
 
 	const char *class_name() const override;
 
 	void to_xml(xml_node root) override;
 
+	String tooltip() const override;
+
+	bool is_annotation_stamp() const { return true; }
+
+	double start() const { return m_start; }
+
+	double end() const { return m_end; }
+
+	intptr_t layer() const { return m_layer; }
+
+	AutoAnnotation annotation() const { return m_annot; }
+
 private:
 
-	std::shared_ptr<VFile> m_file;
+	AutoAnnotation m_annot;
 
 	// Text of the match.
 	String m_match;
@@ -80,7 +97,7 @@ private:
 	String m_left, m_right;
 
 	// Layer where the bookmark belongs (starting from 0).
-	size_t m_layer;
+	intptr_t m_layer;
 
 	// Selection in the annotation layer.
 	double m_start, m_end;
