@@ -10,6 +10,7 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * RTAudio, by Gary P. Scavone (MIT), see `www.music.mcgill.ca/~gary/rtaudio <http://www.music.mcgill.ca/~gary/rtaudio/>`_
 * FFTS, by Anthony M. Blake (BSD 3-clause), see `github.com/anthonix/ffts <https://github.com/anthonix/ffts/>`_
 * SWIPE, by Kyle Gorman (MIT), see `github.com/kylebgorman/swipe <https://github.com/kylebgorman/swipe>`_
+* Snack, by Jonas Beskow and Kåre Sjölander (BSD), see `www.speech.kth.se/snack/ <http://www.speech.kth.se/snack/>`_
 * pugixml, by Arseny Kapoulkine (MIT), see `pugixml.org <https://pugixml.org>`_
 * sendpraat, by Paul Boersma, see `www.praat.org <http://www.fon.hum.uva.nl/praat/sendpraat.html>`_
 * FLAC, by Josh Coalson and contributors (BSD), see `flac.sourceforge.net <http://flac.sourceforge.net>`_
