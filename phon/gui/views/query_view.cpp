@@ -207,7 +207,11 @@ void QueryView::fillTable()
 			}
 			if (jj == 5)
 			{
-				//item->setTextAlignment(Qt::AlignRight);
+				// FIXME: there seems to be a bug on Windows whereby the text is slightly higher than the other cells in the row
+				//  if we right-align the cell.
+#if !PHON_WINDOWS
+				item->setTextAlignment(Qt::AlignRight);
+#endif
 			}
 			else if (isMatchCell(jj))
 			{
