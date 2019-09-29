@@ -78,7 +78,11 @@ QueryMatchList Query::filter_data()
 	progress.setMinimumDuration(0);
 
 	int i = 0;
+
+#ifdef PHON_TIMING
 	auto first_time = clock();
+#endif
+
 	for (auto &annot : annotations)
 	{
 		progress.setValue(i++);
@@ -91,7 +95,6 @@ QueryMatchList Query::filter_data()
 
 		for (auto it = matches.begin(); it != matches.end(); /* nothing */)
 		{
-		    // I hate you, Apple.
 #if PHON_MACOS
             results.append(*it); it++;
 #else
@@ -99,10 +102,14 @@ QueryMatchList Query::filter_data()
 #endif
 		}
 	}
+
+#ifdef PHON_TIMING
 	auto last_time = clock();
 	auto total = double(last_time-first_time) * 1000 / CLOCKS_PER_SEC;
 	std::cerr << "Total loading time for " << annotations.size() << " annotations: " << total << " ms\n";
 	std::cerr << "Average per annotation: " << (total/annotations.size()) << " ms\n";
+#endif
+
 	progress.setValue(count);
 
 #if PHON_DEBUG_CONSOLE

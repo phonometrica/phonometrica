@@ -1,6 +1,13 @@
 Release notes
 -------------
 
+0.5.1 (29/09/2019)
+~~~~~~~~~~~~~~~~~~
+
+-  new regular expression engine based on PCRE2
+-  faster loading time for annotations (~ 30%) thanks to the new regex engine
+
+
 0.5.0 (27/09/2019)
 ~~~~~~~~~~~~~~~~~~
 
