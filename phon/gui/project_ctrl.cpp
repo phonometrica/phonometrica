@@ -356,7 +356,18 @@ void ProjectCtrl::onItemDoubleClicked(QTreeWidgetItem *item)
     	if (bookmark->is_annotation_stamp())
 	    {
     		auto stamp = downcast<AnnotationStamp>(bookmark);
-    		emit view_annotation(stamp->annotation(), stamp->layer(), stamp->start(), stamp->end());
+			auto annot = stamp->annotation();
+
+			if (annot->has_sound())
+			{
+				emit view_annotation(std::move(annot), stamp->layer(), stamp->start(), stamp->end());
+			}
+			else
+			{
+				auto msg = utils::format("Cannot open annotation \"%\": you need first to bind it to a sound file!", annot->path());
+				QMessageBox dlg(QMessageBox::Warning, tr("Cannot open bookmark"), msg.data());
+				dlg.exec();
+			}
 	    }
     }
 }
