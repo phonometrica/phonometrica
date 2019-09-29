@@ -143,16 +143,16 @@ file(GLOB RUNTIME_FILES
 add_library(phon-runtime STATIC ${RUNTIME_FILES})
 set_property(TARGET phon-runtime PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-# Oniguruma
-add_subdirectory(phon/third_party/onig)
-include_directories(${PROJECT_BINARY_DIR}/phon/third_party/onig)
-include_directories(phon/third_party/onig/src)
-link_directories(${PROJECT_BINARY_DIR}/phon/third_party/onig)
+# Use UTF-8 in PCRE2.
+add_definitions(-DPCRE2_CODE_UNIT_WIDTH=8 -DPCRE2_STATIC=1)
+add_subdirectory(phon/third_party/pcre2)
+include_directories(${PROJECT_BINARY_DIR}/phon/third_party/pcre2)
+link_directories(${PROJECT_BINARY_DIR}/phon/third_party/pcre2)
 
 if (WIN32)
-    target_link_libraries(phon-runtime shlwapi onig)
+    target_link_libraries(phon-runtime shlwapi pcre2-8)
 else()
-    target_link_libraries(phon-runtime m onig)
+    target_link_libraries(phon-runtime m pcre2-8)
 endif(WIN32)
 
 
@@ -217,21 +217,21 @@ if (BUILD_GUI)
         link_directories("C:/Lib/libsndfile")
         #add_subdirectory("${PROJECT_SOURCE_DIR}/libsndfile")
         target_link_libraries(
-                ${PROJECT_NAME} phon-runtime onig ${FFT_LIB} ole32 winmm dsound
+                ${PROJECT_NAME} phon-runtime pcre2-8 ${FFT_LIB} ole32 winmm dsound
 				C:/Lib/libsndfile/libsndfile-1.lib
                 Qt5::Core Qt5::Gui Qt5::Widgets
         )
     elseif (APPLE)
         add_definitions(-D__MACOSX_CORE__=1)
         target_link_libraries(
-                ${PROJECT_NAME} phon-runtime onig ${FFT_LIB} pthread dl sndfile
+                ${PROJECT_NAME} phon-runtime pcre2-8 ${FFT_LIB} pthread dl sndfile
                 Qt5::Core Qt5::Gui Qt5::Widgets
                 "-framework Foundation" "-framework Cocoa" "-framework CoreAudio" objc
         )
     else()
         add_definitions(-D__LINUX_ALSA__=1)
         target_link_libraries(
-                ${PROJECT_NAME} phon-runtime onig ${FFT_LIB} pthread dl asound sndfile
+                ${PROJECT_NAME} phon-runtime pcre2-8 ${FFT_LIB} pthread dl asound sndfile
                 Qt5::Core Qt5::Gui Qt5::Widgets
                 ${GTK2_LIBRARIES}
         )
@@ -241,7 +241,7 @@ if (BUILD_GUI)
 else(BUILD_GUI)
 
     add_executable(${PROJECT_NAME} phonometrica.cpp)
-    target_link_libraries(${PROJECT_NAME} phon-runtime onig)
+    target_link_libraries(${PROJECT_NAME} phon-runtime pcre2-8)
 
 endif(BUILD_GUI)
 
@@ -249,5 +249,5 @@ endif(BUILD_GUI)
 if(BUILD_UNIT_TEST)
     file(GLOB TEST_FILES ./unit_test/*.cpp)
     add_executable(test_phon ${TEST_FILES})
-    target_link_libraries(test_phon phon-runtime onig)
+    target_link_libraries(test_phon phon-runtime pcre2-8)
 endif(BUILD_UNIT_TEST)

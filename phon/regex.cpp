@@ -29,15 +29,12 @@
 #include <phon/regex.hpp>
 #include <phon/error.hpp>
 #include <phon/third_party/utf8/utf8.h>
-#include "regex.hpp"
 
 namespace phonometrica {
 
-Regex::Regex() noexcept:
-    m_regex(nullptr), m_region(nullptr), m_flags(0), m_match_result(ONIG_MISMATCH)
-{
+static const uint32_t OVECCOUNT = 30;
+static const size_t ERROR_BUFFER_SIZE = 512;
 
-}
 
 Regex::Regex(const String &pattern) :
     Regex(pattern, None)
@@ -45,29 +42,19 @@ Regex::Regex(const String &pattern) :
 
 }
 
-Regex::Regex(const String &pattern, int flags) :
-    m_pattern(pattern)
+Regex::Regex(const String &pattern, int flags, Regex::Jit jit) :
+    m_pattern(pattern), m_flags(flags), m_jit(jit)
 {
-    m_match_result = ONIG_MISMATCH;
-    m_flags = flags;
+	m_regex = pcre2_compile((PCRE2_SPTR) pattern.data(), pattern.size(),
+	                        (uint32_t) flags, &m_error_code, &m_error_offset, nullptr);
 
-    if (pattern.empty()) {
-        throw error("[Regex error] Empty regular expression pattern");
-    }
+	if (m_regex == nullptr) {
+		throw error("compilation of regular expression failed at position %: %",
+		            m_error_offset + 1, error_message(m_error_code));
+	}
 
-    const UChar *pattern_start = reinterpret_cast<const UChar*>(pattern.begin());
-    const UChar *pattern_end = reinterpret_cast<const UChar*>(pattern.end());
-    OnigErrorInfo einfo;
-    int result = onig_new(&m_regex, pattern_start, pattern_end,
-                          ONIG_OPTION_DEFAULT, ONIG_ENCODING_UTF8, ONIG_SYNTAX_PERL, &einfo);
-
-    if (result != ONIG_NORMAL)
-    {
-        auto msg = error_message(result, &einfo);
-        throw error(msg);
-    }
-
-    m_region = onig_region_new();
+	this->jit(jit);
+	m_match_data = pcre2_match_data_create(OVECCOUNT, nullptr);
 }
 
 Regex::Regex(const String &pattern, const String &flags) :
@@ -76,29 +63,38 @@ Regex::Regex(const String &pattern, const String &flags) :
 
 }
 
-String Regex::error_message(int error, OnigErrorInfo *einfo)
+String Regex::error_message(int error)
 {
-    char msg[ONIG_MAX_ERROR_MESSAGE_LEN];
-    onig_error_code_to_str((UChar* )msg, error, &einfo);
+	PCRE2_UCHAR buffer[ERROR_BUFFER_SIZE];
+	pcre2_get_error_message(error, buffer, ERROR_BUFFER_SIZE);
 
-    return msg;
+	return String::format("[Regex error] %s", reinterpret_cast<const char*>(buffer));
 }
 
 Regex::Regex(Regex &&other) noexcept :
         m_pattern(std::move(other.m_pattern)), m_subject(std::move(other.m_subject))
 {
 	m_regex = other.m_regex;
-    m_region = other.m_region;
-    other.m_regex = nullptr;
-    other.m_region = nullptr;
-    m_match_result = other.m_match_result;
+	m_match_data = other.m_match_data;
+	m_error_code = other.m_error_code;
+	m_error_offset = other.m_error_offset;
 	m_flags = other.m_flags;
+	m_rc = other.m_rc;
+	m_jit = other.m_jit;
+
+	other.m_regex = nullptr;
+	other.m_match_data = nullptr;
 }
 
 Regex::~Regex()
 {
-    if (m_region) onig_region_free(m_region, 1);
-    if (m_regex) onig_free(m_regex);
+	if (m_match_data) {
+		pcre2_match_data_free(m_match_data);
+	}
+
+	if (m_regex) {
+		pcre2_code_free(m_regex);
+	}
 }
 
 String Regex::subject() const
@@ -111,35 +107,47 @@ int Regex::flags() const
 	return m_flags;
 }
 
+bool Regex::match(const String &subject)
+{
+	return match(subject, subject.begin());
+}
+
 bool Regex::match(const String &subject, intptr_t from)
 {
-    if (subject.empty()) return false;
-	return match(subject, subject.index_to_iter(from));
+	if (subject.empty()) return false;
+	auto it = subject.index_to_iter(from);
+	return match(subject, it);
 }
 
 bool Regex::match(const String &subject, String::const_iterator from)
 {
 	m_subject = subject;
-    onig_region_clear(m_region);
+	size_t index = from - subject.begin();
 
-    const UChar *str = reinterpret_cast<const UChar*>(subject.begin());
-    const UChar *end = reinterpret_cast<const UChar*>(subject.end());
-    const UChar *start = reinterpret_cast<const UChar*>(from);
+	if (m_jit == NoJit) {
+		m_rc = pcre2_match(m_regex, (PCRE2_SPTR) subject.data(), subject.size(), index, 0, m_match_data, nullptr);
+	}
+	else {
+		m_rc = pcre2_jit_match(m_regex, (PCRE2_SPTR) subject.data(), subject.size(), index, 0, m_match_data, nullptr);
+	}
 
-    m_match_result = onig_search(m_regex, str, end, start, end, m_region, ONIG_OPTION_DEFAULT);
+	// -1 is used to indicate there is no match, so we don't want to trigger an error for that
+	if (m_rc < -1) {
+		auto msg = error_message(m_rc);
+		throw error(msg);
+	}
 
-    return has_match();
+	return has_match();
 }
 
 bool Regex::has_match() const
 {
-    return m_match_result != ONIG_MISMATCH;
+ 	return m_rc > 0;
 }
 
 intptr_t Regex::count() const
 {
-    assert(m_regex && m_region);
-    return has_match() ? onig_number_of_captures(m_regex) : 0;
+	return m_rc > 0 ? intptr_t(m_rc) - 1 : 0;
 }
 
 bool Regex::empty() const
@@ -149,12 +157,13 @@ bool Regex::empty() const
 
 String Regex::capture(intptr_t nth) const
 {
-    check_capture(nth);
-    auto start = m_region->beg[nth];
-    auto len = m_region->end[nth] - start;
-    const char *s = m_subject.data() + start;
+	check_capture(nth);
+	PCRE2_SIZE *ovec = pcre2_get_ovector_pointer(m_match_data);
 
-    return String(s, len);
+	const char *substring = subject().data() + ovec[2 * nth];
+	auto len = intptr_t(ovec[2 * nth + 1] - ovec[2 * nth]);
+
+	return String(substring, len);
 }
 
 void Regex::check_capture(intptr_t nth) const
@@ -166,57 +175,57 @@ void Regex::check_capture(intptr_t nth) const
 
 intptr_t Regex::capture_start(intptr_t nth, bool utf8) const
 {
-    check_capture(nth);
-    auto pos = m_region->beg[nth];
+	check_capture(nth);
+	PCRE2_SIZE *ovec = pcre2_get_ovector_pointer(m_match_data);
+	auto pos = (intptr_t) ovec[2 * nth];
 
-    if (utf8) {
+	if (utf8) {
         pos = utf8::unchecked::distance(m_subject.begin(), m_subject.begin() + pos);
     }
 
-    return pos + 1; // base 1
+	return pos + 1; // base 1
 }
 
 intptr_t Regex::capture_end(intptr_t nth, bool utf8) const
 {
-    check_capture(nth);
-    auto pos = m_region->end[nth];
+	check_capture(nth);
+	PCRE2_SIZE *ovec = pcre2_get_ovector_pointer(m_match_data);
+	auto pos = (intptr_t) ovec[2 * nth + 1];
 
-    if (utf8) {
+	if (utf8) {
         pos = utf8::unchecked::distance(m_subject.begin(), m_subject.begin() + pos);
     }
 
-    return pos + 1; // base 1
+	return pos + 1; // base 1
 }
 
 int Regex::parse_flags(const String &options)
 {
 	int flags = None;
 
-	for (auto &s : options.split("|")) {
-        if (s == "icase") {
-            flags |= ICase;
+	for (auto &s : options.split("|"))
+	{
+		if (s == "caseless") {
+			flags |= Caseless;
 		}
 		else if (s == "multiline") {
 			flags |= Multiline;
 		}
-        else if (s == "extend") {
-            flags |= Extend;
+		else if (s == "dotall") {
+			flags |= DotAll;
 		}
-        else if (s == "greedy") {
-            flags |= Greedy;
+		else if (s == "extended") {
+			flags |= Extended;
 		}
-        else if (s == "capture") {
-            flags |= Capture;
-        }
-        else if (s == "nocapture") {
-            flags |= NoCapture;
-        }
-        else if (s == "none") {
-            //flags |= None;
-        }
-        else {
-            throw error("Unknown regex flag: \"%\"", s);
-        }
+		else if (s == "anchored") {
+			flags |= Anchored;
+		}
+		else if (s == "dollar_endonly") {
+			flags |= DollarEndOnly;
+		}
+		else if (s == "ungreedy") {
+			flags |= Ungreedy;
+		}
 	}
 
 	return flags;
@@ -237,5 +246,30 @@ String Regex::pattern() const
     return m_pattern;
 }
 
+Regex::Jit Regex::jit_flag() const
+{
+	return m_jit;
+}
+
+bool Regex::is_jit() const
+{
+	return m_jit != NoJit;
+}
+
+bool Regex::jit(Regex::Jit flag)
+{
+	bool ok = false;
+
+	if (flag != NoJit) {
+		ok = (pcre2_jit_compile(m_regex, flag) == 0);
+
+		// Disable JIT on error.
+		if (!ok) {
+			m_jit = NoJit;
+		}
+	}
+
+	return ok;
+}
 
 } // namespace phonometrica

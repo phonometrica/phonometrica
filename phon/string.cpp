@@ -486,7 +486,8 @@ char32_t String::Data::next_codepoint(String::const_iterator &it) const
 
 	if (result.error != sol::unicode::error_code::ok)
 	{
-		throw error("[Unicode error] Invalid UTF-8 string: ", sol::unicode::to_string(result.error));
+		auto v = std::string_view(this->data);
+		throw error("[Unicode error] Invalid UTF-8 string: %", sol::unicode::to_string(result.error));
 	}
 	it = result.next;
 
@@ -510,7 +511,7 @@ char32_t String::Data::previous_codepoint(String::const_iterator &it) const
 
 	if (result.error != sol::unicode::error_code::ok)
 	{
-		throw error("[Unicode error] Invalid UTF-8 string: ", sol::unicode::to_string(result.error));
+		throw error("[Unicode error] Invalid UTF-8 string: %", sol::unicode::to_string(result.error));
 	}
 
 	return result.codepoint;
