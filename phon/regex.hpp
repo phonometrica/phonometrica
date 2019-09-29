@@ -22,7 +22,7 @@
  *                                                                                                                     *
  * Created: 21/02/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: regular expression object, built on top of oniguruma.                                                      *
+ * Purpose: regular expression object, built on top of PCRE2.                                                          *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -30,7 +30,7 @@
 #define PHONOMETRICA_REGEX_HPP
 
 #include <phon/string.hpp>
-#include <oniguruma.h>
+#include <pcre2.h>
 
 namespace phonometrica {
 
@@ -38,20 +38,28 @@ class Regex final
 {
 public:
 	enum Option {
-        None           = ONIG_OPTION_NONE,
-        ICase          = ONIG_OPTION_IGNORECASE,
-        Multiline      = ONIG_OPTION_MULTILINE,
-        Extend         = ONIG_OPTION_EXTEND,
-        Greedy         = ONIG_OPTION_FIND_LONGEST,
-        Capture        = ONIG_OPTION_CAPTURE_GROUP,
-        NoCapture      = ONIG_OPTION_DONT_CAPTURE_GROUP
+		None           = 0,
+		Caseless       = PCRE2_CASELESS,
+		Multiline      = PCRE2_MULTILINE,
+		DotAll         = PCRE2_DOTALL,
+		Extended       = PCRE2_EXTENDED,
+		Anchored       = PCRE2_ANCHORED,
+		DollarEndOnly  = PCRE2_DOLLAR_ENDONLY,
+		Ungreedy       = PCRE2_UNGREEDY,
 	};
 
-    Regex() noexcept;
+	enum Jit : uint8_t {
+		NoJit       = 0,
+		Complete    = PCRE2_JIT_COMPLETE,
+		PartialSoft = PCRE2_JIT_PARTIAL_SOFT,
+		PartialHard = PCRE2_JIT_PARTIAL_HARD
+	};
+
+    Regex() = default;
 
     explicit Regex(const String &pattern);
 
-    Regex(const String &pattern, int flags);
+    Regex(const String &pattern, int flags, Jit jit = Complete);
 
     Regex(const String &pattern, const String &flags);
 
@@ -65,7 +73,8 @@ public:
 
 	int flags() const;
 
-	bool match(const String &subject, intptr_t from = 1);
+	bool match(const String &subject);
+	bool match(const String &subject, intptr_t from);
 	bool match(const String &subject, String::const_iterator from);
 
 	bool has_match() const;
@@ -85,25 +94,37 @@ public:
 	String::const_iterator capture_start_iter(intptr_t nth) const;
 	String::const_iterator capture_end_iter(intptr_t nth) const;
 
+	Jit jit_flag() const;
+
+	bool is_jit() const;
+
+	bool jit(Jit flag);
+
 private:
 
-    String error_message(int error, OnigErrorInfo *einfo);
+    String error_message(int error);
 
     void check_capture(intptr_t nth) const;
 
     int parse_flags(const String &options);
 
-    regex_t *m_regex;
+	pcre2_code *m_regex = nullptr;
 
-    OnigRegion *m_region;
+	pcre2_match_data *m_match_data = nullptr;
 
-    int  m_flags;
+	String m_subject;
 
-    int m_match_result;
+	String m_pattern;
 
-    String m_pattern;
+	size_t m_error_offset = 0;
 
-    String m_subject;
+	int m_error_code = 0;
+
+	int m_flags = 0;
+
+	int m_rc = 0;
+
+	Jit m_jit = Jit::NoJit;
 };
 
 } // namespace phonometrica

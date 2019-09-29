@@ -78,6 +78,7 @@ QueryMatchList Query::filter_data()
 	progress.setMinimumDuration(0);
 
 	int i = 0;
+	auto first_time = clock();
 	for (auto &annot : annotations)
 	{
 		progress.setValue(i++);
@@ -98,6 +99,10 @@ QueryMatchList Query::filter_data()
 #endif
 		}
 	}
+	auto last_time = clock();
+	auto total = double(last_time-first_time) * 1000 / CLOCKS_PER_SEC;
+	std::cerr << "Total loading time for " << annotations.size() << " annotations: " << total << " ms\n";
+	std::cerr << "Average per annotation: " << (total/annotations.size()) << " ms\n";
 	progress.setValue(count);
 
 #if PHON_DEBUG_CONSOLE

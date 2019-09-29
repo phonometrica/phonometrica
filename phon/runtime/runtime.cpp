@@ -893,7 +893,7 @@ bool Runtime::has_field(Object *obj, const String &name)
 		}
 		if (name == "ignore_case")
 		{
-			push_boolean(obj->as.regex.flags() & Regex::ICase);
+			push_boolean(obj->as.regex.flags() & Regex::Caseless);
 			return true;
 		}
 		if (name == "multiline")
