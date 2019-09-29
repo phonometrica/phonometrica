@@ -17,7 +17,7 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * Inno Setup (Windows installer), by Jordan Russell (free), `www.jrsoftware.org <http://www.jrsoftware.org>`_
 * sphinx, by the Sphinx team (BSD), see `www.sphinx-doc.org <http://www.sphinx-doc.org>`_
 * MuJS, by Artifex Software (ISC), see `mujs.com <https://mujs.com/>`_
-* Oniguruma, by K.Kosako (BSD), see `github.com/kkos/oniguruma <https://github.com/kkos/oniguruma>`_
+* PCRE, by Philip Hazel (BSD), see `www.pcre.org <https://www.pcre.org/>`_
 * utf8proc, by the Public Software Group (MIT), see `julialang.org/utf8proc <https://julialang.org/utf8proc>`_
 * Unicode routines in sol2, by ThePhD (MIT), see `sol2.rtfd.io <http://sol2.rtfd.io>`_
 * UTF8-CPP, by Nemanja Trifunovic (MIT-like), see `utfcpp.sourceforge.net <http://utfcpp.sourceforge.net/>`_
