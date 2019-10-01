@@ -32,6 +32,7 @@
 #include <phon/runtime/runtime.hpp>
 #include <phon/third_party/swipe/swipe.h>
 
+#define MAX_PITCH_WINDOW 30
 
 namespace phonometrica {
 
@@ -65,7 +66,7 @@ void PitchPlot::renderPlot(QPaintEvent *)
     QPainter painter(this);
     auto fm = fontMetrics();
 
-    if (windowDuration() > 10)
+    if (windowDuration() > MAX_PITCH_WINDOW)
     {
         QString label("Zoom in to see pitch");
         auto x = width() / 2 - fm.width(label) / 2;

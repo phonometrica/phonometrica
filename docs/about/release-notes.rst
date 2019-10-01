@@ -5,7 +5,7 @@ Release notes
 ~~~~~~~~~~~~~~~~~~
 
 -  new regular expression engine based on PCRE2
--  faster loading time for annotations (~ 30%) thanks to the new regex engine
+-  faster loading time for TextGrid annotations (~ 23%) thanks to the new regex engine
 
 
 0.5.0 (27/09/2019)

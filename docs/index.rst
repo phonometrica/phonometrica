@@ -28,7 +28,7 @@ It is particularly well suited for dealing with time-aligned data. The main feat
 Phonometrica runs on all major platforms (Windows, macOS and GNU/Linux) and is freely available under the terms of the CECILL license (version 2.1).
 The latest version can be downloaded from http://www.phonometrica-ling.org. If you encounter any problem or bug, please write to the authors.
 
-**Note: Phonometrica is currently under development: the documentation is a still incomplete and some things might change before version 1.0 is released.**
+**Note: Phonometrica is currently under development: the documentation is still incomplete and some things might change before version 1.0 is released.**
 
 .. figure:: img/main_window.png
 
@@ -46,6 +46,14 @@ Phonometrica 0.5.1 (preview)
 -  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.5.1.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.5.1/phonometrica-0.5.1.deb>`__
 -  source code: available on `GitHub <https://github.com/phonometrica/phonometrica>`__
 
+	misc 	v0.5.1 	4 hours ago
+	phon 	right-align left context in query view 	2 hours ago
+	plugins/PFC 	version 0.4.0 	10 days ago
+	std 	export metadata 	2 days ago
+	unit_test 	fixes for Windows 	last month
+	.gitignore 	import sources 	last month
+	CMakeLists.txt 	static PCRE2 on Windows 	3 hours ago
+	CMakeSettings.json 	import sources 	last month
   
 Manual
 ------

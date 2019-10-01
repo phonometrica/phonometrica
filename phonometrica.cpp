@@ -66,6 +66,7 @@ int main(int argc, char *argv[])
             return app.exec();
         }
 #else
+	    setlocale(LC_NUMERIC, "C"); // for proper floating point conversion
         return interpret(runtime, argc, argv);
 #endif
     }
