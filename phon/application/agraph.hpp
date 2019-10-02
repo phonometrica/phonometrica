@@ -271,6 +271,10 @@ public:
 
 	bool anchor_exists(intptr_t layer_index, double time);
 
+	String get_layer_label(intptr_t index);
+
+	void set_layer_label(intptr_t index, String value);
+
 private:
 
 	void append_event(intptr_t layer_index, Anchor *start, Anchor *end, const String &text);

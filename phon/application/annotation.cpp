@@ -1,3 +1,4 @@
+
 /***********************************************************************************************************************
  *                                                                                                                     *
  * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
@@ -317,6 +318,22 @@ void Annotation::initialize(Runtime &rt)
 		}
 	};
 
+	auto get_layer_label = [](Runtime &rt) {
+		auto annot = rt.cast_user_data<AutoAnnotation>(0);
+		annot->open();
+		auto layer = rt.to_integer(1);
+		rt.push(annot->get_layer_label(layer));
+	};
+
+	auto set_layer_label = [](Runtime &rt) {
+		auto annot = rt.cast_user_data<AutoAnnotation>(0);
+		annot->open();
+		auto layer = rt.to_integer(1);
+		auto value = rt.to_string(2);
+		annot->set_layer_label(layer, value);
+		rt.push_null();
+	};
+
     rt.push(metaobject);
     {
         rt.add_accessor("path", annot_path);
@@ -330,6 +347,9 @@ void Annotation::initialize(Runtime &rt)
 	    rt.add_method("Annotation.meta.get_event_text", get_event_text, 3);
 	    rt.add_method("Annotation.meta.set_event_text", set_event_text, 4);
 	    rt.add_method("Annotation.meta.get_event_count", get_event_count, 2);
+	    rt.add_method("Annotation.meta.get_layer_label", get_layer_label, 2);
+	    rt.add_method("Annotation.meta.set_layer_label", set_layer_label, 3);
+
     }
     rt.new_native_constructor(new_annot, new_annot, "Annotation", 1);
     rt.def_global("Annotation", PHON_DONTENUM);
@@ -514,5 +534,15 @@ void Annotation::discard_changes()
 void Annotation::duplicate_layer(intptr_t index, intptr_t new_index)
 {
 	m_graph.duplicate_layer(index, new_index);
+}
+
+String Annotation::get_layer_label(intptr_t index)
+{
+	return m_graph.get_layer_label(index);
+}
+
+void Annotation::set_layer_label(intptr_t index, String value)
+{
+	m_graph.set_layer_label(index, std::move(value));
 }
 } // namespace phonometrica

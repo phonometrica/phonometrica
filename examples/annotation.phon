@@ -23,6 +23,10 @@ assert(annot.get_property("????") == null) # missing property
 # Remove property, if it exists
 annot.remove_property("Validated")
 
+# Get/set layer label
+var label = annot.get_layer_label(1)
+annot.set_layer_label(1, label.to_upper())
+
 # Get number of layers in annotation
 print("Number of layers: " + annot.layer_count)
 

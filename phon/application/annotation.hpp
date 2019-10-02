@@ -112,6 +112,10 @@ public:
 
 	void duplicate_layer(intptr_t index, intptr_t new_index);
 
+	String get_layer_label(intptr_t index);
+
+	void set_layer_label(intptr_t index, String value);
+
 protected:
 
 	bool content_modified() const override;

@@ -861,18 +861,21 @@ bool Runtime::has_field(Object *obj, const String &name)
 		if (obj->type == PHON_CLIST)
 		{
 			push(obj->as.list.size());
-			return true;
 		}
-		if (obj->type == PHON_CSTRING)
+		else if (obj->type == PHON_CSTRING)
 		{
-			push(obj->as.string.size());
-			return true;
+			push(obj->as.string.grapheme_count());
 		}
-		if (obj->type == PHON_COBJECT)
+		else if (obj->type == PHON_CREGEX)
+		{
+			push(obj->as.regex.count());
+		}
+		else if (obj->type == PHON_COBJECT)
 		{
 			push(obj->fields.size());
-			return true;
 		}
+
+		return true;
 	}
 
 	if (obj->type == PHON_CSTRING)
@@ -886,11 +889,6 @@ bool Runtime::has_field(Object *obj, const String &name)
 	}
 	else if (obj->type == PHON_CREGEX)
 	{
-		if (name == "pattern")
-		{
-			push(obj->as.regex.pattern());
-			return true;
-		}
 		if (name == "ignore_case")
 		{
 			push_boolean(obj->as.regex.flags() & Regex::Caseless);

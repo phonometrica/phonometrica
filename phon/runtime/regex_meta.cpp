@@ -135,17 +135,10 @@ static void regex_to_string(Runtime &rt)
     rt.push(re.pattern());
 }
 
-static void regex_get_length(Runtime &rt)
-{
-    auto &re = rt.to_regex(0);
-    rt.push(re.count());
-}
-
 void Runtime::init_regexp()
 {
     push(regex_meta);
     {
-        add_accessor("Regex.meta.length", regex_get_length);
         add_accessor("Regex.meta.pattern", regex_to_string);
         add_method("Regex.meta.to_string", regex_to_string, 0);
         add_method("Regex.meta.match", regex_match, 0);
