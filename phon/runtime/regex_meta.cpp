@@ -54,7 +54,20 @@ static void regex_group(Runtime &rt)
 {
     auto &re = rt.to_regex(0);
     auto i = rt.to_integer(1);
-    rt.push(re.capture(i));
+	if (re.has_match())
+	{
+		rt.push(re.capture(i));
+	}
+	else
+	{
+		throw error("[Regex error]: Cannot get capture % because regex has no match", i);
+	}
+}
+
+static void regex_has_match(Runtime& rt)
+{
+	auto &re = rt.to_regex(0);
+	rt.push_boolean(re.has_match());
 }
 
 static void regex_first(Runtime &rt)
@@ -142,6 +155,7 @@ void Runtime::init_regexp()
         add_accessor("Regex.meta.pattern", regex_to_string);
         add_method("Regex.meta.to_string", regex_to_string, 0);
         add_method("Regex.meta.match", regex_match, 0);
+		add_method("Regex.meta.has_match", regex_has_match, 0);
         add_method("Regex.meta.group", regex_group, 1);
         add_method("Regex.meta.first", regex_first, 1);
         add_method("Regex.meta.last", regex_last, 1);
