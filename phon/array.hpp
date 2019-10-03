@@ -719,6 +719,21 @@ public:
 		return tmp;
 	}
 
+	T take_at(intptr_t pos)
+	{
+		auto it = begin() + to_base0(pos);
+		return take_at(it);
+	}
+
+	T take_at(const_iterator pos)
+	{
+		assert(ndim() == 1);
+		T value = std::move(*pos);
+		remove_at(pos);
+
+		return value;
+	}
+
 	// Remove the first value in the array.
 	void pop_first()
 	{

@@ -181,8 +181,6 @@ struct Layer // ref-counted
 
     event_iterator find_event(double time);
 
-    AutoEvent get_aligned_event(double time, bool start);
-
     bool validate(event_iterator it) const;
 
     std::shared_ptr<Layer> duplicate(intptr_t new_index);

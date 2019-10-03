@@ -28,6 +28,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <QDebug>
 #include <phon/error.hpp>
 #include <phon/application/agraph.hpp>
 #include <phon/application/praat.hpp>
@@ -83,6 +84,7 @@ Event::~Event()
 {
 	if (valid())
 	{
+		qDebug() << "deleting event at (start = " << start_time() << ", end = " << end_time() << ")";
 		m_start->outgoing.remove(this);
 		if (!is_instant()) m_end->incoming.remove(this);
 	}
@@ -207,25 +209,6 @@ bool Layer::validate(Layer::event_iterator it) const
 	return it != events.end();
 }
 
-AutoEvent Layer::get_aligned_event(double time, bool start)
-{
-	return nullptr;
-//	// Get an event aligned with an anchor
-//	if (this->has_instants)
-//	{
-//		auto it = std::lower_bound(events.begin(), events.end(), time, EventLess());
-//		return (it == events.end()) ? nullptr : *it;
-//	}
-//
-//	if (lower_bound) {
-//		return
-//	}
-//	else {
-//		return std::upper_bound(events.begin(), events.end(), time, EventLessEqual());
-//	}
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -315,7 +298,7 @@ void AGraph::check_free_anchor(const Array<Event *> &events, intptr_t index)
 	for (auto e : events)
 	{
 		if (e->layer_index() == index) {
-			throw error("Anchor already exists on layer %", index + 1);
+			throw error("[Internal error] event <%, %> already exists on layer %", e->start_time(), e->end_time(), index);
 		}
 	}
 }
@@ -756,7 +739,12 @@ AutoEvent AGraph::get_event(intptr_t layer, intptr_t event) const
 
 void AGraph::remove_layer(intptr_t index)
 {
-	m_layers.remove_at(index);
+	auto layer = m_layers.take_at(index);
+
+	for (auto &e : layer->events)
+	{
+		e->detach();
+	}
 
 	for (intptr_t i = index; i <= m_layers.size(); i++) {
 		m_layers[i]->index--;
@@ -810,6 +798,15 @@ void AGraph::add_anchor(intptr_t layer_index, double time, bool can_exist)
 bool AGraph::remove_anchor(intptr_t layer_index, double time)
 {
 	auto layer = m_layers[layer_index].get();
+
+	if (!layer->has_instants)
+	{
+		if (time == 0 || time == layer->events.last()->end_time())
+		{
+			throw error("Cannot remove first or last anchor on an interval layer");
+		}
+	}
+
 	auto it = get_anchor_iter(time);
 
 	if (it == m_anchors.end()) {
