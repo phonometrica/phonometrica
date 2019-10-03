@@ -63,11 +63,11 @@ AudioPlayer::~AudioPlayer()
 {
     assert(m_error == nullptr);
 
+	if (m_resampler) {
+		speex_resampler_destroy(m_resampler);
+	}
     if (isRunning()) {
-	    stop();
-    }
-    if (m_resampler) {
-        speex_resampler_destroy(m_resampler);
+		interrupt();
     }
 }
 

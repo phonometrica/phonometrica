@@ -349,7 +349,6 @@ void Annotation::initialize(Runtime &rt)
 	    rt.add_method("Annotation.meta.get_event_count", get_event_count, 2);
 	    rt.add_method("Annotation.meta.get_layer_label", get_layer_label, 2);
 	    rt.add_method("Annotation.meta.set_layer_label", set_layer_label, 3);
-
     }
     rt.new_native_constructor(new_annot, new_annot, "Annotation", 1);
     rt.def_global("Annotation", PHON_DONTENUM);

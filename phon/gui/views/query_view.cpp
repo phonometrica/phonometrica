@@ -166,7 +166,10 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	fillTable();
 
 	m_table->setContextMenuPolicy(Qt::CustomContextMenu);
+	m_table->setFocusPolicy(Qt::StrongFocus);
 	connect(m_table, SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(provideContextMenu(const QPoint &)));
+	connect(m_table, &QTableWidget::cellClicked, this, &QueryView::onCellClicked);
+	connect(m_table, &QTableWidget::cellDoubleClicked, this, &QueryView::onCellDoubleClicked);
 }
 
 bool QueryView::save()
@@ -232,9 +235,6 @@ void QueryView::fillTable()
 #endif
 
 	m_table->resizeColumnsToContents();
-
-	connect(m_table, &QTableWidget::cellClicked, this, &QueryView::onCellClicked);
-	connect(m_table, &QTableWidget::cellDoubleClicked, this, &QueryView::onCellDoubleClicked);
 }
 
 int QueryView::getQueryFlags()
@@ -273,8 +273,7 @@ void QueryView::playMatch(int i)
 	auto &match = m_data->get_match(i+1);
 	auto sound = match->annotation()->sound();
 	if (!sound) return;
-	if (player) player->stop();
-	auto h = sound->handle();
+	stopPlayer();
 	player = std::make_unique<AudioPlayer>(runtime, this, sound->light_data());
 	double from = match->start_time();
 	double to = match->end_time();
@@ -292,7 +291,7 @@ void QueryView::keyPressEvent(QKeyEvent *event)
 
 	if (event->key() == Qt::Key_Space)
 	{
-		if (index.row() >= 0)
+		if (index.isValid())
 		{
 			onCellDoubleClicked(index.row(), index.column());
 		}
@@ -305,7 +304,7 @@ void QueryView::keyPressEvent(QKeyEvent *event)
 	}
 	else if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)
 	{
-		if (index.row() >= 0)
+		if (index.isValid())
 		{
 			editEvent(index.row());
 		}
