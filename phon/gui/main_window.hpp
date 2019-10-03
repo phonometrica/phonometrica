@@ -114,6 +114,8 @@ private:
 
     void loadPlugin(const String &path);
 
+    void importMetadata();
+
     Plugin *findPlugin(const String &name);
 
     Splitter *splitter;

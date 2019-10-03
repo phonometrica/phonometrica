@@ -129,7 +129,7 @@ public:
 
     bool is_root(const std::shared_ptr<VFolder> &folder) const;
 
-    void import_metadata(const String &path);
+    void import_metadata(const String &path, const String &separator);
 
     void export_metadata(const String &path);
 

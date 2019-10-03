@@ -952,18 +952,6 @@ void Project::initialize(Runtime &rt)
         rt.push_boolean(Project::instance()->empty());
     };
 
-    auto import_metadata = [](Runtime &rt) {
-    	auto path = rt.to_string(1);
-    	Project::instance()->import_metadata(path);
-    	rt.push_null();
-    };
-
-    auto export_metadata = [](Runtime &rt) {
-    	auto path = rt.to_string(1);
-    	Project::instance()->export_metadata(path);
-    	rt.push_null();
-    };
-
 	rt.get_global("phon");
 	{
 		rt.add_method("get_annotations", get_annotations, 0);
@@ -979,8 +967,6 @@ void Project::initialize(Runtime &rt)
             rt.add_method("has_path", project_has_path, 0);
             rt.add_method("save", save_project, 0);
             rt.add_method("is_empty", is_empty, 0);
-            rt.add_method("import_metadata", import_metadata, 1);
-            rt.add_method("export_metadata", export_metadata, 1);
         }
         rt.set_field(-2, "project");
 	}
@@ -1098,9 +1084,9 @@ void Project::trigger(const String &event)
     rt.pop();
 }
 
-void Project::import_metadata(const String &path)
+void Project::import_metadata(const String &path, const String &separator)
 {
-	auto csv = utils::parse_csv(path, "\t");
+	auto csv = utils::parse_csv(path, separator);
 	auto header = csv.take_first();
 	const char *placeholders[] = { "%1", "%2", "%3", "%4", "%5", "%6", "%7", "%8", "%9" };
 
@@ -1184,7 +1170,7 @@ void Project::export_metadata(const String &path)
 	{
 		auto file = m_files[filename];
 		Array<String> row;
-		row.append(file->path());
+		row.append(filesystem::base_name(file->path()));
 		if (file->is_annotation())
 		{
 			auto annot = dynamic_cast<Annotation*>(file.get());

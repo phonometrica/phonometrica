@@ -20,94 +20,77 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 03/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: Information panel which displays file metadata, located on the right-hand side in the main window.         *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_INFO_PANEL_HPP
-#define PHONOMETRICA_INFO_PANEL_HPP
-
-#include <QFrame>
-#include <QTabWidget>
-#include <QPushButton>
+#include <QLayout>
 #include <QLabel>
-#include <QTextEdit>
-#include <phon/application/vfs.hpp>
-#include <phon/runtime/runtime.hpp>
+#include <QPushButton>
+#include <QFileDialog>
+#include <QDialogButtonBox>
+#include <phon/gui/csv_import_dialog.hpp>
+#include <phon/application/settings.hpp>
 
 namespace phonometrica {
 
-class InfoPanel final : public QFrame
+CsvImportDialog::CsvImportDialog(QWidget *parent, Runtime &rt) :
+	QDialog(parent), runtime(rt)
 {
-    Q_OBJECT
+	setWindowTitle(tr("Choose CSV file..."));
+	setMinimumWidth(350);
+	auto hlayout = new QHBoxLayout;
+	path_edit = new QLineEdit;
+	auto path_button = new QPushButton(tr("Choose..."));
+	hlayout->addWidget(path_edit);
+	hlayout->addWidget(path_button);
 
-public:
+	semicolon_button = new QRadioButton(tr("semi-colon"));
+	comma_button = new QRadioButton(tr("comma"));
+	tab_button = new QRadioButton(tr("tabulation"));
+	semicolon_button->setChecked(true);
 
-    InfoPanel(Runtime &rt, QWidget *parent = nullptr);
+	auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
 
-signals:
+	auto layout = new QVBoxLayout;
+	layout->addWidget(new QLabel(tr("Path:")));
+	layout->addLayout(hlayout);
+	layout->addSpacing(10);
+	layout->addWidget(new QLabel(tr("Separator:")));
+	layout->addWidget(semicolon_button);
+	layout->addWidget(comma_button);
+	layout->addWidget(tab_button);
+	layout->addWidget(button_box);
+	setLayout(layout);
 
-    void shown(bool);
+	connect(path_button, &QPushButton::clicked, this, &CsvImportDialog::setPath);
+	connect(button_box, &QDialogButtonBox::accepted, this, &CsvImportDialog::accept);
+	connect(button_box, &QDialogButtonBox::rejected, this, &CsvImportDialog::reject);
+}
 
-public slots:
+void CsvImportDialog::setPath(bool)
+{
+	auto dir = Settings::get_string(runtime, "last_directory");
+	QString path = QFileDialog::getOpenFileName(this->parentWidget(), tr("Choose file..."), dir, "CSV (*.csv);; TXT (*.txt)");
 
-    void showEmptySelection();
+	if (!path.isEmpty())
+		path_edit->setText(path);
+}
 
-    void showSelection(VFileList files);
+String CsvImportDialog::separator() const
+{
+	if (semicolon_button->isChecked())
+		return ";";
+	if (comma_button->isChecked())
+		return ",";
 
-    void reset();
+	return "\t";
+}
 
-private slots:
-
-    void setFileDescription(bool);
-
-    void editProperties();
-
-    void refresh();
-
-    void importMetadata();
-
-	void enableSaveDescription();
-
-	void bindAnnotation();
-
-private:
-
-    void setupUi();
-
-    void setNothingToDisplay();
-
-    void clearWidgets();
-
-    void showSingleSelection(const std::shared_ptr<VFile> &file);
-
-    void showMultipleSelection();
-
-    void setWidgets(bool showTimes);
-
-    void displaySelection();
-
-    QTabWidget *m_tabs;
-
-    Runtime &runtime;
-
-    VFileList m_files;
-
-    QLabel *main_label, *file_label, *soundRef_label, *properties_label, *start_label, *end_label;
-    QLabel *samplerate_label, *channels_label, *duration_label;
-    QPushButton *properties_btn, *import_btn, *save_desc_btn;
-    QPushButton *bind_btn = nullptr;
-    QTabWidget *tabs;
-    QWidget *info_tab;
-    QTextEdit *desc_edit;
-
-    bool description_is_editable; // prevent a VFile's description from being modified when it is set in the widget
-
-};
-
-
-} // phonometrica
-
-#endif // PHONOMETRICA_INFO_PANEL_HPP
+String CsvImportDialog::path() const
+{
+	return path_edit->text();
+}
+} // namespace phonometrica

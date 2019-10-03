@@ -20,94 +20,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 03/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: Information panel which displays file metadata, located on the right-hand side in the main window.         *
+ * Purpose: import dialog for CSV files.                                                                               *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_INFO_PANEL_HPP
-#define PHONOMETRICA_INFO_PANEL_HPP
+#ifndef PHONOMETRICA_CSV_IMPORT_DIALOG_HPP
+#define PHONOMETRICA_CSV_IMPORT_DIALOG_HPP
 
-#include <QFrame>
-#include <QTabWidget>
-#include <QPushButton>
-#include <QLabel>
-#include <QTextEdit>
-#include <phon/application/vfs.hpp>
-#include <phon/runtime/runtime.hpp>
+#include <QDialog>
+#include <QLineEdit>
+#include <QRadioButton>
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
-class InfoPanel final : public QFrame
+class Runtime;
+
+class CsvImportDialog : public QDialog
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
 
-    InfoPanel(Runtime &rt, QWidget *parent = nullptr);
+	CsvImportDialog(QWidget *parent, Runtime &rt);
 
-signals:
+	String separator() const;
 
-    void shown(bool);
-
-public slots:
-
-    void showEmptySelection();
-
-    void showSelection(VFileList files);
-
-    void reset();
+	String path() const;
 
 private slots:
 
-    void setFileDescription(bool);
-
-    void editProperties();
-
-    void refresh();
-
-    void importMetadata();
-
-	void enableSaveDescription();
-
-	void bindAnnotation();
+	void setPath(bool);
 
 private:
 
-    void setupUi();
+	Runtime &runtime;
 
-    void setNothingToDisplay();
+	QLineEdit *path_edit;
 
-    void clearWidgets();
-
-    void showSingleSelection(const std::shared_ptr<VFile> &file);
-
-    void showMultipleSelection();
-
-    void setWidgets(bool showTimes);
-
-    void displaySelection();
-
-    QTabWidget *m_tabs;
-
-    Runtime &runtime;
-
-    VFileList m_files;
-
-    QLabel *main_label, *file_label, *soundRef_label, *properties_label, *start_label, *end_label;
-    QLabel *samplerate_label, *channels_label, *duration_label;
-    QPushButton *properties_btn, *import_btn, *save_desc_btn;
-    QPushButton *bind_btn = nullptr;
-    QTabWidget *tabs;
-    QWidget *info_tab;
-    QTextEdit *desc_edit;
-
-    bool description_is_editable; // prevent a VFile's description from being modified when it is set in the widget
-
+	QRadioButton *semicolon_button, *comma_button, *tab_button;
 };
 
+} // namespace phonometrica
 
-} // phonometrica
-
-#endif // PHONOMETRICA_INFO_PANEL_HPP
+#endif // PHONOMETRICA_CSV_IMPORT_DIALOG_HPP

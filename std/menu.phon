@@ -110,11 +110,10 @@ function import_metadata()
 		phon.alert("Cannot add metadata to an empty project")
 		return
 	end
-	var path = phon.open_file_dialog("Import metadata from CSV file...", "CSV (*.csv)")
-	if path then
-		phon.project.import_metadata(path)
-	end
+
+	phon.import_metadata()
 end
+
 
 function export_metadata()
 	if (phon.project.is_empty()) then
@@ -123,7 +122,7 @@ function export_metadata()
 	end
 	var path = phon.save_file_dialog("Export metadata to CSV file...", "CSV (*.csv)")
 	if path then
-		phon.project.export_metadata(path)
+		phon.export_metadata(path)
 	end
 end
 
