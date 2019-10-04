@@ -149,13 +149,13 @@ void LayerWidget::paintEvent(QPaintEvent *e)
 
         if (is_instant)
         {
-            auto x = std::max(0.0, timeToXPos(start_time));
+            auto x = (std::max)(0.0, timeToXPos(start_time));
             rect = QRectF(x-20, 0, 40, height());
         }
         else
         {
-            auto x1 = std::max(0.0, timeToXPos(start_time));
-            auto x2 = std::min(timeToXPos(end_time), double(width()));
+            auto x1 = (std::max)(0.0, timeToXPos(start_time));
+            auto x2 = (std::min)(timeToXPos(end_time), double(width()));
             rect = QRectF(x1+2, 0, x2-x1-2, height());
         }
 
