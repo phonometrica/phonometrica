@@ -76,7 +76,7 @@ public:
 
 	String tooltip() const override;
 
-	bool is_annotation_stamp() const { return true; }
+	bool is_annotation_stamp() const override { return true; }
 
 	double start() const { return m_start; }
 
