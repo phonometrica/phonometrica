@@ -36,29 +36,22 @@ The latest version can be downloaded from http://www.phonometrica-ling.org. If y
 Download
 ========
 
-Phonometrica 0.5.1 (preview)
+Phonometrica 0.5.2 (preview)
 ----------------------------
 
 -  Windows 7 and later:
-   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.5.1/setup_phonometrica.exe>`__
+   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.5.2/setup_phonometrica.exe>`__
 -  MacOS 10.7 and later:
-   `phonometrica.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.5.1/phonometrica.dmg>`__
--  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.5.1.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.5.1/phonometrica-0.5.1.deb>`__
--  source code: available on `GitHub <https://github.com/phonometrica/phonometrica>`__
+   `phonometrica.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.5.2/phonometrica-0.5.2.dmg>`__
+-  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.5.2.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.5.2/phonometrica-0.5.2.deb>`__
+-  source code: `phonometrica-0.5.2.zip <https://github.com/phonometrica/phonometrica/archive/v0.5.2.zip>`__ | `phonometrica-0.5.2.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.5.2.tar.gz>`__
 
-	misc 	v0.5.1 	4 hours ago
-	phon 	right-align left context in query view 	2 hours ago
-	plugins/PFC 	version 0.4.0 	10 days ago
-	std 	export metadata 	2 days ago
-	unit_test 	fixes for Windows 	last month
-	.gitignore 	import sources 	last month
-	CMakeLists.txt 	static PCRE2 on Windows 	3 hours ago
-	CMakeSettings.json 	import sources 	last month
+
   
 Manual
 ------
 
-Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.5.1/phonometrica_manual.pdf>`_ file.
+Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.5.2/phonometrica_manual.pdf>`_ file.
 
 
 Topics
