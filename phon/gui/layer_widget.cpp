@@ -44,8 +44,8 @@
 
 namespace phonometrica {
 
-LayerWidget::LayerWidget(AGraph &graph, double duration, intptr_t layer_index, QWidget *parent) :
-    SpeechWidget(parent), graph(graph), layer(graph.get(layer_index)), m_duration(duration)
+LayerWidget::LayerWidget(const AutoAnnotation &annot, double duration, intptr_t layer_index, QWidget *parent) :
+    SpeechWidget(parent), unused(annot), graph(annot->graph()), layer(graph.get(layer_index)), m_duration(duration)
 {
     setMinimumHeight(50);
     setMaximumHeight(70);
@@ -774,6 +774,8 @@ double LayerWidget::timeAtCursor(QMouseEvent *e) const
 void LayerWidget::leaveEvent(QEvent *event)
 {
 	clearEditAnchor();
+	emit current_time(-1, MouseTracking::Disabled);
+
 	if (sharing_anchors) {
 		emit temporary_anchor(layer->index, -1);
 	}

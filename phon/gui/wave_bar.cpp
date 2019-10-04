@@ -57,8 +57,10 @@ void WaveBar::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-
     QPen pen;
+
+    auto from = startPosition();
+    auto to = endPosition();
 
     // Draw zero-crossing line
     pen.setColor(Qt::blue);
@@ -118,24 +120,24 @@ int WaveBar::sampleToYPos(sample_t s) const
 
 void WaveBar::mousePressEvent(QMouseEvent *event)
 {
-    from = event->localPos().x();
+    current_window.first = xPosToTime(event->localPos().x());
     emit selectionStarted();
 }
 
 void WaveBar::mouseReleaseEvent(QMouseEvent *event)
 {
-    to = std::max<double>(0.0, event->localPos().x());
-    if (to == from) return;
+    current_window.second = xPosToTime(std::max<double>(0.0, event->localPos().x()));
+    if (current_window.first == current_window.second) return;
 
-    if (to < from) {
-        std::swap(to, from);
+    if (current_window.second < current_window.first) {
+        std::swap(current_window.first, current_window.second);
     }
     notifySelection();
 }
 
 void WaveBar::mouseMoveEvent(QMouseEvent *event)
 {
-    to = event->localPos().x();
+    current_window.second = xPosToTime(event->localPos().x());
     repaint();
 }
 
@@ -144,6 +146,8 @@ void WaveBar::wheelEvent(QWheelEvent *event)
     QPoint degrees = event->angleDelta() / 8;
     int steps = -degrees.y() / 15;
     //steps *= 5;
+    auto from = startPosition();
+    auto to = endPosition();
     auto delta = to - from;
     from += steps;
     if (from < 0) {
@@ -162,26 +166,26 @@ void WaveBar::wheelEvent(QWheelEvent *event)
 
 void WaveBar::setTimeSelection(double t1, double t2)
 {
-    this->from = timeToXPos(t1);
-    this->to = timeToXPos(t2);
+	current_window = {t1, t2};
 
-    // Only inform the zoomer.xPosToTime(t2)
-    emit updatedXAxisSelection(this->from, this->to);
+    emit updatedXAxisSelection(startPosition(), endPosition());
     repaint();
 }
 
-double WaveBar::sampleToXPos(intptr_t s)
+double WaveBar::sampleToXPos(intptr_t s) const
 {
     return s * ((double)width() / m_data->size());
 }
 
-intptr_t WaveBar::xPosToSample(double x)
+intptr_t WaveBar::xPosToSample(double x) const
 {
     return (intptr_t) round(x * m_data->size() / width()) + 1;
 }
 
 void WaveBar::notifySelection()
 {
+	auto from = startPosition();
+	auto to = endPosition();
     emit updatedXAxisSelection(from, to);
     auto t1 = xPosToTime(from);
     auto t2 = xPosToTime(to);
@@ -191,13 +195,13 @@ void WaveBar::notifySelection()
     repaint();
 }
 
-double WaveBar::timeToXPos(double t)
+double WaveBar::timeToXPos(double t) const
 {
     auto s = m_data->time_to_frame(t);
     return sampleToXPos(s);
 }
 
-double WaveBar::xPosToTime(double x)
+double WaveBar::xPosToTime(double x) const
 {
     auto s = std::min<intptr_t>(xPosToSample(x), m_data->size());
     return m_data->frame_to_time(s);
@@ -257,13 +261,14 @@ double WaveBar::magnitude() const
     return raw_magnitude;// / std::abs(std::numeric_limits<sample_t>::min());
 }
 
-void WaveBar::setInitialSelection()
+double WaveBar::startPosition() const
 {
-    from = 0;
-    double end = (std::min)(DEFAULT_WINDOW_DURATION, m_data->duration());
-    to = timeToXPos(end);
-    repaint();
-    emit updatedXAxisSelection(from, to);
+	return timeToXPos(current_window.first);
+}
+
+double WaveBar::endPosition() const
+{
+	return timeToXPos(current_window.second);
 }
 
 

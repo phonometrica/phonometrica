@@ -46,8 +46,6 @@ public:
 
     double magnitude() const;
 
-    void setInitialSelection();
-
 signals:
 
     void selectionStarted();
@@ -80,15 +78,17 @@ private:
 
     std::shared_ptr<AudioData> m_data;
 
-    //Array<int> m_cache;
+    double sampleToXPos(intptr_t s) const;
 
-    double sampleToXPos(intptr_t s);
+    intptr_t xPosToSample(double x) const;
 
-    intptr_t xPosToSample(double x);
+    double timeToXPos(double t) const;
 
-    double timeToXPos(double t);
+    double xPosToTime(double x) const;
 
-    double xPosToTime(double x);
+    double startPosition() const;
+
+    double endPosition() const;
 
     void notifySelection();
 
@@ -100,7 +100,8 @@ private:
     // Cache the width of the plot
     int cached_width = 0;
 
-    double from, to; // buffer x axis positions when mouse is pressed
+    // Start and end time of the window currently displayed in the speech plots.
+    std::pair<double, double> current_window;
 
     // Normalization constants
     double raw_magnitude;

@@ -29,7 +29,7 @@
 #ifndef PHONOMETRICA_LAYER_WIDGET_HPP
 #define PHONOMETRICA_LAYER_WIDGET_HPP
 
-#include <phon/application/agraph.hpp>
+#include <phon/application/annotation.hpp>
 #include <phon/gui/speech_widget.hpp>
 #include <phon/gui/mouse_tracking.hpp>
 
@@ -47,7 +47,7 @@ class LayerWidget final : public SpeechWidget
 
 public:
 
-    LayerWidget(AGraph &graph, double duration, intptr_t layer_index, QWidget *parent = nullptr);
+    LayerWidget(const AutoAnnotation &annot, double duration, intptr_t layer_index, QWidget *parent = nullptr);
 
     ~LayerWidget() = default;
 
@@ -197,7 +197,15 @@ private:
     // Metadata dialog controlled by the button.
     LayerInfoDialog *dialog;
 
-    AGraph &graph;
+    // We need to store a reference to the annotation to avoid a subtle bug that leads to a crash. Due to the way
+    // destructors work, the AutoLayer pointer owned by this widget will be released after the AutoAnnotation pointer
+    // owned by the annotation view. If the annotation pointer is unique (because it's a temporary annotation which is
+    // not registered in the project), the annotation graph will already have been destroyed when we try to finalize
+    // the layer. As a result, the anchors that are referenced by the layer's events will be invalid. Therefore,
+    // we keep an extra pointer to the annotation *before* the layer pointer to ensure that the anchors still exist.
+	AutoAnnotation unused;
+
+	AGraph &graph;
 
     AutoLayer layer;
 

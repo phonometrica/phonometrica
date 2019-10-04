@@ -28,7 +28,6 @@
 
 #include <cmath>
 #include <iostream>
-#include <QDebug>
 #include <phon/error.hpp>
 #include <phon/application/agraph.hpp>
 #include <phon/application/praat.hpp>
@@ -84,7 +83,6 @@ Event::~Event()
 {
 	if (valid())
 	{
-		qDebug() << "deleting event at (start = " << start_time() << ", end = " << end_time() << ")";
 		m_start->outgoing.remove(this);
 		if (!is_instant()) m_end->incoming.remove(this);
 	}
@@ -843,10 +841,13 @@ bool AGraph::remove_anchor(intptr_t layer_index, double time)
 		assert(it1 != list1.end());
 		assert(it2 != list2.end());
 		auto e1 = *it1; auto e2 = *it2;
-		// Merge e1 and e2 into e2.
+		// Merge e1 and e2 into e2. (Add a space between the labels if both are non empty.)
 		auto text = e1->text();
-		text.append(e2->text());
+		auto text2 = e2->text();
+		if (!text.empty() && !text2.empty()) text.append(' ');
+		text.append(text2);
 		e2->set_text(text);
+
 		auto first_anchor = e1->start_anchor();
 		auto mid_anchor = e1->end_anchor();
 		e1->detach();

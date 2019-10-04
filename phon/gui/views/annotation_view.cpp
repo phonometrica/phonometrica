@@ -120,7 +120,7 @@ void AnnotationView::addAnnotationLayers(QVBoxLayout *layout)
 LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 {
 	auto duration = annot->sound()->duration();
-	auto layer = new LayerWidget(annot->graph(), duration, i);
+	auto layer = new LayerWidget(annot, duration, i);
 	auto win = waveform->currentWindow();
 	layer->setWindow(win.first, win.second);
 

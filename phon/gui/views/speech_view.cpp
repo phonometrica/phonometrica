@@ -342,8 +342,7 @@ void SpeechView::setInitialWindow()
     waveform->setInitialWindow();
     pitch_plot->setInitialWindow();
     intensity_plot->setInitialWindow();
-    wavebar->setInitialSelection();
-    // Let the layers know about the size of the window
+    // Let the layers and the wavebar know about the size of the window
     waveform->informWindow();
 }
 
@@ -424,9 +423,9 @@ void SpeechView::setupUi()
 	connect(wavebar, &WaveBar::timeSelection, waveform, &Waveform::setWindow);
 	connect(wavebar, &WaveBar::timeSelection, pitch_plot, &PitchPlot::setWindow);
 	connect(wavebar, &WaveBar::timeSelection, intensity_plot, &PitchPlot::setWindow);
-	connect(waveform, &Waveform::timeSelection, wavebar, &WaveBar::setTimeSelection);
-	connect(pitch_plot, &PitchPlot::timeSelection, wavebar, &WaveBar::setTimeSelection);
-	connect(intensity_plot, &IntensityPlot::timeSelection, wavebar, &WaveBar::setTimeSelection);
+	connect(waveform, &Waveform::windowHasChanged, wavebar, &WaveBar::setTimeSelection);
+//	connect(pitch_plot, &PitchPlot::windowHasChanged, wavebar, &WaveBar::setTimeSelection);
+//	connect(intensity_plot, &IntensityPlot::timeSelection, wavebar, &WaveBar::setTimeSelection);
 
 	connect(pitch_plot, &PitchPlot::yAxisModified, y_axis, &YAxisWidget::refresh);
 
