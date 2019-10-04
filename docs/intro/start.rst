@@ -62,11 +62,14 @@ files.
 Import metadata
 ~~~~~~~~~~~~~~~
 
-Phonometrica lets you import metadata from a tab-separated file. The file must have the following structure:
+Phonometrica lets you import metadata from a CSV file, which is a tabular format according to which each line 
+represents a row, and values in a row are separated by a **separator character**. When you click on 
+``Import metadata...`` in the ``File`` menu or in the metadata panel, a dialog opens up and asks you to choose 
+a file as well as the separator character. We use the semicolon by default, since this is the separator used by
+Excel when it exports a spreadsheet to CSV. The file must have the following structure:
 
 * the first line must be a header: the first field is ignored, and the following fields correspond to property categories.
 * the first column must contain the name of file to which we want to add metadata, and the following properties are values for the corresponding categories. Cells can be left empty for files files which doesn't have a certain property.
-* the separator must be the tabulation character
 
 
 The cells in the first column represent file names, as they are normally displayed by your operating system. For instance,

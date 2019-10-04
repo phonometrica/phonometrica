@@ -1,6 +1,16 @@
 Release notes
 -------------
 
+
+0.5.2 (04/10/2019)
+~~~~~~~~~~~~~~~~~~
+
+This version is mostly a bug fix release.
+
+- new import dialog for metadata
+- bug fixes
+
+
 0.5.1 (29/09/2019)
 ~~~~~~~~~~~~~~~~~~
 

@@ -130,11 +130,14 @@ files.</p>
 </div>
 <div class="section" id="import-metadata">
 <h2>Import metadata<a class="headerlink" href="#import-metadata" title="Permalink to this headline">¶</a></h2>
-<p>Phonometrica lets you import metadata from a tab-separated file. The file must have the following structure:</p>
+<p>Phonometrica lets you import metadata from a CSV file, which is a tabular format according to which each line
+represents a row, and values in a row are separated by a <strong>separator character</strong>. When you click on
+<code class="docutils literal notranslate"><span class="pre">Import</span> <span class="pre">metadata...</span></code> in the <code class="docutils literal notranslate"><span class="pre">File</span></code> menu or in the metadata panel, a dialog opens up and asks you to choose
+a file as well as the separator character. We use the semicolon by default, since this is the separator used by
+Excel when it exports a spreadsheet to CSV. The file must have the following structure:</p>
 <ul class="simple">
 <li>the first line must be a header: the first field is ignored, and the following fields correspond to property categories.</li>
 <li>the first column must contain the name of file to which we want to add metadata, and the following properties are values for the corresponding categories. Cells can be left empty for files files which doesn’t have a certain property.</li>
-<li>the separator must be the tabulation character</li>
 </ul>
 <p>The cells in the first column represent file names, as they are normally displayed by your operating system. For instance,
 if you want to tag the file <code class="docutils literal notranslate"><span class="pre">C:\Test\loc1f26.wav</span></code>, i.e. a file named <code class="docutils literal notranslate"><span class="pre">loc1f26.wav</span></code> located in a directory named

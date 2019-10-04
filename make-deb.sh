@@ -26,6 +26,8 @@ cp -r $SRCDIR/html $OUTDIR/usr/local/share/phonometrica/
 cp $SRCDIR/misc/control $OUTDIR/DEBIAN/
 cp $SRCDIR/misc/phonometrica.desktop $OUTDIR/usr/share/applications/
 cp $SRCDIR/sound_wave.png $OUTDIR/usr/local/share/phonometrica/
+cp $SRCDIR/LICENSE* $OUTDIR/usr/local/share/phonometrica/
+cp -r $SRCDIR/licenses $OUTDIR/usr/local/share/phonometrica/
 
 CURDIR=`pwd`
 cd $ROOT
