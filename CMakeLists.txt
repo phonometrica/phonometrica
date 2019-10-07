@@ -27,11 +27,11 @@ set(USE_FFTW OFF)
 # Major release: incremented when major changes are introduced
 add_definitions(-DPHON_VERSION_MAJOR=0)
 # Minor release: incremented when new features and/or bug fixes are introduced
-add_definitions(-DPHON_VERSION_MINOR=5)
+add_definitions(-DPHON_VERSION_MINOR=6)
 # Revision release: incremented when bugs are fixed are small features are added
-add_definitions(-DPHON_VERSION_MICRO=2)
+add_definitions(-DPHON_VERSION_MICRO=0)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=0)
+add_definitions(-DPHON_VERSION_NANO=1)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
@@ -125,6 +125,8 @@ if(WIN32)
 elseif(APPLE)
     include_directories(/usr/local/include)
 endif()
+
+add_definitions(-DEIGEN_MPL2_ONLY)
 
 file(GLOB RUNTIME_FILES
         phon/*.cpp phon/*.hpp
