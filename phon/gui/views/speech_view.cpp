@@ -59,7 +59,7 @@ Toolbar *SpeechView::makeToolbar()
 	auto action_enable_spectrum = new QAction(tr("Show spectrogram"), this);
 	action_enable_spectrum->setCheckable(true);
 	action_enable_spectrum->setChecked(true);
-	auto action_spectrum_settings = new QAction(tr("Change spectrogram settings..."), this);
+	auto action_spectrum_settings = new QAction(tr("Spectrogram settings..."), this);
 	spectrum_menu->addAction(action_enable_spectrum);
 	spectrum_menu->addAction(action_spectrum_settings);
 
@@ -67,7 +67,7 @@ Toolbar *SpeechView::makeToolbar()
     auto action_enable_pitch = new QAction(tr("Show pitch"), this);
     action_enable_pitch->setCheckable(true);
     action_enable_pitch->setChecked(true);
-    auto action_pitch_settings = new QAction(tr("Change pitch settings..."), this);
+    auto action_pitch_settings = new QAction(tr("Pitch settings..."), this);
     pitch_menu->addAction(action_enable_pitch);
     pitch_menu->addAction(action_pitch_settings);
 
@@ -344,7 +344,7 @@ void SpeechView::changeSpectrogramSettings(bool)
 
     if (dlg.exec() == QDialog::Accepted)
     {
-
+		spectrogram->updateSettings();
     }
 }
 

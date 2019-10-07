@@ -29,10 +29,13 @@
 #include <complex>
 #include <vector>
 #include <ffts.h>
+#include <QMessageBox>
 #include <QDebug>
+#include <phon/runtime/runtime.hpp>
+#include <phon/application/settings.hpp>
 #include <phon/gui/spectrogram.hpp>
-#include <phon/speech/signal_processing.hpp>
 #include <phon/speech/speech_utils.hpp>
+#include <phon/include/reset_spectrogram_settings_phon.hpp>
 #include <phon/utils/matrix.hpp>
 
 namespace phonometrica {
@@ -40,7 +43,15 @@ namespace phonometrica {
 Spectrogram::Spectrogram(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
 	SpeechPlot(rt, std::move(data), parent)
 {
-
+	try
+	{
+		readSettings();
+	}
+	catch (std::exception &)
+	{
+		run_script(rt, reset_spectrogram_settings);
+		readSettings();
+	}
 }
 
 void Spectrogram::drawYAxis(QWidget *y_axis, int y1, int y2)
@@ -48,7 +59,7 @@ void Spectrogram::drawYAxis(QWidget *y_axis, int y1, int y2)
 	QPainter painter(y_axis);
 	auto font_metrics = painter.fontMetrics();
 	auto top = QString::number(long(ceiling_freq));
-	QString bottom = QString::number(long(floor_freq));
+	QString bottom = QString::number(0);
 	top.append(" Hz");
 	bottom.append(" Hz");
 	int h = font_metrics.height();
@@ -65,9 +76,6 @@ void Spectrogram::renderPlot(QPaintEvent *event)
 	if (needsRefresh())
 	{
 		auto raster = computeSpectrogram();
-
-		// Values below the threshold [max_dB - dynamic_range] are treated as 0.
-		int dynamic_range = 70;
 
 		image = QImage(width(), height(), QImage::Format_RGB32);
 		image.fill(QColor(255, 255, 255));
@@ -244,7 +252,51 @@ Matrix<double> Spectrogram::computeSpectrogram()
 
 void Spectrogram::resizeEvent(QResizeEvent *e)
 {
-	image = QImage();
+	emptyCache();
 	QWidget::resizeEvent(e);
 }
+
+void Spectrogram::updateSettings()
+{
+	readSettings();
+	emptyCache();
+	repaint();
+	emit yAxisModified();
+}
+
+void Spectrogram::readSettings()
+{
+	using namespace speech;
+
+	String cat("spectrogram");
+	ceiling_freq = Settings::get_number(rt, cat, "frequency_range");
+	window_length = Settings::get_number(rt, cat, "window_size");
+	dynamic_range = (int) Settings::get_number(rt, cat, "dynamic_range");
+
+	String win = Settings::get_string(rt, cat, "window_type");
+	if (win == "Bartlett")
+		window_type = WindowType::Bartlett;
+	else if (win == "Blackman")
+		window_type = WindowType::Blackman;
+	else if (win == "Gaussian")
+		window_type = WindowType::Gaussian;
+	else if (win == "Hamming")
+		window_type = WindowType::Hamming;
+	else if (win == "Hann")
+		window_type = WindowType::Hann;
+	else if (win == "Rectangular")
+		window_type = WindowType::Rectangular;
+	else
+	{
+		QMessageBox::warning(this, tr("Invalid window type"), tr("Unknown window type. Using Hann window instead."));
+		Settings::set_value(rt, cat, "window_type", "Hann");
+		window_type = WindowType::Hann;
+	}
+}
+
+void Spectrogram::emptyCache()
+{
+	image = QImage();
+}
+
 } // namespace phonometrica

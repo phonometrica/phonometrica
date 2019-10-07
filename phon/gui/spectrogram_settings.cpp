@@ -28,14 +28,17 @@
 
 #include <QMessageBox>
 #include <QDialogButtonBox>
+#include <QPushButton>
 #include <QLayout>
-#include <QLabel>
+#include <phon/runtime/runtime.hpp>
+#include <phon/application/settings.hpp>
+#include <phon/include/reset_spectrogram_settings_phon.hpp>
 #include <phon/gui/spectrogram_settings.hpp>
 
 namespace phonometrica {
 
 SpectrogramSettings::SpectrogramSettings(Runtime &rt, QWidget *parent) :
-	QDialog(parent)
+	QDialog(parent), runtime(rt)
 {
 	setWindowTitle(tr("Spectrogram settings..."));
 	setMinimumWidth(300);
@@ -48,44 +51,146 @@ SpectrogramSettings::SpectrogramSettings(Runtime &rt, QWidget *parent) :
 	auto custom_layout = new QHBoxLayout;
 	custom_button = new QRadioButton(tr("Custom window size (in ms):"));
 	custom_edit = new QLineEdit;
-	auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+
+	range_edit = new QLineEdit;
+
+	window_box = new QComboBox;
+	window_box->addItem("Bartlett");
+    window_box->addItem("Blackman");
+	window_box->addItem("Hamming");
+	window_box->addItem("Hann");
+	window_box->addItem("Rectangular");
+	window_box->setCurrentIndex(3);
 
 	contrast_slider = new QSlider(Qt::Horizontal);
 	contrast_slider->setMinimum(0);
 	contrast_slider->setMaximum(255);
 	contrast_slider->setSingleStep(1);
-	contrast_slider->setValue(70);
+
+	contrast_label = new QLabel;
 
 	layout->addWidget(wide_button);
 	layout->addWidget(narrow_button);
 	custom_layout->addWidget(custom_button);
-	custom_layout->addWidget(custom_edit);
 	layout->addLayout(custom_layout);
-	layout->addWidget(new QLabel("Dynamic range (dB):"));
+	layout->addWidget(custom_edit);
+	layout->addWidget(new QLabel("Frequency range (Hz):"));
+	layout->addWidget(range_edit);
+	layout->addWidget(new QLabel(tr("Window type:")));
+	layout->addWidget(window_box);
+	layout->addWidget(contrast_label);
 	layout->addWidget(contrast_slider);
-	layout->addWidget(button_box);
+
+	auto hl = new QHBoxLayout;
+	auto reset_button = new QPushButton("Reset");
+	auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+	hl->addWidget(reset_button);
+	hl->addStretch();
+	hl->addWidget(button_box);
+	layout->addLayout(hl);
 	setLayout(layout);
 
-	connect(button_box, &QDialogButtonBox::accepted, this, &SpectrogramSettings::accept);
-    connect(button_box, &QDialogButtonBox::rejected, this, &SpectrogramSettings::reject);
+	displayValues();
 
+	connect(button_box, &QDialogButtonBox::accepted, this, &SpectrogramSettings::validate);
+    connect(button_box, &QDialogButtonBox::rejected, this, &SpectrogramSettings::reject);
+	connect(reset_button, &QPushButton::clicked, this, &SpectrogramSettings::reset);
+    connect(wide_button, &QRadioButton::pressed, this, &SpectrogramSettings::disableCustomWindow);
+	connect(narrow_button, &QRadioButton::pressed, this, &SpectrogramSettings::disableCustomWindow);
+	connect(custom_button, &QRadioButton::pressed, this, &SpectrogramSettings::enableCustomWindow);
+	connect(contrast_slider, &QSlider::valueChanged, [this](bool) { setContrastLabel(); });
 }
 
-double SpectrogramSettings::windowSize() const
+void SpectrogramSettings::enableCustomWindow()
 {
-	if (wide_button->isChecked())
-		return 0.005;
-	if (narrow_button->isChecked())
-		return 0.025;
-	bool ok;
-	int value = custom_edit->text().toInt(&ok);
+	custom_edit->setEnabled(true);
+}
 
-	if (!ok || value <= 0) {
-		QMessageBox dlg(QMessageBox::Critical, tr("Invalid setting"), tr("Invalid window size"));
-		dlg.exec();
-		return 0.005;
+void SpectrogramSettings::disableCustomWindow()
+{
+	custom_edit->setEnabled(false);
+}
+
+void SpectrogramSettings::validate()
+{
+	bool ok;
+	String category("spectrogram");
+
+	double window_size = 0.005;
+	if (narrow_button->isChecked())
+		window_size = 0.025;
+	else if (custom_button->isChecked())
+	{
+		auto value = custom_edit->text().toInt(&ok);
+		if (!ok || value <= 0)
+		{
+			QMessageBox::critical(this, tr("Invalid setting"), tr("Invalid window size"));
+			return;
+		}
+		window_size = double(value) / 1000;
+	}
+	Settings::set_value(runtime, category, "window_size", window_size);
+
+	{
+		int value = range_edit->text().toInt(&ok);
+		if (!ok || value <= 0) {
+			QMessageBox::critical(this, tr("Invalid setting"), tr("Invalid frequency range"));
+			return;
+		}
+		Settings::set_value(runtime, category, "frequency_range", value);
 	}
 
-	return double(value) / 1000;
+	String window_type = window_box->currentText();
+	Settings::set_value(runtime, category, "window_type", window_type);
+
+	Settings::set_value(runtime, category, "dynamic_range", contrast_slider->value());
+
+	accept();
+
 }
+
+void SpectrogramSettings::setContrastLabel()
+{
+	QString label = QString("Dynamic range: %1 dB").arg(contrast_slider->value());
+	contrast_label->setText(label);
+}
+
+void SpectrogramSettings::displayValues()
+{
+	String category("spectrogram");
+
+	auto range = (int) Settings::get_number(runtime, category, "dynamic_range");
+	contrast_slider->setValue(range);
+
+	auto frange = (int) Settings::get_number(runtime, category, "frequency_range");
+	range_edit->setText(QString::number(frange));
+
+	double window_size = Settings::get_number(runtime, category, "window_size");
+
+	if (window_size == 0.005)
+	{
+		disableCustomWindow();
+		wide_button->setChecked(true);
+	}
+	else if (window_size == 0.025)
+	{
+		disableCustomWindow();
+		narrow_button->setChecked(true);
+	}
+	else
+	{
+		custom_button->setChecked(true);
+		enableCustomWindow();
+		custom_edit->setText(QString::number(window_size, 'g', 4));
+	}
+
+	setContrastLabel();
+}
+
+void SpectrogramSettings::reset(bool)
+{
+	run_script(runtime, reset_spectrogram_settings);
+	displayValues();
+}
+
 } // namespace phonometrica

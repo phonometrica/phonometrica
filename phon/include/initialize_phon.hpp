@@ -1,7 +1,7 @@
 #ifndef INITIALIZE_PHON_SCRIPT_INCLUDE
 #define INITIALIZE_PHON_SCRIPT_INCLUDE
 
-const char *initialize_script = R"_(
+static const char *initialize_script = R"_(
 var config = phon.config
 
 config.get_documentation_page = function(page)

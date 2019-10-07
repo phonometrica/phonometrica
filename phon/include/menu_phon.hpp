@@ -1,7 +1,7 @@
 #ifndef MENU_PHON_SCRIPT_INCLUDE
 #define MENU_PHON_SCRIPT_INCLUDE
 
-const char *menu_script = R"_(
+static const char *menu_script = R"_(
 
 function view_script()
 	phon.view_script(null)

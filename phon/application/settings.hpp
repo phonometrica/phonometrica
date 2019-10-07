@@ -65,6 +65,8 @@ public:
 
     static double get_number(Runtime &rt, const String &category, const String &name);
 
+	static String get_string(Runtime &rt, const String &category, const String &name);
+
     static int get_int(Runtime &rt, const String &name);
 
     static Array<Variant> &get_list(Runtime &rt, const String &name);
@@ -78,6 +80,8 @@ public:
     static void set_value(Runtime &rt, const String &key, Array<Variant> value);
 
     static void set_value(Runtime &rt, const String &category, const String &key, double value);
+
+	static void set_value(Runtime &rt, const String &category, const String &key, const String &value);
 
 
     static void initialize(Runtime &rt);

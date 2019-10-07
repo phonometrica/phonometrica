@@ -30,6 +30,7 @@
 #include <phon/gui/pitch_plot.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/runtime/runtime.hpp>
+#include <phon/include/reset_pitch_settings_phon.hpp>
 #include <phon/third_party/swipe/swipe.h>
 
 #define MAX_PITCH_WINDOW 30
@@ -40,7 +41,15 @@ namespace phonometrica {
 PitchPlot::PitchPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
     SpeechPlot(rt, std::move(data), parent)
 {
-    readSettings();
+	try
+	{
+		readSettings();
+	}
+	catch (std::exception &)
+	{
+		run_script(rt, reset_pitch_settings);
+		readSettings();
+	}
 }
 
 void PitchPlot::drawYAxis(QWidget *y_axis, int y1, int y2)

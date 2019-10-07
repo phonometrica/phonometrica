@@ -298,7 +298,34 @@ double Settings::get_number(Runtime &rt, const String &category, const String &n
     return value;
 }
 
+String Settings::get_string(Runtime &rt, const String &category, const String &name)
+{
+    // Get "phon.settings.category.name"
+    rt.get_global(phon_key);
+    rt.get_field(-1, settings_key);
+    rt.get_field(-1, category);
+    rt.get_field(-1, name);
+    auto value = rt.to_string(-1);
+    rt.pop(4);
+
+    return value;
+}
+
 void Settings::set_value(Runtime &rt, const String &category, const String &key, double value)
+{
+    rt.get_global(phon_key);
+    rt.get_field(-1, settings_key);
+    {
+        rt.get_field(-1, category);
+        {
+            rt.push(value);
+        }
+        rt.set_field(-2, key);
+    }
+    rt.pop(3);
+}
+
+void Settings::set_value(Runtime &rt, const String &category, const String &key, const String &value)
 {
     rt.get_global(phon_key);
     rt.get_field(-1, settings_key);
@@ -326,6 +353,5 @@ void Settings::reset_sound_settings(Runtime &rt)
 {
 	run_script(rt, reset_sound_settings);
 }
-
 
 } // namespace phonometrica

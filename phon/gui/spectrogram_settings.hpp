@@ -33,6 +33,8 @@
 #include <QSlider>
 #include <QRadioButton>
 #include <QLineEdit>
+#include <QComboBox>
+#include <QLabel>
 
 namespace phonometrica {
 
@@ -46,17 +48,35 @@ public:
 
 	SpectrogramSettings(Runtime &rt, QWidget *parent = nullptr);
 
-	int dynamicRange() const { return contrast_slider->value(); }
 
-	double windowSize() const;
+
+private slots:
+
+	void enableCustomWindow();
+
+	void disableCustomWindow();
+
+	void validate();
+
+	void reset(bool);
 
 private:
+
+	void setContrastLabel();
+
+	void displayValues();
+
+	Runtime &runtime;
 
 	QSlider *contrast_slider;
 
 	QRadioButton *wide_button, *narrow_button, *custom_button;
 
-	QLineEdit *custom_edit;
+	QLineEdit *custom_edit, *range_edit;
+
+	QComboBox *window_box;
+
+	QLabel *contrast_label;
 };
 
 } // namespace phonometrica

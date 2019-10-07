@@ -1,7 +1,7 @@
 #ifndef WRITE_SETTINGS_PHON_SCRIPT_INCLUDE
 #define WRITE_SETTINGS_PHON_SCRIPT_INCLUDE
 
-const char *write_settings_script = R"_(
+static const char *write_settings_script = R"_(
 var f = new File(phon.config.path, "w")
 var settings = json.stringify(phon.settings, null, 4)
 

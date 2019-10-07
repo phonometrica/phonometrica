@@ -32,8 +32,12 @@
 #include <QImage>
 #include <phon/gui/speech_plot.hpp>
 #include <phon/utils/matrix.hpp>
+#include <phon/speech/signal_processing.hpp>
 
 namespace phonometrica {
+
+class Runtime;
+
 
 class Spectrogram final : public SpeechPlot
 {
@@ -44,6 +48,8 @@ public:
     Spectrogram(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
 
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;
+
+	void updateSettings();
 
 protected:
 
@@ -58,17 +64,24 @@ private:
 
 	Matrix<double> computeSpectrogram();
 
+	void readSettings();
+
+	void emptyCache();
+
+
 	// Cached spectrogram.
 	QImage image;
 
 	// Duration of the analysis window.
-	double window_length = 0.005;
-
-	// Lowest frequency.
-	double floor_freq = 0;
+	double window_length;
 
 	// Highest frequency.
-	double ceiling_freq = 5500;
+	double ceiling_freq;
+
+	// Dynamic range (in dB). Values below the threshold [max_dB - dynamic_range] are treated as 0.
+	int dynamic_range;
+
+	speech::WindowType window_type;
 };
 
 } // namespace phonometrica

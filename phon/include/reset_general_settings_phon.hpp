@@ -1,7 +1,7 @@
 #ifndef RESET_GENERAL_SETTINGS_PHON_SCRIPT_INCLUDE
 #define RESET_GENERAL_SETTINGS_PHON_SCRIPT_INCLUDE
 
-const char *reset_general_settings_script = R"_(phon.settings.match_window_length = 40
+static const char *reset_general_settings_script = R"_(phon.settings.match_window_length = 40
 phon.settings.autosave = false
 phon.settings.autoload = false
 

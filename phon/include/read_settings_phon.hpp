@@ -1,7 +1,7 @@
 #ifndef READ_SETTINGS_PHON_SCRIPT_INCLUDE
 #define READ_SETTINGS_PHON_SCRIPT_INCLUDE
 
-const char *read_settings_script = R"_(
+static const char *read_settings_script = R"_(
 phon.settings = {
 	recent_projects: [],
 
@@ -41,7 +41,17 @@ phon.settings = {
         time_step: 0.01,
         
         voicing_threshold: 0.25
-    }
+    },
+
+	spectrogram: {
+		window_size: 0.005,
+		
+		frequency_range: 5500,
+
+		window_type: "Hann",
+
+		dynamic_range: 70
+	}
 }
 
 if system.name == "windows" then

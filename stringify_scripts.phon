@@ -49,7 +49,7 @@ foreach var name in dirs do
 	
 	outfile.write('#ifndef ' + include + '\n')
 	outfile.write('#define ' + include + '\n\n')
-	outfile.write('const char *' + base + '_script = R"_(')
+	outfile.write('static const char *' + base + '_script = R"_(')
 	outfile.write_lines(content)
 	outfile.write(')_";\n\n')
 	outfile.write('#endif /* ' + include + ' */')

@@ -31,6 +31,7 @@
 #include <QDialogButtonBox>
 #include <QMessageBox>
 #include <phon/gui/pitch_settings.hpp>
+#include <phon/include/reset_pitch_settings_phon.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/runtime/runtime.hpp>
 
@@ -124,15 +125,7 @@ void PitchSettings::validate()
 
 void PitchSettings::reset(bool)
 {
-    rt.do_string(R"__(
-phon.settings.pitch_tracking = {
-    minimum_pitch: 70,
-    maximum_pitch: 500,
-    time_step: 0.01,
-    voicing_threshold: 0.25
-}
-)__");
-
+	run_script(rt, reset_pitch_settings);
     displayValues();
 }
 

@@ -1,7 +1,7 @@
 #ifndef EVENT_PHON_SCRIPT_INCLUDE
 #define EVENT_PHON_SCRIPT_INCLUDE
 
-const char *event_script = R"_(
+static const char *event_script = R"_(
 var bindings = {}
 var slot_id = 0
 
