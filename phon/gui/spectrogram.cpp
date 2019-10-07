@@ -97,7 +97,7 @@ void Spectrogram::renderPlot(QPaintEvent *event)
 				}
 			}
 		}
-		qDebug() << "max = " << max_dB << " min = " << min_dB;
+		//qDebug() << "max = " << max_dB << " min = " << min_dB;
 		// Adjust minimum to fit the dynamic range. All values lower than max - dynamic_range will be white.
 		min_dB = (std::max)(min_dB, max_dB - dynamic_range);
 
@@ -149,8 +149,7 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	Matrix<double> raster(w, h);
 	raster.setZero(w, h);
 
-	auto hann = create_window(nframe, nfft, WindowType::Hann);
-
+	auto win = create_window(nframe, nfft, window_type);
 
 	// Get audio data. If possible, we try to get a bit more data before and after the window so that we can calculate
 	// frames at the edge.
@@ -164,17 +163,16 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	auto xpoints = linspace(window_start, window_end, w, true);
 
 	double weight = 0;
-	for (double x : hann) weight += x * x;
+	for (double x : win) weight += x * x;
 	double k1 = 1 / (sample_rate * weight); // at DC and Nyquist frequencies.
 	double k2 = 2 / (sample_rate * weight); // at other frequencies
-
 
 	ffts_plan_t *plan = ffts_init_1d(nfft, FFTS_FORWARD);
 	std::vector<std::complex<float>> input(nfft, std::complex<float>(0, 0));
 	std::vector<std::complex<float>> output(nfft, std::complex<float>(0, 0));
 
 	Array<float> buffer = m_data->float_data(first_sample, last_sample);
-	pre_emphasis(buffer);
+	pre_emphasis(buffer, alpha);
 
 	for (intptr_t x = 0; x < xpoints.size(); x++)
 	{
@@ -197,7 +195,7 @@ Matrix<double> Spectrogram::computeSpectrogram()
 		// Calculate fft
 		for (intptr_t j = 0; j < nframe; j++)
 		{
-			auto sample = float((*it++) * hann[j+1]);
+			auto sample = float((*it++) * win[j + 1]);
 			input[j] = {sample, 0 };
 		}
 		for (intptr_t j = nframe; j < nfft; j++)
@@ -270,8 +268,11 @@ void Spectrogram::readSettings()
 
 	String cat("spectrogram");
 	ceiling_freq = Settings::get_number(rt, cat, "frequency_range");
+	double nyquist = double(m_data->sample_rate()) / 2;
+	ceiling_freq = (std::min<double>)(ceiling_freq, nyquist);
 	window_length = Settings::get_number(rt, cat, "window_size");
 	dynamic_range = (int) Settings::get_number(rt, cat, "dynamic_range");
+	alpha = Settings::get_number(rt, cat, "preemphasis_factor");
 
 	String win = Settings::get_string(rt, cat, "window_type");
 	if (win == "Bartlett")

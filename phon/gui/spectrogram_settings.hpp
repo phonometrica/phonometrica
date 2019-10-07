@@ -72,7 +72,7 @@ private:
 
 	QRadioButton *wide_button, *narrow_button, *custom_button;
 
-	QLineEdit *custom_edit, *range_edit;
+	QLineEdit *custom_edit, *range_edit, *preemph_edit;
 
 	QComboBox *window_box;
 

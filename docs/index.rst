@@ -36,22 +36,22 @@ The latest version can be downloaded from http://www.phonometrica-ling.org. If y
 Download
 ========
 
-Phonometrica 0.5.2 (preview)
+Phonometrica 0.6.0 (preview)
 ----------------------------
 
 -  Windows 7 and later:
-   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.5.2/setup_phonometrica.exe>`__
+   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.6.0/setup_phonometrica.exe>`__
 -  MacOS 10.7 and later:
-   `phonometrica.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.5.2/phonometrica-0.5.2.dmg>`__
--  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.5.2.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.5.2/phonometrica-0.5.2.deb>`__
--  source code: `phonometrica-0.5.2.zip <https://github.com/phonometrica/phonometrica/archive/v0.5.2.zip>`__ | `phonometrica-0.5.2.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.5.2.tar.gz>`__
+   `phonometrica.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.6.0/phonometrica-0.6.0.dmg>`__
+-  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.6.0.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.6.0/phonometrica-0.6.0.deb>`__
+-  source code: `phonometrica-0.6.0.zip <https://github.com/phonometrica/phonometrica/archive/v0.6.0.zip>`__ | `phonometrica-0.6.0.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.6.0.tar.gz>`__
 
 
   
 Manual
 ------
 
-Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.5.2/phonometrica_manual.pdf>`_ file.
+Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.6.0/phonometrica_manual.pdf>`_ file.
 
 
 Topics

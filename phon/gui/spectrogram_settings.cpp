@@ -63,11 +63,12 @@ SpectrogramSettings::SpectrogramSettings(Runtime &rt, QWidget *parent) :
 	window_box->setCurrentIndex(3);
 
 	contrast_slider = new QSlider(Qt::Horizontal);
-	contrast_slider->setMinimum(0);
+	contrast_slider->setMinimum(1);
 	contrast_slider->setMaximum(255);
 	contrast_slider->setSingleStep(1);
 
 	contrast_label = new QLabel;
+	preemph_edit = new QLineEdit;
 
 	layout->addWidget(wide_button);
 	layout->addWidget(narrow_button);
@@ -80,6 +81,8 @@ SpectrogramSettings::SpectrogramSettings(Runtime &rt, QWidget *parent) :
 	layout->addWidget(window_box);
 	layout->addWidget(contrast_label);
 	layout->addWidget(contrast_slider);
+	layout->addWidget(new QLabel(QString::fromUtf8("Pre-emphasis factor (α):")));
+	layout->addWidget(preemph_edit);
 
 	auto hl = new QHBoxLayout;
 	auto reset_button = new QPushButton("Reset");
@@ -145,6 +148,14 @@ void SpectrogramSettings::validate()
 
 	Settings::set_value(runtime, category, "dynamic_range", contrast_slider->value());
 
+	double alpha = preemph_edit->text().toDouble(&ok);
+	if (!ok || alpha < 0 || alpha > 1)
+	{
+		QMessageBox::critical(this, tr("Invalid setting"), tr("Invalid pre-emphasis factor"));
+		return;
+	}
+	Settings::set_value(runtime, category, "preemphasis_factor", alpha);
+
 	accept();
 
 }
@@ -183,6 +194,9 @@ void SpectrogramSettings::displayValues()
 		enableCustomWindow();
 		custom_edit->setText(QString::number(window_size, 'g', 4));
 	}
+
+	double alpha = Settings::get_number(runtime, category, "preemphasis_factor");
+	preemph_edit->setText(QString::number(alpha, 'g', 2));
 
 	setContrastLabel();
 }

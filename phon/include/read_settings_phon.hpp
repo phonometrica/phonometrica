@@ -50,7 +50,9 @@ phon.settings = {
 
 		window_type: "Hann",
 
-		dynamic_range: 70
+		dynamic_range: 70,
+
+		preemphasis_factor: 0.97
 	}
 }
 
