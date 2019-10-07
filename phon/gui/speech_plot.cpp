@@ -171,32 +171,34 @@ void SpeechPlot::paintEvent(QPaintEvent *event)
         auto x = timeToXPos(tick);
         painter.drawLine(QPointF(x, 0.0), QPointF(x, height()));
     }
-    if (trackCursor())
-    {
-        QPainter painter(this);
-        auto default_pen = painter.pen();
-        QColor color = QColor(Qt::magenta).lighter(90);
-        painter.setPen(color);
-        auto x = timeToXPos(current_time);
-        painter.drawLine(QPointF(x, 0.0), QPointF(x, height()));
-
-        if (isMainPlot())
-        {
-            painter.setPen(default_pen);
-            QFontMetrics font_metric = painter.fontMetrics();
-            int spacing = 3;
-            x += spacing;
-            auto label = QString::number(current_time, 'f');
-            int w = font_metric.width(label);
-            int y = font_metric.height() / 2 + 2;
-            if (x + w > width()) {
-                x -= w + (spacing * 2);
-            }
-            painter.drawText(QPointF(x, y), label);
-        }
-    }
 
     renderPlot(event);
+
+	if (trackCursor())
+	{
+		QPainter painter(this);
+		auto default_pen = painter.pen();
+		QColor color = QColor(Qt::magenta).lighter(90);
+		painter.setPen(color);
+		auto x = timeToXPos(current_time);
+		painter.drawLine(QPointF(x, 0.0), QPointF(x, height()));
+
+		if (isMainPlot())
+		{
+			painter.setPen(default_pen);
+			QFontMetrics font_metric = painter.fontMetrics();
+			int spacing = 3;
+			x += spacing;
+			auto label = QString::number(current_time, 'f');
+			int w = font_metric.width(label);
+			int y = font_metric.height() / 2 + 2;
+			if (x + w > width()) {
+				x -= w + (spacing * 2);
+			}
+			painter.drawText(QPointF(x, y), label);
+		}
+	}
+
     QWidget::paintEvent(event);
 }
 

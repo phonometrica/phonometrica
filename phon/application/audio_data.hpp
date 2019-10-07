@@ -56,7 +56,13 @@ public:
 
     sample_t *data() { return m_data.data(); }
 
+	void real_data(Array<double> &buffer, intptr_t first_frame = 1, intptr_t last_frame = -1);
+
     Array<double> real_data(intptr_t first_frame = 1, intptr_t last_frame = -1);
+
+	void float_data(Array<float> &buffer, intptr_t first_frame = 1, intptr_t last_frame = -1);
+
+	Array<float> float_data(intptr_t first_frame = 1, intptr_t last_frame = -1);
 
     sample_t sample(intptr_t i) const { return m_data[i]; }
 

@@ -212,7 +212,7 @@ void Waveform::drawYAxis(QWidget *y_axis, int y1, int y2)
     painter.drawText(x1, y1 + h/2, top);
 
     int x2 = y_axis->width() - font_metrics.width(bottom);
-    painter.drawText(x2, y2, bottom);
+    painter.drawText(x2, y2 - 2, bottom);
 
     int x3 = y_axis->width() - font_metrics.width(center);
     int y3 = y1 + (y2 - y1) / 2 + h/3 ;

@@ -42,6 +42,7 @@ enum class WindowType
 {
     Bartlett,
     Blackman,
+    Gaussian,
     Hamming,
     Hann,
     Rectangular
@@ -51,6 +52,20 @@ enum class WindowType
 Array<double> create_window(intptr_t winlen, intptr_t fftlen, WindowType type);
 
 Array<double> get_intensity(const Array<double> &input, int samplerate, intptr_t window_size, double time_step, WindowType type = WindowType::Hamming);
+
+
+template<typename T>
+void pre_emphasis(Array<T> &data, double alpha = 0.97)
+{
+	T *x = data.data();
+
+	x[0] = x[0] * (1.0 - alpha);
+
+	for (intptr_t k = 1; k < data.size(); k++)
+	{
+		x[k] = x[k] - alpha * x[k-1];
+	}
+}
 
 }} // namespace phonometrica::speech
 

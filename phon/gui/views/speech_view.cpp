@@ -34,6 +34,7 @@
 #include <phon/gui/views/speech_view.hpp>
 #include <phon/gui/time_selection_dialog.hpp>
 #include <phon/gui/pitch_settings.hpp>
+#include <phon/gui/spectrogram_settings.hpp>
 #include <phon/application/settings.hpp>
 
 
@@ -54,6 +55,14 @@ void SpeechView::post_initialize()
 
 Toolbar *SpeechView::makeToolbar()
 {
+	auto spectrum_menu = new QMenu;
+	auto action_enable_spectrum = new QAction(tr("Show spectrogram"), this);
+	action_enable_spectrum->setCheckable(true);
+	action_enable_spectrum->setChecked(true);
+	auto action_spectrum_settings = new QAction(tr("Change spectrogram settings..."), this);
+	spectrum_menu->addAction(action_enable_spectrum);
+	spectrum_menu->addAction(action_spectrum_settings);
+
     auto pitch_menu = new QMenu;
     auto action_enable_pitch = new QAction(tr("Show pitch"), this);
     action_enable_pitch->setCheckable(true);
@@ -74,17 +83,6 @@ Toolbar *SpeechView::makeToolbar()
     action_enable_tracking->setCheckable(true);
     action_enable_tracking->setChecked(Settings::get_boolean(runtime, "enable_mouse_tracking"));
     options_menu->addAction(action_enable_tracking);
-
-    //    auto action_spectrogram = new QAction(tr("Spectrogram"), this);
-//    action_spectrogram->setCheckable(true);
-//    auto action_pitch = new QAction(tr("Pitch"), this);
-//    action_pitch->setCheckable(true);
-
-
-//    wave_menu->addAction(action_spectrogram);
-//    wave_menu->addAction(action_pitch);
-//    action_spectrogram->setEnabled(false);
-//    action_pitch->setEnabled(false);
 
     auto toolbar = new Toolbar(this);
     play_action = new QAction(QIcon(":/icons/play.png"), "Play");
@@ -110,6 +108,8 @@ Toolbar *SpeechView::makeToolbar()
     auto spectrum_button = new QToolButton;
     spectrum_button->setIcon(QIcon(":/icons/spectrum.png"));
     spectrum_button->setToolTip("Spectrogram options");
+    spectrum_button->setMenu(spectrum_menu);
+    spectrum_button->setPopupMode(QToolButton::InstantPopup);
 
     auto pitch_button = new QToolButton;
     pitch_button->setIcon(QIcon(":/icons/voice.png"));
@@ -162,6 +162,8 @@ Toolbar *SpeechView::makeToolbar()
     connect(select, &QAction::triggered, this, &SpeechView::chooseSelection);
     connect(action_enable_pitch, &QAction::triggered, this, &SpeechView::showPitch);
     connect(action_pitch_settings, &QAction::triggered, this, &SpeechView::changePitchSettings);
+    connect(action_spectrum_settings, &QAction::triggered, this, &SpeechView::changeSpectrogramSettings);
+    connect(action_enable_spectrum, &QAction::triggered, this, &SpeechView::showSpectrogram);
     connect(action_enable_intensity, &QAction::triggered, this, &SpeechView::showIntensity);
     connect(waveform, &SpeechPlot::windowHasChanged, this, &SpeechView::setWindowTimes);
     connect(doc, &QAction::triggered, this, &SpeechView::showDocumentation);
@@ -171,44 +173,44 @@ Toolbar *SpeechView::makeToolbar()
 
 void SpeechView::zoomIn(bool)
 {
-    waveform->zoomIn();
-    pitch_plot->zoomIn();
-    intensity_plot->zoomIn();
+	for (auto plot : plots) {
+		plot->zoomIn();
+	}
 }
 
 void SpeechView::zoomOut(bool)
 {
-    waveform->zoomOut();
-    pitch_plot->zoomOut();
-    intensity_plot->zoomOut();
+	for (auto plot : plots) {
+		plot->zoomOut();
+	}
 }
 
 void SpeechView::zoomToSelection(bool)
 {
-    waveform->zoomToSelection();
-    pitch_plot->zoomToSelection();
-    intensity_plot->zoomToSelection();
+	for (auto plot : plots) {
+		plot->zoomToSelection();
+	}
 }
 
 void SpeechView::viewAll(bool)
 {
-    waveform->viewAll();
-    pitch_plot->viewAll();
-    intensity_plot->viewAll();
+	for (auto plot : plots) {
+		plot->viewAll();
+	}
 }
 
 void SpeechView::moveForward(bool)
 {
-    waveform->moveForward();
-    pitch_plot->moveForward();
-    intensity_plot->moveForward();
+	for (auto plot : plots) {
+		plot->moveForward();
+	}
 }
 
 void SpeechView::moveBackward(bool)
 {
-    waveform->moveBackward();
-    pitch_plot->moveBackward();
-    intensity_plot->moveBackward();
+	for (auto plot : plots) {
+		plot->moveBackward();
+	}
 }
 
 void SpeechView::chooseSelection(bool)
@@ -235,10 +237,10 @@ void SpeechView::chooseSelection(bool)
 void SpeechView::setSelection(double t1, double t2)
 {
     wavebar->setTimeSelection(t1, t2);
-    waveform->setWindow(t1, t2);
-    pitch_plot->setWindow(t1, t2);
-    intensity_plot->setWindow(t1, t2);
-    // TODO: set window for other plots here
+
+    for (auto plot : plots) {
+    	plot->setWindow(t1, t2);
+    }
 }
 
 void SpeechView::play(bool)
@@ -307,12 +309,17 @@ void SpeechView::setPauseIcon()
 void SpeechView::enableMouseTracking(bool enable)
 {
     Settings::set_value(runtime, "enable_mouse_tracking", enable);
-    waveform->enableMouseTracking(enable);
-    pitch_plot->enableMouseTracking(enable);
-    intensity_plot->enableMouseTracking(enable);
-    waveform->repaint();
-    pitch_plot->repaint();
-    intensity_plot->repaint();
+
+    for (auto plot : plots) {
+    	plot->enableMouseTracking(enable);
+    	plot->repaint();
+    }
+}
+
+void SpeechView::showSpectrogram(bool checked)
+{
+	spectrogram->setVisible(checked);
+	spectrogram_line->setVisible(checked);
 }
 
 void SpeechView::showPitch(bool checked)
@@ -331,6 +338,16 @@ void SpeechView::changePitchSettings(bool)
     }
 }
 
+void SpeechView::changeSpectrogramSettings(bool)
+{
+    SpectrogramSettings dlg(runtime, this);
+
+    if (dlg.exec() == QDialog::Accepted)
+    {
+
+    }
+}
+
 void SpeechView::showIntensity(bool checked)
 {
     intensity_plot->setVisible(checked);
@@ -340,6 +357,7 @@ void SpeechView::showIntensity(bool checked)
 void SpeechView::setInitialWindow()
 {
     waveform->setInitialWindow();
+    spectrogram->setInitialWindow();
     pitch_plot->setInitialWindow();
     intensity_plot->setInitialWindow();
     // Let the layers and the wavebar know about the size of the window
@@ -350,11 +368,16 @@ void SpeechView::setupUi()
 {
 	// Create objects first so that we can connect them to signals
 	waveform = new Waveform(runtime, m_data, this);
-
+	spectrogram = new Spectrogram(runtime, m_data, this);
 	pitch_plot = new PitchPlot(runtime, m_data, this);
-	pitch_plot->setMaximumHeight(100);
-
 	intensity_plot = new IntensityPlot(runtime, m_data, this);
+
+	plots.append(waveform);
+	plots.append(spectrogram);
+	plots.append(pitch_plot);
+	plots.append(intensity_plot);
+
+	pitch_plot->setMaximumHeight(100);
 	intensity_plot->setMaximumHeight(100);
 
 	auto zoom = new SoundZoom(this);
@@ -363,14 +386,12 @@ void SpeechView::setupUi()
 
 	bool track = Settings::get_boolean(runtime, "enable_mouse_tracking");
 	waveform->enableMouseTracking(track);
+	spectrogram->enableMouseTracking(track);
 	pitch_plot->enableMouseTracking(track);
 	intensity_plot->enableMouseTracking(track);
 
 	main_layout = new QHBoxLayout;
-
-
 	auto toolbar = makeToolbar();
-
 	auto hl = new QHBoxLayout;
 	label_start = new QLabel;
 	label_end = new QLabel;
@@ -387,6 +408,9 @@ void SpeechView::setupUi()
 	inner_layout->addLayout(hl);
 	inner_layout->addWidget(waveform);
 	inner_layout->addWidget(new SpaceLine);
+	inner_layout->addWidget(spectrogram);
+	spectrogram_line = new SpaceLine;
+	inner_layout->addWidget(spectrogram_line);
 	inner_layout->addWidget(pitch_plot);
 	pitch_line = new SpaceLine;
 	inner_layout->addWidget(pitch_line);
@@ -402,9 +426,10 @@ void SpeechView::setupUi()
 
 	y_axis = new YAxisWidget;
 	y_axis->setFixedWidth(60);
-	y_axis->addWidget(waveform);
-	y_axis->addWidget(pitch_plot);
-	y_axis->addWidget(intensity_plot);
+
+	for (auto plot : plots) {
+		y_axis->addWidget(plot);
+	}
 	addLayersToYAxis();
 
 	main_layout->addWidget(y_axis);
@@ -413,21 +438,15 @@ void SpeechView::setupUi()
 	main_layout->setContentsMargins(0, 0, 0, 0);
 	setLayout(main_layout);
 
-	plots.append(waveform);
-	plots.append(pitch_plot);
-	plots.append(intensity_plot);
-
 	// All updates of the scrollbar update the zoomer, but only updates created by the user also update the plots
 	connect(wavebar, &WaveBar::updatedXAxisSelection, zoom, &SoundZoom::setXAxisSelection);
 	connect(wavebar, &WaveBar::selectionStarted, zoom, &SoundZoom::hideSelection);
-	connect(wavebar, &WaveBar::timeSelection, waveform, &Waveform::setWindow);
-	connect(wavebar, &WaveBar::timeSelection, pitch_plot, &PitchPlot::setWindow);
-	connect(wavebar, &WaveBar::timeSelection, intensity_plot, &PitchPlot::setWindow);
 	connect(waveform, &Waveform::windowHasChanged, wavebar, &WaveBar::setTimeSelection);
-//	connect(pitch_plot, &PitchPlot::windowHasChanged, wavebar, &WaveBar::setTimeSelection);
-//	connect(intensity_plot, &IntensityPlot::timeSelection, wavebar, &WaveBar::setTimeSelection);
-
 	connect(pitch_plot, &PitchPlot::yAxisModified, y_axis, &YAxisWidget::refresh);
+
+	for (auto plot : plots) {
+		connect(wavebar, &WaveBar::timeSelection, plot, &SpeechPlot::setWindow);
+	}
 
 	for (auto plot1 : plots)
 	{
@@ -441,13 +460,6 @@ void SpeechView::setupUi()
 			}
 		}
 	}
-
-
-//    connect(waveform, &Waveform::windowHasChanged, this, &SpeechView::setWindowTimes);
-//    connect(waveform, &Waveform::windowHasChanged, pitch_plot, &PitchPlot::setWindow);
-
-//    connect(waveform, &Waveform::windowHasChanged, pitch_plot, &PitchPlot::setWindow);
-//    connect(pitch_plot, &PitchPlot::windowHasChanged, waveform, &Waveform::setWindow);
 
 	connect(&player, &AudioPlayer::current_time, waveform, &Waveform::updateTick);
 	connect(&player, &AudioPlayer::finished, waveform, &Waveform::hideTick);
@@ -485,5 +497,6 @@ void SpeechView::showDocumentation(bool)
 		phon.show_documentation(page)
 		)__");
 }
+
 
 } // namespace phonometrica

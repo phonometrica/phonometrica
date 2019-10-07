@@ -37,6 +37,7 @@
 #include <phon/gui/wave_bar.hpp>
 #include <phon/gui/sound_zoom.hpp>
 #include <phon/gui/waveform.hpp>
+#include <phon/gui/spectrogram.hpp>
 #include <phon/gui/intensity_plot.hpp>
 #include <phon/gui/pitch_plot.hpp>
 #include <phon/gui/space_line.hpp>
@@ -86,11 +87,15 @@ protected slots:
 
     void enableMouseTracking(bool enable);
 
+    void showSpectrogram(bool);
+
     void showPitch(bool);
 
     void showIntensity(bool);
 
     void changePitchSettings(bool);
+
+    void changeSpectrogramSettings(bool);
 
     void showDocumentation(bool);
 
@@ -124,6 +129,8 @@ protected:
 
     Waveform *waveform;
 
+    Spectrogram *spectrogram;
+
 	// The main layout hold the Y axis widget and the inner layout which contains plots.
 	QHBoxLayout *main_layout;
 
@@ -136,7 +143,7 @@ protected:
 
     Array<SpeechPlot*> plots; // keep plots together to make it easier to connect them
 
-    SpaceLine *pitch_line, *intensity_line;
+    SpaceLine *spectrogram_line, *pitch_line, *intensity_line;
 
     YAxisWidget *y_axis;
 

@@ -38,14 +38,15 @@ namespace speech {
 Array<double> create_window(intptr_t winlen, intptr_t fftlen, WindowType type)
 {
     Array<double> result;
-    result.resize(winlen);
-    double *win = result.data();
     intptr_t i;
 
     if (winlen > fftlen)
         winlen = fftlen;
 
-    switch (type)
+	result.resize(fftlen);
+	double *win = result.data();
+
+	switch (type)
     {
     case WindowType::Rectangular:
     {
@@ -74,6 +75,21 @@ Array<double> create_window(intptr_t winlen, intptr_t fftlen, WindowType type)
                                 + 0.08 * cos(i * 4.0 * M_PI / (winlen - 1))));
     }
         break;
+    case WindowType::Gaussian:
+    {
+    	// TODO: properly implement Gaussian window.
+    	// Implement MATLAB's equation. See: https://www.mathworks.com/help/signal/ref/gausswin.htm
+    	const double sigma = 0.5;
+	    const int half_win = (winlen -1) / 2;
+    	const double alpha = 1.0 / (sigma / half_win);
+        for (i = 0; i < winlen; i++)
+        {
+        	int n = i - half_win;
+        	double coeff = alpha * (n / half_win);
+        	win[i] = exp(-0.5 * coeff * coeff);
+        }
+    }
+	    break;
     case WindowType::Hamming:
     {
         for (i = 0; i < winlen; i++)
@@ -123,8 +139,8 @@ get_intensity(const Array<double> &input, int samplerate, intptr_t window_size, 
 
         auto avg_power = power / window_size;
         assert(std::isfinite(avg_power));
-        constexpr double squared_hearing_threshold = 4.0e-10;
-        auto dB = 10 * log10(avg_power / squared_hearing_threshold);
+        constexpr double Iref = 4.0e-10;
+        auto dB = 10 * log10(avg_power / Iref);
         output.append(dB);
         data += frame_shift;
     }
