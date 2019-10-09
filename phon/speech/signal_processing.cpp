@@ -79,9 +79,8 @@ Array<double> create_window(intptr_t winlen, intptr_t fftlen, WindowType type)
     {
     	// TODO: properly implement Gaussian window.
     	// Implement MATLAB's equation. See: https://www.mathworks.com/help/signal/ref/gausswin.htm
-    	const double sigma = 0.5;
-	    const int half_win = (winlen -1) / 2;
-    	const double alpha = 1.0 / (sigma / half_win);
+	    const int half_win = winlen / 2;
+    	const double alpha = 2.5;
         for (i = 0; i < winlen; i++)
         {
         	int n = i - half_win;

@@ -147,7 +147,7 @@ void Waveform::drawWave()
         cached_width = width();
         cached_height = height();
     }
-        // If we have fewer samples than pixels, we spread the samples over the screen
+    // If we have fewer samples than pixels, we spread the samples over the screen
     else
     {
         auto line_pen = painter.pen();
@@ -235,6 +235,18 @@ void Waveform::setMagnitude(double value)
     magnitude = value;
     value = std::abs(value / (std::numeric_limits<sample_t>::min)());
     extrema = {-value, value};
+}
+
+void Waveform::updateWindow(double start_time, double end_time)
+{
+	SpeechPlot::updateWindow(start_time, end_time);
+	informWindow();
+}
+
+void Waveform::moveWindow(double t1, double t2)
+{
+	SpeechPlot::moveWindow(t1, t2);
+	emit windowHasChanged(t1, t2);
 }
 
 } // namespace phonometrica

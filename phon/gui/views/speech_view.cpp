@@ -442,10 +442,15 @@ void SpeechView::setupUi()
 	connect(wavebar, &WaveBar::updatedXAxisSelection, zoom, &SoundZoom::setXAxisSelection);
 	connect(wavebar, &WaveBar::selectionStarted, zoom, &SoundZoom::hideSelection);
 	connect(waveform, &Waveform::windowHasChanged, wavebar, &WaveBar::setTimeSelection);
-	connect(pitch_plot, &PitchPlot::yAxisModified, y_axis, &YAxisWidget::refresh);
 
-	for (auto plot : plots) {
+
+	for (auto plot : plots)
+	{
 		connect(wavebar, &WaveBar::timeSelection, plot, &SpeechPlot::setWindow);
+		connect(plot, &SpeechPlot::zoomInRequested, this, &SpeechView::zoomIn);
+		connect(plot, &SpeechPlot::zoomOutRequested, this, &SpeechView::zoomOut);
+		connect(plot, &SpeechPlot::zoomToSelectionRequested, this, &SpeechView::zoomToSelection);
+		connect(plot, &SpeechPlot::yAxisModified, y_axis, &YAxisWidget::refresh);
 	}
 
 	for (auto plot1 : plots)

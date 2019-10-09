@@ -43,10 +43,17 @@ SpeechPlot::SpeechPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *pa
 
 void SpeechPlot::setWindow(double start_time, double end_time)
 {
+	assert(start_time >= 0 && end_time <= m_data->duration());
+	moveWindow(start_time, end_time);
+	repaint(); // don't update, just repaint since we are not triggering the change
+}
+
+void SpeechPlot::updateWindow(double start_time, double end_time)
+{
     assert(start_time >= 0 && end_time <= m_data->duration());
-    moveWindow(start_time, end_time);
-    repaint(); // don't update, just repaint since we are not triggering the change
-    windowHasChanged(window_start, window_end);
+	window_start = start_time;
+	window_end = end_time;
+    repaint();
 }
 
 void SpeechPlot::zoomIn()
@@ -56,7 +63,7 @@ void SpeechPlot::zoomIn()
     auto t1 = clipTime(window_start + zoom);
     auto t2 = clipTime(window_end - zoom);
     moveWindow(t1, t2);
-    updatePlot();
+    repaint();
 }
 
 double SpeechPlot::clipTime(double t) const
@@ -76,7 +83,7 @@ void SpeechPlot::zoomOut()
     auto t1 = clipTime(window_start - zoom);
     auto t2 = clipTime(window_end + zoom);
     moveWindow(t1, t2);
-    updatePlot();
+    repaint();
 }
 
 void SpeechPlot::zoomToSelection()
@@ -85,17 +92,16 @@ void SpeechPlot::zoomToSelection()
     {
         auto t1 = clipTime(sel_start);
         auto t2 = clipTime(sel_end);
-        window_start = t1;
-        window_end = t2;
+        moveWindow(t1, t2);
         clearSelection();
-        updatePlot();
+        repaint();
     }
 }
 
 void SpeechPlot::viewAll()
 {
     moveWindow(0.0, m_data->duration());
-    updatePlot();
+    repaint();
 }
 
 void SpeechPlot::moveForward()
@@ -107,7 +113,7 @@ void SpeechPlot::moveForward()
         auto t1 = clipTime(window_start + delta);
         auto t2 = clipTime(window_end + delta);
         moveWindow(t1, t2);
-        updatePlot();
+        repaint();
     }
 }
 
@@ -120,7 +126,7 @@ void SpeechPlot::moveBackward()
         auto t1 = clipTime(window_start - delta);
         auto t2 = clipTime(window_end - delta);
         moveWindow(t1, t2);
-        updatePlot();
+        repaint();
     }
 }
 
@@ -208,24 +214,37 @@ void SpeechPlot::wheelEvent(QWheelEvent *event)
     int steps = -degrees.y() / 15;
 
     if (steps > 0)
-        zoomIn();
+        emit zoomInRequested(false);
     else if (steps < 0)
-        zoomOut();
+        emit zoomOutRequested(false);
 }
 
 void SpeechPlot::mousePressEvent(QMouseEvent *event)
 {
-    button_pressed = true;
-    auto x = event->localPos().x();
-    invalidateCurrentTime();
-    sel_start = sel_end = xPosToTime(x);
+	if (event->button() == Qt::MiddleButton)
+	{
+		if (hasSelection())
+		{
+			emit zoomToSelectionRequested(false);
+		}
+	}
+	else
+	{
+		button_pressed = true;
+		auto x = event->localPos().x();
+		invalidateCurrentTime();
+		sel_start = sel_end = xPosToTime(x);
+	}
 }
 
 void SpeechPlot::mouseReleaseEvent(QMouseEvent *event)
 {
-    button_pressed = false;
-    auto x = event->localPos().x();
-    updateSelectionEnd(xPosToTime(x));
+	if (event->button() != Qt::MiddleButton)
+	{
+		button_pressed = false;
+		auto x = event->localPos().x();
+		updateSelectionEnd(xPosToTime(x));
+	}
 }
 
 void SpeechPlot::mouseMoveEvent(QMouseEvent *event)
@@ -302,7 +321,6 @@ void SpeechPlot::moveWindow(double t1, double t2)
 {
     window_start = t1;
     window_end = t2;
-    emit windowHasChanged(t1, t2);
 }
 
 std::pair<double, double> SpeechPlot::times() const
@@ -323,6 +341,8 @@ void SpeechPlot::hideTick()
 void SpeechPlot::leaveEvent(QEvent *)
 {
     button_pressed = false;
+    invalidateCurrentTime();
+    emit currentTime(current_time, mouse_state);
     repaint();
 }
 
@@ -384,6 +404,5 @@ bool SpeechPlot::hasSelection() const
 {
     return sel_start >= 0 && sel_end > 0 && sel_start != sel_end && !(sel_start == window_start && sel_end == window_end);
 }
-
 
 } // namespace phonometrica

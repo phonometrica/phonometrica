@@ -159,6 +159,8 @@ void WaveBar::wheelEvent(QWheelEvent *event)
         to = this->width();
         from = to - delta;
     }
+    current_window.first = xPosToTime(from);
+    current_window.second = xPosToTime(to);
     repaint();
     notifySelection();
     event->accept();

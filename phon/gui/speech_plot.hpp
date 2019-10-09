@@ -78,9 +78,17 @@ signals:
 
     void selectionStarted();
 
+	void zoomInRequested(bool dummy);
+
+	void zoomOutRequested(bool dummy);
+
+	void zoomToSelectionRequested(bool dummy);
+
 public slots:
 
     void setWindow(double start_time, double end_time);
+
+	virtual void updateWindow(double start_time, double end_time);
 
     void setSelection(double start_time, double end_time);
 
@@ -112,13 +120,15 @@ protected:
 
     virtual bool isMainPlot() const { return false; }
 
-    void moveWindow(double t1, double t2);
+    virtual void moveWindow(double t1, double t2);
 
     bool hasSelection() const;
 
     void clearSelection();
 
     void drawSelection();
+
+    double selectionDuration() const { return sel_end - sel_start; }
 
     bool hasTick() const { return tick >= 0; }
 

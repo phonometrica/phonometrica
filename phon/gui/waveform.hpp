@@ -49,6 +49,10 @@ public:
 
     void setMagnitude(double value);
 
+public slots:
+
+	void updateWindow(double start_time, double end_time) override;
+
 protected:
 
     void renderPlot(QPaintEvent *event) override;
@@ -56,6 +60,8 @@ protected:
     bool isMainPlot() const override { return true; }
 
     bool needsRefresh() const override;
+
+	void moveWindow(double t1, double t2) override;
 
 private:
 

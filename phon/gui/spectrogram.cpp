@@ -97,21 +97,26 @@ void Spectrogram::renderPlot(QPaintEvent *event)
 				}
 			}
 		}
-		//qDebug() << "max = " << max_dB << " min = " << min_dB;
-		// Adjust minimum to fit the dynamic range. All values lower than max - dynamic_range will be white.
-		min_dB = (std::max)(min_dB, max_dB - dynamic_range);
 
-		for (int i = 0; i < raster.rows(); i++)
+		// Min and max can only be equal if we have zeros, in which case we don't fill the image.
+		if (min_dB != max_dB)
 		{
-			// The image needs to be reversed
-			for (int j = 0; j < raster.cols(); j++)
+			//qDebug() << "max = " << max_dB << " min = " << min_dB;
+			// Adjust minimum to fit the dynamic range. All values lower than max - dynamic_range will be white.
+			min_dB = (std::max)(min_dB, max_dB - dynamic_range);
+
+			for (int i = 0; i < raster.rows(); i++)
 			{
-				// shade of gray
-				double value = (std::max)(raster(i, j), min_dB);
-				if (std::isnan(value)) value = min_dB; // handle pixels that could not be calculated.
-				int g = 255 - round((value - min_dB) * 255 / (max_dB - min_dB));
-				assert(g >= 0);
-				image.setPixel(i, height() - j - 1, qRgb(g,g,g));
+				// The image needs to be reversed
+				for (int j = 0; j < raster.cols(); j++)
+				{
+					// shade of gray
+					double value = (std::max)(raster(i, j), min_dB);
+					if (std::isnan(value)) value = min_dB; // handle pixels that could not be calculated.
+					int g = 255 - round((value - min_dB) * 255 / (max_dB - min_dB));
+					assert(g >= 0);
+					image.setPixel(i, height() - j - 1, qRgb(g,g,g));
+				}
 			}
 		}
 	}
@@ -134,18 +139,20 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	auto nyquist_frequency = double(sample_rate) / 2;
 	auto nframe = int(sample_rate * window_length);
 	if (nframe % 2 == 1) nframe++;
-	//win_size *= 2;
+	// FIXME: Praat uses a Gaussian-like window which is twice as long as a regular window, but using a Gaussian window
+	//  similar to MATLAB's gives poorer results than a Hann a window.
+	//nframe *= 2;
 	int nfft = 256;
 	while (nfft < nframe) nfft *= 2;
 
-	auto half_win = nfft / 2;
+	auto half_nfft = nfft / 2;
 
-	std::vector<double>amplitude(half_win, 0.0);
+	std::vector<double>amplitude(half_nfft, 0.0);
 	intptr_t w = this->width();
 	intptr_t h = this->height();
 
 	// An m x n matrix, where m represents the number of horizontal pixels and n represents the number of vertical pixels.
-	// Each cell stores the intensity of the corresponding pixel.
+	// Each horizontal pixel/point represents the center of an analysis window.
 	Matrix<double> raster(w, h);
 	raster.setZero(w, h);
 
@@ -154,14 +161,36 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	// Get audio data. If possible, we try to get a bit more data before and after the window so that we can calculate
 	// frames at the edge.
 	double total_duration = m_data->duration();
-	double start_time = (std::max<double>)(0.0, window_start - window_length / 2);
-	double end_time = (std::min<double>)(total_duration, window_end + window_length / 2);
-	auto first_sample = m_data->time_to_frame(start_time);
-	auto last_sample = m_data->time_to_frame(end_time);
+//	double start_time = (std::max<double>)(0.0, window_start - window_length / 2);
+//	double end_time = (std::min<double>)(total_duration, window_end + window_length / 2);
+	auto first_sample = m_data->time_to_frame(window_start);
+	auto last_sample = m_data->time_to_frame(window_end);
+	auto sample_count = last_sample - first_sample + 1;
 
-	// Each point represents the center of an analysis window, corresponding to a horizontal pixel.
-	auto xpoints = linspace(window_start, window_end, w, true);
+	// The waveform splits samples equally among all the horizontal pixels except the last one, and assign left over
+	// samples to the last pixel. We follow the same logic here, and for each pixel, we calculate an analysis window
+	// centered on the middle sample of the waveform.
+	if (sample_count < w) return raster; // white image.
 
+	// Subtract 1 to width so that the last pixel is assigned the left-over frames.
+	auto samples_per_pixel = sample_count / (w - 1);
+	auto leftover_samples = sample_count % samples_per_pixel;
+
+	// Adjust first and last samples.
+	first_sample = first_sample + (samples_per_pixel / 2) - (nframe / 2);
+	last_sample = first_sample + (samples_per_pixel * (w - 1)) + (samples_per_pixel / 2) + (nframe / 2);
+
+	if (first_sample < 1)
+	{
+		first_sample = 1;
+	}
+	auto total_sample_count = m_data->size();
+	if (last_sample > total_sample_count)
+	{
+		last_sample = total_sample_count;
+	}
+
+	// Weight power.
 	double weight = 0;
 	for (double x : win) weight += x * x;
 	double k1 = 1 / (sample_rate * weight); // at DC and Nyquist frequencies.
@@ -174,15 +203,28 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	Array<float> buffer = m_data->float_data(first_sample, last_sample);
 	pre_emphasis(buffer, alpha);
 
-	for (intptr_t x = 0; x < xpoints.size(); x++)
-	{
-		auto xpoint = xpoints[x];
-		auto mid_sample = m_data->time_to_frame(xpoint);
-		auto offset = (mid_sample - first_sample) - (nframe / 2);
-		auto it = buffer.begin() + offset;
+	intptr_t left_offset = samples_per_pixel / 2 - nframe / 2;
 
-		if (offset < 0 || mid_sample + (nframe / 2) > last_sample)
+//	qDebug() << "Computing spectrogram*****************";
+//	qDebug() << "width in pixels: " << w;
+//	qDebug() << "window start: " << window_start;
+//	qDebug() << "window end: " << window_end;
+//	qDebug() << "samples per pixel: " << samples_per_pixel;
+//	qDebug() << "window size (in samples): " << nframe;
+//	qDebug() << "NFFT: " << nfft;
+//	qDebug() << "first sample: " << first_sample;
+//	qDebug() << "last sample: " << last_sample << "\n";
+
+	for (intptr_t x = 0; x < w; x++)
+	{
+		auto from_sample = x * samples_per_pixel + left_offset;
+		auto to_sample = from_sample + nframe;
+		auto it = buffer.begin() + from_sample;
+
+		if (from_sample < 0 || to_sample > last_sample)
 		{
+			//qDebug() << "white column at x = " << x << "(from_sample = " << from_sample << ", to_sample = " << to_sample << ")";
+
 			// Can't calculate FFT because we would get outside of the bounds.
 			// Display a white vertical column and move to the next time point.
 			for (int j = 0; j < h; j++)
@@ -205,11 +247,11 @@ Matrix<double> Spectrogram::computeSpectrogram()
 
 		ffts_execute(plan, input.data(), output.data());
 
-		for (size_t y = 0; y < half_win; y++)
+		for (size_t y = 0; y < half_nfft; y++)
 		{
 			double a = output[y].real() * output[y].real() + output[y].imag() * output[y].imag();
 			assert(std::isfinite(a));
-			double k = (y == 0 || y == half_win-1) ? k1 : k2;
+			double k = (y == 0 || y == half_nfft - 1) ? k1 : k2;
 			a = k * a / nfft;
 			constexpr double Iref = 4.0e-10;
 			double dB = 10 * log10(a / Iref);
@@ -217,13 +259,13 @@ Matrix<double> Spectrogram::computeSpectrogram()
 		}
 
 		// Create raster: frequencies on the y axis are mapped to the closest frequency bin.
-		double ceiling_bin = ceiling_freq * half_win / nyquist_frequency;
+		double ceiling_bin = ceiling_freq * half_nfft / nyquist_frequency;
 		for (intptr_t y = 1; y <= h; y++)
 		{
 			double freq = double(y * ceiling_bin) / (h-1);
 			int bin = int(freq);
 
-			if (bin == half_win)
+			if (bin == half_nfft)
 			{
 				raster(x, y - 1) = amplitude[bin];
 			}
