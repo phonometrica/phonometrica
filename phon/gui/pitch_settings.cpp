@@ -38,7 +38,7 @@
 namespace phonometrica {
 
 PitchSettings::PitchSettings(Runtime &rt, QWidget *parent) :
-    QDialog(parent), rt(rt)
+		QDialog(parent), runtime(rt)
 {
     setWindowTitle("Change pitch settings...");
     setMinimumWidth(300);
@@ -93,7 +93,7 @@ void PitchSettings::validate()
         QMessageBox::critical(this, "Error", "Invalid minimum pitch");
         return;
     }
-    Settings::set_value(rt, category, "minimum_pitch", value);
+    Settings::set_value(runtime, category, "minimum_pitch", value);
 
     value = max_edit->text().toDouble(&ok);
     if (!ok)
@@ -101,7 +101,7 @@ void PitchSettings::validate()
         QMessageBox::critical(this, "Error", "Invalid maximum pitch");
         return;
     }
-    Settings::set_value(rt, category, "maximum_pitch", value);
+    Settings::set_value(runtime, category, "maximum_pitch", value);
 
     value = step_edit->text().toDouble(&ok);
     if (!ok || value <= 0)
@@ -109,7 +109,7 @@ void PitchSettings::validate()
         QMessageBox::critical(this, "Error", "Invalid time step");
         return;
     }
-    Settings::set_value(rt, category, "time_step", value);
+    Settings::set_value(runtime, category, "time_step", value);
 
     value = threshold_label->text().toDouble(&ok);
     if (!ok || value > 0.5 || value < 0.2)
@@ -118,30 +118,30 @@ void PitchSettings::validate()
         QMessageBox::critical(this, "Error", "Invalid voicing threshold");
         return;
     }
-    Settings::set_value(rt, category, "voicing_threshold", value);
+    Settings::set_value(runtime, category, "voicing_threshold", value);
 
     accept();
 }
 
 void PitchSettings::reset(bool)
 {
-	run_script(rt, reset_pitch_settings);
+	run_script(runtime, reset_pitch_settings);
     displayValues();
 }
 
 void PitchSettings::displayValues()
 {
     String category("pitch_tracking");
-    auto minimum = Settings::get_number(rt, category, "minimum_pitch");
+    auto minimum = Settings::get_number(runtime, category, "minimum_pitch");
     min_edit->setText(QString::number(minimum));
 
-    auto maximum = Settings::get_number(rt, category, "maximum_pitch");
+    auto maximum = Settings::get_number(runtime, category, "maximum_pitch");
     max_edit->setText(QString::number(maximum));
 
-    auto step = Settings::get_number(rt, category, "time_step");
+    auto step = Settings::get_number(runtime, category, "time_step");
     step_edit->setText(QString::number(step));
 
-    auto thres = Settings::get_number(rt, category, "voicing_threshold");
+    auto thres = Settings::get_number(runtime, category, "voicing_threshold");
     int value = int((thres - 0.2) * 100);
     slider->setValue(value);
     threshold_label->setText(QString::number(thres));

@@ -37,7 +37,7 @@ namespace phonometrica {
 
 class Runtime;
 
-class WaveformSettings : public QDialog
+class WaveformSettings final : public QDialog
 {
 	Q_OBJECT
 

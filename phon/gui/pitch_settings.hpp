@@ -60,7 +60,7 @@ private:
 
     void displayValues();
 
-    Runtime &rt;
+    Runtime &runtime;
 
     QLineEdit *min_edit, *max_edit, *step_edit;
 

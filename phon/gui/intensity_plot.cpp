@@ -28,6 +28,9 @@
 
 #include <QDebug>
 #include <phon/gui/intensity_plot.hpp>
+#include <phon/runtime/runtime.hpp>
+#include <phon/application/settings.hpp>
+#include <phon/include/reset_intensity_settings_phon.hpp>
 #include <phon/speech/signal_processing.hpp>
 
 namespace phonometrica {
@@ -35,7 +38,15 @@ namespace phonometrica {
 IntensityPlot::IntensityPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
     SpeechPlot(rt, std::move(data), parent)
 {
-
+	try
+	{
+		readSettings();
+	}
+	catch (std::exception &)
+	{
+		run_script(rt, reset_intensity_settings);
+		readSettings();
+	}
 }
 
 void IntensityPlot::renderPlot(QPaintEvent *)
@@ -176,7 +187,10 @@ double IntensityPlot::findValueAtTime(double time)
 
 void IntensityPlot::readSettings()
 {
-	// Nothing to do for now since we don't have settings.
+	String cat("intensity");
+	min_dB = Settings::get_number(rt, cat, "minimum_intensity");
+	max_dB = Settings::get_number(rt, cat, "maximum_intensity");
+	time_step = Settings::get_number(rt, cat, "time_step");
 }
 
 void IntensityPlot::emptyCache()

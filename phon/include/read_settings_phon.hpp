@@ -35,7 +35,7 @@ phon.settings = {
 
 	waveform: {
 		magnitude: 1.0,
-		scaling: "window"
+		scaling: "local"
 	},
 
 	pitch_tracking: {
@@ -44,6 +44,12 @@ phon.settings = {
 		time_step: 0.01,
         voicing_threshold: 0.25
     },
+
+	intensity: {
+		minimum_intensity: 50,
+		maximum_intensity: 100,
+		time_step: 0.01
+	},
 
 	spectrogram: {
 		window_size: 0.005,

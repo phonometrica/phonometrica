@@ -20,147 +20,108 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 20/03/2019                                                                                                 *
+ * Created: 10/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: base class for sound views and annotation views. They are essentially the same thing, except for the fact  *
- * that annotation views can display annotation layers in addition to sound plots.                                     *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SPEECH_VIEW_HPP
-#define PHONOMETRICA_SPEECH_VIEW_HPP
-
+#include <QLayout>
 #include <QLabel>
-#include <QAction>
-#include <QVBoxLayout>
-#include <phon/gui/views/view.hpp>
-#include <phon/gui/wave_bar.hpp>
-#include <phon/gui/sound_zoom.hpp>
-#include <phon/gui/waveform.hpp>
-#include <phon/gui/spectrogram.hpp>
-#include <phon/gui/intensity_plot.hpp>
-#include <phon/gui/pitch_plot.hpp>
-#include <phon/gui/space_line.hpp>
-#include <phon/gui/y_axis_widget.hpp>
-#include <phon/gui/toolbar.hpp>
-#include <phon/application/audio_player.hpp>
-#include <phon/application/audio_data.hpp>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QDialogButtonBox>
 #include <phon/runtime/runtime.hpp>
+#include <phon/application/settings.hpp>
+#include <phon/include/reset_intensity_settings_phon.hpp>
+#include <phon/gui/intensity_settings.hpp>
 
 namespace phonometrica {
 
-class SpeechView : public View
+IntensitySettings::IntensitySettings(Runtime &rt, QWidget *parent) : 
+	QDialog(parent), runtime(rt)
 {
-    Q_OBJECT
+	setWindowTitle("Change intensity settings...");
+	setMinimumWidth(300);
 
-public:
+	min_edit = new QLineEdit;
+	max_edit = new QLineEdit;
+	step_edit = new QLineEdit;
 
-    SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWidget *parent = nullptr);
+	auto layout = new QVBoxLayout;
+	layout->addWidget(new QLabel("Minimum intensity (dB):"));
+	layout->addWidget(min_edit);
+	layout->addWidget(new QLabel("Maximum intensity (dB):"));
+	layout->addWidget(max_edit);
+	layout->addWidget(new QLabel("Time step (seconds):"));
+	layout->addWidget(step_edit);
 
-    void post_initialize() override;
+	layout->addSpacing(10);
 
-	void setSelection(double t1, double t2);
+	auto hl = new QHBoxLayout;
+	auto reset_button = new QPushButton("Reset");
+	auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+	hl->addWidget(reset_button);
+	hl->addStretch();
+	hl->addWidget(button_box);
+	layout->addLayout(hl);
+	setLayout(layout);
+	displayValues();
 
-protected slots:
+	connect(button_box, &QDialogButtonBox::accepted, this, &IntensitySettings::validate);
+	connect(button_box, &QDialogButtonBox::rejected, this, &IntensitySettings::reject);
+	connect(reset_button, &QPushButton::clicked, this, &IntensitySettings::reset);
+}
 
-	void zoomToSelection(bool);
+void IntensitySettings::validate()
+{
+	String category("intensity");
+	bool ok;
 
-    void zoomIn(bool);
+	double value = min_edit->text().toDouble(&ok);
+	if (!ok)
+	{
+		QMessageBox::critical(this, "Error", "Invalid minimum intensity");
+		return;
+	}
+	Settings::set_value(runtime, category, "minimum_intensity", value);
 
-    void zoomOut(bool);
+	value = max_edit->text().toDouble(&ok);
+	if (!ok)
+	{
+		QMessageBox::critical(this, "Error", "Invalid maximum intensity");
+		return;
+	}
+	Settings::set_value(runtime, category, "maximum_intensity", value);
 
-    void viewAll(bool);
+	value = step_edit->text().toDouble(&ok);
+	if (!ok || value <= 0)
+	{
+		QMessageBox::critical(this, "Error", "Invalid time step");
+		return;
+	}
+	Settings::set_value(runtime, category, "time_step", value);
 
-    void moveForward(bool);
 
-    void moveBackward(bool);
+	accept();
+}
 
-    void chooseSelection(bool);
+void IntensitySettings::displayValues()
+{
+	String category("intensity");
+	auto minimum = Settings::get_number(runtime, category, "minimum_intensity");
+	min_edit->setText(QString::number(minimum));
 
-    void play(bool);
+	auto maximum = Settings::get_number(runtime, category, "maximum_intensity");
+	max_edit->setText(QString::number(maximum));
 
-    void stop(bool);
+	auto step = Settings::get_number(runtime, category, "time_step");
+	step_edit->setText(QString::number(step));
+}
 
-    void setWindowTimes(double, double);
-
-    void onPlayingFinished();
-
-    void enableMouseTracking(bool enable);
-
-    void showSpectrogram(bool);
-
-    void showPitch(bool);
-
-    void showIntensity(bool);
-
-    void changeWaveformSettings(bool);
-
-    void changePitchSettings(bool);
-
-    void changeIntensitySettings(bool);
-
-    void changeSpectrogramSettings(bool);
-
-    void showDocumentation(bool);
-
-protected:
-
-	void setupUi();
-
-	void refreshUi();
-
-    Toolbar *makeToolbar();
-
-    void setPlayIcon();
-
-    void setPauseIcon();
-
-    virtual void addAnnotationMenu(Toolbar *toolbar) { }
-
-    virtual void addAnnotationLayers(QVBoxLayout *layout) { }
-
-    virtual void addLayersToYAxis() { }
-
-    void setInitialWindow();
-
-    void clearLayout(QLayout *layout);
-
-    Runtime &runtime;
-
-    std::shared_ptr<AudioData> m_data;
-
-    AudioPlayer player;
-
-    Waveform *waveform;
-
-    Spectrogram *spectrogram;
-
-	// The main layout hold the Y axis widget and the inner layout which contains plots.
-	QHBoxLayout *main_layout;
-
-	// Layout toolbar, speech plots and annotation layers.
-	QVBoxLayout *inner_layout;
-
-    PitchPlot *pitch_plot;
-
-    IntensityPlot *intensity_plot;
-
-    Array<SpeechPlot*> plots; // keep plots together to make it easier to connect them
-
-    SpaceLine *spectrogram_line, *pitch_line, *intensity_line;
-
-    YAxisWidget *y_axis;
-
-    WaveBar *wavebar;
-
-    QLabel *label_start, *label_end; // display start and end of sound file
-
-    QAction *play_action;
-
-    // Index of the first layer in the inner layout (for annotation views).
-    int layer_start = 0;
-};
-
+void IntensitySettings::reset(bool)
+{
+	run_script(runtime, reset_intensity_settings);
+    displayValues();
+}
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_SPEECH_VIEW_HPP

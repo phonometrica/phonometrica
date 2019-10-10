@@ -1,6 +1,14 @@
 Release notes
 -------------
 
+0.6.0 (??/10/2019)
+~~~~~~~~~~~~~~~~~~
+
+- spectrogram in sound and annotation views
+- waveform scaling using global, local or fixed magnitude
+- intensity settings
+- click on middle button (wheel) too zoom on the active selection
+
 
 0.5.2 (04/10/2019)
 ~~~~~~~~~~~~~~~~~~

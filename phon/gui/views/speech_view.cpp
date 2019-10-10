@@ -35,6 +35,7 @@
 #include <phon/gui/time_selection_dialog.hpp>
 #include <phon/gui/waveform_settings.hpp>
 #include <phon/gui/pitch_settings.hpp>
+#include <phon/gui/intensity_settings.hpp>
 #include <phon/gui/spectrogram_settings.hpp>
 #include <phon/application/settings.hpp>
 
@@ -79,7 +80,9 @@ Toolbar *SpeechView::makeToolbar()
     auto action_enable_intensity = new QAction(tr("Show intensity"), this);
     action_enable_intensity->setCheckable(true);
     action_enable_intensity->setChecked(true);
+    auto action_intensity_settings = new QAction(tr("Intensity settings..."), this);
     intensity_menu->addAction(action_enable_intensity);
+    intensity_menu->addAction(action_intensity_settings);
 
     auto options_menu = new QMenu;
 
@@ -170,6 +173,7 @@ Toolbar *SpeechView::makeToolbar()
 	connect(action_wave_settings, &QAction::triggered, this, &SpeechView::changeWaveformSettings);
     connect(action_pitch_settings, &QAction::triggered, this, &SpeechView::changePitchSettings);
     connect(action_spectrum_settings, &QAction::triggered, this, &SpeechView::changeSpectrogramSettings);
+    connect(action_intensity_settings, &QAction::triggered, this, &SpeechView::changeIntensitySettings);
     connect(action_enable_spectrum, &QAction::triggered, this, &SpeechView::showSpectrogram);
     connect(action_enable_intensity, &QAction::triggered, this, &SpeechView::showIntensity);
     connect(waveform, &SpeechPlot::windowHasChanged, this, &SpeechView::setWindowTimes);
@@ -352,6 +356,16 @@ void SpeechView::changePitchSettings(bool)
     if (dlg.exec() == QDialog::Accepted)
     {
         pitch_plot->updateSettings();
+    }
+}
+
+void SpeechView::changeIntensitySettings(bool)
+{
+    IntensitySettings dlg(runtime, this);
+
+    if (dlg.exec() == QDialog::Accepted)
+    {
+        intensity_plot->updateSettings();
     }
 }
 
