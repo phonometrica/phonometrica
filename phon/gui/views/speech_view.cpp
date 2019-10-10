@@ -502,30 +502,6 @@ void SpeechView::setupUi()
 	connect(&player, &AudioPlayer::done, this, &SpeechView::onPlayingFinished);
 }
 
-void SpeechView::refreshUi()
-{
-	clearLayout(main_layout);
-}
-
-void SpeechView::clearLayout(QLayout *layout)
-{
-	QLayoutItem *item;
-
-	while ((item = layout->takeAt(0)) != nullptr)
-	{
-		if (item->layout())
-		{
-			clearLayout(item->layout());
-			delete item->layout();
-		}
-		if (item->widget())
-		{
-			delete item->widget();
-		}
-		delete item;
-	}
-}
-
 void SpeechView::showDocumentation(bool)
 {
 	runtime.do_string(R"__(

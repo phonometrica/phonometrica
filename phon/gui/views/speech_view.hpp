@@ -107,8 +107,6 @@ protected:
 
 	void setupUi();
 
-	void refreshUi();
-
     Toolbar *makeToolbar();
 
     void setPlayIcon();
@@ -122,8 +120,6 @@ protected:
     virtual void addLayersToYAxis() { }
 
     void setInitialWindow();
-
-    void clearLayout(QLayout *layout);
 
     Runtime &runtime;
 

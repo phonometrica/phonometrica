@@ -107,7 +107,7 @@ a given file (i.e. half its sampling frequency), Phonometrica will use the Nyqui
 <li><code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">type</span></code>: This parameter indicates the shape of the window that is applied to a segment of the sound file before
 calculating its Fast Fourier Transform.</li>
 <li><code class="docutils literal notranslate"><span class="pre">pre-emphasis</span> <span class="pre">factor</span></code>: the value of the alpha coefficient in the pre-emphasis filter. This value must be between 0 and 1
-and is plugged into the following equation: <span class="math notranslate nohighlight">\(y[n] = x[n] * \alpha x[n-1]\)</span></li>
+and is plugged into the following equation: <span class="math notranslate nohighlight">\(y[n] = x[n] - \alpha x[n-1]\)</span>.</li>
 </ul>
 </div>
 </div>
