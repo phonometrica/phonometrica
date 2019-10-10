@@ -20,57 +20,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 31/03/2019                                                                                                 *
+ * Created: 10/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: Intensity plot in a sound or annotation view. The normalized intensity of the sound wave is interpreted    *
- * in Pascal. Intensity is expressed in dB SPL, with a reference intensity set to 20 micropascal (or 0.00002 Pascal).  *
+ * Purpose: settings for the waveform plot.                                                                            *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_INTENSITY_PLOT_HPP
-#define PHONOMETRICA_INTENSITY_PLOT_HPP
+#ifndef PHONOMETRICA_WAVEFORM_SETTINGS_HPP
+#define PHONOMETRICA_WAVEFORM_SETTINGS_HPP
 
-#include <phon/gui/speech_plot.hpp>
+#include <QDialog>
+#include <QComboBox>
+#include <QLineEdit>
 
 namespace phonometrica {
 
-class IntensityPlot final : public SpeechPlot
+class Runtime;
+
+class WaveformSettings : public QDialog
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
 
-    IntensityPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
+	WaveformSettings(Runtime &rt, QWidget *parent = nullptr);
 
+private slots:
 
-    void drawYAxis(QWidget *y_axis, int y1, int y2) override;
+	void validate();
 
-protected:
-
-    void renderPlot(QPaintEvent *event) override;
-
-    bool needsRefresh() const override;
-
-    void readSettings() override;
-
-    void emptyCache() override;
+	void reset(bool);
 
 private:
 
-    void calculateIntensity();
+	void displayValues();
 
-    double intensityToYPos(double dB) const;
+	Runtime &runtime;
 
-    double findValueAtTime(double time);
+	QComboBox *scaling_box;
 
-    Array<double> db_data;
-
-    double min_dB = 50;
-    double max_dB = 100;
-
-    double time_step = 0.01;
+	QLineEdit *magnitude_edit;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_INTENSITY_PLOT_HPP
+#endif // PHONOMETRICA_WAVEFORM_SETTINGS_HPP

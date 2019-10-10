@@ -39,6 +39,13 @@ class Waveform final : public SpeechPlot
 {
     Q_OBJECT
 
+    enum class Scaling
+    {
+    	Global,
+    	Local,
+    	Fixed
+    };
+
 public:
 
     Waveform(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
@@ -47,7 +54,7 @@ public:
 
     void informWindow();
 
-    void setMagnitude(double value);
+    void setGlobalMagnitude(double value);
 
 public slots:
 
@@ -63,9 +70,17 @@ protected:
 
 	void moveWindow(double t1, double t2) override;
 
+	void readSettings() override;
+
+	void emptyCache() override;
+
 private:
 
+	void setMagnitude(double value);
+
     void drawWave();
+
+    void setLocalMagnitude(const sample_t *from, const sample_t *to);
 
     // Map sample to plot y coordinate.
     double sampleToHeight(sample_t s) const;
@@ -78,7 +93,9 @@ private:
     int cached_width = 0;
     int cached_height = 0;
 
-    double magnitude = 1;
+    Scaling scaling = Scaling::Fixed;
+    double magnitude = 1.0;
+    double global_magnitude = 1.0;
 
     std::pair<double,double> extrema = {-1, 1};
 };

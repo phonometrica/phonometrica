@@ -33,10 +33,10 @@
 #include <phon/gui/toolbar.hpp>
 #include <phon/gui/views/speech_view.hpp>
 #include <phon/gui/time_selection_dialog.hpp>
+#include <phon/gui/waveform_settings.hpp>
 #include <phon/gui/pitch_settings.hpp>
 #include <phon/gui/spectrogram_settings.hpp>
 #include <phon/application/settings.hpp>
-
 
 namespace phonometrica {
 
@@ -55,6 +55,10 @@ void SpeechView::post_initialize()
 
 Toolbar *SpeechView::makeToolbar()
 {
+	auto wave_menu = new QMenu;
+	auto action_wave_settings = new QAction(tr("Waveform settings..."), this);
+	wave_menu->addAction(action_wave_settings);
+
 	auto spectrum_menu = new QMenu;
 	auto action_enable_spectrum = new QAction(tr("Show spectrogram"), this);
 	action_enable_spectrum->setCheckable(true);
@@ -104,6 +108,8 @@ Toolbar *SpeechView::makeToolbar()
     auto wave_button = new QToolButton;
     wave_button->setIcon(QIcon(":/icons/waveform.png"));
     wave_button->setToolTip("Waveform options");
+    wave_button->setMenu(wave_menu);
+    wave_button->setPopupMode(QToolButton::InstantPopup);
 
     auto spectrum_button = new QToolButton;
     spectrum_button->setIcon(QIcon(":/icons/spectrum.png"));
@@ -161,6 +167,7 @@ Toolbar *SpeechView::makeToolbar()
     connect(move_back, &QAction::triggered, this, &SpeechView::moveBackward);
     connect(select, &QAction::triggered, this, &SpeechView::chooseSelection);
     connect(action_enable_pitch, &QAction::triggered, this, &SpeechView::showPitch);
+	connect(action_wave_settings, &QAction::triggered, this, &SpeechView::changeWaveformSettings);
     connect(action_pitch_settings, &QAction::triggered, this, &SpeechView::changePitchSettings);
     connect(action_spectrum_settings, &QAction::triggered, this, &SpeechView::changeSpectrogramSettings);
     connect(action_enable_spectrum, &QAction::triggered, this, &SpeechView::showSpectrogram);
@@ -328,6 +335,16 @@ void SpeechView::showPitch(bool checked)
     pitch_line->setVisible(checked);
 }
 
+void SpeechView::changeWaveformSettings(bool)
+{
+	WaveformSettings dlg(runtime, this);
+
+	if (dlg.exec() == QDialog::Accepted)
+	{
+		waveform->updateSettings();
+	}
+}
+
 void SpeechView::changePitchSettings(bool)
 {
     PitchSettings dlg(runtime, this);
@@ -382,7 +399,7 @@ void SpeechView::setupUi()
 
 	auto zoom = new SoundZoom(this);
 	wavebar = new WaveBar(m_data, this);
-	waveform->setMagnitude(wavebar->magnitude());
+	waveform->setGlobalMagnitude(wavebar->magnitude());
 
 	bool track = Settings::get_boolean(runtime, "enable_mouse_tracking");
 	waveform->enableMouseTracking(track);
@@ -502,6 +519,5 @@ void SpeechView::showDocumentation(bool)
 		phon.show_documentation(page)
 		)__");
 }
-
 
 } // namespace phonometrica

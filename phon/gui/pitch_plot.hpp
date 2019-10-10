@@ -46,21 +46,21 @@ public:
 
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;
 
-    void updateSettings();
-
 protected:
 
     void renderPlot(QPaintEvent *event) override;
 
     bool needsRefresh() const override;
 
+	void readSettings() override;
+
+	void emptyCache() override;
+
 private:
 
     double pitchToYPos(double hz);
 
     void calculatePitch();
-
-    void readSettings();
 
     double findValueAtTime(double t);
 

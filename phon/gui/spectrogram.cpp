@@ -296,14 +296,6 @@ void Spectrogram::resizeEvent(QResizeEvent *e)
 	QWidget::resizeEvent(e);
 }
 
-void Spectrogram::updateSettings()
-{
-	readSettings();
-	emptyCache();
-	repaint();
-	emit yAxisModified();
-}
-
 void Spectrogram::readSettings()
 {
 	using namespace speech;

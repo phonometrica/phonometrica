@@ -66,6 +66,8 @@ public:
 
     void setInitialWindow();
 
+    void updateSettings();
+
 signals:
 
     void timeSelection(double, double);
@@ -103,6 +105,10 @@ public slots:
 protected:
 
     virtual bool needsRefresh() const;
+
+    virtual void readSettings() { }
+
+    virtual void emptyCache() { }
 
     void paintEvent(QPaintEvent* event) override;
 

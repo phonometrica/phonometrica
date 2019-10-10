@@ -405,4 +405,12 @@ bool SpeechPlot::hasSelection() const
     return sel_start >= 0 && sel_end > 0 && sel_start != sel_end && !(sel_start == window_start && sel_end == window_end);
 }
 
+void SpeechPlot::updateSettings()
+{
+	readSettings();
+	emptyCache();
+	repaint();
+	emit yAxisModified();
+}
+
 } // namespace phonometrica

@@ -27,15 +27,26 @@
  ***********************************************************************************************************************/
 
 #include <QDebug>
+#include <QMessageBox>
+#include <phon/runtime/runtime.hpp>
+#include <phon/application/settings.hpp>
 #include <phon/gui/waveform.hpp>
-#include "waveform.hpp"
+#include <phon/include/reset_waveform_settings_phon.hpp>
 
 namespace phonometrica {
 
 Waveform::Waveform(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
     SpeechPlot(rt, std::move(data), parent)
 {
-
+	try
+	{
+		readSettings();
+	}
+	catch (std::exception &)
+	{
+		run_script(rt, reset_waveform_settings);
+		readSettings();
+	}
 }
 
 void Waveform::renderPlot(QPaintEvent *)
@@ -72,13 +83,7 @@ bool Waveform::needsRefresh() const
 
 void Waveform::drawWave()
 {
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    QPen pen;
-    pen.setColor(Qt::black);
-    painter.setPen(pen);
-
-    // If the number of samples to display is greater than the number of pixels,
+	// If the number of samples to display is greater than the number of pixels,
     // map several frames to one pixel. We find the maximum and minimum amplitudes
     // over the range of frames, and we draw a line from the previous minimum to the
     // current maximum, and from the current maximum to the current mimimum.
@@ -88,12 +93,27 @@ void Waveform::drawWave()
     auto sample_count = last_sample - first_sample + 1;
     auto raw_data = m_data->data() + first_sample - 1; // to base 0
 
-    // TODO: smooth waveform drawing
+    if (scaling == Scaling::Global)
+    {
+    	setMagnitude(global_magnitude);
+    }
+    else if (scaling == Scaling::Local)
+    {
+	    setLocalMagnitude(raw_data, raw_data + sample_count);
+    }
+
+    // Don't create the painter until we are done sending events to the Y axis, otherwise it will crash.
+	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing);
+	QPen pen;
+	pen.setColor(Qt::black);
+	painter.setPen(pen);
+
+
     if (sample_count > this->width())
     {
         QPainterPath path;
         int x = 0;
-        sample_t previous_value = 0;
         assert(window_end <= m_data->duration());
 
         // Subtract 1 to width so that the last pixel is assigned the left-over frames.
@@ -222,7 +242,7 @@ void Waveform::drawYAxis(QWidget *y_axis, int y1, int y2)
 double Waveform::sampleToHeight(sample_t s) const
 {
     const double H = (double)this->height() / 2;
-    return H - s * H / magnitude; // std::numeric_limits<sample_t>::max();
+    return H - s * H / magnitude;
 }
 
 void Waveform::informWindow()
@@ -247,6 +267,65 @@ void Waveform::moveWindow(double t1, double t2)
 {
 	SpeechPlot::moveWindow(t1, t2);
 	emit windowHasChanged(t1, t2);
+}
+
+void Waveform::readSettings()
+{
+    String cat("waveform");
+	auto m = Settings::get_number(rt, cat, "magnitude");
+
+	if (m <= 0 || m > 1.0)
+	{
+		QMessageBox::warning(this, tr("Invalid waveform settings"), tr("Your waveform settings have an invalid magnitude and will be reinitialized."));
+    	throw std::runtime_error("");
+	}
+	// Convert magnitude to samples.
+	setMagnitude(m * std::abs((double)(std::numeric_limits<sample_t>::min)()));
+
+    String method = Settings::get_string(rt, cat, "scaling");
+
+    if (method == "global")
+    {
+	    scaling = Scaling::Global;
+    }
+    else if (method == "local")
+    {
+	    scaling = Scaling::Local;
+    }
+    else if (method == "fixed")
+    {
+	    scaling = Scaling::Fixed;
+    }
+    else
+    {
+    	QMessageBox::warning(this, tr("Invalid waveform settings"), tr("Your waveform settings are invalid and will be reinitialized."));
+    	throw std::runtime_error("");
+	}
+
+    // Ensure magnitude is always 1.0 if it is not used.
+//    if (scaling != Scaling::Fixed && m != 1.0)
+//    {
+//    	Settings::set_value(rt, cat, "magnitude", 1.0);
+//    	setMagnitude(std::abs((double)(std::numeric_limits<sample_t>::min)()));
+//    }
+}
+
+void Waveform::emptyCache()
+{
+	cached_path = QPainterPath();
+}
+
+void Waveform::setLocalMagnitude(const sample_t *from, const sample_t *to)
+{
+	double e1 = std::abs(double(*std::max_element(from, to)));
+	double e2 = std::abs(double(*std::min_element(from, to)));
+	auto m = (std::max)(e1, e2);
+	setMagnitude(m);
+}
+
+void Waveform::setGlobalMagnitude(double value)
+{
+	global_magnitude = value;
 }
 
 } // namespace phonometrica

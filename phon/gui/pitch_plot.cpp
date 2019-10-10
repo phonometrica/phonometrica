@@ -169,13 +169,6 @@ void PitchPlot::calculatePitch()
     cached_end = window_end;
 }
 
-void PitchPlot::updateSettings()
-{
-    readSettings();
-    repaint();
-    emit yAxisModified();
-}
-
 void PitchPlot::readSettings()
 {
     String cat("pitch_tracking");
@@ -213,6 +206,11 @@ double PitchPlot::findValueAtTime(double time)
     }
 
     return std::nan("");
+}
+
+void PitchPlot::emptyCache()
+{
+	pitch_data.clear();
 }
 
 } // namespace phonometrica

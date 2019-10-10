@@ -49,8 +49,6 @@ public:
 
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;
 
-	void updateSettings();
-
 protected:
 
     void renderPlot(QPaintEvent *event) override;
@@ -59,15 +57,13 @@ protected:
 
     void resizeEvent(QResizeEvent *) override;
 
+	void readSettings() override;
+
+	void emptyCache() override;
 
 private:
 
 	Matrix<double> computeSpectrogram();
-
-	void readSettings();
-
-	void emptyCache();
-
 
 	// Cached spectrogram.
 	QImage image;

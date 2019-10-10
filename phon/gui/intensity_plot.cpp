@@ -173,4 +173,14 @@ double IntensityPlot::findValueAtTime(double time)
 
     return std::nan("");
 }
+
+void IntensityPlot::readSettings()
+{
+	// Nothing to do for now since we don't have settings.
+}
+
+void IntensityPlot::emptyCache()
+{
+	db_data.clear();
+}
 } // namespace phonometrica

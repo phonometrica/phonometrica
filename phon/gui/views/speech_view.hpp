@@ -93,6 +93,8 @@ protected slots:
 
     void showIntensity(bool);
 
+    void changeWaveformSettings(bool);
+
     void changePitchSettings(bool);
 
     void changeSpectrogramSettings(bool);
