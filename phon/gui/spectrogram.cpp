@@ -201,7 +201,7 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	std::vector<std::complex<float>> output(nfft, std::complex<float>(0, 0));
 
 	Array<double> buffer = m_data->get(first_sample, last_sample);
-	pre_emphasis(buffer, alpha);
+	pre_emphasis(buffer, sample_rate, preemph_threshold);
 
 	intptr_t left_offset = samples_per_pixel / 2 - nframe / 2;
 
@@ -306,7 +306,7 @@ void Spectrogram::readSettings()
 	ceiling_freq = (std::min<double>)(ceiling_freq, nyquist);
 	window_length = Settings::get_number(rt, cat, "window_size");
 	dynamic_range = (int) Settings::get_number(rt, cat, "dynamic_range");
-	alpha = Settings::get_number(rt, cat, "preemphasis_factor");
+	preemph_threshold = Settings::get_number(rt, cat, "preemphasis_threshold");
 
 	String win = Settings::get_string(rt, cat, "window_type");
 	if (win == "Bartlett")

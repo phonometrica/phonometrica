@@ -56,7 +56,7 @@ phon.settings = {
 		frequency_range: 5500,
 		window_type: "Hann",
 		dynamic_range: 70,
-		preemphasis_factor: 0.97
+		preemphasis_threshold: 1000
 	}
 }
 

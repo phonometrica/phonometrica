@@ -6,7 +6,7 @@ static const char *reset_spectrogram_settings_script = R"_(phon.settings.spectro
 		frequency_range: 5500,
 		window_type: "Hann",
 		dynamic_range: 70,
-		preemphasis_factor: 0.97
+		preemphasis_threshold: 1000
 }
 )_";
 

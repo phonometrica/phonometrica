@@ -36,8 +36,9 @@ spectrogram can be ajusted by changing the following settings:
 * ``window type``: This parameter indicates the shape of the window that is applied to a segment of the sound file before
   calculating its Fast Fourier Transform.
 
-* ``pre-emphasis factor``: the value of the alpha coefficient in the pre-emphasis filter. This value must be between 0 and 1
-  and is plugged into the following equation: :math:`y[n] = x[n] - \alpha x[n-1]`.
+* ``pre-emphasis threshold``: threshold of the high-pass pre-emphasis filter. The amplitude of the frequencies above this
+  threshold will be increased. This value is plugged into the following equation: :math:`y[n] = x[n] - \exp(-2 \pi f \frac{1}{F_s}) x[n-1]`,
+  where :math:`f` is the pre-emphasis threshold and :math:`F_s` is the sampling rate.
 
 
 Sound annotation

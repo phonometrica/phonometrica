@@ -75,7 +75,7 @@ private:
 	double ceiling_freq;
 
 	// Pre-emphasis factor.
-	double alpha;
+	double preemph_threshold;
 
 	// Dynamic range (in dB). Values below the threshold [max_dB - dynamic_range] are treated as 0.
 	int dynamic_range;

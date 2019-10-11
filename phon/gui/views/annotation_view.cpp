@@ -125,24 +125,21 @@ LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 	layer->setWindow(win.first, win.second);
 
 	layers.insert(i, layer);
+
+	for (auto plot : plots)
+	{
+		connect(layer, &LayerWidget::current_time, plot, &Waveform::setCurrentTime);
+		connect(layer, &LayerWidget::event_selected, plot, &Waveform::setSelection);
+		connect(layer, &LayerWidget::window_moved, plot, &Waveform::setWindow);
+	}
+
 	connect(layer, &LayerWidget::got_focus, this, &AnnotationView::focusLayer);
-	connect(layer, &LayerWidget::current_time, waveform, &Waveform::setCurrentTime);
-	connect(layer, &LayerWidget::current_time, pitch_plot, &PitchPlot::setCurrentTime);
-	connect(layer, &LayerWidget::current_time, intensity_plot, &IntensityPlot::setCurrentTime);
-
-	connect(layer, &LayerWidget::event_selected, waveform, &Waveform::setSelection);
-	connect(layer, &LayerWidget::event_selected, pitch_plot, &PitchPlot::setSelection);
-	connect(layer, &LayerWidget::event_selected, intensity_plot, &IntensityPlot::setSelection);
-
 	connect(layer, &LayerWidget::focus_event, this, &AnnotationView::focusEvent);
 	connect(layer, &LayerWidget::modified, this, &AnnotationView::modified);
 	connect(layer, &LayerWidget::anchor_moving, this, &AnnotationView::setMovingAnchor);
 	connect(layer, &LayerWidget::anchor_has_moved, this, &AnnotationView::resetAnchorMovement);
 	// When a layer triggers a window shift, we need to update the scrollbar and the plots
 	connect(layer, &LayerWidget::window_moved, wavebar, &WaveBar::setTimeSelection);
-	connect(layer, &LayerWidget::window_moved, waveform, &Waveform::setWindow);
-	connect(layer, &LayerWidget::window_moved, pitch_plot, &PitchPlot::setWindow);
-	connect(layer, &LayerWidget::window_moved, intensity_plot, &IntensityPlot::setWindow);
 	connect(waveform, &Waveform::windowHasChanged, layer, &LayerWidget::setWindow);
 	connect(link_button, &QToolButton::clicked, layer, &LayerWidget::setAnchorSharing);
 	connect(layer, &LayerWidget::anchor_added, this, &AnnotationView::notifyAnchorAdded);

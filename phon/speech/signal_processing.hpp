@@ -56,9 +56,10 @@ Array<double> get_intensity(const Span<double> &input, int samplerate, intptr_t 
 
 
 template<typename T>
-void pre_emphasis(Array<T> &data, double alpha = 0.97)
+void pre_emphasis(Array<T> &data, double Fs, double threshold)
 {
 	T *x = data.data();
+	double alpha = exp(-2 * M_PI * threshold * (1.0 / Fs));
 
 	x[0] = x[0] * (1.0 - alpha);
 
