@@ -184,8 +184,8 @@ if (BUILD_GUI)
             phon/third_party/sendpraat.c
             phon/third_party/speex/resample.c
             phon/third_party/zip/zip.cpp
-            #phon/third_party/qxt/qxtcheckcombobox.cpp
-            phon/third_party/sptk/*.c
+            phon/third_party/qxt/qxtcheckcombobox.cpp
+            #phon/third_party/sptk/*.c
             #phon/third_party/snack/*.cpp
             phon/third_party/swipe/*.c phon/third_party/swipe/*.cpp phon/third_party/swipe/*.h
     )

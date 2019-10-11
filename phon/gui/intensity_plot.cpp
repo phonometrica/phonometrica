@@ -143,7 +143,7 @@ void IntensityPlot::calculateIntensity()
 {
     auto start_pos = m_data->time_to_frame(window_start);
     auto end_pos = m_data->time_to_frame(window_end);
-    auto input = m_data->real_data(start_pos, end_pos);
+    auto input = m_data->get(start_pos, end_pos);
 
     // Praat's settings
     double min_pitch = 100;

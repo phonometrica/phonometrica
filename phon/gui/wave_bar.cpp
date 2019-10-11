@@ -111,7 +111,7 @@ void WaveBar::paintEvent(QPaintEvent *event)
     QWidget::paintEvent(event);
 }
 
-int WaveBar::sampleToYPos(sample_t s) const
+int WaveBar::sampleToYPos(double s) const
 {
 
     const int H = this->height() / 2;
@@ -218,8 +218,8 @@ void WaveBar::makePath(QPainterPath &path)
     // Subtract 1 to width so that the last pixel is assigned the left-over frames.
     auto frames_per_pixel = sample_count / (this->width()-1);
 
-    auto maximum = (std::numeric_limits<sample_t>::min)();
-    auto minimum = (std::numeric_limits<sample_t>::max)();
+    auto maximum = (std::numeric_limits<double>::min)();
+    auto minimum = (std::numeric_limits<double>::max)();
 
     for (intptr_t i = 1; i <= sample_count; i++)
     {
@@ -247,8 +247,8 @@ void WaveBar::makePath(QPainterPath &path)
             x++;
 
             // reset values
-            maximum = (std::numeric_limits<sample_t>::min)();
-            minimum = (std::numeric_limits<sample_t>::max)();
+            maximum = (std::numeric_limits<double>::min)();
+            minimum = (std::numeric_limits<double>::max)();
         }
     }
 
@@ -260,7 +260,7 @@ void WaveBar::makePath(QPainterPath &path)
 
 double WaveBar::magnitude() const
 {
-    return raw_magnitude;// / std::abs(std::numeric_limits<sample_t>::min());
+    return raw_magnitude;// / std::abs(std::numeric_limits<double>::min());
 }
 
 double WaveBar::startPosition() const

@@ -155,7 +155,7 @@ void PitchPlot::calculatePitch()
 {
     auto first_sample = m_data->time_to_frame(window_start);
     auto last_sample = m_data->time_to_frame(window_end);
-    auto input = m_data->real_data(first_sample, last_sample);
+    auto input = m_data->get(first_sample, last_sample);
     auto sample_rate = m_data->sample_rate();
 
     // Borrow reference to avoid copying

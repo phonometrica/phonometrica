@@ -103,7 +103,7 @@ Array<double> create_window(intptr_t winlen, intptr_t fftlen, WindowType type)
 }
 
 Array<double>
-get_intensity(const Array<double> &input, int samplerate, intptr_t window_size, double time_step, WindowType type)
+get_intensity(const Span<double> &input, int samplerate, intptr_t window_size, double time_step, WindowType type)
 {
     auto window = create_window(window_size, window_size, type);
     auto win = window.data();

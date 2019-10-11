@@ -38,11 +38,9 @@
 #include <memory>
 #include <sndfile.hh>
 #include <phon/array.hpp>
+#include <phon/utils/span.hpp>
 
 namespace phonometrica {
-
-using sample_t = int;
-
 
 class AudioData final
 {
@@ -52,27 +50,21 @@ public:
 
 	AudioData(const SndfileHandle &h, bool load);
 
-    const sample_t *data() const { return m_data.data(); }
+    const double *data() const { return m_data.data(); }
 
-    sample_t *data() { return m_data.data(); }
+    double *data() { return m_data.data(); }
 
-	void real_data(Array<double> &buffer, intptr_t first_frame = 1, intptr_t last_frame = -1);
+    Span<double> get(intptr_t first_frame = 1, intptr_t last_frame = -1);
 
-    Array<double> real_data(intptr_t first_frame = 1, intptr_t last_frame = -1);
-
-	void float_data(Array<float> &buffer, intptr_t first_frame = 1, intptr_t last_frame = -1);
-
-	Array<float> float_data(intptr_t first_frame = 1, intptr_t last_frame = -1);
-
-    sample_t sample(intptr_t i) const { return m_data[i]; }
+    double sample(intptr_t i) const { return m_data[i]; }
 
     intptr_t size() const { return m_handle.frames(); }
 
     int channels() const { return m_handle.channels(); }
 
-    sample_t max_value() const { return *std::max_element(m_data.begin(), m_data.end()); }
+    double max_value() const { return *std::max_element(m_data.begin(), m_data.end()); }
 
-    sample_t min_value() const { return *std::min_element(m_data.begin(), m_data.end()); }
+    double min_value() const { return *std::min_element(m_data.begin(), m_data.end()); }
 
     int sample_rate() const { return m_handle.samplerate(); }
 
@@ -90,7 +82,7 @@ public:
 
 private:
 
-    Array<sample_t> m_data;
+    Array<double> m_data;
 
     SndfileHandle m_handle;
 };

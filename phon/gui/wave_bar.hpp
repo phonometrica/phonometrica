@@ -74,7 +74,7 @@ protected:
 
 private:
 
-    int sampleToYPos(sample_t s) const;
+    int sampleToYPos(double s) const;
 
     std::shared_ptr<AudioData> m_data;
 
