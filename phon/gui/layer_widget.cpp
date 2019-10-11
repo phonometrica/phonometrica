@@ -47,7 +47,7 @@ namespace phonometrica {
 LayerWidget::LayerWidget(const AutoAnnotation &annot, double duration, intptr_t layer_index, QWidget *parent) :
     SpeechWidget(parent), unused(annot), graph(annot->graph()), layer(graph.get(layer_index)), m_duration(duration)
 {
-    setMinimumHeight(50);
+	setMinimumHeight(50);
     setMaximumHeight(70);
     setMouseTracking(true);
 

@@ -454,6 +454,10 @@ void SpeechView::setupUi()
 	inner_layout->addWidget(wavebar);
 	inner_layout->addSpacing(5);
 	inner_layout->setSpacing(0);
+//	inner_layout->setStretchFactor(waveform, 2);
+//	inner_layout->setStretchFactor(spectrogram, 2);
+//	inner_layout->setStretchFactor(pitch_plot, 1);
+//	inner_layout->setStretchFactor(intensity_plot, 1);
 
 	y_axis = new YAxisWidget;
 	y_axis->setFixedWidth(60);

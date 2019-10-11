@@ -307,6 +307,7 @@ void AnnotationView::createLayer(bool)
 		int i = widgetIndex(index);
 		auto layer = addAnnotationLayer(index);
 		inner_layout->insertWidget(i, layer);
+//		inner_layout->setStretchFactor(layer, 1);
 		y_axis->addWidget(layer);
 		updateLayerInfo();
 		emit modified();

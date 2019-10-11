@@ -42,8 +42,8 @@ Phonometrica 0.6.0 (preview)
 -  Windows 7 and later:
    `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.6.0/setup_phonometrica.exe>`__
 -  MacOS 10.7 and later:
-   `phonometrica.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.6.0/phonometrica-0.6.0.dmg>`__
--  Linux (Debian 10 / Ubuntu 18.04): `phonometrica-0.6.0.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.6.0/phonometrica-0.6.0.deb>`__
+   `phonometrica-0.6.0.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.6.0/phonometrica-0.6.0.dmg>`__
+-  Linux (Debian 10): `phonometrica-0.6.0.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.6.0/phonometrica-0.6.0.deb>`__
 -  source code: `phonometrica-0.6.0.zip <https://github.com/phonometrica/phonometrica/archive/v0.6.0.zip>`__ | `phonometrica-0.6.0.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.6.0.tar.gz>`__
 
 

@@ -145,6 +145,8 @@ void SpeechPlot::paintEvent(QPaintEvent *event)
     setAutoFillBackground(true);
     setPalette(pal);
 
+	renderPlot(event);
+
     if (hasSelection())
     {
         drawSelection();
@@ -177,8 +179,6 @@ void SpeechPlot::paintEvent(QPaintEvent *event)
         auto x = timeToXPos(tick);
         painter.drawLine(QPointF(x, 0.0), QPointF(x, height()));
     }
-
-    renderPlot(event);
 
 	if (trackCursor())
 	{
