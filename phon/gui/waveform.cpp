@@ -119,8 +119,8 @@ void Waveform::drawWave()
         // Subtract 1 to width so that the last pixel is assigned the left-over frames.
         auto frames_per_pixel = sample_count / (this->width()-1);
 
-        auto maximum = (std::numeric_limits<sample_t>::min)();
-        auto minimum = (std::numeric_limits<sample_t>::max)();
+        auto maximum = (std::numeric_limits<double>::min)();
+        auto minimum = (std::numeric_limits<double>::max)();
 
         for (intptr_t i = 1; i <= sample_count; i++)
         {
@@ -150,8 +150,8 @@ void Waveform::drawWave()
                 x++;
 
                 // reset values
-                maximum = (std::numeric_limits<sample_t>::min)();
-                minimum = (std::numeric_limits<sample_t>::max)();
+                maximum = (std::numeric_limits<double>::min)();
+                minimum = (std::numeric_limits<double>::max)();
             }
         }
 
@@ -239,7 +239,7 @@ void Waveform::drawYAxis(QWidget *y_axis, int y1, int y2)
     painter.drawText(x3, y3, center);
 }
 
-double Waveform::sampleToHeight(sample_t s) const
+double Waveform::sampleToHeight(double s) const
 {
     const double H = (double)this->height() / 2;
     return H - s * H / magnitude;
@@ -253,7 +253,6 @@ void Waveform::informWindow()
 void Waveform::setMagnitude(double value)
 {
     magnitude = value;
-    value = std::abs(value / (std::numeric_limits<sample_t>::min)());
     extrema = {-value, value};
 }
 
@@ -279,8 +278,7 @@ void Waveform::readSettings()
 		QMessageBox::warning(this, tr("Invalid waveform settings"), tr("Your waveform settings have an invalid magnitude and will be reinitialized."));
     	throw std::runtime_error("");
 	}
-	// Convert magnitude to samples.
-	setMagnitude(m * std::abs((double)(std::numeric_limits<sample_t>::min)()));
+	setMagnitude(m);
 
     String method = Settings::get_string(rt, cat, "scaling");
 
@@ -301,13 +299,6 @@ void Waveform::readSettings()
     	QMessageBox::warning(this, tr("Invalid waveform settings"), tr("Your waveform settings are invalid and will be reinitialized."));
     	throw std::runtime_error("");
 	}
-
-    // Ensure magnitude is always 1.0 if it is not used.
-//    if (scaling != Scaling::Fixed && m != 1.0)
-//    {
-//    	Settings::set_value(rt, cat, "magnitude", 1.0);
-//    	setMagnitude(std::abs((double)(std::numeric_limits<sample_t>::min)()));
-//    }
 }
 
 void Waveform::emptyCache()
@@ -315,7 +306,7 @@ void Waveform::emptyCache()
 	cached_path = QPainterPath();
 }
 
-void Waveform::setLocalMagnitude(const sample_t *from, const sample_t *to)
+void Waveform::setLocalMagnitude(const double *from, const double *to)
 {
 	double e1 = std::abs(double(*std::max_element(from, to)));
 	double e2 = std::abs(double(*std::min_element(from, to)));

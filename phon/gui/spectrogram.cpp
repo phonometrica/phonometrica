@@ -200,7 +200,7 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	std::vector<std::complex<float>> input(nfft, std::complex<float>(0, 0));
 	std::vector<std::complex<float>> output(nfft, std::complex<float>(0, 0));
 
-	Array<float> buffer = m_data->float_data(first_sample, last_sample);
+	Array<double> buffer = m_data->get(first_sample, last_sample);
 	pre_emphasis(buffer, alpha);
 
 	intptr_t left_offset = samples_per_pixel / 2 - nframe / 2;

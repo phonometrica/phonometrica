@@ -38,6 +38,7 @@
 #include <phon/traits.hpp>
 #include <phon/utils/alloc.hpp>
 #include <phon/utils/helpers.hpp>
+#include <phon/utils/span.hpp>
 
 namespace phonometrica {
 
@@ -153,6 +154,13 @@ public:
 		m_size = 0;
 		m_dim.d1.capacity = capacity;
 		m_data = utils::allocate<value_type>(capacity);
+	}
+
+	Array(Span<T> span) :
+		Array(size_type(span.size()))
+	{
+		m_size = size_type(span.size());
+		std::copy(span.begin(), span.end(), this->begin());
 	}
 
 	// 1 dimension array filled with a given value.
@@ -821,6 +829,11 @@ public:
 		}
 
 		m_size = new_size;
+	}
+
+	operator Span<T>()
+	{
+		return { data(), size() };
 	}
 
 private:

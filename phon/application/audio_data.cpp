@@ -44,7 +44,7 @@ AudioData::AudioData(const SndfileHandle &h, bool load) :
     m_handle(h)
 {
 	m_data.resize(m_handle.frames() * m_handle.channels());
-	sample_t *ptr = m_data.data();
+	double *ptr = m_data.data();
 	m_handle.seek(0, SEEK_SET);
 
 	if (load)
@@ -61,63 +61,14 @@ AudioData::AudioData(const SndfileHandle &h, bool load) :
 	}
 }
 
-Array<double> AudioData::real_data(intptr_t first_frame, intptr_t last_frame)
-{
-    Array<double> buffer;
-	real_data(buffer, first_frame, last_frame);
-
-    return buffer;
-}
-
-Array<float> AudioData::float_data(intptr_t first_frame, intptr_t last_frame)
-{
-	Array<float> buffer;
-	float_data(buffer, first_frame, last_frame);
-
-	return buffer;
-}
-
-void AudioData::real_data(Array<double> &buffer, intptr_t first_frame, intptr_t last_frame)
+Span<double> AudioData::get(intptr_t first_frame, intptr_t last_frame)
 {
 	if (last_frame < 0) last_frame = (intptr_t) m_handle.frames();
 	assert(first_frame > 0);
 	first_frame--;
 	auto count = last_frame - first_frame;
 
-	buffer.resize(count * m_handle.channels());
-	auto *ptr = buffer.data();
-	auto end = buffer.end();
-	m_handle.seek(first_frame, SEEK_SET);
-
-	while (ptr < end)
-	{
-		int nframe = (std::min)(BUFFER_SIZE, int(end-ptr));
-		auto N = m_handle.readf(ptr, nframe);
-		ptr += N * m_handle.channels();
-	}
-	m_handle.seek(0, SEEK_SET);
+	return { m_data.data() + first_frame, count };
 }
-
-void AudioData::float_data(Array<float> &buffer, intptr_t first_frame, intptr_t last_frame)
-{
-	if (last_frame < 0) last_frame = (intptr_t) m_handle.frames();
-	assert(first_frame > 0);
-	first_frame--;
-	auto count = last_frame - first_frame;
-
-	buffer.resize(count * m_handle.channels());
-	auto *ptr = buffer.data();
-	auto end = buffer.end();
-	m_handle.seek(first_frame, SEEK_SET);
-
-	while (ptr < end)
-	{
-		int nframe = (std::min)(BUFFER_SIZE, int(end-ptr));
-		auto N = m_handle.readf(ptr, nframe);
-		ptr += N * m_handle.channels();
-	}
-	m_handle.seek(0, SEEK_SET);
-}
-
 
 } // namespace phonometrica
