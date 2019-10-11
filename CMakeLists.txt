@@ -36,7 +36,7 @@ add_definitions(-DPHON_VERSION_NANO=2)
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=10)
-add_definitions(-DPHON_RELEASE_DATE_DAY=10)
+add_definitions(-DPHON_RELEASE_DATE_DAY=11)
 
 # Operating system
 if(WIN32)
@@ -168,6 +168,9 @@ add_definitions(-DDEFAULT_WINDOW_DURATION=10.0)
 if (BUILD_GUI)
     include_directories(${Qt5Widgets_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/phon)
 
+    # SPTK
+    #include_directories(phon/third_party/sptk/include)
+
     # Needed by Speex
     add_definitions(-DHAVE_CONFIG_H)
 
@@ -181,7 +184,8 @@ if (BUILD_GUI)
             phon/third_party/sendpraat.c
             phon/third_party/speex/resample.c
             phon/third_party/zip/zip.cpp
-            phon/third_party/qxt/qxtcheckcombobox.cpp
+            #phon/third_party/qxt/qxtcheckcombobox.cpp
+            phon/third_party/sptk/*.c
             #phon/third_party/snack/*.cpp
             phon/third_party/swipe/*.c phon/third_party/swipe/*.cpp phon/third_party/swipe/*.h
     )
