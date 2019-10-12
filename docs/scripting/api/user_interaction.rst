@@ -1,7 +1,7 @@
 User interaction
 ================
 
-This page describes global function that allow you to interact with the user.
+This page describes global functions that allow you to interact with the user.
 
 
 Functions

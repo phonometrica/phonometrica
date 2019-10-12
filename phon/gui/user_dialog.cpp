@@ -26,9 +26,11 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <QPushButton>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QVariant>
+#include <QGroupBox>
 #include <phon/gui/user_dialog.hpp>
 
 namespace phonometrica {
@@ -84,6 +86,10 @@ void UserDialog::parse(const String &str)
 		{
 			addLabel(item);
 		}
+		else if (type == "button")
+		{
+			addPushButton(item);
+		}
 		else if (type == "checkbox")
 		{
 			addCheckBox(item);
@@ -99,6 +105,14 @@ void UserDialog::parse(const String &str)
 		else if (type == "check_list")
 		{
 			addCheckList(item);
+		}
+		else if (type == "radio_buttons")
+		{
+			addRadioButtons(item);
+		}
+		else if (type == "file_selector")
+		{
+			addFileSelector(item);
 		}
 		else
 		{
@@ -188,6 +202,18 @@ String UserDialog::get()
 		js[name] = list->jsonSelection();
 	}
 
+	for (auto group : radio_buttons)
+	{
+		auto name = group->property("name").toString().toStdString();
+		js[name] = group->checkedId();
+	}
+
+	for (auto sel : file_selectors)
+	{
+		auto name = sel->property("name").toString().toStdString();
+		js[name] = sel->text().toStdString();
+	}
+
 	return js.dump();
 }
 
@@ -260,6 +286,102 @@ void UserDialog::addLineEdit(Json item)
 	}
 	line_edits.push_back(line);
 	layout->addWidget(line);
+}
+
+void UserDialog::addRadioButtons(Json item)
+{
+	auto name = getName(item);
+	auto group = new QButtonGroup(this);
+	group->setProperty("name", name);
+	auto box = new QGroupBox;
+
+	auto it = item.find("title");
+	if (it != item.end()) {
+		auto title = it->get<std::string>();
+		box->setTitle(QString::fromStdString(title));
+	}
+
+	auto values = item.find("values");
+	if (values == item.end()) {
+		throw error("User dialog radio button group has no \"values\" attribute");
+	}
+
+	int sel = 1;
+	it = item.find("default");
+	if (it != item.end()) {
+		sel = it->get<int64_t>();
+	}
+
+	auto vlayout = new QVBoxLayout;
+	int id = 0;
+	for (auto &value : *values)
+	{
+		auto txt = value.get<std::string>();
+		auto btn = new QRadioButton(QString::fromStdString(txt));
+		group->addButton(btn);
+		group->setId(btn, ++id);
+		if (id == sel) btn->setChecked(true);
+		vlayout->addWidget(btn);
+	}
+
+	radio_buttons.push_back(group);
+	box->setLayout(vlayout);
+	layout->addWidget(box);
+}
+
+void UserDialog::addPushButton(Json item)
+{
+	auto it = item.find("label");
+	if (it == item.end()) {
+		throw error("User dialog button has no \"label\" attribute");
+	}
+	auto label = it->get<std::string>();
+	auto btn = new QPushButton(QString::fromStdString(label));
+	it = item.find("action");
+	if (it != item.end())
+	{
+		String action = it->get<std::string>();
+		connect(btn, &QPushButton::clicked, [=](bool) {
+			runtime.do_string(action);
+		});
+	}
+	String pos;
+	it = item.find("position");
+	if (it != item.end()) {
+		pos = it->get<std::string>();
+	}
+	auto hl = new QHBoxLayout;
+	if (pos == "right" || pos == "center") {
+		hl->addStretch(1);
+	}
+	hl->addWidget(btn);
+	if (pos == "left" || pos == "center") {
+		hl->addStretch(1);
+	}
+	layout->addLayout(hl);
+}
+
+void UserDialog::addFileSelector(Json item)
+{
+	auto name = getName(item);
+	auto it = item.find("title");
+	if (it == item.end()) {
+		throw error("User dialog file selector has no \"title\" attribute");
+	}
+	auto title = QString::fromStdString(it->get<std::string>());
+	QString text, filter;
+	it = item.find("text");
+	if (it != item.end()) {
+		text = QString::fromStdString(it->get<std::string>());
+	}
+	it = item.find("filter");
+	if (it != item.end()) {
+		filter = QString::fromStdString(it->get<std::string>());
+	}
+	auto sel = new FileSelector(title, text, filter);
+	sel->setProperty("name", name);
+	file_selectors.push_back(sel);
+	layout->addWidget(sel);
 }
 
 } // namespace phonometrica

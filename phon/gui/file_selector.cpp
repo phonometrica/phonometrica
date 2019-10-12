@@ -22,81 +22,43 @@
  *                                                                                                                     *
  * Created: 12/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: let users create a dialog from a JSON object.                                                              *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_USER_DIALOG_HPP
-#define PHONOMETRICA_USER_DIALOG_HPP
-
-#include <vector>
-#include <QDialog>
 #include <QLayout>
-#include <QCheckBox>
-#include <QComboBox>
-#include <QLineEdit>
-#include <QButtonGroup>
-#include <QRadioButton>
-#include <phon/runtime/runtime.hpp>
+#include <QFileDialog>
 #include <phon/gui/file_selector.hpp>
-#include <phon/gui/check_list.hpp>
-#include <phon/third_party/json.hpp>
 
 namespace phonometrica {
 
-using Json = nlohmann::json;
-
-class UserDialog final : public QDialog
+FileSelector::FileSelector(const QString &title, const QString &text, const QString &filter, QWidget *parent) :
+	QWidget(parent), m_filter(filter)
 {
-	Q_OBJECT
+	auto layout = new QHBoxLayout;
+	layout->setContentsMargins(0, 0, 0, 0);
+	line = new QLineEdit;
+	line->setText(text);
+	auto btn = new QPushButton(tr("Choose..."));
+	layout->addWidget(line);
+	layout->addWidget(btn);
+	setLayout(layout);
 
-public:
+	connect(btn, &QPushButton::clicked, [=](bool) {
+		QFileDialog dialog(this);
+		dialog.setFileMode(QFileDialog::AnyFile);
+		dialog.setNameFilter(filter);
+		dialog.setWindowTitle(title);
+		if (dialog.exec())
+		{
+			auto file = dialog.selectedFiles().first();
+			line->setText(file);
+		}
+	});
+}
 
-	UserDialog(Runtime &rt, const String &str, QWidget *parent = nullptr);
-
-	String get();
-
-private:
-
-	void parse(const String &str);
-
-	void addButtonBox();
-
-	QString getName(Json js);
-
-	void addLabel(Json item);
-
-	void addCheckBox(Json item);
-
-	void addComboBox(Json item);
-
-	void addLineEdit(Json item);
-
-	void addCheckList(Json item);
-
-	void addRadioButtons(Json item);
-
-	void addPushButton(Json item);
-
-	void addFileSelector(Json item);
-
-	Runtime &runtime;
-
-	QVBoxLayout *layout;
-
-	std::vector<QCheckBox*> check_boxes;
-
-	std::vector<QComboBox*> combo_boxes;
-
-	std::vector<QLineEdit*> line_edits;
-
-	std::vector<CheckList*> check_lists;
-
-	std::vector<QButtonGroup*> radio_buttons;
-
-	std::vector<FileSelector*> file_selectors;
-};
-
+QString FileSelector::text() const
+{
+	return line->text();
+}
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_USER_DIALOG_HPP
