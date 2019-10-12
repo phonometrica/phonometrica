@@ -954,8 +954,8 @@ void Project::initialize(Runtime &rt)
 
 	rt.get_global("phon");
 	{
-		rt.add_method("get_annotations", get_annotations, 0);
-		rt.add_method("get_annotation", get_annotation, 1);
+		rt.add_global_function("get_annotations", get_annotations, 0);
+		rt.add_global_function("get_annotation", get_annotation, 1);
 
         rt.push(new Object(rt, PHON_COBJECT, rt.object_meta));
         {

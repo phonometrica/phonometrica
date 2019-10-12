@@ -1,0 +1,181 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>User interaction &#8212; Phonometrica 0.6.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Plugins" href="../plugins.html" />
+    <link rel="prev" title="Operating System" href="system.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../plugins.html" title="Plugins"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="system.html" title="Operating System"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">User interaction</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="system.html"
+                        title="previous chapter">Operating System</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../plugins.html"
+                        title="next chapter">Plugins</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="user-interaction">
+<h1>User interaction<a class="headerlink" href="#user-interaction" title="Permalink to this headline">¶</a></h1>
+<p>This page describes global function that allow you to interact with the user.</p>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="warning">
+<code class="descname">warning</code><span class="sig-paren">(</span><em>message</em><span class="optional">[</span>, <em>title</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#warning" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays a warning dialog.</p>
+<p>See also: <a class="reference internal" href="#alert" title="alert"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">alert()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="alert">
+<code class="descname">alert</code><span class="sig-paren">(</span><em>message</em><span class="optional">[</span>, <em>title</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#alert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays an error dialog. This can be used for critical errors.</p>
+<p>See also: <a class="reference internal" href="#warning" title="warning"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">warning()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="info">
+<code class="descname">info</code><span class="sig-paren">(</span><em>message</em><span class="optional">[</span>, <em>title</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays an information dialog.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="get_input">
+<code class="descname">get_input</code><span class="sig-paren">(</span><em>label</em>, <em>title</em>, <em>text</em><span class="sig-paren">)</span><a class="headerlink" href="#get_input" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays an input dialog whose title is <cite>title</cite> and whose informative text is <cite>label</cite>. The dialog contains a
+field whose value is <cite>text</cite>. This function returns the content of the field.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="open_file_dialog">
+<code class="descname">open_file_dialog</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#open_file_dialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays a dialog that lets the user select a file.</p>
+<p>See also: <a class="reference internal" href="#save_file_dialog" title="save_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">save_file_dialog()</span></code></a>,
+<a class="reference internal" href="#open_directory_dialog" title="open_directory_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_directory_dialog()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="save_file_dialog">
+<code class="descname">save_file_dialog</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#save_file_dialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays a dialog that lets the user choose a path to save a file.</p>
+<p>See also: <a class="reference internal" href="#open_file_dialog" title="open_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_file_dialog()</span></code></a>,
+<a class="reference internal" href="#open_directory_dialog" title="open_directory_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_directory_dialog()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="open_directory_dialog">
+<code class="descname">open_directory_dialog</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#open_directory_dialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays a dialog that lets the user select a directory.</p>
+<p>See also: <a class="reference internal" href="#save_file_dialog" title="save_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">save_file_dialog()</span></code></a>,
+<a class="reference internal" href="#open_file_dialog" title="open_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_file_dialog()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="set_status">
+<code class="descname">set_status</code><span class="sig-paren">(</span><em>message</em>, <em>timeout</em><span class="sig-paren">)</span><a class="headerlink" href="#set_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays <code class="docutils literal notranslate"><span class="pre">message</span></code> in the status bar for <code class="docutils literal notranslate"><span class="pre">timeout</span></code> seconds. If
+<code class="docutils literal notranslate"><span class="pre">timeout</span></code> is <code class="docutils literal notranslate"><span class="pre">0</span></code>, the message is displayed until the next one
+appears.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../plugins.html" title="Plugins"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="system.html" title="Operating System"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
+      </ul>
+    </div>
+    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+    
+
+  </body>
+</html>

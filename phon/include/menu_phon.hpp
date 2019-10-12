@@ -8,7 +8,7 @@ function view_script()
 end
 
 function run_script()
-	var path = phon.open_file_dialog("Open Phonometrica script", "Script (*.phon)")
+	var path = open_file_dialog("Open Phonometrica script", "Script (*.phon)")
 	if path then
 		phon.run_script(path)
 	end
@@ -75,7 +75,7 @@ end
 
 function import_metadata()
 	if (phon.project.is_empty()) then
-		phon.alert("Cannot add metadata to an empty project")
+		alert("Cannot add metadata to an empty project")
 		return
 	end
 
@@ -84,17 +84,17 @@ end
 
 function export_metadata()
 	if (phon.project.is_empty()) then
-		phon.alert("Cannot export metadata: project is empty")
+		alert("Cannot export metadata: project is empty")
 		return
 	end
-	var path = phon.save_file_dialog("Export metadata to CSV file...", "CSV (*.csv)")
+	var path = save_file_dialog("Export metadata to CSV file...", "CSV (*.csv)")
 	if path then
 		phon.export_metadata(path)
 	end
 end
 
 phon.open_project = function()
-	var path = phon.open_file_dialog("Open Phonometrica project", "Project (*.phon-project)")
+	var path = open_file_dialog("Open Phonometrica project", "Project (*.phon-project)")
 	if path then
 		phon.project.open(path)
 		update_recent_projects(path)
@@ -113,7 +113,7 @@ function open_most_recent_project()
 end
 
 phon.add_files = function()
-	var paths = phon.open_files_dialog("Add file(s) to project...", "Phonometrica files (*.*)")
+	var paths = open_files_dialog("Add file(s) to project...", "Phonometrica files (*.*)")
 	foreach var path in paths do
 		phon.project.add_file(path)
 	end
@@ -122,7 +122,7 @@ phon.add_files = function()
 end
 
 phon.add_folder = function()
-	var path = phon.open_directory_dialog("Add content of folder...")
+	var path = open_directory_dialog("Add content of folder...")
 	if path then
 		phon.project.add_folder(path)
 		phon.project.refresh()
@@ -130,7 +130,7 @@ phon.add_folder = function()
 end
 
 function save_project_as()
-	var path = phon.save_file_dialog("Save project as...", "Phonometrica project (*.phon-project)")
+	var path = save_file_dialog("Save project as...", "Phonometrica project (*.phon-project)")
 	if path then
 		if not path.ends_with(".phon-project") then
 			path = path + ".phon-project"
@@ -152,7 +152,7 @@ end
 
 function new_query()
 	if phon.project.is_empty() then
-		phon.alert("The current project is empty!")
+		alert("The current project is empty!")
 	else
 		phon.open_query_editor()
 	end
@@ -188,7 +188,7 @@ function show_about()
 		+ "Website: <a href=\"http://www.phonometrica-ling.org\">http://www.phonometrica-ling.org</a><br/>"
 		+ "Icons by <a href=\"https://icons8.com\">Icons8</a>.<br/>"
 		+ "Build date: " + phon.date
-	phon.about(title, msg)
+	about(msg, title)
 end
 
 function show_scripting()
@@ -202,7 +202,7 @@ function sound_info()
 		+ phon.supported_sound_formats.join(", ")
 		+ "<br/><b>libsndfile version</b><br/> " + phon.libsndfile_version
 		+ "<br/><b>RTAudio version</b><br/> " + phon.rtaudio_version
-	phon.about(title, msg)
+    about(msg, title)
 end
 
 function show_release()

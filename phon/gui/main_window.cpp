@@ -450,29 +450,32 @@ void MainWindow::addWindowMenu(QMenuBar *menubar)
 void MainWindow::setShellFunctions()
 {
     auto warning = [](Runtime &rt) {
-        auto msg = rt.to_string(-1);
-        QMessageBox dlg(QMessageBox::Warning, "Warning", msg);
+        auto msg = rt.to_string(1);
+        String title = rt.arg_count() > 1 ? rt.to_string(2) : String("Warning");
+        QMessageBox dlg(QMessageBox::Warning, title, msg);
         dlg.exec();
         rt.push_null();
     };
 
     auto alert = [](Runtime &rt) {
-        auto msg = rt.to_string(-1);
-        QMessageBox dlg(QMessageBox::Critical, "Error", msg);
+        auto msg = rt.to_string(1);
+	    String title = rt.arg_count() > 1 ? rt.to_string(2) : String("Error");
+	    QMessageBox dlg(QMessageBox::Critical, title, msg);
         dlg.exec();
         rt.push_null();
     };
 
     auto info = [](Runtime &rt) {
-        auto msg = rt.to_string(-1);
-        QMessageBox dlg(QMessageBox::Information, "Information", msg);
+        auto msg = rt.to_string(1);
+	    String title = rt.arg_count() > 1 ? rt.to_string(2) : String("Information");
+	    QMessageBox dlg(QMessageBox::Information, title, msg);
         dlg.exec();
         rt.push_null();
     };
 
     auto about = [=](Runtime &rt) {
-        auto title = rt.to_string(1);
-        auto msg = rt.to_string(2);
+        auto msg = rt.to_string(1);
+        auto title = rt.to_string(2);
         QMessageBox::about(this, title, msg);
         rt.push_null();
     };
@@ -557,19 +560,11 @@ void MainWindow::setShellFunctions()
     };
 
     auto input = [=](Runtime &rt) {
-        auto title = rt.to_string(1);
-        auto text = rt.to_string(2);
-        auto label = rt.to_string(3);
-        auto result = QInputDialog::getText(this, title, text, QLineEdit::Normal, label);
+        auto label = rt.to_string(1);
+        auto title = rt.to_string(2);
+        auto text = rt.to_string(3);
+        auto result = QInputDialog::getText(this, title, label, QLineEdit::Normal, text);
         rt.push(result);
-    };
-
-    auto message = [=](Runtime &rt) {
-        auto title = rt.to_string(1);
-        auto msg = rt.to_string(2);
-        QMessageBox dlg(QMessageBox::Information, title, msg);
-        dlg.exec();
-        rt.push_null();
     };
 
     auto show_doc = [=](Runtime &rt) {
@@ -706,18 +701,29 @@ void MainWindow::setShellFunctions()
 		}
 	};
 
+	auto set_status = [this](Runtime &rt) {
+		auto msg = rt.to_string(1);
+		auto time = rt.arg_count() == 1 ? 2000 : rt.to_integer(2);
+		statusBar()->showMessage(msg, time);
+		rt.push_null();
+	};
+
+	runtime.add_global_function("warning", warning, 1);
+	runtime.add_global_function("alert", alert, 1);
+	runtime.add_global_function("info", info, 1);
+	runtime.add_global_function("about", about, 2);
+	runtime.add_global_function("open_file_dialog", open_file_dialog, 1);
+	runtime.add_global_function("open_files_dialog", open_files_dialog, 1);
+	runtime.add_global_function("open_directory_dialog", open_directory_dialog, 1);
+	runtime.add_global_function("save_file_dialog", save_file_dialog, 1);
+	runtime.add_global_function("create_dialog", create_dialog, 1);
+	runtime.add_global_function("get_input", input, 3);
+	runtime.add_global_function("get_plugin_version", get_plugin_version, 1);
+	runtime.add_global_function("get_plugin_resource", get_plugin_resource, 2);
+	runtime.add_global_function("set_status", set_status, 1);
+
     runtime.get_global("phon");
     {
-        runtime.add_method("warning", warning, 1);
-        runtime.add_method("alert", alert, 1);
-        runtime.add_method("info", info, 1);
-        runtime.add_method("about", about, 2);
-        runtime.add_method("message", message, 2);
-        runtime.add_method("open_file_dialog", open_file_dialog, 1);
-        runtime.add_method("open_files_dialog", open_files_dialog, 1);
-        runtime.add_method("open_directory_dialog", open_directory_dialog, 1);
-        runtime.add_method("save_file_dialog", save_file_dialog, 1);
-        runtime.add_method("input", input, 3);
         runtime.add_method("show_documentation", show_doc, 1);
         runtime.add_accessor("version", get_version);
         runtime.add_accessor("date", get_date);
@@ -730,18 +736,16 @@ void MainWindow::setShellFunctions()
         runtime.add_method("run_script", run_script, 1);
         runtime.add_method("open_query_editor", open_query_editor, 0);
         runtime.add_method("run_last_query", run_last_query, 0);
-        runtime.add_method("get_plugin_version", get_plugin_version, 1);
-        runtime.add_method("get_plugin_resource", get_plugin_resource, 2);
         runtime.add_method("close_current_view", close_current_view, 0);
         runtime.add_method("view_annotation", view_annotation, 4);
         runtime.add_method("import_metadata", import_metadata, 0);
 	    runtime.add_method("export_metadata", export_metadata, 1);
-	    runtime.add_method("create_dialog", create_dialog, 1);
 
         // Define 'phon.config'
         Settings::initialize(runtime);
     }
     runtime.pop();
+	runtime.add_global_function("test_global", info, 1);
 }
 
 void MainWindow::initialize()

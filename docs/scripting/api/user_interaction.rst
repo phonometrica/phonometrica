@@ -1,21 +1,14 @@
-Interaction with the application
-================================
+User interaction
+================
 
-This page documents the ``phon`` module.
-
-General concepts
-----------------
-
-This module contains all functions that let users interact with Phonometrica. 
+This page describes global function that allow you to interact with the user.
 
 
 Functions
 ---------
 
 
-.. module:: phon
-
-.. function:: warning(message)
+.. function:: warning(message [, title])
 
 Displays a warning dialog.
 
@@ -24,7 +17,7 @@ See also: :func:`alert`
 
 ------------
 
-.. function:: alert(message)
+.. function:: alert(message [, title])
 
 Displays an error dialog. This can be used for critical errors.
 
@@ -32,9 +25,16 @@ See also: :func:`warning`
 
 ------------
 
-.. function:: info(message)
+.. function:: info(message [, title])
 
 Displays an information dialog. 
+
+------------
+
+.. function:: get\_input(label, title, text)
+
+Displays an input dialog whose title is `title` and whose informative text is `label`. The dialog contains a 
+field whose value is `text`. This function returns the content of the field.
 
 
 ------------
@@ -69,7 +69,7 @@ See also: :func:`save\_file\_dialog`,
 
 ------------
 
-.. function:: status(message, timeout)
+.. function:: set\_status(message, timeout)
 
 Displays ``message`` in the status bar for ``timeout`` seconds. If
 ``timeout`` is ``0``, the message is displayed until the next one
