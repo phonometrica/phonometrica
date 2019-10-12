@@ -37,6 +37,7 @@ class PhonLexer(RegexLexer):
              Keyword.Reserved),
             (r'"\[(([^\]%]|\n)|%(.|\n)|\][^"])*?\]"', String),
             (r'"([^"%\n]|%.)*?"', String),
+            (r'\'([^"%\n]|%.)*?\'', String),
             include('numbers'),
             (r"'([^'%]|%'|%%)'", String.Char),
             (r"(//|\\\\|>=|<=|:=|/=|~|/~|[\\?!#%&@|+/\-=>*$<^\[\]])", Operator),

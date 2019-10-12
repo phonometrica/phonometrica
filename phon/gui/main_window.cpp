@@ -40,6 +40,7 @@
 #include <phon/gui/main_window.hpp>
 #include <phon/gui/preference_editor.hpp>
 #include <phon/gui/csv_import_dialog.hpp>
+#include <phon/gui/user_dialog.hpp>
 #include <phon/runtime/object.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
@@ -692,6 +693,19 @@ void MainWindow::setShellFunctions()
 		rt.push_null();
 	};
 
+	auto create_dialog = [this](Runtime &rt) {
+		auto s = rt.to_string(1);
+		UserDialog dlg(rt, s, this);
+		if (dlg.exec() == QDialog::Accepted)
+		{
+			rt.push(dlg.get());
+		}
+		else
+		{
+			rt.push_null();
+		}
+	};
+
     runtime.get_global("phon");
     {
         runtime.add_method("warning", warning, 1);
@@ -722,6 +736,7 @@ void MainWindow::setShellFunctions()
         runtime.add_method("view_annotation", view_annotation, 4);
         runtime.add_method("import_metadata", import_metadata, 0);
 	    runtime.add_method("export_metadata", export_metadata, 1);
+	    runtime.add_method("create_dialog", create_dialog, 1);
 
         // Define 'phon.config'
         Settings::initialize(runtime);

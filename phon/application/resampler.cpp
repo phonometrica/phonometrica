@@ -1,6 +1,5 @@
 /***********************************************************************************************************************
  *                                                                                                                     *
- * Copyright (C) 1997-2005  Kåre Sjölander <kare@speech.kth.se>                                                        *
  * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
  *                                                                                                                     *
  * This software is governed by the CeCILL license under French law and abiding by the rules of distribution of free   *
@@ -21,62 +20,58 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 31/03/2019                                                                                                 *
+ * Created: 11/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: signal processing routines.                                                                                *
- *                                                                                                                     *
- * Note: This file contains code derived from the Snack Sound Toolkit. See file BSD.txt. The latest version can be     *
- * found at http://www.speech.kth.se/snack/                                                                            *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SIGNAL_PROCESSING_HPP
-#define PHONOMETRICA_SIGNAL_PROCESSING_HPP
-
+#include <cassert>
 #include <cmath>
-#include <complex>
-#include <phon/array.hpp>
-#include <phon/utils/span.hpp>
+#include <phon/application/resampler.hpp>
+#include <phon/error.hpp>
 
-namespace phonometrica { namespace speech {
+namespace phonometrica {
 
-enum class WindowType
+Resampler::Resampler(intptr_t in_rate, intptr_t out_rate, int quality, intptr_t nb_channels)
 {
-    Bartlett,
-    Blackman,
-    Gaussian,
-    Hamming,
-    Hann,
-    Rectangular
-};
+	int error;
+    m_state = speex_resampler_init(nb_channels, in_rate, out_rate, quality, &error);
 
+    if (error != 0 && m_state)
+    {
+        speex_resampler_destroy(m_state);
+        m_state = nullptr;
+        throw std::runtime_error("Could not initialize resampler");
+    }
 
-Array<double> create_window(intptr_t N, intptr_t fftlen, WindowType type);
+    ratio = double(in_rate) / out_rate;
+}
 
-Array<double> get_intensity(const Span<double> &input, int samplerate, intptr_t window_size, double time_step, WindowType type = WindowType::Hamming);
-
-
-template<typename Container>
-void pre_emphasis(Container &data, double Fs, double threshold)
+Resampler::~Resampler()
 {
-	using T = typename Container::value_type;
-	T *x = data.data();
-	double alpha = exp(-2 * M_PI * threshold * (1.0 / Fs));
-
-	x[0] = x[0] * (1.0 - alpha);
-
-	for (intptr_t k = 1; k < data.size(); k++)
-	{
-		x[k] = x[k] - alpha * x[k-1];
+	if (m_state) {
+		speex_resampler_destroy(m_state);
 	}
 }
 
-// Calculate LPC coefficients from a speech frame.
-std::vector<double> get_lpc_coefficients(const Span<double> &frame, int npole);
+std::vector<float> Resampler::resample(const Span<float> &input)
+{
+	std::vector<float>output;
+	resample(input, output);
 
-// Get formant frequencies and bandwidths from a set of LPC coefficients.
-std::pair<std::vector<double>, std::vector<double>> get_formants(const Span<double> &lpc_coeffs, double Fs);
+	return output;
+}
 
-}} // namespace phonometrica::speech
-
-#endif // PHONOMETRICA_SIGNAL_PROCESSING_HPP
+void Resampler::resample(const Span<float> &input, std::vector<float> &output)
+{
+	const int channel = 0;
+	size_t count = floor(input.size() * ratio);
+	output.resize(count);
+	spx_uint32_t ilen = input.size();
+	spx_uint32_t olen;
+	speex_resampler_process_float(m_state, channel, input.data(), &ilen, output.data(), &olen);
+	assert(olen <= input.size());
+	output.resize(olen);
+}
+} // namespace phonometrica

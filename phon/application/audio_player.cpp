@@ -98,7 +98,6 @@ int AudioPlayer::playback(void *out, void *, unsigned int nframes, double,
     sf_count_t len = (nframes > left_over) ? left_over : nframes;
 
 #if PHON_MACOS
-    // TO BE CONTINUED...
     sf_count_t size_in_sf = FRAME_COUNT / player->ratio();
     // Read data with libsndfile
     sf_count_t nread_in = handle.readf(player->buffer(), size_in_sf);

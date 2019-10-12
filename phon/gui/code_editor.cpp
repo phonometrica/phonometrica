@@ -30,7 +30,6 @@
 #include <QPainter>
 #include <QTextBlock>
 #include <phon/gui/code_editor.hpp>
-#include "code_editor.hpp"
 
 
 // This is based on code from Qt's documentation.

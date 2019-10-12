@@ -83,19 +83,22 @@ static void jsonvalue(Runtime *J)
         break;
     }
     case '[':
-        J->new_list();
-        jsonnext(J);
-        i = 0;
-        if (jsonaccept(J, ']'))
-            return;
-        do
-        {
-            jsonvalue(J);
-            js_setindex(J, -2, i++);
-        } while (jsonaccept(J, ','));
-        jsonexpect(J, ']');
-        break;
-
+    {
+	    J->new_list();
+	    auto &lst = J->to_list(-1);
+	    jsonnext(J);
+	    if (jsonaccept(J, ']'))
+		    return;
+	    do
+	    {
+		    jsonvalue(J);
+		    lst.append(std::move(J->get(-1)));
+		    J->pop();
+	    }
+	    while (jsonaccept(J, ','));
+	    jsonexpect(J, ']');
+	    break;
+    }
     case TK_TRUE:
         J->push_boolean(true);
         jsonnext(J);

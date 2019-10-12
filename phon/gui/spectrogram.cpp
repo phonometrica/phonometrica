@@ -33,10 +33,13 @@
 #include <QDebug>
 #include <phon/runtime/runtime.hpp>
 #include <phon/application/settings.hpp>
+#include <phon/application/resampler.hpp>
 #include <phon/gui/spectrogram.hpp>
 #include <phon/speech/speech_utils.hpp>
 #include <phon/include/reset_spectrogram_settings_phon.hpp>
 #include <phon/utils/matrix.hpp>
+
+#define DRAW_FORMANTS 0
 
 namespace phonometrica {
 
@@ -58,7 +61,7 @@ void Spectrogram::drawYAxis(QWidget *y_axis, int y1, int y2)
 {
 	QPainter painter(y_axis);
 	auto font_metrics = painter.fontMetrics();
-	auto top = QString::number(long(ceiling_freq));
+	auto top = QString::number(long(max_freq));
 	QString bottom = QString::number(0);
 	top.append(" Hz");
 	bottom.append(" Hz");
@@ -119,11 +122,69 @@ void Spectrogram::renderPlot(QPaintEvent *event)
 				}
 			}
 		}
+
+#if DRAW_FORMANTS
+		estimateFormants();
+		formant_paths.clear();
+		std::vector<bool> previous(formants.cols(), false);
+		auto xpoints = speech::linspace(window_start, window_end, formants.rows(), true);
+
+		for (int j = 0; j < formants.cols(); j++)
+		{
+			formant_paths.append(QPainterPath());
+		}
+
+		for (int i = 0; i < formants.rows(); i++)
+		{
+			auto x = timeToXPos(xpoints[i]);
+
+			for (int j = 0; j < formants.cols(); j++)
+			{
+				auto &path = formant_paths[j];
+
+				auto f = formants(i,j);
+
+				if (std::isnan(f))
+				{
+					previous[j] = false;
+				}
+				else if (previous[j])
+				{
+		            auto y = formantToYPos(f);
+                    path.lineTo(QPointF(x, y));
+		            previous[j] = true;
+				}
+				else
+				{
+					auto y = formantToYPos(f);
+					path.moveTo(QPointF(x, y));
+					previous[j] = true;
+				}
+			}
+
+		}
+#endif // DRAW_FORMANTS
 	}
 
 	QPainter painter(this);
 	painter.setRenderHint(QPainter::Antialiasing, true);
 	painter.drawImage(0, 0, image);
+
+#if DRAW_FORMANTS
+	auto pen = painter.pen();
+	pen.setWidth(2);
+	pen.setColor(QColor("red"));
+	painter.setPen(pen);
+	for (auto &path : formant_paths)
+	{
+		painter.drawPath(path);
+	}
+#endif // DRAW_FORMANTS
+}
+
+double Spectrogram::formantToYPos(double hz)
+{
+	return height() - (hz * height() / max_freq);
 }
 
 bool Spectrogram::needsRefresh() const
@@ -141,7 +202,7 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	if (nframe % 2 == 1) nframe++;
 	// FIXME: Praat uses a Gaussian-like window which is twice as long as a regular window, but using a Gaussian window
 	//  similar to MATLAB's gives poorer results than a Hann a window.
-	//nframe *= 2;
+//	nframe *= 2;
 	int nfft = 256;
 	while (nfft < nframe) nfft *= 2;
 
@@ -160,9 +221,6 @@ Matrix<double> Spectrogram::computeSpectrogram()
 
 	// Get audio data. If possible, we try to get a bit more data before and after the window so that we can calculate
 	// frames at the edge.
-	double total_duration = m_data->duration();
-//	double start_time = (std::max<double>)(0.0, window_start - window_length / 2);
-//	double end_time = (std::min<double>)(total_duration, window_end + window_length / 2);
 	auto first_sample = m_data->time_to_frame(window_start);
 	auto last_sample = m_data->time_to_frame(window_end);
 	auto sample_count = last_sample - first_sample + 1;
@@ -174,7 +232,6 @@ Matrix<double> Spectrogram::computeSpectrogram()
 
 	// Subtract 1 to width so that the last pixel is assigned the left-over frames.
 	auto samples_per_pixel = sample_count / (w - 1);
-	auto leftover_samples = sample_count % samples_per_pixel;
 
 	// Adjust first and last samples.
 	first_sample = first_sample + (samples_per_pixel / 2) - (nframe / 2);
@@ -259,7 +316,7 @@ Matrix<double> Spectrogram::computeSpectrogram()
 		}
 
 		// Create raster: frequencies on the y axis are mapped to the closest frequency bin.
-		double ceiling_bin = ceiling_freq * half_nfft / nyquist_frequency;
+		double ceiling_bin = max_freq * half_nfft / nyquist_frequency;
 		for (intptr_t y = 1; y <= h; y++)
 		{
 			double freq = double(y * ceiling_bin) / (h-1);
@@ -301,9 +358,9 @@ void Spectrogram::readSettings()
 	using namespace speech;
 
 	String cat("spectrogram");
-	ceiling_freq = Settings::get_number(rt, cat, "frequency_range");
+	max_freq = Settings::get_number(rt, cat, "frequency_range");
 	double nyquist = double(m_data->sample_rate()) / 2;
-	ceiling_freq = (std::min<double>)(ceiling_freq, nyquist);
+	max_freq = (std::min<double>)(max_freq, nyquist);
 	window_length = Settings::get_number(rt, cat, "window_size");
 	dynamic_range = (int) Settings::get_number(rt, cat, "dynamic_range");
 	preemph_threshold = Settings::get_number(rt, cat, "preemphasis_threshold");
@@ -332,6 +389,102 @@ void Spectrogram::readSettings()
 void Spectrogram::emptyCache()
 {
 	image = QImage();
+}
+
+void Spectrogram::estimateFormants()
+{
+	using namespace speech;
+
+	const int nformant = 5;
+	int npole = nformant * 2;
+	int npoint = 100;
+	auto xpoints = linspace(window_start, window_end, npoint, true);
+	formants = Matrix<double>(npoint, nformant);
+	Matrix<double> bandwidths(npoint, nformant);
+	formants.setZero(npoint, nformant);
+	bandwidths.setZero(npoint, nformant);
+
+	auto from = m_data->time_to_frame(window_start);
+	auto to = m_data->time_to_frame(window_end);
+	auto input = m_data->read(from, to);
+	std::vector<float> output;
+	double win_size = 0.025;
+
+	// Apply pre-emphasis from 50 Hz.
+	pre_emphasis(input, m_data->sample_rate(), 50);
+
+	// We expect approximately 1 formant per 1,000 Hz. The data is resampled accordingly.
+	double sample_rate = nformant * 2 * 1000;
+
+	if (sample_rate == m_data->sample_rate())
+	{
+		output = std::move(input);
+	}
+	else
+	{
+		Resampler resampler(m_data->sample_rate(), sample_rate);
+		output = resampler.resample(input);
+	}
+
+	int nframe = int(floor(win_size * sample_rate));
+	if (nframe % 2 == 1) nframe++;
+	auto win = create_window(nframe, nframe, WindowType::Hann);
+	std::vector<double> buffer(nframe, 0.0);
+
+	// Calculate LPC at each time point.
+	for (int i = 0; i < xpoints.size(); i++)
+	{
+		double f = m_data->time_to_frame(xpoints[i]);
+		intptr_t start_frame = f - (nframe / 2);
+		intptr_t end_frame = start_frame + nframe;
+
+		// Don't estimate formants at the edge if we can't fill a window.
+		if (start_frame < from || end_frame > to)
+		{
+			for (int j = 0; j < nformant; j++) {
+				formants(i,j) = std::nan("");
+			}
+			continue;
+		}
+
+		// Apply window.
+		auto it = output.begin() + (start_frame - from);
+		for (int j = 0; j < nframe; j++)
+		{
+			buffer[j] = *it++ * win[j+1];
+		}
+
+		auto coeffs = get_lpc_coefficients(buffer, npole);
+		std::vector<double> freqs, bw;
+		try
+		{
+			std::tie(freqs, bw) = get_formants(coeffs, sample_rate);
+		}
+		catch (std::runtime_error &e)
+		{
+			for (int j = 0; j < formants.cols(); j++) {
+				formants(i, j) = std::nan("");
+			}
+			continue;
+		}
+
+		int count = 0;
+		const double max_freq = sample_rate / 2 - 50;
+		for (int j = 0; j < freqs.size(); j++)
+		{
+			auto freq = freqs[j];
+			if (freq > 50 && freq < max_freq)
+			{
+				formants(i, count) = freq;
+				bandwidths(i, count++) = bw[j];
+			}
+		}
+		for (int j = count; j < nformant; j++)
+		{
+			formants(i,j) = std::nan("");
+			bandwidths(i,j) = std::nan("");
+		}
+	}
 }
 
 } // namespace phonometrica

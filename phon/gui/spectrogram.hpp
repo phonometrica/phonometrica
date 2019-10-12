@@ -65,14 +65,23 @@ private:
 
 	Matrix<double> computeSpectrogram();
 
+	void estimateFormants();
+
+	double formantToYPos(double hz);
+
 	// Cached spectrogram.
 	QImage image;
+
+	// A matrix containing i time measurements across j formants.
+	Matrix<double> formants;
+
+	QList<QPainterPath> formant_paths;
 
 	// Duration of the analysis window.
 	double window_length;
 
 	// Highest frequency.
-	double ceiling_freq;
+	double max_freq;
 
 	// Pre-emphasis factor.
 	double preemph_threshold;

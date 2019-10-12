@@ -71,4 +71,27 @@ Span<double> AudioData::get(intptr_t first_frame, intptr_t last_frame)
 	return { m_data.data() + first_frame, count };
 }
 
+std::vector<float> AudioData::read(intptr_t first_frame, intptr_t last_frame)
+{
+	if (last_frame < 0) last_frame = (intptr_t) m_handle.frames();
+	assert(first_frame > 0);
+	first_frame--;
+	auto count = last_frame - first_frame;
+	std::vector<float> result(count * m_handle.channels(), 0.0);
+
+	auto ptr = result.data();
+	auto end = result.data() + result.size();
+	m_handle.seek(first_frame, SEEK_SET);
+
+	while (ptr < end)
+	{
+		int nframe = (std::min)(BUFFER_SIZE, int(end-ptr));
+		auto N = m_handle.readf(ptr, nframe);
+		ptr += N * m_handle.channels();
+	}
+	m_handle.seek(0, SEEK_SET);
+
+	return result;
+}
+
 } // namespace phonometrica

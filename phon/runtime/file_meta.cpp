@@ -150,15 +150,8 @@ static void file_write(Runtime &rt)
 
 static void file_read_all(Runtime &rt)
 {
-    auto &file = rt.to_file(0);
-    String text;
-
-    while (!file.at_end())
-    {
-        text.append(file.read_line());
-    }
-
-    rt.push(std::move(text));
+    auto path = rt.to_string(1);
+    rt.push(File::read_all(path));
 }
 
 static void file_read_byte(Runtime &rt)
@@ -196,7 +189,6 @@ void Runtime::init_file()
         add_method("File.meta.eof", file_eof, 0);
         add_method("File.meta.read_line", file_read_line, 0);
         add_method("File.meta.read_lines", file_read_lines, 0);
-        add_method("File.meta.read_all", file_read_all, 0);
         add_method("File.meta.rewind", file_rewind, 0);
         add_method("File.meta.read_byte", file_read_byte, 0);
         add_method("File.meta.write_byte", file_write_byte, 1);
@@ -204,9 +196,12 @@ void Runtime::init_file()
         add_method("File.meta.write_lines", file_write_lines, 1);
         add_method("File.meta.write_line", file_write_line, 1);
         add_method("File.meta.close", file_close, 0);
+	    add_method("File.meta.read_all", file_read_all, 1);
     }
     new_native_constructor(new_file, new_file, "File", 1);
     def_global("File", PHON_DONTENUM);
+
+    do_string("read_file = File.meta.read_all");
 }
 
 } // namespace phonometrica

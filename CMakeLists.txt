@@ -169,7 +169,7 @@ if (BUILD_GUI)
     include_directories(${Qt5Widgets_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/phon)
 
     # SPTK
-    #include_directories(phon/third_party/sptk/include)
+    include_directories(phon/third_party/sptk/include/)
 
     # Needed by Speex
     add_definitions(-DHAVE_CONFIG_H)
@@ -185,8 +185,8 @@ if (BUILD_GUI)
             phon/third_party/speex/resample.c
             phon/third_party/zip/zip.cpp
             phon/third_party/qxt/qxtcheckcombobox.cpp
-            #phon/third_party/sptk/*.c
-            #phon/third_party/snack/*.cpp
+            phon/third_party/sptk/*.c
+            phon/third_party/sptk/*.cpp
             phon/third_party/swipe/*.c phon/third_party/swipe/*.cpp phon/third_party/swipe/*.h
     )
 

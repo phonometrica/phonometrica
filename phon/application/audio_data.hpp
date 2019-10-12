@@ -56,6 +56,8 @@ public:
 
     Span<double> get(intptr_t first_frame = 1, intptr_t last_frame = -1);
 
+	std::vector<float> read(intptr_t first_frame, intptr_t last_frame);
+
     double sample(intptr_t i) const { return m_data[i]; }
 
     intptr_t size() const { return m_handle.frames(); }

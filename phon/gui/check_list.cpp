@@ -159,6 +159,23 @@ Array<String> CheckList::checkedToolTips()
 	return results;
 }
 
+std::vector<std::string> CheckList::jsonSelection()
+{
+	std::vector<std::string> values;
+
+	for (QCheckBox *btn : this->buttons())
+	{
+		if (btn->isChecked())
+		{
+			QString txt = btn->toolTip();
+			if (txt.isEmpty()) txt = btn->text();
+			values.push_back(txt.toStdString());
+		}
+	}
+
+	return values;
+}
+
 /*****************************************************************************************************
  *****************************************************************************************************
  *****************************************************************************************************/

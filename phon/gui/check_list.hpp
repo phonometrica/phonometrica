@@ -62,6 +62,8 @@ public:
 
 	Array<String> checkedToolTips();
 
+	std::vector<std::string> jsonSelection();
+
 signals:
 
 	void stateChanged(int index, int state);

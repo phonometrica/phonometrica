@@ -30,18 +30,21 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <numeric> // std::iota
+#include <algorithm>
+#include <SPTK.h>
 #include <phon/speech/signal_processing.hpp>
 
 namespace phonometrica {
 namespace speech {
 
-Array<double> create_window(intptr_t winlen, intptr_t fftlen, WindowType type)
+Array<double> create_window(intptr_t N, intptr_t fftlen, WindowType type)
 {
     Array<double> result;
     intptr_t i;
 
-    if (winlen > fftlen)
-        winlen = fftlen;
+    if (N > fftlen)
+	    N = fftlen;
 
 	result.resize(fftlen);
 	double *win = result.data();
@@ -50,53 +53,51 @@ Array<double> create_window(intptr_t winlen, intptr_t fftlen, WindowType type)
     {
     case WindowType::Rectangular:
     {
-        for (i = 0; i < winlen; i++)
+        for (i = 0; i < N; i++)
             win[i] = (double) 1.0;
     }
         break;
     case WindowType::Hann:
     {
-        for (i = 0; i < winlen; i++)
-            win[i] = (double) (0.5 * (1.0 - cos(i * 2.0 * M_PI / (winlen - 1))));
+        for (i = 0; i < N; i++)
+            win[i] = (double) (0.5 * (1.0 - cos(i * 2.0 * M_PI / (N - 1))));
     }
         break;
     case WindowType::Bartlett:
     {
-        for (i = 0; i < winlen / 2; i++)
-            win[i] = (double) (((2.0 * i) / (winlen - 1)));
-        for (i = winlen / 2; i < winlen; i++)
-            win[i] = (double) (2.0 * (1.0 - ((double) i / (winlen - 1))));
+        for (i = 0; i < N / 2; i++)
+            win[i] = (double) (((2.0 * i) / (N - 1)));
+        for (i = N / 2; i < N; i++)
+            win[i] = (double) (2.0 * (1.0 - ((double) i / (N - 1))));
     }
         break;
     case WindowType::Blackman:
     {
-        for (i = 0; i < winlen; i++)
-            win[i] = (double) ((0.42 - 0.5 * cos(i * 2.0 * M_PI / (winlen - 1))
-                                + 0.08 * cos(i * 4.0 * M_PI / (winlen - 1))));
+        for (i = 0; i < N; i++)
+            win[i] = (double) ((0.42 - 0.5 * cos(i * 2.0 * M_PI / (N - 1))
+                                + 0.08 * cos(i * 4.0 * M_PI / (N - 1))));
     }
         break;
     case WindowType::Gaussian:
     {
-    	// TODO: properly implement Gaussian window.
-    	// Implement MATLAB's equation. See: https://www.mathworks.com/help/signal/ref/gausswin.htm
-	    const int half_win = winlen / 2;
-    	const double alpha = 2.5;
-        for (i = 0; i < winlen; i++)
+    	const double sigma = 0.45 * (N - 1.0) / 2;
+	    const double sig2 = 2 * sigma * sigma;
+
+        for (i = 0; i < N; i++)
         {
-        	int n = i - half_win;
-        	double coeff = alpha * (n / half_win);
-        	win[i] = exp(-0.5 * coeff * coeff);
+        	int n = i - (N-1) / 2;
+        	win[i] = exp((-n * n) / sig2);
         }
     }
 	    break;
     case WindowType::Hamming:
     {
-        for (i = 0; i < winlen; i++)
-            win[i] = (double) (0.54 - 0.46 * cos(i * 2.0 * M_PI / (winlen - 1)));
+        for (i = 0; i < N; i++)
+            win[i] = (double) (0.54 - 0.46 * cos(i * 2.0 * M_PI / (N - 1)));
     }
     }
 
-    for (i = winlen; i < fftlen; i++)
+    for (i = N; i < fftlen; i++)
         win[i] = 0.0;
 
     return result;
@@ -147,5 +148,70 @@ get_intensity(const Span<double> &input, int samplerate, intptr_t window_size, d
     return output;
 }
 
+// Credits: https://stackoverflow.com/a/12399290
+template <typename T>
+static std::vector<size_t> sort_indices(const std::vector<T> &v) {
+
+	// initialize original index locations
+	std::vector<size_t> idx(v.size());
+	std::iota(idx.begin(), idx.end(), 0);
+
+	// sort indexes based on comparing values in v
+	sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+	return idx;
 }
-} // namespace phonometrica::speech
+
+// Formant estimatation adapted from
+// https://www.mathworks.com/help/signal/ug/formant-estimation-with-lpc-coefficients.html
+
+std::vector<double> get_lpc_coefficients(const Span<double> &frame, int npole)
+{
+	std::vector<double> coeff(npole+1, 0.0);
+	lpc(frame.data(), frame.size(), coeff.data(), npole, 0.000001);
+
+	return coeff;
+}
+
+std::pair<std::vector<double>, std::vector<double>> get_formants(const Span<double> &lpc_coeffs, double Fs)
+{
+	std::vector<std::complex<double>> roots(lpc_coeffs.size(), std::complex<double>());
+	root_pol(lpc_coeffs.data(), lpc_coeffs.size(), (complex*)roots.data(), 0, 1.0e-14, 1000);
+	std::vector<double> angz;
+
+	std::vector<std::complex<double>> tmp;
+
+	for (auto z : roots)
+	{
+		if (z.imag() >= 0) tmp.push_back(z);
+	}
+	roots = std::move(tmp);
+
+	std::vector<double> freqs;
+
+	for (auto z : roots)
+	{
+		double angle = atan2(z.imag(), z.real());
+		double f = angle * (Fs / M_2PI);
+		freqs.push_back(f);
+	}
+
+	auto indices = sort_indices(freqs);
+	std::sort(freqs.begin(), freqs.end());
+	std::vector<double> bw;
+
+	for (auto i : indices)
+	{
+		double b = -0.5*(Fs/M_2PI)*log(std::abs(roots[i]));
+		bw.push_back(b);
+	}
+
+	return { freqs, bw };
+}
+
+//void root_pol(double *a, const int odr, complex * x, const int a_zero,
+//              const double eps, const int itrat)
+
+
+
+}} // namespace phonometrica::speech
