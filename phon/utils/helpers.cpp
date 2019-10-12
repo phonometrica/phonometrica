@@ -109,7 +109,7 @@ std::string get_version()
 
     if (PHON_VERSION_NANO > 0)
     {
-    	os << " (test " << PHON_VERSION_NANO << ")";
+    	os << " (devel " << PHON_VERSION_NANO << ")";
     }
 
     return os.str();
