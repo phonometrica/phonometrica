@@ -651,7 +651,7 @@ void MainWindow::setShellFunctions()
     auto get_plugin_resource = [this](Runtime &rt) {
     	auto plugin = rt.to_string(1);
     	auto name = rt.to_string(2);
-    	auto resource = filesystem::join(Settings::plugin_directory(), "Resources", name);
+    	auto resource = filesystem::join(Settings::plugin_directory(), plugin, "Resources", name);
 		rt.push(std::move(resource));
     };
 
