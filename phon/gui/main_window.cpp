@@ -716,7 +716,6 @@ void MainWindow::setShellFunctions()
 	runtime.add_global_function("open_files_dialog", open_files_dialog, 1);
 	runtime.add_global_function("open_directory_dialog", open_directory_dialog, 1);
 	runtime.add_global_function("save_file_dialog", save_file_dialog, 1);
-	runtime.add_global_function("create_dialog", create_dialog, 1);
 	runtime.add_global_function("get_input", input, 3);
 	runtime.add_global_function("get_plugin_version", get_plugin_version, 1);
 	runtime.add_global_function("get_plugin_resource", get_plugin_resource, 2);
@@ -740,12 +739,25 @@ void MainWindow::setShellFunctions()
         runtime.add_method("view_annotation", view_annotation, 4);
         runtime.add_method("import_metadata", import_metadata, 0);
 	    runtime.add_method("export_metadata", export_metadata, 1);
+	    runtime.add_method("__create_dialog", create_dialog, 1);
 
         // Define 'phon.config'
         Settings::initialize(runtime);
     }
     runtime.pop();
 	runtime.add_global_function("test_global", info, 1);
+
+	// Accept either an object or a string as input, and return an object
+	runtime.do_string(R"_(
+		function create_dialog(data)
+			if typeof(data) == "Object" then
+				data = json.stringify(data)
+		    end
+			data = phon.__create_dialog(data)
+
+			return json.parse(data)
+		end
+)_");
 }
 
 void MainWindow::initialize()

@@ -38,18 +38,25 @@ namespace phonometrica {
 UserDialog::UserDialog(Runtime &rt, const String &str, QWidget *parent) :
 	QDialog(parent), runtime(rt)
 {
-	layout = new QVBoxLayout;
-	parse(str);
+	main_layout = new QVBoxLayout;
+	layout = main_layout;
+	bool yes_no = parse(str);
 	layout->addStretch();
 	layout->addSpacing(10);
-	addButtonBox();
+	addButtonBox(yes_no);
 	setLayout(layout);
 }
 
-void UserDialog::parse(const String &str)
+bool UserDialog::parse(const String &str)
 {
 	auto js = Json::parse(str.data());
+	return parse(js);
+}
+
+bool UserDialog::parse(Json js)
+{
 	Json::iterator it;
+	bool yes_no = false;
 
 	it = js.find("title");
 	if (it != js.end()) {
@@ -62,68 +69,32 @@ void UserDialog::parse(const String &str)
 		auto w = it->get<int64_t>();
 		setMinimumWidth(w);
 	}
+
 	it = js.find("height");
 	if (it != js.end()) {
 		auto h = it->get<int64_t>();
 		setMinimumHeight(h);
 	}
 
+	it = js.find("yes_no");
+	if (it != js.end()) {
+		yes_no = it->get<bool>();
+	}
+
 	it = js.find("items");
-	if (it == js.end()) return;
+	if (it == js.end()) return yes_no;
 	for (auto item : *it)
 	{
-		if (!item.is_object()) {
-			throw error("User dialog items must be objects");
-		}
-
-		auto it2 = item.find("type");
-		if (it2 == item.end()) {
-			throw error("User dialog item has no \"type\" key");
-		}
-		auto type = it2->get<std::string>();
-
-		if (type == "label")
-		{
-			addLabel(item);
-		}
-		else if (type == "button")
-		{
-			addPushButton(item);
-		}
-		else if (type == "checkbox")
-		{
-			addCheckBox(item);
-		}
-		else if (type == "combobox")
-		{
-			addComboBox(item);
-		}
-		else if (type == "line_edit")
-		{
-			addLineEdit(item);
-		}
-		else if (type == "check_list")
-		{
-			addCheckList(item);
-		}
-		else if (type == "radio_buttons")
-		{
-			addRadioButtons(item);
-		}
-		else if (type == "file_selector")
-		{
-			addFileSelector(item);
-		}
-		else
-		{
-			throw error("Unknown item type in user dialog: \"%\"", type);
-		}
+		parseItem(item);
 	}
+
+	return yes_no;
 }
 
-void UserDialog::addButtonBox()
+void UserDialog::addButtonBox(bool yes_no)
 {
-	auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+	auto flags = yes_no ? QDialogButtonBox::Yes|QDialogButtonBox::No : QDialogButtonBox::Ok|QDialogButtonBox::Cancel;
+	auto button_box = new QDialogButtonBox(flags);
 	layout->addWidget(button_box);
 	connect(button_box, &QDialogButtonBox::accepted, this, &UserDialog::accept);
 	connect(button_box, &QDialogButtonBox::rejected, this, &UserDialog::reject);
@@ -222,23 +193,31 @@ void UserDialog::addCheckList(Json item)
 	auto name = getName(item);
 	Array<String> labels, tooltips;
 
-	auto it = item.find("labels");
+	auto it = item.find("values");
 	if (it == item.end()) {
-		throw error("User dialog check list has no \"labels\" attribute");
+		throw error("User dialog check list has no \"values\" attribute");
 	}
-	for (auto &label : *it)
+	for (auto &value : *it)
 	{
-		labels.push_back(label.get<std::string>());
+		tooltips.push_back(value.get<std::string>());
 	}
-	it = item.find("values");
+	it = item.find("labels");
 	if (it != item.end())
 	{
-		for (auto &value : *it)
+		for (auto &label : *it)
 		{
-			tooltips.append(value.get<std::string>());
+			labels.append(label.get<std::string>());
 		}
 	}
+	else
+	{
+		std::swap(labels, tooltips);
+	}
 
+	if (!tooltips.empty() && labels.size() != tooltips.size()) {
+		throw error("Inconsistent number of labels and values in user dialog list box (% vs %)",
+				labels.size(), tooltips.size());
+	}
 	auto list = new CheckList(nullptr, labels, tooltips);
 	list->setProperty("name", name);
 	check_lists.push_back(list);
@@ -382,6 +361,105 @@ void UserDialog::addFileSelector(Json item)
 	sel->setProperty("name", name);
 	file_selectors.push_back(sel);
 	layout->addWidget(sel);
+}
+
+void UserDialog::parseItem(Json item)
+{
+	if (!item.is_object()) {
+		throw error("User dialog items must be objects");
+	}
+
+	auto it2 = item.find("type");
+	if (it2 == item.end()) {
+		throw error("User dialog item has no \"type\" key");
+	}
+	auto type = it2->get<std::string>();
+
+	if (type == "label")
+	{
+		addLabel(item);
+	}
+	else if (type == "button")
+	{
+		addPushButton(item);
+	}
+	else if (type == "check_box")
+	{
+		addCheckBox(item);
+	}
+	else if (type == "combo_box")
+	{
+		addComboBox(item);
+	}
+	else if (type == "field")
+	{
+		addLineEdit(item);
+	}
+	else if (type == "check_list")
+	{
+		addCheckList(item);
+	}
+	else if (type == "radio_buttons")
+	{
+		addRadioButtons(item);
+	}
+	else if (type == "file_selector")
+	{
+		addFileSelector(item);
+	}
+	else if (type == "container")
+	{
+		addContainer(item);
+	}
+	else if (type == "stretch")
+	{
+		layout->addStretch(1);
+	}
+	else if (type == "spacing")
+	{
+		addSpacing(item);
+	}
+	else
+	{
+		throw error("Unknown item type in user dialog: \"%\"", type);
+	}
+}
+
+void UserDialog::addContainer(Json item)
+{
+	auto old_layout = layout;
+	auto it = item.find("orientation");
+	if (it != item.end() && it->get<std::string>() == "vertical")
+	{
+		layout = new QVBoxLayout;
+	}
+	else
+	{
+		layout = new QHBoxLayout;
+	}
+	layout->setContentsMargins(0, 0, 0, 0);
+
+	it = item.find("items");
+	if (it == item.end()) {
+		throw error("User dialog container has no \"items\" attribute");
+	}
+	for (auto itm : *it)
+	{
+		parseItem(itm);
+	}
+
+	old_layout->addLayout(layout);
+	layout = old_layout;
+}
+
+void UserDialog::addSpacing(Json item)
+{
+	auto it = item.find("size");
+	if (it == item.end()) {
+		throw error("User dialog spacing has no \"size\" attribute");
+	}
+	auto size = it->get<int64_t>();
+	layout->addSpacing(size);
 }
 
 } // namespace phonometrica

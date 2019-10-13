@@ -8,6 +8,7 @@ Release notes
 - waveform scaling using global, local or fixed magnitude
 - intensity settings
 - click on middle button (wheel) too zoom on the active selection
+- user dialogs
 
 
 0.5.2 (04/10/2019)

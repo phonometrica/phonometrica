@@ -58,9 +58,13 @@ public:
 
 private:
 
-	void parse(const String &str);
+	bool parse(const String &str);
 
-	void addButtonBox();
+	bool parse(Json js);
+
+	void parseItem(Json item);
+
+	void addButtonBox(bool yes_no);
 
 	QString getName(Json js);
 
@@ -80,9 +84,15 @@ private:
 
 	void addFileSelector(Json item);
 
+	void addContainer(Json item);
+
+	void addSpacing(Json item);
+
 	Runtime &runtime;
 
-	QVBoxLayout *layout;
+	QBoxLayout *main_layout;
+
+	QBoxLayout *layout = nullptr;
 
 	std::vector<QCheckBox*> check_boxes;
 

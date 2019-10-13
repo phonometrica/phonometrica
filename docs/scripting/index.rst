@@ -24,13 +24,14 @@ The following pages teach you how to use Phonometrica's scripting language.
 	
    tutorial/getting_started
    tutorial/metaobject
+   tutorial/user_dialogs
    tutorial/advanced
 
-   
-Modules and classes
-------------------- 
 
-The following pages document Phonometrica's modules and classes. It is strongly recommended that you go
+Modules and types
+----------------- 
+
+The following pages document Phonometrica's modules and types. It is strongly recommended that you go
 through the tutorials before reading this material.
 
 .. toctree::
@@ -38,3 +39,4 @@ through the tutorials before reading this material.
    :glob:
 	
    api/*
+
