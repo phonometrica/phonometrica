@@ -118,7 +118,7 @@ void Waveform::drawWave()
         // Subtract 1 to width so that the last pixel is assigned the left-over frames.
         auto frames_per_pixel = sample_count / (this->width()-1);
 
-        auto maximum = (std::numeric_limits<double>::min)();
+        auto maximum = -(std::numeric_limits<double>::max)();
         auto minimum = (std::numeric_limits<double>::max)();
 
         for (intptr_t i = 1; i <= sample_count; i++)
@@ -149,7 +149,7 @@ void Waveform::drawWave()
                 x++;
 
                 // reset values
-                maximum = (std::numeric_limits<double>::min)();
+                maximum = -(std::numeric_limits<double>::max)();
                 minimum = (std::numeric_limits<double>::max)();
             }
         }
