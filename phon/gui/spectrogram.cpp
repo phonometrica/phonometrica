@@ -39,7 +39,7 @@
 #include <phon/include/reset_spectrogram_settings_phon.hpp>
 #include <phon/utils/matrix.hpp>
 
-#define DRAW_FORMANTS 1
+#define DRAW_FORMANTS 0
 
 namespace phonometrica {
 
@@ -433,7 +433,7 @@ void Spectrogram::estimateFormants()
 		output = temp;
 	}
 
-	int nframe = int(floor(win_size * sample_rate));
+	int nframe = int(ceil(win_size * sample_rate));
 	if (nframe % 2 == 1) nframe++;
 	auto win = create_window(nframe, nframe, WindowType::Hann);
 	std::vector<double> buffer(nframe, 0.0);
@@ -477,19 +477,20 @@ void Spectrogram::estimateFormants()
 
 		int count = 0;
 		const double max_freq = sample_rate / 2 - 50;
-		for (int j = 0; j < freqs.size(); j++)
+		for (int k = 0; k < freqs.size(); k++)
 		{
-			auto freq = freqs[j];
-			if (freq > 50 && freq < max_freq)
+			auto freq = freqs[k];
+			if (freq > 50 && freq < max_freq && bw[k] < 400)
 			{
 				formants(i, count) = freq;
-				bandwidths(i, count++) = bw[j];
+				bandwidths(i, count++) = bw[k];
 			}
+			if (count == nformant) break;
 		}
-		for (int j = count; j < nformant; j++)
+		for (int k = count; k < nformant; k++)
 		{
-			formants(i,j) = std::nan("");
-			bandwidths(i,j) = std::nan("");
+			formants(i, k) = std::nan("");
+			bandwidths(i, k) = std::nan("");
 		}
 	}
 }

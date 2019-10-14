@@ -52,14 +52,13 @@ Waveform::Waveform(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent
 void Waveform::renderPlot(QPaintEvent *)
 {
     QPainter painter(this);
-
-    // Draw zero-crossing line.
-    QPen pen;
-    pen.setColor(Qt::blue);
-    pen.setStyle(Qt::DotLine);
-    pen.setWidth(1);
-    painter.setPen(pen);
-    painter.drawLine(0, height()/2, width(), height()/2);
+	// Draw zero-crossing line.
+	QPen pen;
+	pen.setColor(Qt::blue);
+	pen.setStyle(Qt::DotLine);
+	pen.setWidth(1);
+	painter.setPen(pen);
+	painter.drawLine(0, height()/2, width(), height()/2);
 
     if (needsRefresh())
     {

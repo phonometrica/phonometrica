@@ -167,7 +167,7 @@ static std::vector<size_t> sort_indices(const std::vector<T> &v) {
 
 std::vector<double> get_lpc_coefficients(const Span<double> &frame, int npole)
 {
-	std::vector<double> coeff(npole, 0.0);
+	std::vector<double> coeff(npole+1, 0.0);
 	lpc(frame.data(), frame.size(), coeff.data(), npole, 0.000001);
 
 	return coeff;
@@ -176,7 +176,8 @@ std::vector<double> get_lpc_coefficients(const Span<double> &frame, int npole)
 std::pair<std::vector<double>, std::vector<double>> get_formants(const Span<double> &lpc_coeffs, double Fs)
 {
 	std::vector<std::complex<double>> roots(lpc_coeffs.size(), std::complex<double>());
-	root_pol(lpc_coeffs.data(), lpc_coeffs.size(), (complex*)roots.data(), 0, 1.0e-14, 1000);
+	int order = lpc_coeffs.size() - 1;
+	root_pol(lpc_coeffs.data(), order, (complex*)roots.data(), 0, 1.0e-14, 1000);
 	std::vector<double> angz;
 
 	std::vector<std::complex<double>> tmp;
