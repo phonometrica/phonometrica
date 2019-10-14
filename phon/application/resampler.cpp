@@ -33,6 +33,7 @@
 
 namespace phonometrica {
 
+#if 0
 Resampler::Resampler(intptr_t in_rate, intptr_t out_rate, int quality, intptr_t nb_channels)
 {
 	int error;
@@ -74,4 +75,5 @@ void Resampler::resample(const Span<float> &input, std::vector<float> &output)
 	assert(olen <= input.size());
 	output.resize(olen);
 }
+#endif
 } // namespace phonometrica

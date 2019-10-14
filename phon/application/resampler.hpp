@@ -32,10 +32,14 @@
 #include <cstdint>
 #include <vector>
 #include <phon/utils/span.hpp>
-#include <phon/third_party/speex/speex_resampler.h>
+//#include <phon/third_party/speex/speex_resampler.h>
+#include <phon/third_party/r8brain/CDSPResampler.h>
 
 namespace phonometrica {
 
+using Resampler = r8b::CDSPResampler;
+
+#if 0
 class Resampler final
 {
 public:
@@ -60,6 +64,7 @@ private:
 
 	double ratio = 0;
 };
+#endif
 
 } // namespace phonometrica
 

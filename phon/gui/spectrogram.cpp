@@ -39,7 +39,7 @@
 #include <phon/include/reset_spectrogram_settings_phon.hpp>
 #include <phon/utils/matrix.hpp>
 
-#define DRAW_FORMANTS 0
+#define DRAW_FORMANTS 1
 
 namespace phonometrica {
 
@@ -406,8 +406,9 @@ void Spectrogram::estimateFormants()
 
 	auto from = m_data->time_to_frame(window_start);
 	auto to = m_data->time_to_frame(window_end);
-	auto input = m_data->read(from, to);
-	std::vector<float> output;
+	auto input = m_data->get(from, to);
+	Span<double> output;
+	std::vector<double> temp; // used to store the resampled buffer, if necessary.
 	double win_size = 0.025;
 
 	// Apply pre-emphasis from 50 Hz.
@@ -418,12 +419,18 @@ void Spectrogram::estimateFormants()
 
 	if (sample_rate == m_data->sample_rate())
 	{
-		output = std::move(input);
+		output = input;
 	}
 	else
 	{
-		Resampler resampler(m_data->sample_rate(), sample_rate);
-		output = resampler.resample(input);
+		auto osize = int(ceil(double(input.size())) * sample_rate / m_data->sample_rate());
+		temp.resize(osize);
+		Resampler resampler(m_data->sample_rate(), sample_rate, input.size());
+		double *o = temp.data();
+		auto len = resampler.process(input.data(), input.size(), o);
+		assert(len <= osize);
+		temp.resize(len);
+		output = temp;
 	}
 
 	int nframe = int(floor(win_size * sample_rate));

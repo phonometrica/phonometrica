@@ -167,7 +167,7 @@ static std::vector<size_t> sort_indices(const std::vector<T> &v) {
 
 std::vector<double> get_lpc_coefficients(const Span<double> &frame, int npole)
 {
-	std::vector<double> coeff(npole+1, 0.0);
+	std::vector<double> coeff(npole, 0.0);
 	lpc(frame.data(), frame.size(), coeff.data(), npole, 0.000001);
 
 	return coeff;
@@ -208,10 +208,5 @@ std::pair<std::vector<double>, std::vector<double>> get_formants(const Span<doub
 
 	return { freqs, bw };
 }
-
-//void root_pol(double *a, const int odr, complex * x, const int a_zero,
-//              const double eps, const int itrat)
-
-
 
 }} // namespace phonometrica::speech

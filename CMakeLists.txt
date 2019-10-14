@@ -31,7 +31,7 @@ add_definitions(-DPHON_VERSION_MINOR=6)
 # Revision release: incremented when bugs are fixed are small features are added
 add_definitions(-DPHON_VERSION_MICRO=0)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=4)
+add_definitions(-DPHON_VERSION_NANO=6)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
@@ -183,6 +183,7 @@ if (BUILD_GUI)
             phon/third_party/sqlite/sqlite3.c
             phon/third_party/sendpraat.c
             phon/third_party/speex/resample.c
+            phon/third_party/r8brain/*.cpp
             phon/third_party/zip/zip.cpp
             phon/third_party/qxt/qxtcheckcombobox.cpp
             phon/third_party/sptk/*.c
@@ -197,7 +198,7 @@ if (BUILD_GUI)
         set(GUI_TYPE MACOSX_BUNDLE)
 		set(RC_FILE "")
     else()
-        set(GUI_TYPE "" phon/gui/font.hpp)
+        set(GUI_TYPE "")
 		set(RC_FILE "")
     endif (WIN32)
 

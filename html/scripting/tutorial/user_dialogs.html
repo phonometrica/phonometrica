@@ -58,6 +58,7 @@
 <li><a class="reference internal" href="#spacing">Spacing</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#putting-it-all-together">Putting it all together</a></li>
 </ul>
 </li>
 </ul>
@@ -310,6 +311,60 @@ You must specify its <code class="docutils literal notranslate"><span class="pre
 <div class="figure">
 <img alt="../../_images/spacing.png" src="../../_images/spacing.png" />
 </div>
+</div>
+</div>
+<div class="section" id="putting-it-all-together">
+<h2>Putting it all together<a class="headerlink" href="#putting-it-all-together" title="Permalink to this headline">¶</a></h2>
+<p>As an illustration, we will show how “Transphon”, the module that allows annotations to be exported to plain text, is implemented. We could store the user
+interface in a separate JSON file and load it from a Phonometrica script, but since the user interface is relatively simple, we will create it directly
+in the script. This has two advantages: it allows us to intersperse comments in the user interface, which JSON doesn’t allow, and it makes it unnecessary
+to surround keys with double quotes, since in Phonometrica, <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">&quot;key&quot;:</span> <span class="pre">&quot;value&quot;</span> <span class="pre">}</span></code> and <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">key:</span> <span class="pre">&quot;value&quot;</span> <span class="pre">}</span></code> are equivalent, as long as <code class="docutils literal notranslate"><span class="pre">key</span></code> doesn’t
+contain any space.</p>
+<p>Here is the part of the script that corresponds to the creation of the user interface:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="c1"># Setup user interface as a JSON object.</span>
+<span class="kr">var</span> <span class="n">ui</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">title</span><span class="p">:</span> <span class="s">&quot;Transphon&quot;</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="n">items</span><span class="p">:</span> <span class="o">[</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Choose output file:&quot;</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;file_selector&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="s">&quot;path&quot;</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="s">&quot;Select text file...&quot;</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Select layers separated by a comma, or leave empty to process all layers:&quot;</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;field&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="s">&quot;layers&quot;</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">},</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Choose annotations:&quot;</span><span class="p">},</span>
+        <span class="c1"># Annotations will be inserted here</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Choose event separator:&quot;</span><span class="p">},</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;radio_buttons&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="s">&quot;separator&quot;</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="o">[</span><span class="s">&quot;space&quot;</span><span class="p">,</span> <span class="s">&quot;new line&quot;</span><span class="p">,</span> <span class="s">&quot;none&quot;</span><span class="o">]</span> <span class="p">}</span>
+    <span class="o">]</span>
+<span class="p">}</span>
+
+<span class="c1"># Insert check list for annotations</span>
+<span class="kr">var</span> <span class="n">labels</span> <span class="o">=</span> <span class="o">[]</span>
+<span class="kr">var</span> <span class="n">values</span> <span class="o">=</span> <span class="o">[]</span>
+
+<span class="kr">foreach</span> <span class="kr">var</span> <span class="n">annot</span> <span class="kr">in</span> <span class="n">get_annotations</span><span class="p">()</span> <span class="kr">do</span>
+    <span class="kr">var</span> <span class="n">path</span> <span class="o">=</span> <span class="n">annot</span><span class="p">.</span><span class="n">path</span>
+    <span class="c1"># This is the real value we are interested in</span>
+    <span class="n">values</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="c1"># This is the label that will be displayed</span>
+    <span class="n">labels</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">system</span><span class="p">.</span><span class="n">get_base_name</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+<span class="kr">end</span>
+
+<span class="c1"># Create item and insert it at position 6 in the list of items</span>
+<span class="kr">var</span> <span class="n">item</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;check_list&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;annotations&quot;</span><span class="p">,</span> <span class="s">&quot;labels&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span> <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="n">values</span> <span class="p">}</span>
+<span class="n">ui</span><span class="p">.</span><span class="n">items</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+
+<span class="c1"># `result` will contain a JSON object if the user pressed &quot;OK&quot;, or null otherwise.</span>
+<span class="kr">var</span> <span class="n">result</span> <span class="o">=</span> <span class="n">create_dialog</span><span class="p">(</span><span class="n">ui</span><span class="p">)</span>
+
+<span class="kr">if</span> <span class="n">result</span> <span class="kr">then</span>
+    <span class="c1"># Process the result. Here we will simply print it.</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">stringify</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
+<p>And here is the dialog that appears when the script is run:</p>
+<div class="figure">
+<img alt="../../_images/transphon.png" src="../../_images/transphon.png" />
 </div>
 </div>
 </div>

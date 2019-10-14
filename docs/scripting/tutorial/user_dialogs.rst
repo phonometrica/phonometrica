@@ -267,3 +267,61 @@ You must specify its ``size`` attribute, which is an integer that represents the
     ]}    
 
 .. figure:: ../../img/spacing.png
+
+
+Putting it all together
+-----------------------
+
+As an illustration, we will show how "Transphon", the module that allows annotations to be exported to plain text, is implemented. We could store the user 
+interface in a separate JSON file and load it from a Phonometrica script, but since the user interface is relatively simple, we will create it directly
+in the script. This has two advantages: it allows us to intersperse comments in the user interface, which JSON doesn't allow, and it makes it unnecessary
+to surround keys with double quotes, since in Phonometrica, ``{ "key": "value" }`` and ``{ key: "value" }`` are equivalent, as long as ``key`` doesn't 
+contain any space. 
+
+Here is the part of the script that corresponds to the creation of the user interface:
+
+.. code:: phon
+
+    # Setup user interface as a JSON object. 
+    var ui = {
+        title: "Transphon",
+        width: 300,
+        items: [
+            { type: "label", text: "Choose output file:" },
+            { type: "file_selector", name: "path", title: "Select text file..." },
+            { type: "label", text: "Select layers separated by a comma, or leave empty to process all layers:" },
+            { type: "field", name: "layers", default: "1"},
+            { type: "label", text: "Choose annotations:"},
+            # Annotations will be inserted here
+            { type: "label", text: "Choose event separator:"},
+            { type: "radio_buttons", name: "separator", values: ["space", "new line", "none"] }    
+        ]
+    }
+
+    # Insert check list for annotations
+    var labels = []
+    var values = []
+
+    foreach var annot in get_annotations() do
+        var path = annot.path
+        # This is the real value we are interested in
+        values.append(path)
+        # This is the label that will be displayed
+        labels.append(system.get_base_name(path))
+    end
+
+    # Create item and insert it at position 6 in the list of items
+    var item = { "type": "check_list", "name": "annotations", "labels": labels, "values": values }
+    ui.items.insert(6, item)
+
+    # `result` will contain a JSON object if the user pressed "OK", or null otherwise.
+    var result = create_dialog(ui)
+
+    if result then
+        # Process the result. Here we will simply print it.
+        print(json.stringify(result))
+    end
+
+And here is the dialog that appears when the script is run:
+
+.. figure:: ../../img/transphon.png
