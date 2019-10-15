@@ -48,6 +48,8 @@ AnnotationView::AnnotationView(Runtime &rt, std::shared_ptr<Annotation> annot, Q
 
 void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 {
+	PHON_TRACE("Adding annotation actions to toolbar");
+
 	auto save_action = new QAction(QIcon(":/icons/save.png"), "Save annotation");
 	toolbar->addAction(save_action);
 	toolbar->addSeparator();
@@ -108,7 +110,9 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 
 void AnnotationView::addAnnotationLayers(QVBoxLayout *layout)
 {
-    intptr_t count = annot->size();
+	PHON_TRACE("Adding annotation layers");
+
+	intptr_t count = annot->size();
 
     for (intptr_t i = 1; i <= count; i++)
     {

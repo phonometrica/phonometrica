@@ -53,9 +53,17 @@
 	#error "Unsupported platform."
 #endif
 
+#if PHON_ENABLE_TRACING
+#define PHON_TRACE(x) qDebug() << x;
+#else
+#define PHON_TRACE(x)
+#endif
+
 #define PHON_MAC_SIDEBAR_COLOR "#E5E7EC"
 
 #define PHON_EXT_ANNOTATION ".phon-annot"
+
+#define PHON_MAX_FORMANTS 10
 
 namespace phonometrica {
 
@@ -82,7 +90,6 @@ enum class GCColor
 // Type for interned strings in the scripting engine.
 typedef int32_t literal;
 static const literal unknown_symbol = (std::numeric_limits<literal>::min)();
-
 
 } // namespace phonometrica
 

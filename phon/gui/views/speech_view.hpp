@@ -91,11 +91,15 @@ protected slots:
 
     void showPitch(bool);
 
+    void showFormants(bool);
+
     void showIntensity(bool);
 
     void changeWaveformSettings(bool);
 
     void changePitchSettings(bool);
+    
+    void changeFormantsSettings(bool);
 
     void changeIntensitySettings(bool);
 

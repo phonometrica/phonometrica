@@ -52,4 +52,20 @@ std::vector<double> linspace(double from, double to, int num, bool include_bound
 	return points;
 }
 
+std::vector<double> get_time_points(double from, double to, double step, bool include_boundaries)
+{
+	std::vector<double> points;
+	points.reserve((to - from) / step);
+	if (include_boundaries) points.push_back(from);
+	double t = from + step;
+	while (t < to)
+	{
+		points.push_back(t);
+		t += step;
+	}
+	if (include_boundaries) points.push_back(to);
+
+	return points;
+}
+
 } // namespace phonometrica::speech

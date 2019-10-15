@@ -157,7 +157,6 @@ void SpectrogramSettings::validate()
 	Settings::set_value(runtime, category, "preemphasis_threshold", threshold);
 
 	accept();
-
 }
 
 void SpectrogramSettings::setContrastLabel()

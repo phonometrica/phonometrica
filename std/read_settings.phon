@@ -81,6 +81,14 @@ phon.settings = {
 		window_type: "Hann",
 		dynamic_range: 70,
 		preemphasis_threshold: 1000
+	},
+
+	formants: {
+		number_of_formants: 4,
+		window_size: 0.025,
+		time_step: 0.01,
+		lpc_order: 12,
+		max_frequency: 5000
 	}
 }
 

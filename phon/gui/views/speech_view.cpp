@@ -37,6 +37,7 @@
 #include <phon/gui/pitch_settings.hpp>
 #include <phon/gui/intensity_settings.hpp>
 #include <phon/gui/spectrogram_settings.hpp>
+#include <phon/gui/formant_settings.hpp>
 #include <phon/application/settings.hpp>
 
 namespace phonometrica {
@@ -50,12 +51,16 @@ SpeechView::SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWid
 
 void SpeechView::post_initialize()
 {
+	PHON_TRACE("post-initializing speech view");
 	setupUi();
 	setInitialWindow();
+	PHON_TRACE("Speech view post-initialization done");
 }
 
 Toolbar *SpeechView::makeToolbar()
 {
+	PHON_TRACE("Adding toolbar to speech view");
+
 	auto wave_menu = new QMenu;
 	auto action_wave_settings = new QAction(tr("Waveform settings..."), this);
 	wave_menu->addAction(action_wave_settings);
@@ -67,6 +72,13 @@ Toolbar *SpeechView::makeToolbar()
 	auto action_spectrum_settings = new QAction(tr("Spectrogram settings..."), this);
 	spectrum_menu->addAction(action_enable_spectrum);
 	spectrum_menu->addAction(action_spectrum_settings);
+	
+	auto formants_menu = new QMenu;
+	auto action_enable_formants = new QAction(tr("Show formants"), this);
+	action_enable_formants->setCheckable(true);
+	auto action_formants_settings = new QAction(tr("Formant settings..."), this);
+	formants_menu->addAction(action_enable_formants);
+	formants_menu->addAction(action_formants_settings);
 
     auto pitch_menu = new QMenu;
     auto action_enable_pitch = new QAction(tr("Show pitch"), this);
@@ -119,6 +131,12 @@ Toolbar *SpeechView::makeToolbar()
     spectrum_button->setToolTip("Spectrogram options");
     spectrum_button->setMenu(spectrum_menu);
     spectrum_button->setPopupMode(QToolButton::InstantPopup);
+    
+    auto formants_button = new QToolButton;
+    formants_button->setIcon(QIcon(":/icons/formants.png"));
+    formants_button->setToolTip("Formants options");
+    formants_button->setMenu(formants_menu);
+    formants_button->setPopupMode(QToolButton::InstantPopup);
 
     auto pitch_button = new QToolButton;
     pitch_button->setIcon(QIcon(":/icons/voice.png"));
@@ -145,6 +163,7 @@ Toolbar *SpeechView::makeToolbar()
     addAnnotationMenu(toolbar);
     toolbar->addWidget(wave_button);
     toolbar->addWidget(spectrum_button);
+    toolbar->addWidget(formants_button);
     toolbar->addWidget(pitch_button);
     toolbar->addWidget(intensity_button);
     toolbar->addSeparator();
@@ -170,12 +189,14 @@ Toolbar *SpeechView::makeToolbar()
     connect(move_back, &QAction::triggered, this, &SpeechView::moveBackward);
     connect(select, &QAction::triggered, this, &SpeechView::chooseSelection);
     connect(action_enable_pitch, &QAction::triggered, this, &SpeechView::showPitch);
+    connect(action_enable_formants, &QAction::triggered, this, &SpeechView::showFormants);
+	connect(action_enable_spectrum, &QAction::triggered, this, &SpeechView::showSpectrogram);
+	connect(action_enable_intensity, &QAction::triggered, this, &SpeechView::showIntensity);
 	connect(action_wave_settings, &QAction::triggered, this, &SpeechView::changeWaveformSettings);
     connect(action_pitch_settings, &QAction::triggered, this, &SpeechView::changePitchSettings);
+    connect(action_formants_settings, &QAction::triggered, this, &SpeechView::changeFormantsSettings);
     connect(action_spectrum_settings, &QAction::triggered, this, &SpeechView::changeSpectrogramSettings);
     connect(action_intensity_settings, &QAction::triggered, this, &SpeechView::changeIntensitySettings);
-    connect(action_enable_spectrum, &QAction::triggered, this, &SpeechView::showSpectrogram);
-    connect(action_enable_intensity, &QAction::triggered, this, &SpeechView::showIntensity);
     connect(waveform, &SpeechPlot::windowHasChanged, this, &SpeechView::setWindowTimes);
     connect(doc, &QAction::triggered, this, &SpeechView::showDocumentation);
 
@@ -339,6 +360,12 @@ void SpeechView::showPitch(bool checked)
     pitch_line->setVisible(checked);
 }
 
+void SpeechView::showFormants(bool checked)
+{
+	spectrogram->enableFormantTracking(checked);
+	spectrogram->repaint();
+}
+
 void SpeechView::changeWaveformSettings(bool)
 {
 	WaveformSettings dlg(runtime, this);
@@ -357,6 +384,16 @@ void SpeechView::changePitchSettings(bool)
     {
         pitch_plot->updateSettings();
     }
+}
+
+void SpeechView::changeFormantsSettings(bool)
+{
+	FormantSettings dlg(runtime, this);
+	
+	if (dlg.exec() == QDialog::Accepted)
+	{
+		spectrogram->updateSettings();
+	}
 }
 
 void SpeechView::changeIntensitySettings(bool)
@@ -397,6 +434,8 @@ void SpeechView::setInitialWindow()
 
 void SpeechView::setupUi()
 {
+	PHON_TRACE("Creating UI for speech view");
+
 	// Create objects first so that we can connect them to signals
 	waveform = new Waveform(runtime, m_data, this);
 	spectrogram = new Spectrogram(runtime, m_data, this);

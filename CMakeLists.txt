@@ -13,12 +13,12 @@ set(CMAKE_CXX_STANDARD 17)
 ##  COMPILATION OPTIONS  ##
 ###########################
 
-set(BUILD_GUI ON)
-set(EMBED_SCRIPTS ON)
-set(BUILD_UNIT_TEST OFF)
-set(DEBUG_CONSOLE OFF)
-set(USE_FFTW OFF)
-
+option(BUILD_GUI "Build user interface" ON)
+option(EMBED_SCRIPTS "Embed scripts as static strings at compile time" ON)
+option(BUILD_UNIT_TEST "Build unit tests" OFF)
+option(DEBUG_CONSOLE "Include debugging messages sent to the console" OFF)
+option(ENABLE_TRACING "Include debugging messages sent to the standard error" OFF)
+option(USE_FFTW "Use FFTW instead of FFTS" OFF)
 
 ###########################
 ##  VERSION INFORMATION  ##
@@ -31,12 +31,12 @@ add_definitions(-DPHON_VERSION_MINOR=6)
 # Revision release: incremented when bugs are fixed are small features are added
 add_definitions(-DPHON_VERSION_MICRO=0)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=6)
+add_definitions(-DPHON_VERSION_NANO=7)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=10)
-add_definitions(-DPHON_RELEASE_DATE_DAY=14)
+add_definitions(-DPHON_RELEASE_DATE_DAY=15)
 
 # Operating system
 if(WIN32)
@@ -78,6 +78,10 @@ endif()
 
 if (DEBUG_CONSOLE)
     add_definitions(-DPHON_DEBUG_CONSOLE=1)
+endif()
+
+if (ENABLE_TRACING)
+    add_definitions(-DPHON_ENABLE_TRACING=1)
 endif()
 
 if (BUILD_GUI)

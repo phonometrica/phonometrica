@@ -37,15 +37,16 @@
 #include <phon/gui/spectrogram.hpp>
 #include <phon/speech/speech_utils.hpp>
 #include <phon/include/reset_spectrogram_settings_phon.hpp>
+#include <phon/include/reset_formants_settings_phon.hpp>
 #include <phon/utils/matrix.hpp>
-
-#define DRAW_FORMANTS 0
 
 namespace phonometrica {
 
 Spectrogram::Spectrogram(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
 	SpeechPlot(rt, std::move(data), parent)
 {
+	PHON_TRACE("creating spectrogram");
+
 	try
 	{
 		readSettings();
@@ -53,6 +54,7 @@ Spectrogram::Spectrogram(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *
 	catch (std::exception &)
 	{
 		run_script(rt, reset_spectrogram_settings);
+		run_script(rt, reset_formants_settings);
 		readSettings();
 	}
 }
@@ -76,6 +78,8 @@ void Spectrogram::drawYAxis(QWidget *y_axis, int y1, int y2)
 
 void Spectrogram::renderPlot(QPaintEvent *event)
 {
+	PHON_TRACE("rendering spectrogram");
+
 	if (needsRefresh())
 	{
 		auto raster = computeSpectrogram();
@@ -123,63 +127,64 @@ void Spectrogram::renderPlot(QPaintEvent *event)
 			}
 		}
 
-#if DRAW_FORMANTS
-		estimateFormants();
-		formant_paths.clear();
-		std::vector<bool> previous(formants.cols(), false);
-		auto xpoints = speech::linspace(window_start, window_end, formants.rows(), true);
-
-		for (int j = 0; j < formants.cols(); j++)
+		if (show_formants)
 		{
-			formant_paths.append(QPainterPath());
-		}
-
-		for (int i = 0; i < formants.rows(); i++)
-		{
-			auto x = timeToXPos(xpoints[i]);
+			estimateFormants();
+			formant_paths.clear();
+			std::vector<bool> previous(formants.cols(), false);
+			auto xpoints = speech::linspace(window_start, window_end, this->width(), true);
 
 			for (int j = 0; j < formants.cols(); j++)
 			{
-				auto &path = formant_paths[j];
-
-				auto f = formants(i,j);
-
-				if (std::isnan(f))
-				{
-					previous[j] = false;
-				}
-				else if (previous[j])
-				{
-		            auto y = formantToYPos(f);
-                    path.lineTo(QPointF(x, y));
-		            previous[j] = true;
-				}
-				else
-				{
-					auto y = formantToYPos(f);
-					path.moveTo(QPointF(x, y));
-					previous[j] = true;
-				}
+				formant_paths.append(QPainterPath());
 			}
 
+			for (int i = 0; i < formants.rows(); i++)
+			{
+				auto x = timeToXPos(xpoints[i]);
+
+				for (int j = 0; j < formants.cols(); j++)
+				{
+					auto &path = formant_paths[j];
+
+					auto f = formants(i,j);
+
+					if (std::isnan(f))
+					{
+						previous[j] = false;
+					}
+					else if (previous[j])
+					{
+						auto y = formantToYPos(f);
+						path.lineTo(QPointF(x, y));
+						previous[j] = true;
+					}
+					else
+					{
+						auto y = formantToYPos(f);
+						path.moveTo(QPointF(x, y));
+						previous[j] = true;
+					}
+				}
+			}
 		}
-#endif // DRAW_FORMANTS
 	}
 
 	QPainter painter(this);
 	painter.setRenderHint(QPainter::Antialiasing, true);
 	painter.drawImage(0, 0, image);
 
-#if DRAW_FORMANTS
-	auto pen = painter.pen();
-	pen.setWidth(2);
-	pen.setColor(QColor("red"));
-	painter.setPen(pen);
-	for (auto &path : formant_paths)
+	if (show_formants)
 	{
-		painter.drawPath(path);
+		auto pen = painter.pen();
+		pen.setWidth(2);
+		pen.setColor(QColor("red"));
+		painter.setPen(pen);
+		for (auto &path : formant_paths)
+		{
+			painter.drawPath(path);
+		}
 	}
-#endif // DRAW_FORMANTS
 }
 
 double Spectrogram::formantToYPos(double hz)
@@ -198,7 +203,7 @@ Matrix<double> Spectrogram::computeSpectrogram()
 
 	auto sample_rate = m_data->sample_rate();
 	auto nyquist_frequency = double(sample_rate) / 2;
-	auto nframe = int(sample_rate * window_length);
+	auto nframe = int(sample_rate * spectrum_window_length);
 	if (nframe % 2 == 1) nframe++;
 	// FIXME: Praat uses a Gaussian-like window which is twice as long as a regular window, but using a Gaussian window
 	//  similar to MATLAB's gives poorer results than a Hann a window.
@@ -355,35 +360,8 @@ void Spectrogram::resizeEvent(QResizeEvent *e)
 
 void Spectrogram::readSettings()
 {
-	using namespace speech;
-
-	String cat("spectrogram");
-	max_freq = Settings::get_number(rt, cat, "frequency_range");
-	double nyquist = double(m_data->sample_rate()) / 2;
-	max_freq = (std::min<double>)(max_freq, nyquist);
-	window_length = Settings::get_number(rt, cat, "window_size");
-	dynamic_range = (int) Settings::get_number(rt, cat, "dynamic_range");
-	preemph_threshold = Settings::get_number(rt, cat, "preemphasis_threshold");
-
-	String win = Settings::get_string(rt, cat, "window_type");
-	if (win == "Bartlett")
-		window_type = WindowType::Bartlett;
-	else if (win == "Blackman")
-		window_type = WindowType::Blackman;
-	else if (win == "Gaussian")
-		window_type = WindowType::Gaussian;
-	else if (win == "Hamming")
-		window_type = WindowType::Hamming;
-	else if (win == "Hann")
-		window_type = WindowType::Hann;
-	else if (win == "Rectangular")
-		window_type = WindowType::Rectangular;
-	else
-	{
-		QMessageBox::warning(this, tr("Invalid window type"), tr("Unknown window type. Using Hann window instead."));
-		Settings::set_value(rt, cat, "window_type", "Hann");
-		window_type = WindowType::Hann;
-	}
+	readSpectrogramSettings();
+	readFormantsSettings();
 }
 
 void Spectrogram::emptyCache()
@@ -395,10 +373,8 @@ void Spectrogram::estimateFormants()
 {
 	using namespace speech;
 
-	const int nformant = 5;
-	int npole = nformant * 2;
-	int npoint = 100;
-	auto xpoints = linspace(window_start, window_end, npoint, true);
+	auto xpoints = linspace(window_start, window_end, this->width(), true);
+	auto npoint = xpoints.size();
 	formants = Matrix<double>(npoint, nformant);
 	Matrix<double> bandwidths(npoint, nformant);
 	formants.setZero(npoint, nformant);
@@ -409,23 +385,21 @@ void Spectrogram::estimateFormants()
 	auto input = m_data->get(from, to);
 	Span<double> output;
 	std::vector<double> temp; // used to store the resampled buffer, if necessary.
-	double win_size = 0.025;
 
 	// Apply pre-emphasis from 50 Hz.
 	pre_emphasis(input, m_data->sample_rate(), 50);
 
-	// We expect approximately 1 formant per 1,000 Hz. The data is resampled accordingly.
-	double sample_rate = nformant * 2 * 1000;
+	double Fs = formant_max_frequency * 2;
 
-	if (sample_rate == m_data->sample_rate())
+	if (Fs == m_data->sample_rate())
 	{
 		output = input;
 	}
 	else
 	{
-		auto osize = int(ceil(double(input.size())) * sample_rate / m_data->sample_rate());
+		auto osize = int(ceil(double(input.size())) * Fs / m_data->sample_rate());
 		temp.resize(osize);
-		Resampler resampler(m_data->sample_rate(), sample_rate, input.size());
+		Resampler resampler(m_data->sample_rate(), Fs, input.size());
 		double *o = temp.data();
 		auto len = resampler.process(input.data(), input.size(), o);
 		assert(len <= osize);
@@ -433,7 +407,7 @@ void Spectrogram::estimateFormants()
 		output = temp;
 	}
 
-	int nframe = int(ceil(win_size * sample_rate));
+	int nframe = int(ceil(formant_window_length * Fs));
 	if (nframe % 2 == 1) nframe++;
 	auto win = create_window(nframe, nframe, WindowType::Hann);
 	std::vector<double> buffer(nframe, 0.0);
@@ -461,11 +435,11 @@ void Spectrogram::estimateFormants()
 			buffer[j] = *it++ * win[j+1];
 		}
 
-		auto coeffs = get_lpc_coefficients(buffer, npole);
+		auto coeffs = get_lpc_coefficients(buffer, lpc_order);
 		std::vector<double> freqs, bw;
 		try
 		{
-			std::tie(freqs, bw) = get_formants(coeffs, sample_rate);
+			std::tie(freqs, bw) = get_formants(coeffs, Fs);
 		}
 		catch (std::runtime_error &e)
 		{
@@ -476,7 +450,7 @@ void Spectrogram::estimateFormants()
 		}
 
 		int count = 0;
-		const double max_freq = sample_rate / 2 - 50;
+		const double max_freq = Fs / 2 - 50;
 		for (int k = 0; k < freqs.size(); k++)
 		{
 			auto freq = freqs[k];
@@ -493,6 +467,56 @@ void Spectrogram::estimateFormants()
 			bandwidths(i, k) = std::nan("");
 		}
 	}
+}
+
+void Spectrogram::readSpectrogramSettings()
+{
+	using namespace speech;
+
+	String cat("spectrogram");
+	max_freq = Settings::get_number(rt, cat, "frequency_range");
+	double nyquist = double(m_data->sample_rate()) / 2;
+	max_freq = (std::min<double>)(max_freq, nyquist);
+	spectrum_window_length = Settings::get_number(rt, cat, "window_size");
+	dynamic_range = (int) Settings::get_number(rt, cat, "dynamic_range");
+	preemph_threshold = Settings::get_number(rt, cat, "preemphasis_threshold");
+
+	String win = Settings::get_string(rt, cat, "window_type");
+	if (win == "Bartlett")
+		window_type = WindowType::Bartlett;
+	else if (win == "Blackman")
+		window_type = WindowType::Blackman;
+	else if (win == "Gaussian")
+		window_type = WindowType::Gaussian;
+	else if (win == "Hamming")
+		window_type = WindowType::Hamming;
+	else if (win == "Hann")
+		window_type = WindowType::Hann;
+	else if (win == "Rectangular")
+		window_type = WindowType::Rectangular;
+	else
+	{
+		QMessageBox::warning(this, tr("Invalid window type"), tr("Unknown window type. Using Hann window instead."));
+		Settings::set_value(rt, cat, "window_type", "Hann");
+		window_type = WindowType::Hann;
+	}
+}
+
+void Spectrogram::readFormantsSettings()
+{
+	String category("formants");
+
+	nformant = (int) Settings::get_number(rt, category, "number_of_formants");
+	formant_window_length = Settings::get_number(rt, category, "window_size");
+	formant_time_step = Settings::get_number(rt, category, "time_step");
+	lpc_order = (int) Settings::get_number(rt, category, "lpc_order");
+	formant_max_frequency = Settings::get_number(rt, category, "max_frequency");
+}
+
+void Spectrogram::enableFormantTracking(bool value)
+{
+	show_formants = value;
+	if (value) emptyCache();
 }
 
 } // namespace phonometrica

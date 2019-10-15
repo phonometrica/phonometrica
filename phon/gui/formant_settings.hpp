@@ -20,23 +20,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 04/10/2019                                                                                                 *
+ * Created: 15/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: helper routines for signal processing.                                                                     *
+ * Purpose: settings dialog for formant analysis.                                                                      *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SPEECH_UTILS_HPP
-#define PHONOMETRICA_SPEECH_UTILS_HPP
+#ifndef PHONOMETRICA_FORMANT_SETTINGS_HPP
+#define PHONOMETRICA_FORMANT_SETTINGS_HPP
 
-#include <phon/array.hpp>
+#include <QDialog>
+#include <QLineEdit>
 
-namespace phonometrica::speech {
+namespace phonometrica {
 
-std::vector<double> linspace(double from, double to, int num, bool include_boundaries = true);
+class Runtime;
 
-std::vector<double> get_time_points(double from, double to, double step, bool include_boundaries = true);
 
-} // namespace phonometrica::speech
+class FormantSettings final : public QDialog
+{
+	Q_OBJECT
 
-#endif // PHONOMETRICA_SPEECH_UTILS_HPP
+public:
+
+	FormantSettings(Runtime &rt, QWidget *parent = nullptr);
+
+private slots:
+
+	void validate();
+
+	void reset(bool);
+
+private:
+
+	void displayValues();
+
+	Runtime &runtime;
+
+	QLineEdit *nformant_edit, *window_edit, *step_edit, *npole_edit, *fs_edit;
+};
+
+} // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_FORMANT_SETTINGS_HPP

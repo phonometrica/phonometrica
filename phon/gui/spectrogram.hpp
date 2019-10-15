@@ -49,6 +49,8 @@ public:
 
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;
 
+    void enableFormantTracking(bool value);
+
 protected:
 
     void renderPlot(QPaintEvent *event) override;
@@ -69,6 +71,10 @@ private:
 
 	double formantToYPos(double hz);
 
+	void readSpectrogramSettings();
+
+	void readFormantsSettings();
+
 	// Cached spectrogram.
 	QImage image;
 
@@ -77,8 +83,8 @@ private:
 
 	QList<QPainterPath> formant_paths;
 
-	// Duration of the analysis window.
-	double window_length;
+	// Duration of the analysis window for spectrograms.
+	double spectrum_window_length;
 
 	// Highest frequency.
 	double max_freq;
@@ -89,7 +95,27 @@ private:
 	// Dynamic range (in dB). Values below the threshold [max_dB - dynamic_range] are treated as 0.
 	int dynamic_range;
 
+
+	// Duration of the analysis window for formants.
+	double formant_window_length;
+
+	// Time step for formants.
+	double formant_time_step;
+
+	// Nyquist frequency range for formant analysis.
+	double formant_max_frequency;
+
+	// Number of prediction coefficients for LPC analysis.
+	int lpc_order;
+
+	// Number of formants to display.
+	int nformant;
+
+	// Window type for the spectrogram.
 	speech::WindowType window_type;
+
+	// Enable formant tracking.
+	bool show_formants = false;
 };
 
 } // namespace phonometrica
