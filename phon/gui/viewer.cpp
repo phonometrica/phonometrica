@@ -27,6 +27,7 @@
  ***********************************************************************************************************************/
 
 #include <QDesktopServices>
+#include <QDebug>
 #include <QMessageBox>
 #include <phon/gui/viewer.hpp>
 #include <phon/gui/views/view.hpp>
@@ -218,9 +219,9 @@ void Viewer::view(const std::shared_ptr<VFile> &file)
         if (annot->has_sound())
         {
             auto label = annot->label();
-			PHON_TRACE("Creating annotation in viewer");
+			PHON_LOG("Creating annotation in viewer");
             addView(new AnnotationView(runtime, std::move(annot)), label);
-			PHON_TRACE("Annotation created");
+			PHON_LOG("Annotation created");
         }
         else
         {
@@ -255,9 +256,9 @@ void Viewer::closeAll()
 void Viewer::editAnnotation(AutoAnnotation annot, intptr_t layer, double from, double to)
 {
     auto label = annot->label();
-	PHON_TRACE("Creating annotation view");
+	PHON_LOG("Creating annotation view");
     auto view = new AnnotationView(runtime, std::move(annot), this);
-	PHON_TRACE("Annotation view created");
+	PHON_LOG("Annotation view created");
     addView(view, label);
 	view->openSelection(layer, from, to);
 }

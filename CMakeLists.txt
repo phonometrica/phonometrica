@@ -13,12 +13,12 @@ set(CMAKE_CXX_STANDARD 17)
 ##  COMPILATION OPTIONS  ##
 ###########################
 
-option(BUILD_GUI "Build user interface" ON)
-option(EMBED_SCRIPTS "Embed scripts as static strings at compile time" ON)
-option(BUILD_UNIT_TEST "Build unit tests" OFF)
-option(DEBUG_CONSOLE "Include debugging messages sent to the console" OFF)
-option(ENABLE_TRACING "Include debugging messages sent to the standard error" ON)
-option(USE_FFTW "Use FFTW instead of FFTS" OFF)
+set(BUILD_GUI ON)
+set(EMBED_SCRIPTS ON)
+set(BUILD_UNIT_TEST OFF)
+set(DEBUG_CONSOLE OFF)
+set(ENABLE_LOGGING ON)
+set(USE_FFTW OFF)
 
 ###########################
 ##  VERSION INFORMATION  ##
@@ -80,8 +80,8 @@ if (DEBUG_CONSOLE)
     add_definitions(-DPHON_DEBUG_CONSOLE=1)
 endif()
 
-if (ENABLE_TRACING)
-    add_definitions(-DPHON_ENABLE_TRACING=1)
+if (ENABLE_LOGGING)
+    add_definitions(-DPHON_ENABLE_LOGGING=1)
 endif()
 
 if (BUILD_GUI)

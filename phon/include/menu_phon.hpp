@@ -205,6 +205,15 @@ function sound_info()
     about(msg, title)
 end
 
+function view_log()
+	var path = system.join_path(system.user_directory, "phonometrica.log")
+	if system.exists(path) then
+		phon.view_log(path)
+	else
+		info("There is no log file")
+	end
+end
+
 function show_release()
 	var page = phon.config.get_documentation_page("about/release-notes.html")
 	phon.show_documentation(page)
@@ -273,9 +282,9 @@ file_menu = [
 	["Quit", phon.quit, "ctrl+q"]
 ]
 
-edit_menu = [
-	["Edit new query...", new_query, "alt+q"],
-	["Edit last query", run_last_query, "ctrl+alt+q"]
+analysis_menu = [
+	["Search in annotations...", new_query, "ctrl+e"],
+	["Edit last query", run_last_query, "alt+q"]
 ]
 
 help_menu = [
@@ -289,13 +298,15 @@ help_menu = [
 	null,
 	["Sound information", sound_info],
 	null,
+	["View log file", view_log],
+	null,
 	["About Phonometrica", show_about]
 ]
 
 phon.actions = {} 
 
 create_menu(file_menu, "File")
-create_menu(edit_menu, "Edit")
+create_menu(analysis_menu, "Analysis")
 phon.create_window_menu() # Handled in C++ code
 phon.create_tool_menu()   # Handled in C++ code
 create_menu(help_menu, "Help")

@@ -38,7 +38,7 @@ namespace phonometrica {
 IntensityPlot::IntensityPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
     SpeechPlot(rt, std::move(data), parent)
 {
-	PHON_TRACE("creating intensity plot");
+	PHON_LOG("creating intensity plot");
 
 	try
 	{
@@ -53,7 +53,7 @@ IntensityPlot::IntensityPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidg
 
 void IntensityPlot::renderPlot(QPaintEvent *)
 {
-	PHON_TRACE("rendering intensity plot");
+	PHON_LOG("rendering intensity plot");
 
 	QPainter painter(this);
     QPainterPath path;

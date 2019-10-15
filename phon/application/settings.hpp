@@ -61,6 +61,8 @@ public:
 
     static bool get_boolean(Runtime &rt, const String &name);
 
+	static bool get_boolean(Runtime &rt, const String &category, const String &name);
+
     static double get_number(Runtime &rt, const String &name);
 
     static double get_number(Runtime &rt, const String &category, const String &name);

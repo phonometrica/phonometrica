@@ -41,6 +41,16 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 	auto js = json::parse(content.data());
 	json::iterator it;
 
+	it = js.find("type");
+	if (it == js.end()) {
+		throw error("Protocol has no \"type\" key");
+	}
+
+	auto type = it->get<std::string>();
+	if (type != "coding_protocol") {
+		throw error("Invalid type in protocol: \"%\"", type);
+	}
+
 	it = js.find("name");
 	if (it == js.end()) {
 		throw error("Protocol has no \"name\" key");

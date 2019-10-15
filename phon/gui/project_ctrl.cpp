@@ -33,6 +33,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QMenu>
+#include <QDebug>
 #include <QFileIconProvider>
 #include <phon/gui/project_ctrl.hpp>
 #include <phon/gui/property_editor.hpp>
@@ -338,7 +339,7 @@ void ProjectCtrl::dropEvent(QDropEvent *event)
 
 void ProjectCtrl::onItemDoubleClicked(QTreeWidgetItem *item)
 {
-	PHON_TRACE("Item double-clicked in project control");
+	PHON_LOG("Item double-clicked in project control");
     auto vnode = get_vnode(item);
 
     if (vnode->is_script())

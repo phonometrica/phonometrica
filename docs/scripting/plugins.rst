@@ -7,7 +7,7 @@ Plugins
 Phonometrica can be extended with plugins, which are written in `JSON <https://www.json.org/>`_ and Phonometrica's scripting language.
 When it starts up, Phonometrica loads all plugins which are located in the system plugin directory or in the user plugin directory. Plugins 
 can add functionality to Phonometrica in a number of ways, but most commonly they will create a submenu in the `Tools` menu which provides 
-additional commands offered by the plugin and/or custom query protocols.
+additional commands offered by the plugin and/or custom coding protocols.
 
 Plugins can be shared and redistributed as ZIP files. To install a plugin, go to ``Tools > Install plugin...`` and choose the ZIP
 file corresponding to the plugin you wish to install. It will be installed in the current user’s plugin directory.
@@ -24,7 +24,7 @@ To be valid, a plugin must adhere to a number of conventions. A plugin usually c
 -  a script named ``finalize.phon`` (optional). If it exists, it will be run when the program exits.
 -  a ``Scripts`` sub-directory, which contains all your scripts
    (optional).
--  a ``Protocols`` sub-directory, which contains query protocols (optional)
+-  a ``Protocols`` sub-directory, which contains coding protocols (optional)
 -  a ``Resources`` sub-directory, which may contain anything (optional).
 
 The description file (``description.json``) contains all the information necessary to initialize the plugin. It must **at least** contain a name. 
@@ -62,21 +62,21 @@ which is the entry's label (as it is displayed in the menu), and a ``target`` fi
 a shortcut to execute the script the action is bound to.
 
 
-Defining query protocols
+Defining coding protocols
 ------------------------
 
-If you have devised a coding scheme for your data, Phonometrica lets you define a **query protocol**. A query protocol is a description of your
+If you have devised a coding scheme for your data, Phonometrica lets you define a **coding protocol**. A coding protocol is a description of your
 coding scheme which offers a user-friendly interface for querying your data; it tells Phonometrica what to look for and how to present the
-information to the user in the query editor. Phonometrica will automatically load all valid query protocols in your plugin's submenu.
+information to the user in the query editor. Phonometrica will automatically load all valid coding protocols in your plugin's submenu.
 
-A query protocol defines a number of **fields** which can take on a number of values. The user is presented with a number of checkboxes for each
-field, and Phonometrica converts the query to the corresponding regular expression, as defined by the query protocol. Query protocols are written
+A coding protocol defines a number of **fields** which can take on a number of values. The user is presented with a number of checkboxes for each
+field, and Phonometrica converts the query to the corresponding regular expression, as defined by the coding protocol. Coding protocols are written
 in JSON.  Here is a simple yet realistic example, drawn from the `PFC project <http://www.projet-pfc.net>`_:
 
 .. code:: json
 
     {
-        "type": "query_protocol",
+        "type": "coding_protocol",
         "name": "Schwa coding",
         "version": "0.1",
         
@@ -132,7 +132,7 @@ in JSON.  Here is a simple yet realistic example, drawn from the `PFC project <h
         ]
     }
 
-The ``type`` field is required and indicates that this file is a query protocol. The ``name`` field corresponds to the name of the grammar, as it 
+The ``type`` field is required and indicates that this file is a coding protocol. The ``name`` field corresponds to the name of the grammar, as it 
 will be seen by the user, and ``version`` is an optional field which corresponds to the version of the protocol.
 
 Next, the ``field_separator`` is an optional attribute which indicates the separator to be used between fields. In this case, it is an empty string, 

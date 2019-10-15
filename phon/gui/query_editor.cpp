@@ -112,7 +112,7 @@ void QueryEditor::setupUi(int context_length)
 	main_layout->addWidget(scroll_area);
 	main_layout->addWidget(button_box);
 
-	setWindowTitle("Query editor");
+	setWindowTitle("Query editor (annotations)");
 	this->setLayout(main_layout);
 
 	connect(button_box, SIGNAL(accepted()), this, SLOT(accept()));

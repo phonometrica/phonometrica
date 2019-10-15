@@ -111,11 +111,22 @@ void Settings::read(Runtime &rt)
 	}
 	rt.do_string(content);
 
-	// Sanity check
+	// Sanity checks
 	rt.do_string(R"__(
 if (not phon.contains("settings")) then
     error("Settings could not be initialized properly: check the file '" + phon.config.path + "'")
-end)__");
+end
+
+var plots = phon.settings.get("sound_plots", null)
+if not plots then
+	phon.settings.sound_plots = {
+		spectrogram: true,
+		formants: false,
+		pitch: true,
+		intensity: true
+	}
+end
+)__");
 }
 
 void Settings::write(Runtime &rt)
@@ -284,6 +295,21 @@ int Settings::get_int(Runtime &rt, const String &name)
 {
 	return int(get_number(rt, name));
 }
+
+
+bool Settings::get_boolean(Runtime &rt, const String &category, const String &name)
+{
+    // Get "phon.settings.category.name"
+    rt.get_global(phon_key);
+    rt.get_field(-1, settings_key);
+    rt.get_field(-1, category);
+    rt.get_field(-1, name);
+    auto value = rt.to_boolean(-1);
+    rt.pop(4);
+
+    return value;
+}
+
 
 double Settings::get_number(Runtime &rt, const String &category, const String &name)
 {

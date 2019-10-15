@@ -33,6 +33,13 @@ phon.settings = {
 
 	resampling_quality: 6,
 
+	sound_plots: {
+		spectrogram: true,
+		formants: false,
+		pitch: true,
+		intensity: true
+	}
+
 	waveform: {
 		magnitude: 1.0,
 		scaling: "local"

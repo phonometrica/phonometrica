@@ -45,29 +45,30 @@ namespace phonometrica {
 SpeechView::SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWidget *parent) :
 		View(parent), m_data(data), player(rt, this, data), runtime(rt)
 {
-	PHON_TRACE("Construction speech annotation");
+	PHON_LOG("Construction speech annotation");
     // We can't set up the UI in the constructor because we need to call virtual methods. Instead, we do it
     // in post_initialize(), which is called by the viewer after the view is created and has its vtable set.
 }
 
 void SpeechView::post_initialize()
 {
-	PHON_TRACE("post-initializing speech view");
+	PHON_LOG("post-initializing speech view");
 	setupUi();
 	setInitialWindow();
-	PHON_TRACE("Speech view post-initialization done");
+	setPlotVisibility();
+	PHON_LOG("Speech view post-initialization done");
 }
 
 Toolbar *SpeechView::makeToolbar()
 {
-	PHON_TRACE("Adding toolbar to speech view");
+	PHON_LOG("Adding toolbar to speech view");
 
 	auto wave_menu = new QMenu;
 	auto action_wave_settings = new QAction(tr("Waveform settings..."), this);
 	wave_menu->addAction(action_wave_settings);
 
 	auto spectrum_menu = new QMenu;
-	auto action_enable_spectrum = new QAction(tr("Show spectrogram"), this);
+	action_enable_spectrum = new QAction(tr("Show spectrogram"), this);
 	action_enable_spectrum->setCheckable(true);
 	action_enable_spectrum->setChecked(true);
 	auto action_spectrum_settings = new QAction(tr("Spectrogram settings..."), this);
@@ -75,14 +76,14 @@ Toolbar *SpeechView::makeToolbar()
 	spectrum_menu->addAction(action_spectrum_settings);
 	
 	auto formants_menu = new QMenu;
-	auto action_enable_formants = new QAction(tr("Show formants"), this);
+	action_enable_formants = new QAction(tr("Show formants"), this);
 	action_enable_formants->setCheckable(true);
 	auto action_formants_settings = new QAction(tr("Formant settings..."), this);
 	formants_menu->addAction(action_enable_formants);
 	formants_menu->addAction(action_formants_settings);
 
     auto pitch_menu = new QMenu;
-    auto action_enable_pitch = new QAction(tr("Show pitch"), this);
+    action_enable_pitch = new QAction(tr("Show pitch"), this);
     action_enable_pitch->setCheckable(true);
     action_enable_pitch->setChecked(true);
     auto action_pitch_settings = new QAction(tr("Pitch settings..."), this);
@@ -90,7 +91,7 @@ Toolbar *SpeechView::makeToolbar()
     pitch_menu->addAction(action_pitch_settings);
 
     auto intensity_menu = new QMenu;
-    auto action_enable_intensity = new QAction(tr("Show intensity"), this);
+    action_enable_intensity = new QAction(tr("Show intensity"), this);
     action_enable_intensity->setCheckable(true);
     action_enable_intensity->setChecked(true);
     auto action_intensity_settings = new QAction(tr("Intensity settings..."), this);
@@ -189,10 +190,10 @@ Toolbar *SpeechView::makeToolbar()
     connect(move_next, &QAction::triggered, this, &SpeechView::moveForward);
     connect(move_back, &QAction::triggered, this, &SpeechView::moveBackward);
     connect(select, &QAction::triggered, this, &SpeechView::chooseSelection);
-    connect(action_enable_pitch, &QAction::triggered, this, &SpeechView::showPitch);
-    connect(action_enable_formants, &QAction::triggered, this, &SpeechView::showFormants);
-	connect(action_enable_spectrum, &QAction::triggered, this, &SpeechView::showSpectrogram);
-	connect(action_enable_intensity, &QAction::triggered, this, &SpeechView::showIntensity);
+    connect(action_enable_pitch, &QAction::toggled, this, &SpeechView::showPitch);
+    connect(action_enable_formants, &QAction::toggled, this, &SpeechView::showFormants);
+	connect(action_enable_spectrum, &QAction::toggled, this, &SpeechView::showSpectrogram);
+	connect(action_enable_intensity, &QAction::toggled, this, &SpeechView::showIntensity);
 	connect(action_wave_settings, &QAction::triggered, this, &SpeechView::changeWaveformSettings);
     connect(action_pitch_settings, &QAction::triggered, this, &SpeechView::changePitchSettings);
     connect(action_formants_settings, &QAction::triggered, this, &SpeechView::changeFormantsSettings);
@@ -351,18 +352,24 @@ void SpeechView::enableMouseTracking(bool enable)
 
 void SpeechView::showSpectrogram(bool checked)
 {
+	auto s = String::format("phon.settings.sound_plots['spectrogram'] = %s", (checked ? "true" : "false"));
+	runtime.do_string(s);
 	spectrogram->setVisible(checked);
 	spectrogram_line->setVisible(checked);
 }
 
 void SpeechView::showPitch(bool checked)
 {
+	auto s = String::format("phon.settings.sound_plots['pitch'] = %s", (checked ? "true" : "false"));
+	runtime.do_string(s);
     pitch_plot->setVisible(checked);
     pitch_line->setVisible(checked);
 }
 
 void SpeechView::showFormants(bool checked)
 {
+	auto s = String::format("phon.settings.sound_plots['formants'] = %s", (checked ? "true" : "false"));
+	runtime.do_string(s);
 	spectrogram->enableFormantTracking(checked);
 	spectrogram->repaint();
 }
@@ -419,6 +426,8 @@ void SpeechView::changeSpectrogramSettings(bool)
 
 void SpeechView::showIntensity(bool checked)
 {
+	auto s = String::format("phon.settings.sound_plots['intensity'] = %s", (checked ? "true" : "false"));
+	runtime.do_string(s);
     intensity_plot->setVisible(checked);
     intensity_line->setVisible(checked);
 }
@@ -435,7 +444,7 @@ void SpeechView::setInitialWindow()
 
 void SpeechView::setupUi()
 {
-	PHON_TRACE("Creating UI for speech view");
+	PHON_LOG("Creating UI for speech view");
 
 	// Create objects first so that we can connect them to signals
 	waveform = new Waveform(runtime, m_data, this);
@@ -552,6 +561,20 @@ void SpeechView::showDocumentation(bool)
 		var page = phon.config.get_documentation_page("annotation.html")
 		phon.show_documentation(page)
 		)__");
+}
+
+void SpeechView::setPlotVisibility()
+{
+	bool value;
+	String category("sound_plots");
+	value = Settings::get_boolean(runtime, category, "formants");
+	action_enable_formants->setChecked(value);
+	value = Settings::get_boolean(runtime, category, "spectrogram");
+	action_enable_spectrum->setChecked(value);
+	value = Settings::get_boolean(runtime, category, "pitch");
+	action_enable_pitch->setChecked(value);
+	value = Settings::get_boolean(runtime, category, "intensity");
+	action_enable_intensity->setChecked(value);
 }
 
 } // namespace phonometrica

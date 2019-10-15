@@ -45,7 +45,7 @@ namespace phonometrica {
 Spectrogram::Spectrogram(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
 	SpeechPlot(rt, std::move(data), parent)
 {
-	PHON_TRACE("creating spectrogram");
+	PHON_LOG("creating spectrogram");
 
 	try
 	{
@@ -78,7 +78,7 @@ void Spectrogram::drawYAxis(QWidget *y_axis, int y1, int y2)
 
 void Spectrogram::renderPlot(QPaintEvent *event)
 {
-	PHON_TRACE("rendering spectrogram");
+	PHON_LOG("rendering spectrogram");
 
 	if (needsRefresh())
 	{
@@ -516,7 +516,7 @@ void Spectrogram::readFormantsSettings()
 void Spectrogram::enableFormantTracking(bool value)
 {
 	show_formants = value;
-	if (value) emptyCache();
+	emptyCache();
 }
 
 } // namespace phonometrica

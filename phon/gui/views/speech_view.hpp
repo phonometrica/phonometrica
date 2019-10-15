@@ -125,11 +125,15 @@ protected:
 
     void setInitialWindow();
 
+    void setPlotVisibility();
+
     Runtime &runtime;
 
     std::shared_ptr<AudioData> m_data;
 
     AudioPlayer player;
+
+    QAction *action_enable_spectrum, *action_enable_formants, *action_enable_pitch, *action_enable_intensity;
 
     Waveform *waveform;
 

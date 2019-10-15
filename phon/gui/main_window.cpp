@@ -41,6 +41,7 @@
 #include <phon/gui/preference_editor.hpp>
 #include <phon/gui/csv_import_dialog.hpp>
 #include <phon/gui/user_dialog.hpp>
+#include <phon/gui/text_viewer.hpp>
 #include <phon/runtime/object.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
@@ -349,6 +350,13 @@ void MainWindow::makeMenu(QWidget *panel)
         });
     };
 
+    auto view_log = [this](Runtime &rt) {
+    	auto path = rt.to_string(1);
+    	TextViewer viewer(path, "View log", this);
+    	viewer.exec();
+    	rt.push_null();
+    };
+
     auto create_window_menu = [=](Runtime &rt) {
         this->addWindowMenu(menubar);
     };
@@ -373,6 +381,7 @@ void MainWindow::makeMenu(QWidget *panel)
         runtime.add_method("bind_action", bind_action, 2);
         runtime.add_method("create_window_menu", create_window_menu, 0);
         runtime.add_method("create_tool_menu", create_tool_menu, 0);
+        runtime.add_method("view_log", view_log, 1);
     }
     runtime.pop();
 

@@ -32,36 +32,45 @@
 
 using namespace phonometrica;
 
+#ifdef PHON_ENABLE_LOGGING
 void message_handler(QtMsgType, const QMessageLogContext&, const QString& msg)
 {
 	static QFile file(filesystem::join(filesystem::user_directory(), "phonometrica.log"));
-	if (!file.isOpen()) file.open(QIODevice::ReadWrite);
+	if (!file.isOpen()) file.open(QIODevice::Append);
 	static QTextStream stream(&file);
 	stream << msg << "\n";
 	stream.flush();
 };
-
+#endif
 
 int main(int argc, char *argv[])
 {
-    Runtime rt;
-    initialize(rt);
 
+#ifdef PHON_ENABLE_LOGGING
 	qInstallMessageHandler(message_handler);
-	PHON_TRACE("starting application");
-    try
+#endif
+
+	PHON_LOG("**************************************************************");
+	PHON_LOG("New session");
+	Runtime rt;
+	initialize(rt);
+	PHON_LOG("Runtime initialized");
+
+	try
     {
 #ifdef PHON_GUI
 	    Sound::set_sound_formats();
 
         bool text_mode = (argc > 1);
 
+        PHON_LOG("Creating application");
         Application app(argc, argv);
 #if PHON_WINDOWS
 		QCoreApplication::addLibraryPath("./");
 #endif
         rt.set_text_mode(text_mode);
         setlocale(LC_NUMERIC, "C"); // for proper floating point conversion
+        PHON_LOG("Creating main window");
         MainWindow win(rt);
         auto version = utils::get_version();
 

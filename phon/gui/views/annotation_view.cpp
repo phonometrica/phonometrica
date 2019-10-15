@@ -33,6 +33,7 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QToolButton>
+#include <QDebug>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/gui/views/annotation_view.hpp>
@@ -43,14 +44,14 @@ namespace phonometrica {
 AnnotationView::AnnotationView(Runtime &rt, std::shared_ptr<Annotation> annot, QWidget *parent) :
     SpeechView(rt, annot->sound()->data(), parent), annot(std::move(annot))
 {
-	PHON_TRACE("Opening annotation in AnnotationView ctor");
+	PHON_LOG("Opening annotation in AnnotationView ctor");
     this->annot->open();
-	PHON_TRACE("Annotation opened");
+	PHON_LOG("Annotation opened");
 }
 
 void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 {
-	PHON_TRACE("Adding annotation actions to toolbar");
+	PHON_LOG("Adding annotation actions to toolbar");
 
 	auto save_action = new QAction(QIcon(":/icons/save.png"), "Save annotation");
 	toolbar->addAction(save_action);
@@ -112,7 +113,7 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 
 void AnnotationView::addAnnotationLayers(QVBoxLayout *layout)
 {
-	PHON_TRACE("Adding annotation layers");
+	PHON_LOG("Adding annotation layers");
 
 	intptr_t count = annot->size();
 

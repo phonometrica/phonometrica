@@ -41,7 +41,7 @@ namespace phonometrica {
 PitchPlot::PitchPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
     SpeechPlot(rt, std::move(data), parent)
 {
-	PHON_TRACE("creating pitch plot");
+	PHON_LOG("creating pitch plot");
 
 	try
 	{
@@ -74,7 +74,7 @@ void PitchPlot::drawYAxis(QWidget *y_axis, int y1, int y2)
 
 void PitchPlot::renderPlot(QPaintEvent *)
 {
-	PHON_TRACE("rendering pitch plot");
+	PHON_LOG("rendering pitch plot");
 
 	QPainter painter(this);
     auto fm = fontMetrics();

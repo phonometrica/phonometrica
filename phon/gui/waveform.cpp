@@ -38,7 +38,7 @@ namespace phonometrica {
 Waveform::Waveform(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
     SpeechPlot(rt, std::move(data), parent)
 {
-	PHON_TRACE("creating waveform");
+	PHON_LOG("creating waveform");
 
 	try
 	{
@@ -53,7 +53,7 @@ Waveform::Waveform(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent
 
 void Waveform::renderPlot(QPaintEvent *)
 {
-	PHON_TRACE("rendering waveform");
+	PHON_LOG("rendering waveform");
 
 	QPainter painter(this);
 	// Draw zero-crossing line.

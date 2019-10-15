@@ -115,4 +115,4 @@ using AutoProtocol = std::shared_ptr<Protocol>;
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_PROTOCOL_HPP
+#endif //PHONOMETRICA_PROTOCOL_HPP
