@@ -54,9 +54,12 @@
 #endif
 
 #if PHON_ENABLE_TRACING
+#include <QDebug>
 #define PHON_TRACE(x) qDebug() << x;
 #else
-#define PHON_TRACE(x)
+#include <QDebug>
+#define PHON_TRACE(x) qDebug() << x;
+//#define PHON_TRACE(x)
 #endif
 
 #define PHON_MAC_SIDEBAR_COLOR "#E5E7EC"

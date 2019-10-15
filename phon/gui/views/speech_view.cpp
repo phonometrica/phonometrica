@@ -45,6 +45,7 @@ namespace phonometrica {
 SpeechView::SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWidget *parent) :
 		View(parent), m_data(data), player(rt, this, data), runtime(rt)
 {
+	PHON_TRACE("Construction speech annotation");
     // We can't set up the UI in the constructor because we need to call virtual methods. Instead, we do it
     // in post_initialize(), which is called by the viewer after the view is created and has its vtable set.
 }

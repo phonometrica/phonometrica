@@ -338,6 +338,7 @@ void ProjectCtrl::dropEvent(QDropEvent *event)
 
 void ProjectCtrl::onItemDoubleClicked(QTreeWidgetItem *item)
 {
+	PHON_TRACE("Item double-clicked in project control");
     auto vnode = get_vnode(item);
 
     if (vnode->is_script())

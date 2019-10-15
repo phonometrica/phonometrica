@@ -218,7 +218,9 @@ void Viewer::view(const std::shared_ptr<VFile> &file)
         if (annot->has_sound())
         {
             auto label = annot->label();
+			PHON_TRACE("Creating annotation in viewer");
             addView(new AnnotationView(runtime, std::move(annot)), label);
+			PHON_TRACE("Annotation created");
         }
         else
         {
@@ -253,7 +255,9 @@ void Viewer::closeAll()
 void Viewer::editAnnotation(AutoAnnotation annot, intptr_t layer, double from, double to)
 {
     auto label = annot->label();
+	PHON_TRACE("Creating annotation view");
     auto view = new AnnotationView(runtime, std::move(annot), this);
+	PHON_TRACE("Annotation view created");
     addView(view, label);
 	view->openSelection(layer, from, to);
 }

@@ -17,7 +17,7 @@ option(BUILD_GUI "Build user interface" ON)
 option(EMBED_SCRIPTS "Embed scripts as static strings at compile time" ON)
 option(BUILD_UNIT_TEST "Build unit tests" OFF)
 option(DEBUG_CONSOLE "Include debugging messages sent to the console" OFF)
-option(ENABLE_TRACING "Include debugging messages sent to the standard error" OFF)
+option(ENABLE_TRACING "Include debugging messages sent to the standard error" ON)
 option(USE_FFTW "Use FFTW instead of FFTS" OFF)
 
 ###########################

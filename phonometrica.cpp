@@ -23,6 +23,7 @@
 #include <phon/gui/application.hpp>
 #include <phon/gui/main_window.hpp>
 #include <phon/application/sound.hpp>
+#include <phon/utils/file_system.hpp>
 #endif
 
 #include <clocale>
@@ -31,11 +32,23 @@
 
 using namespace phonometrica;
 
+void message_handler(QtMsgType, const QMessageLogContext&, const QString& msg)
+{
+	static QFile file(filesystem::join(filesystem::user_directory(), "phonometrica.log"));
+	if (!file.isOpen()) file.open(QIODevice::ReadWrite);
+	static QTextStream stream(&file);
+	stream << msg << "\n";
+	stream.flush();
+};
+
+
 int main(int argc, char *argv[])
 {
     Runtime rt;
     initialize(rt);
 
+	qInstallMessageHandler(message_handler);
+	PHON_TRACE("starting application");
     try
     {
 #ifdef PHON_GUI
