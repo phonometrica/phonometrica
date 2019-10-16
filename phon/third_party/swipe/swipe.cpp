@@ -486,12 +486,12 @@ vector swipe(vector x, double samplerate, double min, double max, double st, dou
 	{
 		max = nyquist;
 		PHON_LOG("SWIPE: Max pitch exceeds Nyquist frequency...");
-		PHON_LOG("SWIPE: max pitch set to %.2f Hz.\n", max);
+		PHON_LOG("SWIPE: max pitch set to " << max << " Hz.\\n\"");
 	}
 	if (dt > nyquist2)
 	{
 		dt = nyquist2;
-		PHON_LOG("SWIPE: Timestep > SR...timestep set to %f.\n", nyquist2);
+		PHON_LOG("SWIPE: Timestep > SR...timestep set to " << nyquist2 << ".\n");
 	}
 	intvector ws = makeiv(round(log2((nyquist16) / min) - log2((nyquist16) / max)) + 1);
 	for (i = 0; i < ws.x; i++)

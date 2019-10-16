@@ -214,6 +214,13 @@ function view_log()
 	end
 end
 
+function erase_log()
+	var path = system.join_path(system.user_directory, "phonometrica.log")
+	if system.exists(path) then
+		system.remove_file(path)
+	end
+end
+
 function show_release()
 	var page = phon.config.get_documentation_page("about/release-notes.html")
 	phon.show_documentation(page)
@@ -233,7 +240,7 @@ function populate_menu(menu, desc)
 			if lst.is_empty() and item.length > 2 then
 				item[3](submenu)
 			else
-				populate_menu(submenu)
+				populate_menu(submenu, lst)
 			end
 
 		else
@@ -298,7 +305,10 @@ help_menu = [
 	null,
 	["Sound information", sound_info],
 	null,
-	["View log file", view_log],
+	["Debug", [
+		["View log file", view_log],
+		["Clear log file", erase_log]
+	]],
 	null,
 	["About Phonometrica", show_about]
 ]
