@@ -91,10 +91,6 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
         if (index.isValid()) editEvent(index.row());
     };
 
-#if PHON_MACOS
-    toolbar->addStretch();
-#endif
-
     connect(play_action, &QAction::triggered, play);
     connect(stop_action, &QAction::triggered, stop);
     connect(edit_action, &QAction::triggered, edit);
@@ -132,7 +128,6 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	toolbar->setMaximumHeight(30);
 #endif
 
-
 	// Match result layout
 
 	auto label = QString("<b>%1 matches").arg(m_data->row_count());
@@ -147,6 +142,10 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 		auto index = m_table->currentIndex();
 		if (index.isValid()) bookmarkMatch(index.row());
 	};
+
+#if PHON_MACOS
+	toolbar->addStretch();
+#endif
 
 	connect(info_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(match_action, &QAction::triggered, this, &QueryView::refreshTable);

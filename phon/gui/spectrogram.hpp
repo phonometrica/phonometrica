@@ -55,7 +55,7 @@ protected:
 
     void renderPlot(QPaintEvent *event) override;
 
-    virtual bool needsRefresh() const;
+    virtual bool needsRefresh() const override;
 
     void resizeEvent(QResizeEvent *) override;
 
