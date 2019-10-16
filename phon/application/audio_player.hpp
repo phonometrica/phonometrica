@@ -116,7 +116,7 @@ private:
 
     SpeexResamplerState *m_resampler = nullptr;
 
-    unsigned int output_rate;
+    unsigned int output_rate = 0;
 
     std::atomic<bool> m_paused = false;
 

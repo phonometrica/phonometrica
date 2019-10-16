@@ -190,7 +190,7 @@ int bilookv(vector yr_vector, double key, int lo) {
     int hi = yr_vector.x;
     lo--;
     while (hi - lo > 1) {
-        md = (hi + lo) >> 1;
+		md = (hi + lo) >> 1;
         if (yr_vector.v[md] > key)
             hi = md;
         else
@@ -505,6 +505,7 @@ double splinv(vector x, vector y, vector y2, double val, int hi) {
     double h = x.v[hi] - x.v[lo];
     double a = (x.v[hi] - val) / h;
     double b = (val - x.v[lo]) / h;
+
     return(a * y.v[lo] + b * y.v[hi] + ((a * a * a - a) * y2.v[lo] *
                          (b * b * b - b) * y2.v[hi]) * (h * h) / 6.);
 }

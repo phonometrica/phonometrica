@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	qInstallMessageHandler(message_handler);
 #endif
 
-	PHON_LOG("**************************************************************");
+	PHON_LOG("*******************************************************");
 	PHON_LOG("New session");
 	Runtime rt;
 	initialize(rt);

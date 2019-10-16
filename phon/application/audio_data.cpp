@@ -43,12 +43,12 @@ AudioData::AudioData(const SndfileHandle &h) :
 AudioData::AudioData(const SndfileHandle &h, bool load) :
     m_handle(h)
 {
-	m_data.resize(m_handle.frames() * m_handle.channels());
-	double *ptr = m_data.data();
 	m_handle.seek(0, SEEK_SET);
 
 	if (load)
 	{
+		m_data.resize(m_handle.frames() * m_handle.channels());
+		double* ptr = m_data.data();
 		auto end = m_data.end();
 
 		while (ptr < end)

@@ -100,6 +100,7 @@ void PitchPlot::renderPlot(QPaintEvent *)
 
     double t = window_start;
     bool previous = false; // no pitch before
+	PHON_LOG("Painting pitch data");
 
     for (auto f : pitch_data)
     {
@@ -129,6 +130,7 @@ void PitchPlot::renderPlot(QPaintEvent *)
 
     if (trackCursor())
     {
+		PHON_LOG("Add cursor to pitch plot");
         auto x = timeToXPos(current_time) + 5;
         auto f = findValueAtTime(current_time);
 
@@ -157,6 +159,7 @@ bool PitchPlot::needsRefresh() const
 
 void PitchPlot::calculatePitch()
 {
+	PHON_LOG("Calculating pitch");
     auto first_sample = m_data->time_to_frame(window_start);
     auto last_sample = m_data->time_to_frame(window_end);
     auto input = m_data->get(first_sample, last_sample);
@@ -167,6 +170,7 @@ void PitchPlot::calculatePitch()
     vec.x = (int) input.size();
     vec.v = input.data();
 
+	PHON_LOG("Running SWIPE");
     auto tmp = swipe(vec, sample_rate, min_pitch, max_pitch, voicing_threshold, time_step);
     pitch_data = Array<double>::from_memory(tmp.v, tmp.x);
     cached_start = window_start;

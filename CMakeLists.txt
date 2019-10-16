@@ -17,7 +17,7 @@ set(BUILD_GUI ON)
 set(EMBED_SCRIPTS ON)
 set(BUILD_UNIT_TEST OFF)
 set(DEBUG_CONSOLE OFF)
-set(ENABLE_LOGGING ON)
+set(ENABLE_LOGGING OFF)
 set(USE_FFTW OFF)
 
 ###########################
@@ -36,7 +36,7 @@ add_definitions(-DPHON_VERSION_NANO=7)
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=10)
-add_definitions(-DPHON_RELEASE_DATE_DAY=15)
+add_definitions(-DPHON_RELEASE_DATE_DAY=16)
 
 # Operating system
 if(WIN32)

@@ -128,6 +128,11 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 
 	auto bookmark_action = toolbar->addAction(QIcon(":/icons/favorite.png"), tr("Bookmark match"));
 
+#if PHON_MACOS || PHON_WINDOWS
+	toolbar->setMaximumHeight(30);
+#endif
+
+
 	// Match result layout
 
 	auto label = QString("<b>%1 matches").arg(m_data->row_count());

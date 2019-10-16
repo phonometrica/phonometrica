@@ -25,6 +25,8 @@
 
 #define VNUM    1.5 // current version
 
+#include <QDebug>
+#include <phon/definitions.hpp>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,9 +34,7 @@
 #include <vector>
 #include <complex>
 #ifndef _WIN32
-
 #include <unistd.h>
-
 #endif
 
 #include <limits.h>
@@ -127,6 +127,7 @@ void La(matrix L, vector f, vector fERBs, ffts_plan_t *plan, std::complex<float>
 #endif
 {
 	int j;
+
 #ifdef PHON_USE_FFTW
 	fftw_execute(plan);
 #endif
@@ -139,11 +140,16 @@ void La(matrix L, vector f, vector fERBs, ffts_plan_t *plan, std::complex<float>
 		a.v[j] = sqrt(std::real(fo[j]) * std::real(fo[j]) + std::imag(fo[j]) * std::imag(fo[j]));
 #endif
 	}
+
 	vector a2 = spline(f, a); // a2 is now the result of the cubic spline
 	L.m[i][0] = fixnan(sqrt(splinv(f, a, a2, fERBs.v[0], hi)));
+	const int max_index = f.x - 1;
 	for (j = 1; j < L.y; j++)
 	{ // perform a bisection query at ERB intvls
-		hi = bilookv(f, fERBs.v[j], hi);
+		// FIXME: there seems to be a bug in bilookv whereby an out of bounds index equal to f.x is returned.
+		hi = (std::min)(bilookv(f, fERBs.v[j], hi), max_index);
+		assert(hi < f.x);
+		assert(hi < a.x);
 		L.m[i][j] = fixnan(sqrt(splinv(f, a, a2, fERBs.v[j], hi)));
 	}
 	freev(a);
@@ -205,6 +211,7 @@ matrix loudness(vector x, vector fERBs, double nyquist, int w, int w2)
 #endif
 		offset += w2;
 	}
+
 	for (/* i = L.x - 2; */; i < L.x; i++)
 	{ // right two boundary cases
 		for (j = 0; j < x.x - offset; j++) // this dies at x.x + w2
@@ -478,13 +485,13 @@ vector swipe(vector x, double samplerate, double min, double max, double st, dou
 	if (max > nyquist)
 	{
 		max = nyquist;
-		fprintf(stderr, "Max pitch exceeds Nyquist frequency...");
-		fprintf(stderr, "max pitch set to %.2f Hz.\n", max);
+		PHON_LOG("SWIPE: Max pitch exceeds Nyquist frequency...");
+		PHON_LOG("SWIPE: max pitch set to %.2f Hz.\n", max);
 	}
 	if (dt > nyquist2)
 	{
 		dt = nyquist2;
-		fprintf(stderr, "Timestep > SR...timestep set to %f.\n", nyquist2);
+		PHON_LOG("SWIPE: Timestep > SR...timestep set to %f.\n", nyquist2);
 	}
 	intvector ws = makeiv(round(log2((nyquist16) / min) - log2((nyquist16) / max)) + 1);
 	for (i = 0; i < ws.x; i++)
@@ -503,12 +510,16 @@ vector swipe(vector x, double samplerate, double min, double max, double st, dou
 	for (i = 0; i < fERBs.x; i++)
 		fERBs.v[i] = erb2hz(td + (i * DERBS));
 	intvector ps = onesiv(floor(fERBs.v[fERBs.x - 1] / pc.v[0] - .75));
+	
 	sieve(ps);
 	ps.v[0] = PR; // hack to make 1 "act" prime...don't ask
 	matrix S = zerom(pc.x, ceil(((double) x.x / nyquist2) / dt));
+
 	Sfirst(S, x, pc, fERBs, d, ws, ps, nyquist, nyquist2, dt, 0);
 	for (i = 1; i < ws.x - 1; i++) // S is updated inline here
+	{
 		Snth(S, x, pc, fERBs, d, ws, ps, nyquist, nyquist2, dt, i);
+	}
 	// i is now (ws.x - 1)
 	Slast(S, x, pc, fERBs, d, ws, ps, nyquist, nyquist2, dt, i);
 	freev(fERBs);
@@ -537,12 +548,12 @@ vector swipe(int fid, double min, double max, double st, double dt) {
 	double nyquist16 = info.samplerate * 8.;
 	if (max > nyquist) {
 		max = nyquist;
-		fprintf(stderr, "Max pitch exceeds Nyquist frequency...");
-		fprintf(stderr, "max pitch set to %.2f Hz.\n", max);
+		PHON_LOG("SWIPE: Max pitch exceeds Nyquist frequency...");
+		PHON_LOG("SWIPE: max pitch set to %.2f Hz.\n", max);
 	}
 	if (dt > nyquist2) {
 		dt = nyquist2;
-		fprintf(stderr, "Timestep > SR...timestep set to %f.\n", nyquist2);
+		PHON_LOG("SWIPE: Timestep > SR...timestep set to %f.\n", nyquist2);
 	}
 	intvector ws = makeiv(round(log2((nyquist16) / min) -
 								log2((nyquist16) / max)) + 1);
@@ -670,7 +681,7 @@ swipe [-i FILE] [-o FILE] [-b LIST] [-r MIN:MAX] [-s TS] [-t DT] [-mnhv]\n\
 			case 'i':
 				needed = (int) strlen(optarg);
 				if (needed > FILENAME_MAX) {
-					fprintf(stderr, "Filename too long, aborting.\n");
+					PHON_LOG("SWIPE: Filename too long, aborting.\n");
 					exit(EXIT_FAILURE);
 				}
 				wav = (char *) malloc(sizeof(char) * needed);
@@ -679,7 +690,7 @@ swipe [-i FILE] [-o FILE] [-b LIST] [-r MIN:MAX] [-s TS] [-t DT] [-mnhv]\n\
 			case 'o':
 				needed = (int) strlen(optarg);
 				if (needed > FILENAME_MAX) {
-					fprintf(stderr, "Filename too long, aborting.\n");
+					PHON_LOG("SWIPE: Filename too long, aborting.\n");
 					exit(EXIT_FAILURE);
 				}
 				out = (char *) malloc(sizeof(char) * needed);
@@ -702,17 +713,17 @@ swipe [-i FILE] [-o FILE] [-b LIST] [-r MIN:MAX] [-s TS] [-t DT] [-mnhv]\n\
 				vlo = false;
 				break;
 			case 'h':
-				fprintf(stderr, "%s", header);
-				fprintf(stderr, "%s", synops);
-				fprintf(stderr, "%s", output);
+				PHON_LOG("SWIPE: %s", header);
+				PHON_LOG("SWIPE: %s", synops);
+				PHON_LOG("SWIPE: %s", output);
 				exit(EXIT_SUCCESS);
 			case 'v':
-				fprintf(stderr, "This is SWIPE', v. %1.1f.\n", VNUM);
+				PHON_LOG("SWIPE: This is SWIPE', v. %1.1f.\n", VNUM);
 				exit(EXIT_SUCCESS);
 			case '?':
 			default:
-				fprintf(stderr, "%s", header);
-				fprintf(stderr, "%s", synops);
+				PHON_LOG("SWIPE: %s", header);
+				PHON_LOG("SWIPE: %s", synops);
 				exit(EXIT_FAILURE);
 			argc -= optind;
 			argv += optind;
@@ -720,19 +731,19 @@ swipe [-i FILE] [-o FILE] [-b LIST] [-r MIN:MAX] [-s TS] [-t DT] [-mnhv]\n\
 	}
 	// santiny-check the args
 	if (min < 1.) {
-		fprintf(stderr, "Min pitch < 1 Hz, aborting.\n");
+		PHON_LOG("SWIPE: Min pitch < 1 Hz, aborting.\n");
 		exit(EXIT_FAILURE);
 	}
 	if (max - min < 1.) {
-		fprintf(stderr, "Max pitch <= min pitch, aborting.\n");
+		PHON_LOG("SWIPE: Max pitch <= min pitch, aborting.\n");
 		exit(EXIT_FAILURE);
 	}
 	if (st < 0. || st > 1.) {
-		fprintf(stderr, "Strength must be 0 <= x <= 1, set to %.3f.\n", ST);
+		PHON_LOG("SWIPE: Strength must be 0 <= x <= 1, set to %.3f.\n", ST);
 		st = ST;
 	}
 	if (dt < .001) {
-		fprintf(stderr, "Timestep must be >= 0.001, set to %.3f.\n", DT);
+		PHON_LOG("SWIPE: Timestep must be >= 0.001, set to %.3f.\n", DT);
 		dt = DT;
 	}
 	if (batch != NULL) {
@@ -743,20 +754,20 @@ swipe [-i FILE] [-o FILE] [-b LIST] [-r MIN:MAX] [-s TS] [-t DT] [-mnhv]\n\
 			printf("%s -> %s...", wav, out);
 			FILE* wf = fopen(wav, "r");
 			if (wf == NULL) {
-				fprintf(stderr, "Reading from \"%s\" failed.\n", wav);
+				PHON_LOG("SWIPE: Reading from \"%s\" failed.\n", wav);
 				exit(EXIT_FAILURE);
 			}
 			vector p = swipe(fileno(wf), min, max, st, dt);
 			fclose(wf);
 			if (p.x == NOK) {
-				fprintf(stderr, "Reading from \"%s\" failed.\n", wav);
+				PHON_LOG("SWIPE: Reading from \"%s\" failed.\n", wav);
 				fclose(batch);
 				exit(EXIT_FAILURE);
 			}
 			else {
 				FILE* output = fopen(out, "w");
 				if (output == NULL) {
-					fprintf(stderr, "Writing to \"%s\" failed.\n", out);
+					PHON_LOG("SWIPE: Writing to \"%s\" failed.\n", out);
 					exit(EXIT_FAILURE);
 				}
 				printp(p, fileno(output), dt, mel, vlo);
@@ -776,20 +787,20 @@ swipe [-i FILE] [-o FILE] [-b LIST] [-r MIN:MAX] [-s TS] [-t DT] [-mnhv]\n\
 		else {
 			FILE* input = fopen(wav, "r");
 			if (input == NULL) {
-				fprintf(stderr, "Reading from \"%s\" failed (try ", wav);
-				fprintf(stderr, "specifying an input file with -i).\n");
+				PHON_LOG("SWIPE: Reading from \"%s\" failed (try ", wav);
+				PHON_LOG("SWIPE: specifying an input file with -i).\n");
 				exit(EXIT_FAILURE);
 			}
 			p = swipe(fileno(input), min, max, st, dt);
 		}
 		if (p.x == NOK) {
 			if (*wav == '\0') {
-				fprintf(stderr, "Reading from STDIN failed (did ");
-				fprintf(stderr, "you pipe a file to `swipe`?').\n");
+				PHON_LOG("SWIPE: Reading from STDIN failed (did ");
+				PHON_LOG("SWIPE: you pipe a file to `swipe`?').\n");
 			}
 			else {
-				fprintf(stderr, "Reading from \"%s\" failed (try ", wav);
-				fprintf(stderr, "specifying an input file with -i).\n");
+				PHON_LOG("SWIPE: Reading from \"%s\" failed (try ", wav);
+				PHON_LOG("SWIPE: specifying an input file with -i).\n");
 			}
 			exit(EXIT_FAILURE);
 		}
@@ -799,7 +810,7 @@ swipe [-i FILE] [-o FILE] [-b LIST] [-r MIN:MAX] [-s TS] [-t DT] [-mnhv]\n\
 			else {
 				FILE* output = fopen(out, "w");
 				if (output == NULL) {
-					fprintf(stderr, "Writing to \"%s\" failed.\n", out);
+					PHON_LOG("SWIPE: Writing to \"%s\" failed.\n", out);
 					exit(EXIT_FAILURE);
 				}
 				printp(p, fileno(output), dt, mel, vlo);
