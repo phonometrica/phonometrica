@@ -29,6 +29,7 @@
 #ifndef PHONOMETRICA_SPEECH_UTILS_HPP
 #define PHONOMETRICA_SPEECH_UTILS_HPP
 
+#include <cmath>
 #include <phon/array.hpp>
 
 namespace phonometrica::speech {
@@ -36,6 +37,19 @@ namespace phonometrica::speech {
 std::vector<double> linspace(double from, double to, int num, bool include_boundaries = true);
 
 std::vector<double> get_time_points(double from, double to, double step, bool include_boundaries = true);
+
+static inline
+double frame_to_time(intptr_t index, double Fs)
+{
+	return double(index) / Fs;
+}
+
+static inline
+intptr_t time_to_frame(double time, double Fs)
+{
+	return (intptr_t) round(time * Fs);
+}
+
 
 } // namespace phonometrica::speech
 

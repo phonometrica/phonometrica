@@ -69,7 +69,7 @@ private:
 
 	void estimateFormants();
 
-	double formantToYPos(double hz);
+	int formantToYPos(double hz);
 
 	void readSpectrogramSettings();
 

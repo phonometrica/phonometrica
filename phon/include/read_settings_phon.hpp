@@ -38,7 +38,7 @@ phon.settings = {
 		formants: false,
 		pitch: true,
 		intensity: true
-	}
+	},
 
 	waveform: {
 		magnitude: 1.0,

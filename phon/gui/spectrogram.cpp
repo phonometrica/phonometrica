@@ -130,41 +130,29 @@ void Spectrogram::renderPlot(QPaintEvent *event)
 		if (show_formants)
 		{
 			estimateFormants();
-			formant_paths.clear();
-			std::vector<bool> previous(formants.cols(), false);
-			auto xpoints = speech::linspace(window_start, window_end, this->width(), true);
 
-			for (int j = 0; j < formants.cols(); j++)
-			{
-				formant_paths.append(QPainterPath());
-			}
+//			auto pen = painter.pen();
+//			pen.setWidth(2);
+//			pen.setColor(QColor("red"));
+//			painter.setPen(pen);
+			QColor red("red");
+			auto rgb = red.rgb();
+			auto xpoints = speech::linspace(window_start, window_end, this->width(), true);
+			assert(xpoints.size() == formants.rows());
+
 
 			for (int i = 0; i < formants.rows(); i++)
 			{
-				auto x = timeToXPos(xpoints[i]);
+				//auto x = timeToXPos(xpoints[i]);
 
 				for (int j = 0; j < formants.cols(); j++)
 				{
-					auto &path = formant_paths[j];
+//					auto &path = formant_paths[j];
 
-					auto f = formants(i,j);
-
-					if (std::isnan(f))
-					{
-						previous[j] = false;
-					}
-					else if (previous[j])
-					{
-						auto y = formantToYPos(f);
-						path.lineTo(QPointF(x, y));
-						previous[j] = true;
-					}
-					else
-					{
-						auto y = formantToYPos(f);
-						path.moveTo(QPointF(x, y));
-						previous[j] = true;
-					}
+					auto f = formants(i, j);
+					auto y = formantToYPos(f);
+					image.setPixel(i, y, rgb);
+					image.setPixel(i, y-1, rgb);
 				}
 			}
 		}
@@ -176,20 +164,40 @@ void Spectrogram::renderPlot(QPaintEvent *event)
 
 	if (show_formants)
 	{
-		auto pen = painter.pen();
-		pen.setWidth(2);
-		pen.setColor(QColor("red"));
-		painter.setPen(pen);
-		for (auto &path : formant_paths)
-		{
-			painter.drawPath(path);
-		}
+
+//				if (std::isnan(f))
+//				{
+//					previous[j] = false;
+//				}
+//				else if (previous[j])
+//				{
+//					auto y = formantToYPos(f);
+//					path.lineTo(QPointF(x, y));
+//					previous[j] = true;
+//				}
+//				else
+//				{
+//					auto y = formantToYPos(f);
+//					path.moveTo(QPointF(x, y));
+//					previous[j] = true;
+//				}
+
+
+
+//		auto pen = painter.pen();
+//		pen.setWidth(2);
+//		pen.setColor(QColor("red"));
+//		painter.setPen(pen);
+//		for (auto &path : formant_paths)
+//		{
+//			painter.drawPath(path);
+//		}
 	}
 }
 
-double Spectrogram::formantToYPos(double hz)
+int Spectrogram::formantToYPos(double hz)
 {
-	return height() - (hz * height() / max_freq);
+	return height() - round((hz * height() / max_freq));
 }
 
 bool Spectrogram::needsRefresh() const
@@ -415,12 +423,12 @@ void Spectrogram::estimateFormants()
 	// Calculate LPC at each time point.
 	for (int i = 0; i < xpoints.size(); i++)
 	{
-		double f = m_data->time_to_frame(xpoints[i]);
+		double f = time_to_frame(xpoints[i] - window_start, Fs);
 		intptr_t start_frame = f - (nframe / 2);
 		intptr_t end_frame = start_frame + nframe;
 
 		// Don't estimate formants at the edge if we can't fill a window.
-		if (start_frame < from || end_frame > to)
+		if (start_frame < 0 || end_frame > output.size())
 		{
 			for (int j = 0; j < nformant; j++) {
 				formants(i,j) = std::nan("");
@@ -429,7 +437,7 @@ void Spectrogram::estimateFormants()
 		}
 
 		// Apply window.
-		auto it = output.begin() + (start_frame - from);
+		auto it = output.begin() + start_frame;
 		for (int j = 0; j < nframe; j++)
 		{
 			buffer[j] = *it++ * win[j+1];
@@ -443,6 +451,7 @@ void Spectrogram::estimateFormants()
 		}
 		catch (std::runtime_error &e)
 		{
+			qDebug() << "error at i = " << i;
 			for (int j = 0; j < formants.cols(); j++) {
 				formants(i, j) = std::nan("");
 			}
