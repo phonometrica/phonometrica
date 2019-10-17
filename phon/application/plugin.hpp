@@ -33,6 +33,8 @@
 #include <phon/utils/any.hpp>
 #include <phon/application/protocol.hpp>
 
+class QAction;
+
 namespace phonometrica {
 
 class Plugin final
@@ -73,6 +75,10 @@ public:
 
 	String version() const { return m_version; }
 
+	QAction *action() const { return m_action; }
+
+	void setAction(QAction *a) { m_action = a; }
+
 private:
 
 	void parse_description(Callback &callback);
@@ -90,6 +96,8 @@ private:
 	String m_description;
 
 	Array<AutoProtocol> m_protocols;
+
+	QAction *m_action = nullptr;
 
 	bool has_scripts = false;
 };

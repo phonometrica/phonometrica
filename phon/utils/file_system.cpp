@@ -312,7 +312,7 @@ bool remove_directory(const String &dir)
     auto dirs = list_directory(dir, true);
     auto size = dirs.size();
 
-    for (intptr_t i = 0; i < size; ++i)
+    for (intptr_t i = 1; i <= size; ++i)
     {
         String filename, path;
 

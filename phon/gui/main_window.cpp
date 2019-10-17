@@ -45,6 +45,7 @@
 #include <phon/runtime/object.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
+#include <phon/include/transphon_phon.hpp>
 #include <phon/utils/file_system.hpp>
 #include <phon/utils/any.hpp>
 #include <phon/utils/zip.hpp>
@@ -350,13 +351,6 @@ void MainWindow::makeMenu(QWidget *panel)
         });
     };
 
-    auto view_log = [this](Runtime &rt) {
-    	auto path = rt.to_string(1);
-    	TextViewer viewer(path, "View log", this);
-    	viewer.exec();
-    	rt.push_null();
-    };
-
     auto create_window_menu = [=](Runtime &rt) {
         this->addWindowMenu(menubar);
     };
@@ -381,7 +375,6 @@ void MainWindow::makeMenu(QWidget *panel)
         runtime.add_method("bind_action", bind_action, 2);
         runtime.add_method("create_window_menu", create_window_menu, 0);
         runtime.add_method("create_tool_menu", create_tool_menu, 0);
-        runtime.add_method("view_log", view_log, 1);
     }
     runtime.pop();
 
@@ -398,27 +391,35 @@ void MainWindow::makeMenu(QWidget *panel)
     setMenuBar(menubar);
 }
 
-void MainWindow::addToolsMenu(QMenuBar *menubar)
+void MainWindow::setToolsMenu()
 {
-	tool_menu = new QMenu(tr("Tools"));
-	tool_separator = tool_menu->addSeparator();
+	tool_separator = tools_menu->addSeparator();
 
 	auto install_action = new QAction(tr("Install plugin..."));
-	tool_menu->addAction(install_action);
-	tool_menu->addSeparator();
+	tools_menu->addAction(install_action);
+
+	auto uninstall_action = new QAction(tr("Uninstall plugin..."));
+	tools_menu->addAction(uninstall_action);
+	tools_menu->addSeparator();
 
 	auto extend_action = new QAction(tr("How to extend this menu"));
-	tool_menu->addAction(extend_action);
-	menubar->addMenu(tool_menu);
+	tools_menu->addAction(extend_action);
 
 	connect(install_action, &QAction::triggered, this, &MainWindow::installPlugin);
-
+	connect(uninstall_action, &QAction::triggered, this, &MainWindow::uninstallPlugin);
 	connect(extend_action, &QAction::triggered, [&](bool) {
 		runtime.do_string(R"__(
 		var page = phon.config.get_documentation_page("scripting/plugins.html")
 		phon.show_documentation(page)
 		)__");
 	});
+}
+
+void MainWindow::addToolsMenu(QMenuBar *menubar)
+{
+	tools_menu = new QMenu(tr("Tools"));
+	setToolsMenu();
+	menubar->addMenu(tools_menu);
 }
 
 void MainWindow::addWindowMenu(QMenuBar *menubar)
@@ -717,6 +718,38 @@ void MainWindow::setShellFunctions()
 		rt.push_null();
 	};
 
+	auto transphon = [=](Runtime &rt) {
+		run_script(rt, transphon);
+		rt.push_null();
+	};
+
+	auto get_plugin_list = [this](Runtime &rt) {
+		Array<Variant> names;
+		for (auto &plugin : plugins) {
+			names.append(plugin->label());
+		}
+		rt.push(std::move(names));
+	};
+
+	auto view_text = [this](Runtime &rt) {
+		auto path = rt.to_string(1);
+		auto title = rt.to_string(2);
+		TextViewer viewer(path, title, this);
+		if (rt.arg_count() >= 3)
+		{
+			int w = rt.to_integer(3);
+			viewer.setMinimumWidth(w);
+		}
+		if (rt.arg_count() == 4)
+		{
+			int h = rt.to_integer(4);
+			viewer.setMinimumHeight(h);
+		}
+		viewer.exec();
+		rt.push_null();
+	};
+
+	runtime.add_global_function("view_text", view_text, 2);
 	runtime.add_global_function("warning", warning, 1);
 	runtime.add_global_function("alert", alert, 1);
 	runtime.add_global_function("info", info, 1);
@@ -749,8 +782,10 @@ void MainWindow::setShellFunctions()
         runtime.add_method("import_metadata", import_metadata, 0);
 	    runtime.add_method("export_metadata", export_metadata, 1);
 	    runtime.add_method("__create_dialog", create_dialog, 1);
+	    runtime.add_method("get_plugin_list", get_plugin_list, 0);
+	    runtime.add_method("transphon", transphon, 0);
 
-        // Define 'phon.config'
+	    // Define 'phon.config'
         Settings::initialize(runtime);
     }
     runtime.pop();
@@ -1058,7 +1093,8 @@ void MainWindow::loadPlugin(const String &path)
 				});
 			}
 
-			tool_menu->insertMenu(tool_separator, menu);
+			auto action = tools_menu->insertMenu(tool_separator, menu);
+			plugin->setAction(action);
 		}
 		else
 		{
@@ -1110,6 +1146,36 @@ void MainWindow::installPlugin(bool)
 	}
 }
 
+void MainWindow::uninstallPlugin(bool)
+{
+	if (plugins.empty())
+	{
+		QMessageBox::information(this, tr("No plugin found"), tr("You don't have any plugin installed!"));
+		return;
+	}
+
+	QStringList names;
+	for (auto &p : plugins) names << p->label();
+	bool ok;
+	String name = QInputDialog::getItem(this, tr("Uninstall plugin"), tr("Choose plugin to uninstall"), names, 0,
+			false, &ok);
+
+	for (int i = 1; i <= plugins.size(); i++)
+	{
+		auto &p = plugins[i];
+		if (p->label() == name)
+		{
+			tools_menu->removeAction(p->action());
+			filesystem::remove(p->path());
+			String label = p->label();
+			plugins.remove_at(i);
+			auto msg = utils::format("The \"%\" plugin has been uninstalled!", label);
+			QMessageBox::information(this, tr("Success"), QString::fromStdString(msg));
+			return;
+		}
+	}
+}
+
 Plugin *MainWindow::findPlugin(const String &name)
 {
 	for (auto &plugin : plugins)
@@ -1133,7 +1199,6 @@ void MainWindow::importMetadata()
 		Project::instance()->import_metadata(path, sep);
 	}
 }
-
 
 } // phonometrica
 

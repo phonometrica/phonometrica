@@ -78,6 +78,8 @@ private slots:
 
     void installPlugin(bool);
 
+    void uninstallPlugin(bool);
+
 private:
 
     bool finalize();
@@ -87,6 +89,8 @@ private:
     void addWindowMenu(QMenuBar *menubar);
 
     void addToolsMenu(QMenuBar *menubar);
+
+    void setToolsMenu();
 
     void setShellFunctions();
 
@@ -130,7 +134,7 @@ private:
 
     QueryEditor *query_editor = nullptr; // cache last query
 
-    QMenu *tool_menu = nullptr;
+    QMenu *tools_menu = nullptr;
 
     QAction *tool_separator = nullptr;
 

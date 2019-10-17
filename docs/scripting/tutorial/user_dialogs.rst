@@ -210,7 +210,7 @@ attribute, which must be an integer.
 
 .. code:: json
 
-    { "type": "combo_box", "name": "tough_choice", "values": [ "blue pill", "red pill" ], "default": 2 }
+    { "type": "combo_box", "values": [ "blue pill", "red pill" ], "default": 2 }
 
 .. figure:: ../../img/combo_box.png
 

@@ -1,0 +1,179 @@
+########################################################################################################################
+# Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                             #
+#                                                                                                                      #
+# This software is governed by the CeCILL license under French law and abiding by the rules of distribution of free    #
+# software. You can use, modify and/or redistribute the software under the terms of the CeCILL license as circulated   #
+# by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".                                                #
+#                                                                                                                      #
+# As a counterpart to the access to the source code and  rights to copy, modify and redistribute granted by the        #
+# license, users are provided only with a limited warranty and the software's author, the holder of the economic       #
+# rights, and the successive licensors have only limited liability.                                                    #
+#                                                                                                                      #
+# In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or         #
+# developing or reproducing the software by the user in light of its specific status of free software, that may mean   #
+# that it is complicated to manipulate, and that also therefore means that it is reserved for developers and           #
+# experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the    #
+# software's suitability as regards their requirements in conditions enabling the security of their systems and/or     #
+# data to be ensured and, more generally, to use and operate it in the same conditions as regards security.            #
+#                                                                                                                      #
+#                                                                                                                      #
+# The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you    #
+# accept its terms.                                                                                                    #
+#                                                                                                                      #
+# Created: 17/10/2019                                                                                                  #
+#                                                                                                                      #
+# Purpose: Save annotations in a text file.                                                               #
+#                                                                                                                      #
+########################################################################################################################
+
+
+# Setup user interface as a JSON object. Keys don't need to be surrounded by double-quotes if the JSON is constructed
+# directly in a script.
+var ui = {
+    title: "TransPhon",
+    width: 300,
+    items: [
+        { type: "label", text: "Choose output file:" },
+        { type: "file_selector", name: "path", title: "Select text file...", default: "output.txt" },
+        { type: "label", text: "Select layers separated by a comma, or leave empty to process all layers:" },
+        { type: "field", name: "layers", default: "1"},
+        { type: "label", text: "Choose annotations:"},
+		# Annotations will be inserted here
+        { type: "label", text: "Choose event separator:"},
+        { type: "radio_buttons", name: "separator", values: ["space", "new line", "none"] }    
+    ]
+}
+
+# Insert check list for annotations
+var labels = []
+var values = []
+
+var n = 0
+
+foreach var annot in get_annotations() do
+	n++
+	var path = annot.path
+	# This is the real value we are interested in
+	values.append(String(n))
+	# This is the label that will be displayed
+	labels.append(system.get_base_name(path))
+end
+
+# Create item and insert it at position 6 in the list of items
+var item = { "type": "check_list", "name": "annotations", "labels": labels, "values": values }
+ui.items.insert(6, item)
+
+# `result` will contain a JSON object if the user pressed "OK", or null otherwise.
+var result = create_dialog(ui)
+
+# Process the result.
+if result then
+#################################################
+################################################# write in the file
+#################################################
+
+	# Open the file in write mode
+	var output_file = File(result.path,"w")
+	
+	##### Annotation file loop
+	var annotation_files = get_annotations()
+	var n = 0
+	
+	# Create a list depending on the annotation files chosen
+	if result.annotations == [] then
+		foreach var annot in annotation_files do
+			n++
+			result.annotations.append(n)	
+		end
+	else 
+		var temp_list = []
+		foreach var n_annot in result.annotations do 
+			temp_list.append(Number(n_annot))
+		end
+		result.annotations = temp_list
+	end
+	
+	# Loop starts
+	foreach var id in result.annotations do
+	
+		var annotation_file_name = labels[id]
+		var annotation_file_name_length = annotation_file_name.length
+		
+		# Write the title of each annotation file in the output file
+		var esthetic = ""
+
+		for k=1 to annotation_file_name_length do
+			esthetic = esthetic + "%"
+		end
+		
+		output_file.write_line(esthetic)
+		output_file.write_line(annotation_file_name)
+		output_file.write_line(esthetic)
+		output_file.write_line("")
+	
+	
+		##### Tier loop
+		var tiers_list = [ ]
+		var n = 0
+
+		# Create a list depending on the layer chosen		
+		if result.layers == "" then
+			var nlayer = annotation_files[id].layer_count
+			repeat
+				n++
+				tiers_list.append(n)
+			until n == nlayer		
+		else													
+			var regex_layer = new Regex("[1-9]")
+			var nlayer_temp = result.layers
+			repeat
+				regex_layer.match(nlayer_temp)
+				tiers_list.append(Number(regex_layer.group()))
+				nlayer_temp = nlayer_temp.remove(regex_layer.group())
+			until regex_layer.match(nlayer_temp) == false		
+		end
+		
+		# loop starts
+		foreach var tier in tiers_list do
+			
+			# Write the title of each layer in the output file
+			var layer_title = (annotation_files[id].get_layer_label(tier))
+			output_file.write_line("%%%% Layer: " + layer_title)
+			output_file.write_line("")
+		
+			##### Intervals loop
+
+			var regex_any_text = new Regex("[a-z]")
+			var n_interval = annotation_files[id].get_event_count(tier)
+	
+			for j=1 to n_interval do 
+				var text_in_interval = annotation_files[id].get_event_text(tier, j)
+				
+				# Find interval which contain some text
+				if regex_any_text.match(text_in_interval) then
+					
+					# Write the text from each interval in the output file. Type of writing depending on which separator is chosen.
+					if result.separator == 1 then
+						output_file.write(text_in_interval + " ")
+					elsif result.separator == 2 then
+						output_file.write_line(text_in_interval)				
+					elsif result.separator == 3 then
+						output_file.write(text_in_interval)
+					end
+				end
+			
+			end
+		
+			output_file.write_line("")
+			output_file.write_line("")
+		end
+		output_file.write_line("")
+		output_file.write_line("")
+		output_file.write_line("")
+	
+	end
+	output_file.close()
+	print("Annotations were saved in '" + output_file.path + "'")
+else
+	alert("Annotations were not saved.")
+end

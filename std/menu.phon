@@ -257,7 +257,7 @@ end
 function view_log()
 	var path = system.join_path(system.user_directory, "phonometrica.log")
 	if system.exists(path) then
-		phon.view_log(path)
+		view_text(path, "View log", 500)
 	else
 		info("There is no log file")
 	end
@@ -341,8 +341,13 @@ file_menu = [
 	null,
 	["Settings...", phon.edit_settings],
 	null,
-	["Import metadata from CSV file...", import_metadata],
-	["Export project metadata to CSV file...", export_metadata],
+	["Import", [
+		["Import metadata from CSV file...", import_metadata],
+	]],
+	["Export", [
+		["Export annotation(s) to plain text...", phon.transphon],
+		["Export project metadata to CSV file...", export_metadata],
+	]],
 	null,
 	["Close current view", phon.close_current_view, "ctrl+w"],
 	null,

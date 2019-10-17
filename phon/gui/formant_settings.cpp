@@ -116,7 +116,7 @@ void FormantSettings::validate()
 	}
 	Settings::set_value(runtime, category, "window_size", len);
 
-	auto step = window_edit->text().toDouble(&ok);
+	auto step = step_edit->text().toDouble(&ok);
 	if (!ok || step <= 0) {
 		QMessageBox::critical(this, tr("Invalid setting"), tr("Invalid time step"));
 		return;

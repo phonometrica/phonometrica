@@ -130,31 +130,6 @@ void Spectrogram::renderPlot(QPaintEvent *event)
 		if (show_formants)
 		{
 			estimateFormants();
-
-//			auto pen = painter.pen();
-//			pen.setWidth(2);
-//			pen.setColor(QColor("red"));
-//			painter.setPen(pen);
-			QColor red("red");
-			auto rgb = red.rgb();
-			auto xpoints = speech::linspace(window_start, window_end, this->width(), true);
-			assert(xpoints.size() == formants.rows());
-
-
-			for (int i = 0; i < formants.rows(); i++)
-			{
-				//auto x = timeToXPos(xpoints[i]);
-
-				for (int j = 0; j < formants.cols(); j++)
-				{
-//					auto &path = formant_paths[j];
-
-					auto f = formants(i, j);
-					auto y = formantToYPos(f);
-					image.setPixel(i, y, rgb);
-					image.setPixel(i, y-1, rgb);
-				}
-			}
 		}
 	}
 
@@ -164,34 +139,32 @@ void Spectrogram::renderPlot(QPaintEvent *event)
 
 	if (show_formants)
 	{
-
-//				if (std::isnan(f))
-//				{
-//					previous[j] = false;
-//				}
-//				else if (previous[j])
-//				{
-//					auto y = formantToYPos(f);
-//					path.lineTo(QPointF(x, y));
-//					previous[j] = true;
-//				}
-//				else
-//				{
-//					auto y = formantToYPos(f);
-//					path.moveTo(QPointF(x, y));
-//					previous[j] = true;
-//				}
+		QColor red("red");
+		auto pen = painter.pen();
+		pen.setWidth(1);
+		pen.setColor(red);
+		painter.setPen(pen);
+		auto brush = painter.brush();
+		brush.setColor(red);
+		painter.setBrush(brush);
+		auto xpoints = speech::linspace(window_start, window_end, this->width(), true);
+		assert(xpoints.size() == formants.rows());
 
 
+		for (int i = 0; i < formants.rows(); i++)
+		{
+			//auto x = timeToXPos(xpoints[i]);
 
-//		auto pen = painter.pen();
-//		pen.setWidth(2);
-//		pen.setColor(QColor("red"));
-//		painter.setPen(pen);
-//		for (auto &path : formant_paths)
-//		{
-//			painter.drawPath(path);
-//		}
+			for (int j = 0; j < formants.cols(); j++)
+			{
+				auto f = formants(i, j);
+				if (std::isnan(f)) continue;
+				auto y = formantToYPos(f);
+
+				painter.drawEllipse(i-1, y-1, 3, 3);
+				painter.drawPoint(i, y);
+			}
+		}
 	}
 }
 
