@@ -75,7 +75,7 @@ Topics
 How to cite?
 ============
 
-To cite Phonometrica, you can use the following citation:
+To cite Phonometrica, you can use the following citation [EYC2019]_:
 
-.. [EYC2019] Eychenne, Julien & Léa Courdès-Murphy (2019). Phonometrica: an open-source platform for phonometrics [Computer program]. Version |release|, retrieved |today| from http://www.phonometrica-ling.org
+.. [EYC2019] Eychenne, Julien & Léa Courdès-Murphy (2019). Phonometrica: an open platform for speech annotation and analysis [Computer program]. Version |release|, retrieved |today| from http://www.phonometrica-ling.org
 

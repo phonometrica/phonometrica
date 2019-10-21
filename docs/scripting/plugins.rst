@@ -63,7 +63,7 @@ a shortcut to execute the script the action is bound to.
 
 
 Defining coding protocols
-------------------------
+-------------------------
 
 If you have devised a coding scheme for your data, Phonometrica lets you define a **coding protocol**. A coding protocol is a description of your
 coding scheme which offers a user-friendly interface for querying your data; it tells Phonometrica what to look for and how to present the

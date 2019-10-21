@@ -380,9 +380,6 @@ void Spectrogram::estimateFormants()
 	{
 		tmp = resample(input, m_data->sample_rate(), Fs);
 		output = Span<double>(tmp);
-//		double *out = nullptr;
-//		auto len = resampler.process(input.data(), input.size(), out);
-//		output = Span<double>(out, len);
 	}
 
 	int nframe = int(ceil(formant_window_length * Fs));

@@ -43,7 +43,7 @@
   <ul>
 <li><a class="reference internal" href="#">Plugins</a><ul>
 <li><a class="reference internal" href="#structure-of-a-plugin">Structure of a plugin</a></li>
-<li><a class="reference internal" href="#defining-query-protocols">Defining query protocols</a></li>
+<li><a class="reference internal" href="#defining-coding-protocols">Defining coding protocols</a></li>
 </ul>
 </li>
 </ul>
@@ -79,7 +79,7 @@
 <p>Phonometrica can be extended with plugins, which are written in <a class="reference external" href="https://www.json.org/">JSON</a> and Phonometrica’s scripting language.
 When it starts up, Phonometrica loads all plugins which are located in the system plugin directory or in the user plugin directory. Plugins
 can add functionality to Phonometrica in a number of ways, but most commonly they will create a submenu in the <cite>Tools</cite> menu which provides
-additional commands offered by the plugin and/or custom query protocols.</p>
+additional commands offered by the plugin and/or custom coding protocols.</p>
 <p>Plugins can be shared and redistributed as ZIP files. To install a plugin, go to <code class="docutils literal notranslate"><span class="pre">Tools</span> <span class="pre">&gt;</span> <span class="pre">Install</span> <span class="pre">plugin...</span></code> and choose the ZIP
 file corresponding to the plugin you wish to install. It will be installed in the current user’s plugin directory.</p>
 <p>See <a class="reference internal" href="index.html#page-scripting"><span class="std std-ref">Scripting</span></a> to learn more about scripting.</p>
@@ -92,7 +92,7 @@ file corresponding to the plugin you wish to install. It will be installed in th
 <li>a script named <code class="docutils literal notranslate"><span class="pre">finalize.phon</span></code> (optional). If it exists, it will be run when the program exits.</li>
 <li>a <code class="docutils literal notranslate"><span class="pre">Scripts</span></code> sub-directory, which contains all your scripts
 (optional).</li>
-<li>a <code class="docutils literal notranslate"><span class="pre">Protocols</span></code> sub-directory, which contains query protocols (optional)</li>
+<li>a <code class="docutils literal notranslate"><span class="pre">Protocols</span></code> sub-directory, which contains coding protocols (optional)</li>
 <li>a <code class="docutils literal notranslate"><span class="pre">Resources</span></code> sub-directory, which may contain anything (optional).</li>
 </ul>
 <p>The description file (<code class="docutils literal notranslate"><span class="pre">description.json</span></code>) contains all the information necessary to initialize the plugin. It must <strong>at least</strong> contain a name.</p>
@@ -124,16 +124,16 @@ which is the entry’s label (as it is displayed in the menu), and a <code class
 <code class="docutils literal notranslate"><span class="pre">Scripts</span></code> sub-directory) which will be executed when the menu entry is clicked on. Additionally, an action may contain a <code class="docutils literal notranslate"><span class="pre">shortcut</span></code>, which provides
 a shortcut to execute the script the action is bound to.</p>
 </div>
-<div class="section" id="defining-query-protocols">
-<h2>Defining query protocols<a class="headerlink" href="#defining-query-protocols" title="Permalink to this headline">¶</a></h2>
-<p>If you have devised a coding scheme for your data, Phonometrica lets you define a <strong>query protocol</strong>. A query protocol is a description of your
+<div class="section" id="defining-coding-protocols">
+<h2>Defining coding protocols<a class="headerlink" href="#defining-coding-protocols" title="Permalink to this headline">¶</a></h2>
+<p>If you have devised a coding scheme for your data, Phonometrica lets you define a <strong>coding protocol</strong>. A coding protocol is a description of your
 coding scheme which offers a user-friendly interface for querying your data; it tells Phonometrica what to look for and how to present the
-information to the user in the query editor. Phonometrica will automatically load all valid query protocols in your plugin’s submenu.</p>
-<p>A query protocol defines a number of <strong>fields</strong> which can take on a number of values. The user is presented with a number of checkboxes for each
-field, and Phonometrica converts the query to the corresponding regular expression, as defined by the query protocol. Query protocols are written
+information to the user in the query editor. Phonometrica will automatically load all valid coding protocols in your plugin’s submenu.</p>
+<p>A coding protocol defines a number of <strong>fields</strong> which can take on a number of values. The user is presented with a number of checkboxes for each
+field, and Phonometrica converts the query to the corresponding regular expression, as defined by the coding protocol. Coding protocols are written
 in JSON.  Here is a simple yet realistic example, drawn from the <a class="reference external" href="http://www.projet-pfc.net">PFC project</a>:</p>
 <div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;query_protocol&quot;</span><span class="p">,</span>
+    <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;coding_protocol&quot;</span><span class="p">,</span>
     <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Schwa coding&quot;</span><span class="p">,</span>
     <span class="s">&quot;version&quot;</span><span class="p">:</span> <span class="s">&quot;0.1&quot;</span><span class="p">,</span>
 
@@ -190,7 +190,7 @@ in JSON.  Here is a simple yet realistic example, drawn from the <a class="refer
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">type</span></code> field is required and indicates that this file is a query protocol. The <code class="docutils literal notranslate"><span class="pre">name</span></code> field corresponds to the name of the grammar, as it
+<p>The <code class="docutils literal notranslate"><span class="pre">type</span></code> field is required and indicates that this file is a coding protocol. The <code class="docutils literal notranslate"><span class="pre">name</span></code> field corresponds to the name of the grammar, as it
 will be seen by the user, and <code class="docutils literal notranslate"><span class="pre">version</span></code> is an optional field which corresponds to the version of the protocol.</p>
 <p>Next, the <code class="docutils literal notranslate"><span class="pre">field_separator</span></code> is an optional attribute which indicates the separator to be used between fields. In this case, it is an empty string,
 which means that the fields are concatenated directly (e.g. <code class="docutils literal notranslate"><span class="pre">1412</span></code>). If the separator
