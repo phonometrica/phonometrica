@@ -422,7 +422,7 @@ void Spectrogram::estimateFormants()
 
 		if (!ok)
 		{
-			qDebug() << "error at i = " << i;
+			//qDebug() << "error at i = " << i;
 			for (int j = 0; j < formants.cols(); j++) {
 				formants(i, j) = std::nan("");
 			}

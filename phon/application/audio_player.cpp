@@ -78,11 +78,11 @@ int AudioPlayer::playback(void *out, void *, unsigned int nframes, double,
                           RtAudioStreamStatus status, void *d)
 {
     auto player = reinterpret_cast<AudioPlayer*>(d);
-    auto output = reinterpret_cast<float*>(out);
+    auto output = reinterpret_cast<double*>(out);
 
     if (player->paused())
     {
-        auto size = size_t(sizeof(float) * nframes * player->data->channels());
+        auto size = size_t(sizeof(double) * nframes * player->data->channels());
         play_silence(output, size);
 
         return KEEP_PLAYING;
@@ -121,7 +121,7 @@ int AudioPlayer::playback(void *out, void *, unsigned int nframes, double,
     else
     {
         // zero out buffer to avoid playing it twice
-        memset(output, 0, sizeof(float) * nframes);
+        memset(output, 0, sizeof(double) * nframes);
     }
 
     emit player->done();
@@ -186,7 +186,7 @@ void AudioPlayer::run()
 	{
 		m_stream.openStream(&m_params,
 			nullptr,
-			RTAUDIO_FLOAT32,
+			RTAUDIO_FLOAT64,
 			output_rate,
 			&frame_count,
 			&AudioPlayer::playback,
@@ -257,7 +257,7 @@ void AudioPlayer::interrupt()
     quit();
 }
 
-void AudioPlayer::play_silence(float *data, size_t size)
+void AudioPlayer::play_silence(double *data, size_t size)
 {
     memset(data, 0, size);
 }

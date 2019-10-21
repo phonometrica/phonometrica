@@ -100,7 +100,7 @@ private:
 
     void initialize_resampling(uint32_t output_rate);
 
-    static void play_silence(float *data, size_t size);
+    static void play_silence(double *data, size_t size);
 
     intptr_t remaining_frames() const { return  last_frame - position; }
 
@@ -128,7 +128,7 @@ private:
 
 #if PHON_MACOS
 
-    Array<float> m_buffer;
+    Array<double> m_buffer;
 
     double m_ratio = 1.0;
 #endif

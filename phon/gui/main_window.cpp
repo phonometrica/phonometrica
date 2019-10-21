@@ -1043,11 +1043,12 @@ void MainWindow::setDatabaseConnection()
 	connect(&db, &MetaDatabase::saving_metadata, this, &MainWindow::updateStatus);
 }
 
-void MainWindow::loadPlugin(const String &path)
+std::shared_ptr<Plugin> MainWindow::loadPlugin(const String &path)
 {
 	String msg("Loading plugin ");
 	msg.append(path);
 	updateStatus(msg);
+	std::shared_ptr<Plugin> plugin;
 
 	auto menu = new QMenu;
 
@@ -1080,7 +1081,7 @@ void MainWindow::loadPlugin(const String &path)
 
 	try
 	{
-		auto plugin = std::make_shared<Plugin>(runtime, path, script_callback);
+		plugin = std::make_shared<Plugin>(runtime, path, script_callback);
 
 		if (plugin->has_entries())
 		{
@@ -1115,6 +1116,8 @@ void MainWindow::loadPlugin(const String &path)
 		delete menu;
 		throw;
 	}
+
+	return plugin;
 }
 
 void MainWindow::installPlugin(bool)
@@ -1140,8 +1143,8 @@ void MainWindow::installPlugin(bool)
 	if (diff.size() == 1)
 	{
 		String path = filesystem::join(plugin_dir, diff.front());
-		loadPlugin(path);
-		String label = plugins.last()->label();
+		auto plugin = loadPlugin(path);
+		String label = plugin->label();
 		auto msg = utils::format("The \"%\" plugin has been installed!", label);
 
 		QMessageBox dlg(QMessageBox::Information, tr("Success"), QString::fromStdString(msg));
@@ -1149,7 +1152,9 @@ void MainWindow::installPlugin(bool)
 	}
 	else
 	{
-		QMessageBox msg(QMessageBox::Critical, tr("Error"), tr("Plugin installation failed."));
+		QMessageBox msg(QMessageBox::Critical, tr("Error"),
+				tr("Plugin installation failed.\nIf you tried to reinstall an existing plugin, "
+	   "you can safely ignore this message, but you should restart the program."));
 		msg.exec();
 	}
 }
