@@ -34,8 +34,8 @@
 #include <memory>
 #include <QThread>
 #include <phon/application/audio_data.hpp>
+#include <phon/application/resampler.hpp>
 #include <phon/third_party/rtaudio/RtAudio.h>
-#include <phon/third_party/speex/speex_resampler.h>
 
 namespace phonometrica {
 
@@ -66,12 +66,12 @@ public:
 	void raise_error();
 
 #if PHON_MACOS
-	float *buffer() { return m_buffer.data(); }
+	double *buffer() { return m_buffer.data(); }
 
 	double ratio() const { return m_ratio; }
 #endif
 
-    SpeexResamplerState *resampler() { return m_resampler; }
+    Resampler *resampler() { return m_resampler.get(); }
 
 signals:
 
@@ -114,7 +114,7 @@ private:
 
     RtAudio m_stream;
 
-    SpeexResamplerState *m_resampler = nullptr;
+    std::unique_ptr<Resampler> m_resampler;
 
     unsigned int output_rate = 0;
 

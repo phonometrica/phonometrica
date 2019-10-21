@@ -65,10 +65,6 @@ AudioPlayer::AudioPlayer(Runtime &rt, QObject *parent, std::shared_ptr<AudioData
 AudioPlayer::~AudioPlayer()
 {
     assert(m_error == nullptr);
-
-	if (m_resampler) {
-		speex_resampler_destroy(m_resampler);
-	}
     if (isRunning()) {
 		interrupt();
     }
@@ -211,22 +207,8 @@ void AudioPlayer::initialize_resampling(uint32_t output_rate)
     if (m_resampler != nullptr) {
         return;
     }
-
-    int error = 0;
-	PHON_LOG("Setting input rate");
     auto input_rate = (uint32_t) data->sample_rate();
-	PHON_LOG("Setting quality");
-    auto quality = int(Settings::get_number(rt, "resampling_quality"));
-	PHON_LOG("Setting SPEEX resampler");
-    m_resampler = speex_resampler_init(data->channels(), input_rate, output_rate, quality, &error);
-
-    if (error != 0 && m_resampler)
-    {
-		PHON_LOG("SPEEX resampler has error");
-        speex_resampler_destroy(m_resampler);
-        m_resampler = nullptr;
-    }
-	PHON_LOG("SPEEX resampler OK");
+    m_resampler = std::make_unique<Resampler>(input_rate, output_rate, FRAME_COUNT);
 }
 
 bool AudioPlayer::paused() const

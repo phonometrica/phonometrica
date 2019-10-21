@@ -186,7 +186,6 @@ if (BUILD_GUI)
             phon/third_party/rtaudio/RtAudio.cpp
             phon/third_party/sqlite/sqlite3.c
             phon/third_party/sendpraat.c
-            phon/third_party/speex/resample.c
             phon/third_party/r8brain/*.cpp
             phon/third_party/zip/zip.cpp
             phon/third_party/qxt/qxtcheckcombobox.cpp
