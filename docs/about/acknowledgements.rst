@@ -6,7 +6,7 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 
 * Qt, by The Qt Company (LGPL), see `www.qt.io <https://www.qt.io/>`_
 * libsndfile, by Erik de Castro Lopo (LGPL), see `www.mega-nerd.com <http://www.mega-nerd.com>`_
-* Speex, maintained by Jean-Marc Valin and contributors (BSD license), see `www.speex.org <http://www.speex.org>`_
+* r8brain-free-src, by Aleksey Vaneev (MIT), see `github.com/avaneev/r8brain-free-src <https://github.com/avaneev/r8brain-free-src>`_
 * RTAudio, by Gary P. Scavone (MIT), see `www.music.mcgill.ca/~gary/rtaudio <http://www.music.mcgill.ca/~gary/rtaudio/>`_
 * FFTS, by Anthony M. Blake (BSD 3-clause), see `github.com/anthonix/ffts <https://github.com/anthonix/ffts/>`_
 * SWIPE, by Kyle Gorman (MIT), see `github.com/kylebgorman/swipe <https://github.com/kylebgorman/swipe>`_

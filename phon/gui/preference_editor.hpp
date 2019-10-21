@@ -35,7 +35,6 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QHeaderView>
-#include <QLabel>
 #include <QLineEdit>
 #include <QSpacerItem>
 #include <QWidget>
@@ -43,7 +42,6 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QCheckBox>
-#include <QSlider>
 #include <phon/runtime/runtime.hpp>
 
 namespace phonometrica {
@@ -64,8 +62,6 @@ private slots:
 
     void setResourcesPath();
 
-	void updateResamplingQuality(int value);
-
 	void resetSettings(bool);
 
 private:
@@ -77,8 +73,6 @@ private:
     QWidget *tab_general, *tab_advanced;
     QSpinBox *spinbox_match_context_window;
     QCheckBox *checkbox_mouse_tracking, *checkbox_autosave, *checkbox_autoload;
-    QSlider *resampling_slider;
-    QLabel *quality_label;
 
     void setupUi();
 

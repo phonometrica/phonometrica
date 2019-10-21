@@ -5,11 +5,13 @@ Release notes
 ~~~~~~~~~~~~~~~~~~
 
 - spectrogram in sound and annotation views
+- LPC-based formant tracking
 - waveform scaling using global, local or fixed magnitude
 - intensity settings
 - click on middle button (wheel) too zoom on the active selection
 - user dialogs
 - uninstall plugin (``Tools > uninstall plugin``)
+- new resampler
 - resample sound
 
 

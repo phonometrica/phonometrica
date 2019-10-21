@@ -31,8 +31,6 @@ phon.settings = {
 
 	enable_mouse_tracking: true,
 
-	resampling_quality: 6,
-
 	sound_plots: {
 		spectrogram: true,
 		formants: false,

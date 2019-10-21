@@ -26,6 +26,7 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <QLabel>
 #include <QLayout>
 #include <phon/gui/preference_editor.hpp>
 #include <phon/application/settings.hpp>
@@ -116,21 +117,7 @@ void PreferenceEditor::setupSoundTab()
 
 	auto sound_layout = new QVBoxLayout(tab_advanced);
     sound_layout->addWidget(checkbox_mouse_tracking);
-    auto quality_layout = new QHBoxLayout;
-	resampling_slider = new QSlider(Qt::Horizontal);
-	resampling_slider->setMinimum(0);
-	resampling_slider->setMaximum(10);
-	resampling_slider->setSingleStep(1);
-	quality_label = new QLabel;
-    int quality = Settings::get_int(runtime, "resampling_quality");
-    updateResamplingQuality(quality);
-    resampling_slider->setValue(quality);
-    quality_layout->addWidget(quality_label);
-    quality_layout->addWidget(resampling_slider);
-    sound_layout->addLayout(quality_layout);
     sound_layout->addStretch(0);
-
-    connect(resampling_slider, &QSlider::valueChanged, this, &PreferenceEditor::updateResamplingQuality);
 }
 
 void PreferenceEditor::accept()
@@ -151,8 +138,6 @@ void PreferenceEditor::accept()
 
     bool tracking = checkbox_mouse_tracking->isChecked();
     Settings::set_value(runtime, "enable_mouse_tracking", tracking);
-    auto quality = resampling_slider->value();
-    Settings::set_value(runtime, "resampling_quality", double(quality));
 
 	QDialog::accept();
 }
@@ -182,9 +167,6 @@ void PreferenceEditor::resetSettings(bool)
 
 		bool tracking = Settings::get_boolean(runtime, "enable_mouse_tracking");
 		checkbox_mouse_tracking->setChecked(tracking);
-
-		int quality = Settings::get_int(runtime, "resampling_quality");
-		resampling_slider->setValue(quality);
 	}
 }
 
@@ -209,12 +191,6 @@ void PreferenceEditor::setLineEditFile(QLineEdit *line)
 
 	if (!path.isEmpty())
 		line->setText(path);
-}
-
-void PreferenceEditor::updateResamplingQuality(int value)
-{
-	auto text = QString("Resampling quality: %1").arg(value);
-	quality_label->setText(text);
 }
 
 } // namespace phonometrica

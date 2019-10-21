@@ -225,13 +225,12 @@ void Sound::resample(const String &path, int sample_rate, Sound::Format fmt)
 #else
 	SndfileHandle outfile(path.data(), SFM_WRITE, flags, 1, sample_rate);
 #endif
-	auto input = this->data();
-	Resampler resampler(this->sample_rate(), sample_rate, BUFFER_SIZE);
-	auto pos = 0;
+	auto input = this->light_data();
+	Resampler resampler(input->sample_rate(), sample_rate, BUFFER_SIZE);
 	input->seek(0);
 	auto size = input->size() / input->channels();
 	double *out = nullptr;
-	intptr_t ol = double(size) * sample_rate / this->sample_rate();
+	intptr_t ol = double(size) * sample_rate / input->sample_rate();
 
 	while (ol > 0)
 	{
