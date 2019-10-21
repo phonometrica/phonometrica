@@ -191,7 +191,7 @@ complex *cplx_getmem(const int leng)
    return p;
 }
 
-void root_pol(double *a, const int odr, complex * x, const int a_zero,
+bool root_pol(double *a, const int odr, complex * x, const int a_zero,
               const double eps, const int itrat)
 {
    int i, j, k, l;
@@ -242,7 +242,5 @@ void root_pol(double *a, const int odr, complex * x, const int a_zero,
    }
    while ((l <= itrat) && (k <= odr));
 
-   if (l > itrat) {
-      throw std::runtime_error("root_pol : No convergence!");
-   }
+   return l <= itrat;
 }

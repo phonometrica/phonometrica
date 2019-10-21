@@ -31,6 +31,12 @@ Displays an information dialog.
 
 ------------
 
+.. function:: ask(message [, title])
+
+Asks a Yes/No question to the user. Returns ``true`` of the user clicked ``Yes``, and ``false`` otherwise.
+
+------------
+
 .. function:: get\_input(label, title, text)
 
 Displays an input dialog whose title is `title` and whose informative text is `label`. The dialog contains a 

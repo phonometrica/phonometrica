@@ -32,39 +32,16 @@
 #include <cstdint>
 #include <vector>
 #include <phon/utils/span.hpp>
-//#include <phon/third_party/speex/speex_resampler.h>
+
+#include <vector>
+#include <phon/utils/span.hpp>
 #include <phon/third_party/r8brain/CDSPResampler.h>
 
 namespace phonometrica {
 
-using Resampler = r8b::CDSPResampler;
+using Resampler = r8b::CDSPResampler24;
 
-#if 0
-class Resampler final
-{
-public:
-
-	Resampler() = default;
-
-	Resampler(intptr_t in_rate, intptr_t out_rate, int quality = 5, intptr_t nb_channels = 1);
-
-	Resampler(const Resampler &) = delete;
-
-	Resampler(Resampler &&) noexcept = default;
-
-	~Resampler();
-
-	std::vector<float> resample(const Span<float> &input);
-
-	void resample(const Span<float> &input, std::vector<float> &output);
-
-private:
-
-    SpeexResamplerState *m_state = nullptr;
-
-	double ratio = 0;
-};
-#endif
+std::vector<double> resample(Span<double> input, double input_rate, double output_rate);
 
 } // namespace phonometrica
 

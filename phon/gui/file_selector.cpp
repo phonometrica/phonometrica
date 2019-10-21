@@ -61,4 +61,9 @@ QString FileSelector::text() const
 {
 	return line->text();
 }
+
+void FileSelector::setText(const QString &value)
+{
+	line->setText(value);
+}
 } // namespace phonometrica

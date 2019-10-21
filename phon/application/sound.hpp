@@ -39,6 +39,13 @@ class Sound final : public VFile
 {
 public:
 
+	enum class Format
+	{
+		WAV  = SF_FORMAT_WAV,
+		AIFF = SF_FORMAT_AIFF,
+		FLAC = SF_FORMAT_FLAC
+	};
+
 	Sound(VFolder *parent, String path);
 
 	static void set_sound_formats();
@@ -72,6 +79,8 @@ public:
     SndfileHandle handle() const;
 
     int nchannel() const;
+
+    void resample(const String &path, int sample_rate, Format fmt);
 
 private:
 

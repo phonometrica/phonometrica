@@ -37,6 +37,7 @@
 #include <QFileIconProvider>
 #include <phon/gui/project_ctrl.hpp>
 #include <phon/gui/property_editor.hpp>
+#include <phon/gui/resampling_dialog.hpp>
 #include <phon/application/praat.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/utils/file_system.hpp>
@@ -496,6 +497,12 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
                 	emit view_file(annot);
                 });
 
+                action = new QAction(tr("Resample..."), this);
+                menu.addAction(action);
+                connect(action, &QAction::triggered, [=](bool) {
+                	this->resampleSound(sound);
+                });
+
                 menu.addSeparator();
             }
             else if (file->is_dataset())
@@ -747,6 +754,36 @@ void ProjectCtrl::copyPathToClipboard(const String &path)
 {
 	auto clipboard = QApplication::clipboard();
 	clipboard->setText(path);
+}
+
+void ProjectCtrl::resampleSound(const AutoSound &sound)
+{
+	ResamplingDialog dlg(this);
+
+	if (dlg.exec() == QDialog::Accepted)
+	{
+		String path = dlg.path();
+		String format = dlg.format();
+		int Fs = dlg.sample_rate();
+		Sound::Format fmt = Sound::Format::WAV;
+		if (format == "flac") {
+			fmt = Sound::Format::AIFF;
+		}
+		else if (format == "aiff") {
+			fmt = Sound::Format::FLAC;
+		}
+		sound->resample(path, Fs, fmt);
+
+		auto reply = QMessageBox::question(this, tr("Import file?"), tr("Would you like to import this dataset into the current project?"),
+		                                   QMessageBox::Yes|QMessageBox::No);
+
+		if (reply == QMessageBox::Yes)
+		{
+			auto project = Project::instance();
+			project->import_file(path);
+			emit project->notify_update();
+		}
+	}
 }
 
 } // phonometrica

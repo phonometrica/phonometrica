@@ -81,7 +81,7 @@ std::vector<float> AudioData::read(intptr_t first_frame, intptr_t last_frame)
 
 	auto ptr = result.data();
 	auto end = result.data() + result.size();
-	m_handle.seek(first_frame, SEEK_SET);
+	seek(first_frame);
 
 	while (ptr < end)
 	{
@@ -89,9 +89,19 @@ std::vector<float> AudioData::read(intptr_t first_frame, intptr_t last_frame)
 		auto N = m_handle.readf(ptr, nframe);
 		ptr += N * m_handle.channels();
 	}
-	m_handle.seek(0, SEEK_SET);
+	seek(0);
 
 	return result;
+}
+
+int AudioData::read(double *buffer, int count)
+{
+	return m_handle.readf(buffer, count);
+}
+
+void AudioData::seek(size_t pos)
+{
+	m_handle.seek(0, SEEK_SET);
 }
 
 } // namespace phonometrica

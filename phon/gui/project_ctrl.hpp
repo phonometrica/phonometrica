@@ -108,6 +108,8 @@ private:
 
     static void copyPathToClipboard(const String &path);
 
+    void resampleSound(const AutoSound &sound);
+
     Runtime &rt;
 
     QTreeWidgetItem *corpus,*data, *queries, *scripts, *bookmarks;

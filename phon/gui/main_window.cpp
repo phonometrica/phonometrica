@@ -483,6 +483,13 @@ void MainWindow::setShellFunctions()
         rt.push_null();
     };
 
+    auto ask = [this](Runtime &rt) {
+    	auto msg = rt.to_string(1);
+    	String title = rt.arg_count() > 1 ? rt.to_string(2) : String("Question");
+	    auto reply = QMessageBox::question(this, title, msg, QMessageBox::Yes|QMessageBox::No);
+	    rt.push_boolean(reply == QMessageBox::Yes);
+    };
+
     auto about = [=](Runtime &rt) {
         auto msg = rt.to_string(1);
         auto title = rt.to_string(2);
@@ -753,6 +760,7 @@ void MainWindow::setShellFunctions()
 	runtime.add_global_function("warning", warning, 1);
 	runtime.add_global_function("alert", alert, 1);
 	runtime.add_global_function("info", info, 1);
+	runtime.add_global_function("ask", ask, 1);
 	runtime.add_global_function("about", about, 2);
 	runtime.add_global_function("open_file_dialog", open_file_dialog, 1);
 	runtime.add_global_function("open_files_dialog", open_files_dialog, 1);

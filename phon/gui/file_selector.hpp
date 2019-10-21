@@ -44,6 +44,8 @@ public:
 
 	QString text() const;
 
+	void setText(const QString &value);
+
 private:
 
 	QLineEdit *line;

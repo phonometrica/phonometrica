@@ -9,6 +9,7 @@ Release notes
 - intensity settings
 - click on middle button (wheel) too zoom on the active selection
 - user dialogs
+- uninstall plugin (``Tools > uninstall plugin``)
 
 
 0.5.2 (04/10/2019)

@@ -50,6 +50,7 @@
 ***********************************************************/
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #ifndef PI
 #define PI  3.14159265358979323846
@@ -81,6 +82,8 @@
 #define WORDS_BIGENDIAN
 #endif
 #endif
+
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -509,7 +512,7 @@ double rmse(double *x, double *y, const int n);
 
 void output_root_pol(complex *x, int odr, int form);
 
-void root_pol(double *a, const int odr, complex *x, const int a_zero,
+bool root_pol(double *a, const int odr, complex *x, const int a_zero,
               const double eps, const int itrat);
 
 complex *cplx_getmem(const int leng);

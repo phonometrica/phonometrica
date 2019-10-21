@@ -33,6 +33,7 @@
 #endif
 #include <sndfile.h>
 #include <phon/application/sound.hpp>
+#include <phon/application/resampler.hpp>
 
 #if PHON_MACOS
 const int BUFFER_SIZE = 4096;
@@ -210,6 +211,42 @@ std::shared_ptr<AudioData> Sound::light_data() const
 	}
 
 	return std::make_shared<AudioData>(handle(), false);
+}
+
+void Sound::resample(const String &path, int sample_rate, Sound::Format fmt)
+{
+	const int BUFFER_SIZE = 1024;
+	double buffer[BUFFER_SIZE];
+	int flags = static_cast<int>(fmt) | SF_FORMAT_PCM_32;
+
+#if PHON_WINDOWS
+	auto wpath = path.to_wide();
+	SndfileHandle outfile(wpath.data(), SFM_WRITE, flags, 1, sample_rate);
+#else
+	SndfileHandle outfile(path.data(), SFM_WRITE, flags, 1, sample_rate);
+#endif
+	auto input = this->data();
+	Resampler resampler(this->sample_rate(), sample_rate, BUFFER_SIZE);
+	auto pos = 0;
+	input->seek(0);
+	auto size = input->size() / input->channels();
+	double *out = nullptr;
+	intptr_t ol = double(size) * sample_rate / this->sample_rate();
+
+	while (ol > 0)
+	{
+		auto count = input->read(buffer, BUFFER_SIZE);
+		if (count == 0) {
+			count = BUFFER_SIZE;
+			memset(buffer, 0, sizeof(double) * BUFFER_SIZE);
+		}
+		auto len = resampler.process(buffer, count, out);
+		if (len > ol) len = ol;
+		outfile.write(out, len);
+		ol -= len;
+	}
+
+	input->seek(0);
 }
 
 } // namespace phonometrica

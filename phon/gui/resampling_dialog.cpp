@@ -20,104 +20,78 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 04/10/2019                                                                                                 *
+ * Created: 21/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: display spectrogram in speech view.                                                                        *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SPECTROGRAM_HPP
-#define PHONOMETRICA_SPECTROGRAM_HPP
-
-#include <QImage>
-#include <phon/gui/speech_plot.hpp>
-#include <phon/utils/matrix.hpp>
-#include <phon/speech/signal_processing.hpp>
+#include <QLabel>
+#include <QLayout>
+#include <QMessageBox>
+#include <QDialogButtonBox>
+#include <phon/application/sound.hpp>
+#include <phon/gui/resampling_dialog.hpp>
 
 namespace phonometrica {
 
-class Runtime;
-
-
-class Spectrogram final : public SpeechPlot
+ResamplingDialog::ResamplingDialog(QWidget *parent) : QDialog(parent)
 {
-    Q_OBJECT
+	auto layout = new QVBoxLayout;
+	layout->addWidget(new QLabel(tr("Choose output file:")));
+	file_selector = new FileSelector(tr("Choose output file name"));
+	layout->addWidget(file_selector);
+	file_selector->setText("/home/julien/test.wav");
+	layout->addWidget(new QLabel(tr("New sampling rate (Hz):")));
+	fs_line = new QLineEdit;
+	fs_line->setText("16000");
+	layout->addWidget(fs_line);
+	format_box = new QComboBox;
+	format_box->addItem("wav");
+	format_box->addItem("aiff");
+	if (Sound::common_sound_formats().contains("flac")) {
+		format_box->addItem("flac");
+	}
+	format_box->setCurrentIndex(0);
+	layout->addWidget(format_box);
+	auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+	layout->addWidget(button_box);
+	setLayout(layout);
 
-public:
+	connect(button_box, &QDialogButtonBox::accepted, this, &ResamplingDialog::validate);
+    connect(button_box, &QDialogButtonBox::rejected, this, &ResamplingDialog::reject);
+}
 
-    Spectrogram(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
+QString ResamplingDialog::format() const
+{
+	return format_box->currentText();
+}
 
-    void drawYAxis(QWidget *y_axis, int y1, int y2) override;
+String ResamplingDialog::path() const
+{
+	QString p = file_selector->text();
+	if (! p.isEmpty() && !p.endsWith(format()))
+	{
+		p.append('.');
+		p.append(format());
+	}
 
-    void enableFormantTracking(bool value);
+	return p;
+}
 
-protected:
-
-    void renderPlot(QPaintEvent *event) override;
-
-    virtual bool needsRefresh() const override;
-
-    void resizeEvent(QResizeEvent *) override;
-
-	void readSettings() override;
-
-	void emptyCache() override;
-
-private:
-
-	Matrix<double> computeSpectrogram();
-
-	void estimateFormants();
-
-	int formantToYPos(double hz);
-
-	void readSpectrogramSettings();
-
-	void readFormantsSettings();
-
-	// Cached spectrogram.
-	QImage image;
-
-	// A matrix containing i time measurements across j formants.
-	Matrix<double> formants;
-
-	QList<QPainterPath> formant_paths;
-
-	// Duration of the analysis window for spectrograms.
-	double spectrum_window_length;
-
-	// Highest frequency.
-	double max_freq;
-
-	// Pre-emphasis factor.
-	double preemph_threshold;
-
-	// Dynamic range (in dB). Values below the threshold [max_dB - dynamic_range] are treated as 0.
-	int dynamic_range;
-
-
-	// Duration of the analysis window for formants.
-	double formant_window_length;
-
-	// Time step for formants.
-	double formant_time_step;
-
-	// Nyquist frequency range for formant analysis.
-	double max_formant_frequency;
-
-	// Number of prediction coefficients for LPC analysis.
-	int lpc_order;
-
-	// Number of formants to display.
-	int nformant;
-
-	// Window type for the spectrogram.
-	speech::WindowType window_type;
-
-	// Enable formant tracking.
-	bool show_formants = false;
-};
+void ResamplingDialog::validate()
+{
+	if (file_selector->text().isEmpty()) {
+		QMessageBox::critical(this, tr("Invalid resampling settings"), tr("Empty output path"));
+		return;
+	}
+	bool ok;
+	Fs = fs_line->text().toInt(&ok);
+	if (!ok || Fs <= 0) {
+		QMessageBox::critical(this, tr("Invalid resampling settings"), tr("Invalid sampling rate"));
+		return;
+	}
+	accept();
+}
 
 } // namespace phonometrica
-
-#endif //PHONOMETRICA_SPECTROGRAM_HPP

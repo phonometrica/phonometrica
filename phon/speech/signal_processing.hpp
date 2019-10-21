@@ -75,7 +75,7 @@ void pre_emphasis(Container &data, double Fs, double threshold)
 std::vector<double> get_lpc_coefficients(const Span<double> &frame, int npole);
 
 // Get formant frequencies and bandwidths from a set of LPC coefficients.
-std::pair<std::vector<double>, std::vector<double>> get_formants(const Span<double> &lpc_coeffs, double Fs);
+bool get_formants(const Span<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw);
 
 }} // namespace phonometrica::speech
 

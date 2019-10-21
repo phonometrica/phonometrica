@@ -173,11 +173,12 @@ std::vector<double> get_lpc_coefficients(const Span<double> &frame, int npole)
 	return coeff;
 }
 
-std::pair<std::vector<double>, std::vector<double>> get_formants(const Span<double> &lpc_coeffs, double Fs)
+bool get_formants(const Span<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw)
 {
 	std::vector<std::complex<double>> roots(lpc_coeffs.size(), std::complex<double>());
 	int order = lpc_coeffs.size() - 1;
-	root_pol(lpc_coeffs.data(), order, (complex*)roots.data(), 0, 1.0e-14, 1000);
+	bool ok = root_pol(lpc_coeffs.data(), order, (complex*)roots.data(), 0, 1.0e-14, 1000);
+	if (!ok) return false;
 	std::vector<double> angz;
 
 	std::vector<std::complex<double>> tmp;
@@ -188,8 +189,6 @@ std::pair<std::vector<double>, std::vector<double>> get_formants(const Span<doub
 	}
 	roots = std::move(tmp);
 
-	std::vector<double> freqs;
-
 	for (auto z : roots)
 	{
 		double angle = atan2(z.imag(), z.real());
@@ -199,7 +198,6 @@ std::pair<std::vector<double>, std::vector<double>> get_formants(const Span<doub
 
 	auto indices = sort_indices(freqs);
 	std::sort(freqs.begin(), freqs.end());
-	std::vector<double> bw;
 
 	for (auto i : indices)
 	{
@@ -207,7 +205,7 @@ std::pair<std::vector<double>, std::vector<double>> get_formants(const Span<doub
 		bw.push_back(b);
 	}
 
-	return { freqs, bw };
+	return true;
 }
 
 }} // namespace phonometrica::speech

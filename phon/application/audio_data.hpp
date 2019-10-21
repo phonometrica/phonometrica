@@ -58,6 +58,10 @@ public:
 
 	std::vector<float> read(intptr_t first_frame, intptr_t last_frame);
 
+	int read(double *buffer, int count);
+
+	void seek(size_t pos);
+
     double sample(intptr_t i) const { return m_data[i]; }
 
     intptr_t size() const { return m_handle.frames(); }

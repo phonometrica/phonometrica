@@ -356,7 +356,7 @@ file_menu = [
 
 analysis_menu = [
 	["Search in annotations...", new_query, "ctrl+e"],
-	["Edit last query", run_last_query, "alt+q"]
+	["Edit last query", run_last_query, "ctrl+l"]
 ]
 
 help_menu = [

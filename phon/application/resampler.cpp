@@ -33,47 +33,40 @@
 
 namespace phonometrica {
 
-#if 0
-Resampler::Resampler(intptr_t in_rate, intptr_t out_rate, int quality, intptr_t nb_channels)
+std::vector<double> resample(Span<double> input, double input_rate, double output_rate)
 {
-	int error;
-    m_state = speex_resampler_init(nb_channels, in_rate, out_rate, quality, &error);
+	const int BUFFER_SIZE = 1024;
+	double buffer[BUFFER_SIZE];
+	memset(buffer, 0, sizeof(double) * BUFFER_SIZE);
+	Resampler resampler(input_rate, output_rate, BUFFER_SIZE);
+	intptr_t ol = double(input.size()) * output_rate / input_rate;
+	std::vector<double> output(ol, 0.0);
+	auto it = input.begin();
+	double *out = nullptr;
+	double *data = output.data();
 
-    if (error != 0 && m_state)
-    {
-        speex_resampler_destroy(m_state);
-        m_state = nullptr;
-        throw std::runtime_error("Could not initialize resampler");
-    }
+	while (ol > 0)
+	{
+		intptr_t count = (it + BUFFER_SIZE > input.end()) ? intptr_t(input.end() - it) : BUFFER_SIZE;
+		Span<double> chunk;
 
-    ratio = double(in_rate) / out_rate;
-}
-
-Resampler::~Resampler()
-{
-	if (m_state) {
-		speex_resampler_destroy(m_state);
+		if (count == 0)
+		{
+			chunk = Span<double>(buffer, BUFFER_SIZE);
+		}
+		else
+		{
+			chunk = Span<double>(it, count);
+		}
+		auto len = resampler.process(chunk.data(), chunk.size(), out);
+		if (len > ol) len = ol;
+		std::copy(out, out+len, data);
+		it += count;
+		data += len;
+		ol -= len;
 	}
-}
-
-std::vector<float> Resampler::resample(const Span<float> &input)
-{
-	std::vector<float>output;
-	resample(input, output);
 
 	return output;
 }
 
-void Resampler::resample(const Span<float> &input, std::vector<float> &output)
-{
-	const int channel = 0;
-	size_t count = floor(input.size() * ratio);
-	output.resize(count);
-	spx_uint32_t ilen = input.size();
-	spx_uint32_t olen;
-	speex_resampler_process_float(m_state, channel, input.data(), &ilen, output.data(), &olen);
-	assert(olen <= input.size());
-	output.resize(olen);
-}
-#endif
 } // namespace phonometrica

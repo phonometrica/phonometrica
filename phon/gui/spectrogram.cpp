@@ -147,9 +147,9 @@ void Spectrogram::renderPlot(QPaintEvent *event)
 		auto brush = painter.brush();
 		brush.setColor(red);
 		painter.setBrush(brush);
-		auto xpoints = speech::linspace(window_start, window_end, this->width(), true);
-		assert(xpoints.size() == formants.rows());
-
+//		auto xpoints = speech::linspace(0, windowDuration(), this->width(), true);
+//		assert(xpoints.size() == formants.rows());
+		assert(formants.rows() == width());
 
 		for (int i = 0; i < formants.rows(); i++)
 		{
@@ -354,7 +354,7 @@ void Spectrogram::estimateFormants()
 {
 	using namespace speech;
 
-	auto xpoints = linspace(window_start, window_end, this->width(), true);
+	auto xpoints = linspace(0, windowDuration(), this->width(), true);
 	auto npoint = xpoints.size();
 	formants = Matrix<double>(npoint, nformant);
 	Matrix<double> bandwidths(npoint, nformant);
@@ -364,13 +364,13 @@ void Spectrogram::estimateFormants()
 	auto from = m_data->time_to_frame(window_start);
 	auto to = m_data->time_to_frame(window_end);
 	auto input = m_data->get(from, to);
+	std::vector<double> tmp; // not needed if sampling rates are equal
 	Span<double> output;
-	std::vector<double> temp; // used to store the resampled buffer, if necessary.
 
 	// Apply pre-emphasis from 50 Hz.
 	pre_emphasis(input, m_data->sample_rate(), 50);
 
-	double Fs = formant_max_frequency * 2;
+	double Fs = max_formant_frequency * 2;
 
 	if (Fs == m_data->sample_rate())
 	{
@@ -378,14 +378,11 @@ void Spectrogram::estimateFormants()
 	}
 	else
 	{
-		auto osize = int(ceil(double(input.size())) * Fs / m_data->sample_rate());
-		temp.resize(osize);
-		Resampler resampler(m_data->sample_rate(), Fs, input.size());
-		double *o = temp.data();
-		auto len = resampler.process(input.data(), input.size(), o);
-		assert(len <= osize);
-		temp.resize(len);
-		output = temp;
+		tmp = resample(input, m_data->sample_rate(), Fs);
+		output = Span<double>(tmp);
+//		double *out = nullptr;
+//		auto len = resampler.process(input.data(), input.size(), out);
+//		output = Span<double>(out, len);
 	}
 
 	int nframe = int(ceil(formant_window_length * Fs));
@@ -393,15 +390,21 @@ void Spectrogram::estimateFormants()
 	auto win = create_window(nframe, nframe, WindowType::Hann);
 	std::vector<double> buffer(nframe, 0.0);
 
+	qDebug() << "Original sampling rate: " << m_data->sample_rate();
+	qDebug() << "Downsampling rate: " << Fs;
+	qDebug() << "Window length: " << formant_window_length;
+	qDebug() << "nframe: " << nframe;
+	qDebug() << "LPC order: " << lpc_order;
+
 	// Calculate LPC at each time point.
 	for (int i = 0; i < xpoints.size(); i++)
 	{
-		double f = time_to_frame(xpoints[i] - window_start, Fs);
+		double f = time_to_frame(xpoints[i], Fs);
 		intptr_t start_frame = f - (nframe / 2);
 		intptr_t end_frame = start_frame + nframe;
 
 		// Don't estimate formants at the edge if we can't fill a window.
-		if (start_frame < 0 || end_frame > output.size())
+		if (start_frame < 0 || end_frame >= output.size())
 		{
 			for (int j = 0; j < nformant; j++) {
 				formants(i,j) = std::nan("");
@@ -418,11 +421,9 @@ void Spectrogram::estimateFormants()
 
 		auto coeffs = get_lpc_coefficients(buffer, lpc_order);
 		std::vector<double> freqs, bw;
-		try
-		{
-			std::tie(freqs, bw) = get_formants(coeffs, Fs);
-		}
-		catch (std::runtime_error &e)
+		bool ok = get_formants(coeffs, Fs, freqs, bw);
+
+		if (!ok)
 		{
 			qDebug() << "error at i = " << i;
 			for (int j = 0; j < formants.cols(); j++) {
@@ -492,7 +493,7 @@ void Spectrogram::readFormantsSettings()
 	formant_window_length = Settings::get_number(rt, category, "window_size");
 	formant_time_step = Settings::get_number(rt, category, "time_step");
 	lpc_order = (int) Settings::get_number(rt, category, "lpc_order");
-	formant_max_frequency = Settings::get_number(rt, category, "max_frequency");
+	max_formant_frequency = Settings::get_number(rt, category, "max_frequency");
 }
 
 void Spectrogram::enableFormantTracking(bool value)
