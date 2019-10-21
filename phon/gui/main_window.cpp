@@ -107,55 +107,6 @@ MainWindow::MainWindow(Runtime &rt, QWidget *parent)
     connect(file_manager->tree(), &ProjectCtrl::view_annotation, viewer, &Viewer::editAnnotation);
 
     setDatabaseConnection();
-
-	if (Settings::get_boolean(rt, "full_screen"))
-	{
-		showMaximized();
-	}
-	else
-	{
-		try
-		{
-			auto &lst = Settings::get_list(rt, "geometry");
-			auto x = int(lst.at(1).to_number());
-			auto y = int(lst.at(2).to_number());
-			auto w = int(lst.at(3).to_number());
-			auto h = int(lst.at(4).to_number());
-			setGeometry(x, y, w, h);
-		}
-		catch (...)
-		{
-			showMaximized();
-		}
-	}
-
-    if (Settings::get_boolean(rt, "hide_console"))
-        file_manager->console_button->click();
-    if (Settings::get_boolean(rt, "hide_info"))
-        file_manager->info_button->click();
-    if (Settings::get_boolean(rt, "hide_project"))
-    {
-        show_project->setChecked(false);
-        showProject(false);
-    }
-
-    if (Settings::get_boolean(rt, "autoload"))
-    {
-        rt.do_string(R"__(
-	var recent = phon.settings.recent_projects
-	if not recent.is_empty() then
-		phon.project.open(recent[1])
-	end)__");
-    }
-
-    main_area->focusConsole();
-	postInitialize();
-
-    // FIXME: We need to delay splitter adjustment, otherwise they won't show up in the right place.
-    //  See: https://stackoverflow.com/questions/28795329/qsplitter-sizes-indicates-wrong-sizes
-    QTimer::singleShot(50, this, SLOT(adjustSplitters()));
-
-    updateStatus("Ready");
 }
 
 void MainWindow::updateStatus(const String &msg)
@@ -1211,6 +1162,59 @@ void MainWindow::importMetadata()
 		auto sep = dlg.separator();
 		Project::instance()->import_metadata(path, sep);
 	}
+}
+
+void MainWindow::display()
+{
+	if (Settings::get_boolean(runtime, "full_screen"))
+	{
+		showMaximized();
+	}
+	else
+	{
+		try
+		{
+			auto &lst = Settings::get_list(runtime, "geometry");
+			auto x = int(lst.at(1).to_number());
+			auto y = int(lst.at(2).to_number());
+			auto w = int(lst.at(3).to_number());
+			auto h = int(lst.at(4).to_number());
+			setGeometry(x, y, w, h);
+			show();
+		}
+		catch (...)
+		{
+			showMaximized();
+		}
+	}
+
+	if (Settings::get_boolean(runtime, "hide_console"))
+		file_manager->console_button->click();
+	if (Settings::get_boolean(runtime, "hide_info"))
+		file_manager->info_button->click();
+	if (Settings::get_boolean(runtime, "hide_project"))
+	{
+		show_project->setChecked(false);
+		showProject(false);
+	}
+
+	if (Settings::get_boolean(runtime, "autoload"))
+	{
+		runtime.do_string(R"__(
+	var recent = phon.settings.recent_projects
+	if not recent.is_empty() then
+		phon.project.open(recent[1])
+	end)__");
+	}
+
+	main_area->focusConsole();
+	postInitialize();
+
+	// FIXME: We need to delay splitter adjustment, otherwise they won't show up in the right place.
+	//  See: https://stackoverflow.com/questions/28795329/qsplitter-sizes-indicates-wrong-sizes
+	QTimer::singleShot(50, this, SLOT(adjustSplitters()));
+
+	updateStatus("Ready");
 }
 
 } // phonometrica

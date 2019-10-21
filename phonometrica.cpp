@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            win.show();
+            win.display();
             return app.exec();
         }
 #else

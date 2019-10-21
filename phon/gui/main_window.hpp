@@ -50,6 +50,8 @@ public:
 
     ~MainWindow();
 
+    void display();
+
 public slots:
 
     void closeEvent (QCloseEvent *event) override;
