@@ -40,7 +40,7 @@ class FileSelector final : public QWidget
 
 public:
 
-	FileSelector(const QString &title, const QString &text = QString(), const QString &filter = QString(), QWidget *parent = nullptr);
+	FileSelector(const QString &title, const QString &path = QString(), const QString &filter = QString(), QWidget *parent = nullptr);
 
 	QString text() const;
 

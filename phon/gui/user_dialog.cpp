@@ -349,7 +349,7 @@ void UserDialog::addFileSelector(Json item)
 	}
 	auto title = QString::fromStdString(it->get<std::string>());
 	QString text, filter;
-	it = item.find("text");
+	it = item.find("default");
 	if (it != item.end()) {
 		text = QString::fromStdString(it->get<std::string>());
 	}

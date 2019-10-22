@@ -32,13 +32,13 @@
 
 namespace phonometrica {
 
-FileSelector::FileSelector(const QString &title, const QString &text, const QString &filter, QWidget *parent) :
+FileSelector::FileSelector(const QString &title, const QString &path, const QString &filter, QWidget *parent) :
 	QWidget(parent), m_filter(filter)
 {
 	auto layout = new QHBoxLayout;
 	layout->setContentsMargins(0, 0, 0, 0);
 	line = new QLineEdit;
-	line->setText(text);
+	line->setText(path);
 	auto btn = new QPushButton(tr("Choose..."));
 	layout->addWidget(line);
 	layout->addWidget(btn);

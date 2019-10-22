@@ -2,12 +2,13 @@
 #define TRANSPHON_PHON_SCRIPT_INCLUDE
 
 static const char *transphon_script = R"_(
+var default_output = system.join_path(system.user_directory, "output.txt")
 var ui = {
     title: "TransPhon",
     width: 300,
     items: [
         { type: "label", text: "Choose output file:" },
-        { type: "file_selector", name: "path", title: "Select text file...", default: "output.txt" },
+        { type: "file_selector", name: "path", title: "Select text file...", default: default_output },
         { type: "label", text: "Select layers separated by a comma, or leave empty to process all layers:" },
         { type: "field", name: "layers", default: "1"},
         { type: "label", text: "Choose annotations:"},
@@ -34,7 +35,8 @@ var result = create_dialog(ui)
 
 if result then
 
-	var output_file = File(result.path,"w")
+	var path = result.path
+	var output_file = File(path, "w")
 	
 	
 	if result.annotations == [] then
@@ -119,7 +121,12 @@ if result then
 	
 	end
 	output_file.close()
-	info("Annotations have been written to '" + output_file.path + "'")
+
+	var show = ask("Annotations have been written to '" + path + "'.\nWould you like to view the file?")
+	
+	if show then
+		view_text(path, system.get_base_name(path), 500)
+	end
 end)_";
 
 #endif /* TRANSPHON_PHON_SCRIPT_INCLUDE */
