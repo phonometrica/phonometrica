@@ -124,16 +124,22 @@ void Waveform::drawWave()
 
         auto maximum = -(std::numeric_limits<double>::max)();
         auto minimum = (std::numeric_limits<double>::max)();
+        intptr_t min_index = (std::numeric_limits<intptr_t>::min)();
+	    intptr_t max_index = (std::numeric_limits<intptr_t>::min)();
 
         for (intptr_t i = 1; i <= sample_count; i++)
         {
             auto sample = *raw_data++;
 
-            if (sample < minimum) {
+            if (sample < minimum)
+            {
                 minimum = sample;
+                min_index = i;
             }
-            if (sample > maximum) {
+            if (sample > maximum)
+            {
                 maximum = sample;
+                max_index = i;
             }
 
             if (i % frames_per_pixel == 0)
@@ -155,11 +161,15 @@ void Waveform::drawWave()
                 // reset values
                 maximum = -(std::numeric_limits<double>::max)();
                 minimum = (std::numeric_limits<double>::max)();
+                min_index = max_index = (std::numeric_limits<intptr_t>::min)();
             }
         }
 
         double y1 = sampleToHeight(maximum);
         double y2 = sampleToHeight(minimum);
+        if (min_index < max_index) {
+        	std::swap(y1, y2);
+        }
 
         path.lineTo(x, y1);
         path.lineTo(x, y2);

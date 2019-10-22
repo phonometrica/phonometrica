@@ -68,6 +68,10 @@ public:
 
     void updateSettings();
 
+	void clearPersistentCursor() { persistent_cursor = -1; }
+
+	void setPersistentCursor(double value) { persistent_cursor = value; }
+
 signals:
 
     void timeSelection(double, double);
@@ -85,6 +89,8 @@ signals:
 	void zoomOutRequested(bool dummy);
 
 	void zoomToSelectionRequested(bool dummy);
+
+	void persistentCursorRequested(double time);
 
 public slots:
 
@@ -128,6 +134,8 @@ protected:
 
     virtual void moveWindow(double t1, double t2);
 
+    bool hasPersistentCursor() const { return persistent_cursor >= 0; }
+
     bool hasSelection() const;
 
     void clearSelection();
@@ -166,11 +174,14 @@ protected:
     // Tick displayed while sound is playing
     double tick = -1;
 
+    // Time of the persistent cursor.
+    double persistent_cursor = -1;
+
     // track mouse button
     bool button_pressed = false;
 
     // Mouse tracking occurs if a user checks the mouse tracking option or if an anchor is being dragged.
-    MouseTracking mouse_tracking_enabled = MouseTracking::Enabled;
+    MouseTracking mouse_tracking = MouseTracking::Enabled;
     MouseTracking mouse_state = MouseTracking::Disabled;
 };
 

@@ -488,7 +488,6 @@ void Spectrogram::readFormantsSettings()
 
 	nformant = (int) Settings::get_number(rt, category, "number_of_formants");
 	formant_window_length = Settings::get_number(rt, category, "window_size");
-	formant_time_step = Settings::get_number(rt, category, "time_step");
 	lpc_order = (int) Settings::get_number(rt, category, "lpc_order");
 	max_formant_frequency = Settings::get_number(rt, category, "max_frequency");
 }

@@ -46,7 +46,6 @@ FormantSettings::FormantSettings(Runtime &rt, QWidget *parent) :
 	setMinimumWidth(300);
 	nformant_edit = new QLineEdit;
 	window_edit = new QLineEdit;
-	step_edit = new QLineEdit;
 	npole_edit = new QLineEdit;
 	fs_edit = new QLineEdit;
 
@@ -57,8 +56,6 @@ FormantSettings::FormantSettings(Runtime &rt, QWidget *parent) :
 	layout->addWidget(fs_edit);
 	layout->addWidget(new QLabel(tr("Window length (ms):")));
 	layout->addWidget(window_edit);
-	layout->addWidget(new QLabel(tr("Time step (s)")));
-	layout->addWidget(step_edit);
 	layout->addWidget(new QLabel(tr("LPC order:")));
 	layout->addWidget(npole_edit);
 
@@ -87,9 +84,6 @@ void FormantSettings::displayValues()
 	auto len = Settings::get_number(runtime, category, "window_size");
 	window_edit->setText(QString::number(len));
 
-	auto step = Settings::get_number(runtime, category, "time_step");
-	step_edit->setText(QString::number(step));
-
 	auto npole = (int) Settings::get_number(runtime, category, "lpc_order");
 	npole_edit->setText(QString::number(npole));
 
@@ -115,13 +109,6 @@ void FormantSettings::validate()
 		return;
 	}
 	Settings::set_value(runtime, category, "window_size", len);
-
-	auto step = step_edit->text().toDouble(&ok);
-	if (!ok || step <= 0) {
-		QMessageBox::critical(this, tr("Invalid setting"), tr("Invalid time step"));
-		return;
-	}
-	Settings::set_value(runtime, category, "time_step", step);
 
 	auto npole = npole_edit->text().toInt(&ok);
 	if (!ok || npole <= nformant) {

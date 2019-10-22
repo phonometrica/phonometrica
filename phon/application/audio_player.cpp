@@ -189,7 +189,6 @@ void AudioPlayer::prepare()
     m_buffer.resize(input_size);
     m_cache.resize(input_size);
 #else
-    input_size = FRAME_COUNT;
     m_params.nChannels = (unsigned int) data->channels();
     output_rate = (unsigned int) data->sample_rate();
 #endif
@@ -264,7 +263,12 @@ void AudioPlayer::initialize_resampling(uint32_t output_rate)
         return;
     }
     auto input_rate = (uint32_t) data->sample_rate();
-    m_resampler = std::make_unique<Resampler>(input_rate, output_rate, m_buffer.size());
+#if PHON_MACOS
+    int size = m_buffer.size()
+#else
+	int size = FRAME_COUNT;
+#endif
+    m_resampler = std::make_unique<Resampler>(input_rate, output_rate, size);
 }
 
 bool AudioPlayer::paused() const

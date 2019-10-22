@@ -144,7 +144,6 @@ void SpeechPlot::paintEvent(QPaintEvent *event)
     pal.setColor(QPalette::Background, Qt::white);
     setAutoFillBackground(true);
     setPalette(pal);
-
 	renderPlot(event);
 
     if (hasSelection())
@@ -153,7 +152,7 @@ void SpeechPlot::paintEvent(QPaintEvent *event)
 
         if (isMainPlot())
         {
-            QPainter painter(this);
+	        QPainter painter(this);
             QFontMetrics font_metric = painter.fontMetrics();
             auto x1 = timeToXPos(sel_start);
             auto x2 = timeToXPos(sel_end);
@@ -169,10 +168,23 @@ void SpeechPlot::paintEvent(QPaintEvent *event)
         }
     }
 
+    if (hasPersistentCursor())
+    {
+	    QPainter painter(this);
+        QFontMetrics font_metric = painter.fontMetrics();
+        auto pen = painter.pen();
+        pen.setColor(QColor("orange")); //.lighter(90);
+        //pen.setStyle(Qt::DotLine);
+        //pen.setWidth(2);
+        painter.setPen(pen);
+        auto x = timeToXPos(persistent_cursor);
+        painter.drawLine(QPointF(x, 0.0), QPointF(x, height()));
+    }
+
     if (hasTick())
     {
+	    QPainter painter(this);
         invalidateCurrentTime();
-        QPainter painter(this);
         QFontMetrics font_metric = painter.fontMetrics();
         QColor color = QColor(Qt::red).lighter(90);
         painter.setPen(color);
@@ -221,14 +233,18 @@ void SpeechPlot::wheelEvent(QWheelEvent *event)
 
 void SpeechPlot::mousePressEvent(QMouseEvent *event)
 {
-	if (event->button() == Qt::MiddleButton)
+	if (event->button() == Qt::RightButton && mouse_tracking == MouseTracking::Enabled)
+	{
+		emit persistentCursorRequested(-1);
+	}
+	else if (event->button() == Qt::MiddleButton)
 	{
 		if (hasSelection())
 		{
 			emit zoomToSelectionRequested(false);
 		}
 	}
-	else
+	else if (event->button() == Qt::LeftButton)
 	{
 		button_pressed = true;
 		auto x = event->localPos().x();
@@ -239,11 +255,21 @@ void SpeechPlot::mousePressEvent(QMouseEvent *event)
 
 void SpeechPlot::mouseReleaseEvent(QMouseEvent *event)
 {
-	if (event->button() != Qt::MiddleButton)
+	auto x = event->localPos().x();
+	auto t = xPosToTime(x);
+
+	if (event->button() == Qt::LeftButton)
 	{
 		button_pressed = false;
-		auto x = event->localPos().x();
-		updateSelectionEnd(xPosToTime(x));
+
+		if (t == sel_start && t == sel_end && mouse_tracking == MouseTracking::Enabled)
+		{
+			emit persistentCursorRequested(t);
+		}
+		else
+		{
+			updateSelectionEnd(t);
+		}
 	}
 }
 
@@ -348,7 +374,7 @@ void SpeechPlot::leaveEvent(QEvent *)
 
 void SpeechPlot::enableMouseTracking(bool enable)
 {
-    mouse_tracking_enabled = enable ? MouseTracking::Enabled : MouseTracking::Disabled;
+	mouse_tracking = enable ? MouseTracking::Enabled : MouseTracking::Disabled;
 }
 
 void SpeechPlot::setCurrentTime(double time, MouseTracking tracking)
@@ -361,7 +387,7 @@ void SpeechPlot::setCurrentTime(double time, MouseTracking tracking)
 		//  (see LayerWidget::mouseReleaseEvent).
 		clearCurrentTime();
 	}
-    else if (mouse_tracking_enabled != MouseTracking::Disabled || tracking != MouseTracking::Disabled)
+    else if (mouse_tracking != MouseTracking::Disabled || tracking != MouseTracking::Disabled)
     {
         current_time = time;
 	    repaint();
@@ -390,7 +416,7 @@ bool SpeechPlot::needsRefresh() const
 bool SpeechPlot::trackCursor() const
 {
     return hasCurrentTime() &&
-	    (mouse_tracking_enabled != MouseTracking::Disabled || mouse_state != MouseTracking::Disabled);
+	    (mouse_tracking != MouseTracking::Disabled || mouse_state != MouseTracking::Disabled);
 }
 
 void SpeechPlot::setInitialWindow()

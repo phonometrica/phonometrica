@@ -35,7 +35,7 @@
 
 namespace phonometrica {
 
-ConversionDialog::ConversionDialog(QWidget *parent) : QDialog(parent)
+ConversionDialog::ConversionDialog(int sample_rate, QWidget *parent) : QDialog(parent)
 {
 	auto layout = new QVBoxLayout;
 	layout->addWidget(new QLabel(tr("Choose output file:")));
@@ -44,7 +44,7 @@ ConversionDialog::ConversionDialog(QWidget *parent) : QDialog(parent)
 	file_selector->setText("/home/julien/test.wav");
 	layout->addWidget(new QLabel(tr("New sampling rate (Hz):")));
 	fs_line = new QLineEdit;
-	fs_line->setText("16000");
+	fs_line->setText(QString::number(sample_rate));
 	layout->addWidget(fs_line);
 	format_box = new QComboBox;
 	format_box->addItem("wav");

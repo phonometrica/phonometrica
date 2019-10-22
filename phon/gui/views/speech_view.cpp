@@ -348,8 +348,10 @@ void SpeechView::enableMouseTracking(bool enable)
 {
     Settings::set_value(runtime, "enable_mouse_tracking", enable);
 
-    for (auto plot : plots) {
+    for (auto plot : plots)
+    {
     	plot->enableMouseTracking(enable);
+    	if (!enable) plot->clearPersistentCursor();
     	plot->repaint();
     }
 }
@@ -539,6 +541,7 @@ void SpeechView::setupUi()
 		connect(plot, &SpeechPlot::zoomOutRequested, this, &SpeechView::zoomOut);
 		connect(plot, &SpeechPlot::zoomToSelectionRequested, this, &SpeechView::zoomToSelection);
 		connect(plot, &SpeechPlot::yAxisModified, y_axis, &YAxisWidget::refresh);
+		connect(plot, &SpeechPlot::persistentCursorRequested, this, &SpeechView::setPersistentCursor);
 	}
 
 	for (auto plot1 : plots)
@@ -588,6 +591,15 @@ bool SpeechView::save()
 	}
 
 	return true;
+}
+
+void SpeechView::setPersistentCursor(double time)
+{
+	for (auto plot : plots)
+	{
+		plot->setPersistentCursor(time);
+		plot->repaint();
+	}
 }
 
 } // namespace phonometrica

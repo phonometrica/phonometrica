@@ -95,12 +95,8 @@ private:
 	// Dynamic range (in dB). Values below the threshold [max_dB - dynamic_range] are treated as 0.
 	int dynamic_range;
 
-
 	// Duration of the analysis window for formants.
 	double formant_window_length;
-
-	// Time step for formants.
-	double formant_time_step;
 
 	// Nyquist frequency range for formant analysis.
 	double max_formant_frequency;

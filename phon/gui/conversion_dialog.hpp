@@ -22,7 +22,7 @@
  *                                                                                                                     *
  * Created: 21/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: dialog for sound resampling.                                                                               *
+ * Purpose: dialog for sound resampling and format conversion.                                                         *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -42,7 +42,7 @@ class ConversionDialog : public QDialog
 
 public:
 
-	ConversionDialog(QWidget *parent = nullptr);
+	ConversionDialog(int sample_rate, QWidget *parent = nullptr);
 
 	QString format() const;
 

@@ -57,7 +57,7 @@ private:
 
 	Runtime &runtime;
 
-	QLineEdit *nformant_edit, *window_edit, *step_edit, *npole_edit, *fs_edit;
+	QLineEdit *nformant_edit, *window_edit, *npole_edit, *fs_edit;
 };
 
 } // namespace phonometrica

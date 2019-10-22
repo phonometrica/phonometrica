@@ -109,6 +109,8 @@ protected slots:
 
     void showDocumentation(bool);
 
+    void setPersistentCursor(double);
+
 protected:
 
 	void setupUi();

@@ -758,7 +758,7 @@ void ProjectCtrl::copyPathToClipboard(const String &path)
 
 void ProjectCtrl::convertSound(const AutoSound &sound)
 {
-	ConversionDialog dlg(this);
+	ConversionDialog dlg(sound->sample_rate(), this);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{

@@ -4,6 +4,8 @@ Release notes
 0.6.0 (??/10/2019)
 ~~~~~~~~~~~~~~~~~~
 
+This release brings more sound visualization options, as well as a number of enhancements and bug fixes.
+
 - spectrogram in sound and annotation views
 - LPC-based formant tracking
 - waveform scaling using global, local or fixed magnitude
