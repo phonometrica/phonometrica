@@ -12,7 +12,7 @@ Release notes
 - user dialogs
 - uninstall plugin (``Tools > uninstall plugin``)
 - new resampler
-- resample sound
+- resample and/or convert sound to WAV, AIFF or FLAC
 
 
 0.5.2 (04/10/2019)

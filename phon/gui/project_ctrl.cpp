@@ -37,7 +37,7 @@
 #include <QFileIconProvider>
 #include <phon/gui/project_ctrl.hpp>
 #include <phon/gui/property_editor.hpp>
-#include <phon/gui/resampling_dialog.hpp>
+#include <phon/gui/conversion_dialog.hpp>
 #include <phon/application/praat.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/utils/file_system.hpp>
@@ -497,10 +497,10 @@ void ProjectCtrl::onRightClick(const QPoint &pos)
                 	emit view_file(annot);
                 });
 
-                action = new QAction(tr("Resample..."), this);
+                action = new QAction(tr("Convert..."), this);
                 menu.addAction(action);
                 connect(action, &QAction::triggered, [=](bool) {
-                	this->resampleSound(sound);
+	                this->convertSound(sound);
                 });
 
                 menu.addSeparator();
@@ -756,9 +756,9 @@ void ProjectCtrl::copyPathToClipboard(const String &path)
 	clipboard->setText(path);
 }
 
-void ProjectCtrl::resampleSound(const AutoSound &sound)
+void ProjectCtrl::convertSound(const AutoSound &sound)
 {
-	ResamplingDialog dlg(this);
+	ConversionDialog dlg(this);
 
 	if (dlg.exec() == QDialog::Accepted)
 	{
@@ -772,7 +772,7 @@ void ProjectCtrl::resampleSound(const AutoSound &sound)
 		else if (format == "aiff") {
 			fmt = Sound::Format::FLAC;
 		}
-		sound->resample(path, Fs, fmt);
+		sound->convert(path, Fs, fmt);
 
 		auto reply = QMessageBox::question(this, tr("Import file?"), tr("Would you like to import this dataset into the current project?"),
 		                                   QMessageBox::Yes|QMessageBox::No);

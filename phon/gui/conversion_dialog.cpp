@@ -22,51 +22,76 @@
  *                                                                                                                     *
  * Created: 21/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: dialog for sound resampling.                                                                               *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_RESAMPLING_DIALOG_HPP
-#define PHONOMETRICA_RESAMPLING_DIALOG_HPP
-
-#include <QDialog>
-#include <QComboBox>
-#include <QLineEdit>
-#include <phon/gui/file_selector.hpp>
+#include <QLabel>
+#include <QLayout>
+#include <QMessageBox>
+#include <QDialogButtonBox>
+#include <phon/application/sound.hpp>
+#include <phon/gui/conversion_dialog.hpp>
 
 namespace phonometrica {
 
-class ResamplingDialog : public QDialog
+ConversionDialog::ConversionDialog(QWidget *parent) : QDialog(parent)
 {
-	Q_OBJECT
+	auto layout = new QVBoxLayout;
+	layout->addWidget(new QLabel(tr("Choose output file:")));
+	file_selector = new FileSelector(tr("Choose output file name"));
+	layout->addWidget(file_selector);
+	file_selector->setText("/home/julien/test.wav");
+	layout->addWidget(new QLabel(tr("New sampling rate (Hz):")));
+	fs_line = new QLineEdit;
+	fs_line->setText("16000");
+	layout->addWidget(fs_line);
+	format_box = new QComboBox;
+	format_box->addItem("wav");
+	format_box->addItem("aiff");
+	if (Sound::common_sound_formats().contains("flac")) {
+		format_box->addItem("flac");
+	}
+	format_box->setCurrentIndex(0);
+	layout->addWidget(format_box);
+	auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+	layout->addWidget(button_box);
+	setLayout(layout);
 
-public:
+	connect(button_box, &QDialogButtonBox::accepted, this, &ConversionDialog::validate);
+    connect(button_box, &QDialogButtonBox::rejected, this, &ConversionDialog::reject);
+}
 
-	ResamplingDialog(QWidget *parent = nullptr);
+QString ConversionDialog::format() const
+{
+	return format_box->currentText();
+}
 
-	QString format() const;
+String ConversionDialog::path() const
+{
+	QString p = file_selector->text();
+	if (! p.isEmpty() && !p.endsWith(format()))
+	{
+		p.append('.');
+		p.append(format());
+	}
 
-	String path() const;
+	return p;
+}
 
-	int sample_rate() const { return Fs; }
-
-private slots:
-
-	void validate();
-
-private:
-
-	FileSelector *file_selector;
-
-	QComboBox *format_box;
-
-	QLineEdit *fs_line;
-
-	int Fs = 0;
-};
+void ConversionDialog::validate()
+{
+	if (file_selector->text().isEmpty()) {
+		QMessageBox::critical(this, tr("Invalid resampling settings"), tr("Empty output path"));
+		return;
+	}
+	bool ok;
+	Fs = fs_line->text().toInt(&ok);
+	if (!ok || Fs <= 0) {
+		QMessageBox::critical(this, tr("Invalid resampling settings"), tr("Invalid sampling rate"));
+		return;
+	}
+	accept();
+}
 
 } // namespace phonometrica
-
-
-
-#endif // PHONOMETRICA_RESAMPLING_DIALOG_HPP

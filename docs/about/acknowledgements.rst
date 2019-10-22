@@ -31,5 +31,5 @@ Phonometrica also uses `GitHub <https://github.com>`_ to host its source code. T
 We are also grateful to JetBrains for providing us with an academic license of their `C++ editor <https://www.jetbrains.com/clion/>`_.
 
 
-The development of query protocols was developed as part of the following project: *A corpus-based longitudinal study of the interphonological features of Japanese learners of French*. PI: Sylvain DETEY (Waseda University). This project was supported by the Japanese Society for the Promotion of Science (JSPS), Grant-in-Aid for Scientific Research (B) n°23320121 (2011-2014).
+The development of coding protocols was originally developed as part of the following research project: *A corpus-based longitudinal study of the interphonological features of Japanese learners of French*. PI: Sylvain DETEY (Waseda University). This project was supported by the Japanese Society for the Promotion of Science (JSPS), Grant-in-Aid for Scientific Research (B) n°23320121 (2011-2014).
 

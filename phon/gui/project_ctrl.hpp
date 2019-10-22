@@ -108,7 +108,7 @@ private:
 
     static void copyPathToClipboard(const String &path);
 
-    void resampleSound(const AutoSound &sound);
+    void convertSound(const AutoSound &sound);
 
     Runtime &rt;
 

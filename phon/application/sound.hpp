@@ -80,7 +80,7 @@ public:
 
     int nchannel() const;
 
-    void resample(const String &path, int sample_rate, Format fmt);
+    void convert(const String &path, int sample_rate, Format fmt);
 
 private:
 

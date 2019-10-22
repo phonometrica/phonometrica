@@ -213,7 +213,7 @@ std::shared_ptr<AudioData> Sound::light_data() const
 	return std::make_shared<AudioData>(handle(), false);
 }
 
-void Sound::resample(const String &path, int sample_rate, Sound::Format fmt)
+void Sound::convert(const String &path, int sample_rate, Sound::Format fmt)
 {
 	const int BUFFER_SIZE = 1024;
 	double buffer[BUFFER_SIZE];
