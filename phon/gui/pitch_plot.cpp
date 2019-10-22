@@ -128,20 +128,6 @@ void PitchPlot::renderPlot(QPaintEvent *)
         t += time_step;
     }
 
-    if (trackCursor())
-    {
-		PHON_LOG("Add cursor to pitch plot");
-        auto x = timeToXPos(current_time) + 5;
-        auto f = findValueAtTime(current_time);
-
-        if (!std::isnan(f))
-        {
-            auto y = fm.height() / 2 + 2;
-            auto label = QString("%1 Hz").arg(f);
-            painter.drawText(QPointF(x, y), label);
-        }
-    }
-
     pen.setWidth(2);
     painter.setPen(pen);
     painter.drawPath(path);
@@ -184,36 +170,6 @@ void PitchPlot::readSettings()
     max_pitch = Settings::get_number(rt, cat, "maximum_pitch");
     time_step = Settings::get_number(rt, cat, "time_step");
     voicing_threshold = Settings::get_number(rt, cat, "voicing_threshold");
-}
-
-double PitchPlot::findValueAtTime(double time)
-{
-    double current_time = window_start;
-    double previous_freq = 0;
-    double previous_time = 0;
-
-    for (auto f : pitch_data)
-    {
-        if (current_time == time) {
-            return f;
-        }
-        else if (time > previous_time && time < current_time)
-        {
-            if (std::isnan(previous_freq) || std::isnan(f)) {
-                return std::nan("");
-            }
-            // Simple linear interpolation
-            auto diff = time - previous_time;
-            auto delta = f - previous_freq;
-
-            return previous_freq + (diff * delta / time_step);
-        }
-        previous_freq = f;
-        previous_time = current_time;
-        current_time += time_step;
-    }
-
-    return std::nan("");
 }
 
 void PitchPlot::emptyCache()

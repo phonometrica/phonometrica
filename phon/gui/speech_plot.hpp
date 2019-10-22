@@ -70,7 +70,7 @@ public:
 
 	void clearPersistentCursor() { persistent_cursor = -1; }
 
-	void setPersistentCursor(double value) { persistent_cursor = value; }
+	void setPersistentCursor(double value);
 
 signals:
 

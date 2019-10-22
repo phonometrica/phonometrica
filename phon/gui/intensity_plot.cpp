@@ -97,19 +97,6 @@ void IntensityPlot::renderPlot(QPaintEvent *)
         t += time_step;
     }
 
-    if (trackCursor())
-    {
-        auto x = timeToXPos(current_time) + 5;
-        auto f = findValueAtTime(current_time);
-
-        if (std::isfinite(f))
-        {
-            auto y = fm.height() / 2 + 2;
-            auto label = QString("%1 dB").arg(f);
-            painter.drawText(QPointF(x, y), label);
-        }
-    }
-
     pen.setWidth(2);
     painter.setPen(pen);
     painter.drawPath(path);
@@ -157,36 +144,6 @@ void IntensityPlot::calculateIntensity()
     db_data = speech::get_intensity(input, m_data->sample_rate(), window_size, time_step);
     cached_start = window_start;
     cached_end = window_end;
-}
-
-double IntensityPlot::findValueAtTime(double time)
-{
-    double current_time = window_start + time_step; // / 2;
-    double previous_value = 0;
-    double previous_time = 0;
-
-    for (auto f : db_data)
-    {
-        if (current_time == time) {
-            return f;
-        }
-        else if (time > previous_time && time < current_time)
-        {
-            if (!std::isfinite(previous_value) || !std::isfinite(f)) {
-                return std::nan("");
-            }
-            // Simple linear interpolation
-            auto diff = time - previous_time;
-            auto delta = f - previous_value;
-
-            return previous_value + (diff * delta / time_step);
-        }
-        previous_value = f;
-        previous_time = current_time;
-        current_time += time_step;
-    }
-
-    return std::nan("");
 }
 
 void IntensityPlot::readSettings()

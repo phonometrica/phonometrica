@@ -533,6 +533,10 @@ void AnnotationView::onAnchorSelected(intptr_t layer_index, double time)
 			layers[i]->setGhostAnchorTime(time);
 		}
 	}
+	for (auto plot : plots)
+	{
+		plot->setPersistentCursor(time);
+	}
 }
 
 void AnnotationView::clearGhostAnchors()
@@ -541,6 +545,10 @@ void AnnotationView::clearGhostAnchors()
 	{
 		layer->clearGhostAnchor();
 		layer->repaint();
+	}
+	for (auto plot : plots)
+	{
+		plot->setPersistentCursor(-1);
 	}
 }
 

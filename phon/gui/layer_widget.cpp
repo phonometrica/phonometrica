@@ -216,7 +216,7 @@ void LayerWidget::paintEvent(QPaintEvent *e)
 	{
 		auto pen = painter.pen();
 		pen.setWidth(1);
-		pen.setColor(Qt::gray);
+		pen.setColor(QColor("orange"));
 		pen.setStyle(Qt::DotLine);
 		painter.setPen(pen);
 		drawAnchor(painter, ghost_anchor_time, hasInstants());

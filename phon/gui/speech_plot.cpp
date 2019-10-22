@@ -173,9 +173,7 @@ void SpeechPlot::paintEvent(QPaintEvent *event)
 	    QPainter painter(this);
         QFontMetrics font_metric = painter.fontMetrics();
         auto pen = painter.pen();
-        pen.setColor(QColor("orange")); //.lighter(90);
-        //pen.setStyle(Qt::DotLine);
-        //pen.setWidth(2);
+        pen.setColor(QColor("orange"));
         painter.setPen(pen);
         auto x = timeToXPos(persistent_cursor);
         painter.drawLine(QPointF(x, 0.0), QPointF(x, height()));
@@ -266,10 +264,7 @@ void SpeechPlot::mouseReleaseEvent(QMouseEvent *event)
 		{
 			emit persistentCursorRequested(t);
 		}
-		else
-		{
-			updateSelectionEnd(t);
-		}
+		updateSelectionEnd(t);
 	}
 }
 
@@ -437,6 +432,12 @@ void SpeechPlot::updateSettings()
 	emptyCache();
 	repaint();
 	emit yAxisModified();
+}
+
+void SpeechPlot::setPersistentCursor(double value)
+{
+	clearCurrentTime();
+	persistent_cursor = value;
 }
 
 } // namespace phonometrica

@@ -62,8 +62,6 @@ private:
 
     void calculatePitch();
 
-    double findValueAtTime(double t);
-
     Array<double> pitch_data;
 
     double min_pitch;

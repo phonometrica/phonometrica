@@ -61,11 +61,10 @@ private:
 
     double intensityToYPos(double dB) const;
 
-    double findValueAtTime(double time);
-
     Array<double> db_data;
 
     double min_dB = 50;
+
     double max_dB = 100;
 
     double time_step = 0.01;

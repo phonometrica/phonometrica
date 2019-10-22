@@ -35,14 +35,31 @@ namespace phonometrica {
 ShowHideLayerDialog::ShowHideLayerDialog(const Array<String> &labels, const Array<bool> &visibility, QWidget *parent) :
 	QDialog(parent)
 {
-	setWindowTitle("Show/hide layers");
+	setWindowTitle("Select visible layers");
 	auto layout = new QVBoxLayout;
-	list_box = new CheckListBox("Select visible layers", labels);
+	list_box = new CheckListBox("Layers", labels);
 	layout->addWidget(list_box);
-	for (int i = 1; i <= visibility.size(); i++)
+	bool all_visible = true;
+	for (auto v : visibility)
 	{
-		list_box->checkItem(i-1, visibility[i]);
+		if (!v)
+		{
+			all_visible = false;
+			break;
+		}
 	}
+	if (all_visible)
+	{
+		list_box->setChecked(true);
+	}
+	else
+	{
+		for (int i = 1; i <= visibility.size(); i++)
+		{
+			list_box->checkItem(i-1, visibility[i]);
+		}
+	}
+
 	auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
 	layout->addWidget(button_box);
 	setLayout(layout);
