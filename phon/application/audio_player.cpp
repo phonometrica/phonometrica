@@ -293,6 +293,7 @@ void AudioPlayer::interrupt()
 {
 	stop();
     quit();
+    wait();
 }
 
 void AudioPlayer::play_silence(double *data, size_t size)

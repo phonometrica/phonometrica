@@ -46,6 +46,8 @@ public:
 
     explicit Viewer(Runtime &rt, QWidget *parent = nullptr);
 
+    ~Viewer() override;
+
     void closeCurrentView();
 
 signals:

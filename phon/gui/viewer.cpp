@@ -51,6 +51,11 @@ Viewer::Viewer(Runtime &rt, QWidget *parent) :
     setStartView();
 }
 
+Viewer::~Viewer()
+{
+	saveViews();
+}
+
 void Viewer::setStartView()
 {
     if (!runtime.is_text_mode())
@@ -267,6 +272,5 @@ void Viewer::closeCurrentView()
 {
 	closeTab(currentIndex());
 }
-
 
 } // phonometrica
