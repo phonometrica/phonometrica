@@ -36,6 +36,7 @@
 #include <QDebug>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
+#include <phon/gui/show_hide_layer_dialog.hpp>
 #include <phon/gui/views/annotation_view.hpp>
 #include <phon/gui/new_layer_dialog.hpp>
 
@@ -68,6 +69,7 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	layer_button->setPopupMode(QToolButton::InstantPopup);
 	auto add_layer_action = layer_menu->addAction(tr("Add new layer..."));
 	auto remove_layer_action = layer_menu->addAction(tr("Remove selected layer"));
+	auto show_layer_action = layer_menu->addAction(tr("Select visible layers"));
 	layer_menu->addSeparator();
 	auto dup_layer_action = layer_menu->addAction(tr("Duplicate selected layer"));
 	auto rename_layer_action = layer_menu->addAction(tr("Rename selected layer"));
@@ -99,6 +101,7 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	connect(rename_layer_action, &QAction::triggered, this, &AnnotationView::renameLayer);
 	connect(add_anchor_action, &QAction::triggered, this, &AnnotationView::setAddAnchorEnabled);
 	connect(remove_anchor_action, &QAction::triggered, this, &AnnotationView::setRemoveAnchorEnabled);
+	connect(show_layer_action, &QAction::triggered, this, &AnnotationView::showHideLayers);
 
     connect(link_button, &QToolButton::clicked, [=](bool checked) {
     	if (checked) {
@@ -569,6 +572,41 @@ void AnnotationView::setTemporaryAnchor(intptr_t layer_index, double time)
 		layer->setEditAnchor(t);
 		layer->repaint();
 	}
+}
+
+void AnnotationView::showHideLayers(bool)
+{
+	auto count = annot->layer_count();
+	Array<String> labels;
+	Array<bool> visibility;
+
+	for (intptr_t i = 1; i <= count; i++)
+	{
+		String label("Layer ");
+		label.append(String::convert(i));
+		auto l = annot->get_layer_label(i);
+		if (!l.empty())
+		{
+			label.append(" (");
+			label.append(l);
+			label.append(')');
+		}
+		labels.append(label);
+		visibility.append(layers[i]->isVisible());
+	}
+	ShowHideLayerDialog dlg(labels, visibility, this);
+
+	if (dlg.exec() == QDialog::Accepted)
+	{
+		auto indexes = dlg.selectedIndexes();
+
+		for (intptr_t i = 1; i <= count; i++)
+		{
+			bool visible = indexes.contains(i);
+			layers[i]->setVisible(visible);
+		}
+	}
+	y_axis->refresh();
 }
 
 } // namespace phonometrica

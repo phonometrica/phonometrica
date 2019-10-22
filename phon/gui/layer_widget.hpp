@@ -87,6 +87,8 @@ public:
 
 	void setEditAnchor(double value) { edit_anchor_time = value; }
 
+	void setYAxisItemVisible(bool value) override;
+
 signals:
 
     void got_focus(intptr_t i);

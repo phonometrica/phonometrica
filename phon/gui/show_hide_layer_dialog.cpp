@@ -20,60 +20,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 23/03/2019                                                                                                 *
+ * Created: 22/10/2019                                                                                                 *
  *                                                                                                                     *
  * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <QDebug>
-#include <phon/gui/y_axis_widget.hpp>
-#include <phon/gui/speech_plot.hpp>
+#include <QLayout>
+#include <QDialogButtonBox>
+#include <phon/gui/show_hide_layer_dialog.hpp>
 
 namespace phonometrica {
 
-YAxisWidget::YAxisWidget(QWidget *parent) :
-    QWidget(parent)
+ShowHideLayerDialog::ShowHideLayerDialog(const Array<String> &labels, const Array<bool> &visibility, QWidget *parent) :
+	QDialog(parent)
 {
+	setWindowTitle("Show/hide layers");
+	auto layout = new QVBoxLayout;
+	list_box = new CheckListBox("Select visible layers", labels);
+	layout->addWidget(list_box);
+	for (int i = 1; i <= visibility.size(); i++)
+	{
+		list_box->checkItem(i-1, visibility[i]);
+	}
+	auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+	layout->addWidget(button_box);
+	setLayout(layout);
 
+	connect(button_box, &QDialogButtonBox::accepted, this, &ShowHideLayerDialog::accept);
+	connect(button_box, &QDialogButtonBox::rejected, this, &ShowHideLayerDialog::reject);
 }
 
-void YAxisWidget::addWidget(SpeechWidget *widget)
+Array<int> ShowHideLayerDialog::selectedIndexes()
 {
-    widgets.insert(widget);
+	return list_box->checkedIndexes();
 }
-
-void YAxisWidget::removeWidget(SpeechWidget *widget)
-{
-	widgets.erase(widget);
-}
-
-void YAxisWidget::clearWidgets()
-{
-    widgets.clear();
-}
-
-void YAxisWidget::paintEvent(QPaintEvent *)
-{
-    for (auto widget : widgets)
-    {
-    	widget->setYAxisItemVisible(widget->isVisible());
-
-        if (widget->isVisible())
-        {
-            // Get absolute vertical bounds
-            auto geom = widget->geometry();
-            int y1 = geom.y();
-            int y2 = geom.y() + widget->height();
-
-            widget->drawYAxis(this, y1, y2);
-        }
-    }
-}
-
-void YAxisWidget::refresh()
-{
-    repaint();
-}
-
 } // namespace phonometrica

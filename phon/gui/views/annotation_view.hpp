@@ -85,6 +85,8 @@ private slots:
 
     void setRemoveAnchorEnabled(bool checked);
 
+    void showHideLayers(bool checked);
+
     void notifyAnchorAdded(intptr_t layer_index, double time);
 
     void notifyAnchorRemoved(intptr_t layer_index, double time);

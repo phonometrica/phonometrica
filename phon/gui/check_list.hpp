@@ -106,6 +106,12 @@ public:
 
 	Array<String> checkedLabels();
 
+	Array<int> checkedIndexes();
+
+	void setChecked(bool value);
+
+	void checkItem(int i, bool value);
+
 signals:
 
 	void stateChanged(int index, int state);

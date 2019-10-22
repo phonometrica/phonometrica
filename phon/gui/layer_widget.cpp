@@ -959,4 +959,9 @@ bool LayerWidget::moveAnchor(double from, double to)
 	return ok;
 }
 
+void LayerWidget::setYAxisItemVisible(bool value)
+{
+	button->setVisible(value);
+}
+
 } // namespace phonometrica

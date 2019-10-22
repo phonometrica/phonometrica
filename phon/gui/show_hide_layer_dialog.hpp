@@ -20,60 +20,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 23/03/2019                                                                                                 *
+ * Created: 22/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: dialog to show/hide annotation layers in an annotation view.                                               *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <QDebug>
-#include <phon/gui/y_axis_widget.hpp>
-#include <phon/gui/speech_plot.hpp>
+#ifndef PHONOMETRICA_SHOW_HIDE_LAYER_DIALOG_HPP
+#define PHONOMETRICA_SHOW_HIDE_LAYER_DIALOG_HPP
+
+#include <QDialog>
+#include <phon/gui/check_list.hpp>
 
 namespace phonometrica {
 
-YAxisWidget::YAxisWidget(QWidget *parent) :
-    QWidget(parent)
+class ShowHideLayerDialog : public QDialog
 {
+	Q_OBJECT
 
-}
+public:
 
-void YAxisWidget::addWidget(SpeechWidget *widget)
-{
-    widgets.insert(widget);
-}
+	ShowHideLayerDialog(const Array<String> &labels, const Array<bool> &visibility, QWidget *parent = nullptr);
 
-void YAxisWidget::removeWidget(SpeechWidget *widget)
-{
-	widgets.erase(widget);
-}
+	Array<int> selectedIndexes();
 
-void YAxisWidget::clearWidgets()
-{
-    widgets.clear();
-}
+private:
 
-void YAxisWidget::paintEvent(QPaintEvent *)
-{
-    for (auto widget : widgets)
-    {
-    	widget->setYAxisItemVisible(widget->isVisible());
-
-        if (widget->isVisible())
-        {
-            // Get absolute vertical bounds
-            auto geom = widget->geometry();
-            int y1 = geom.y();
-            int y2 = geom.y() + widget->height();
-
-            widget->drawYAxis(this, y1, y2);
-        }
-    }
-}
-
-void YAxisWidget::refresh()
-{
-    repaint();
-}
+	CheckListBox *list_box;
+};
 
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_SHOW_HIDE_LAYER_DIALOG_HPP

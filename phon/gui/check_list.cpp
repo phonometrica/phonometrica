@@ -275,5 +275,33 @@ void CheckListBox::removeItem(QString item)
 	checkList->removeItem(item);
 }
 
+Array<int> CheckListBox::checkedIndexes()
+{
+	Array<int> results;
+	auto buttons = checkList->buttons();
+
+	for (int i = 0; i < buttons.size(); i++)
+	{
+		auto btn = buttons[i];
+
+		if (btn->isChecked())
+		{
+			results.append(i+1);
+		}
+	}
+
+	return results;
+}
+
+void CheckListBox::setChecked(bool value)
+{
+	switch_button->setChecked(value);
+}
+
+void CheckListBox::checkItem(int i, bool value)
+{
+	checkList->buttons()[i]->setChecked(value);
+}
+
 } // namespace phonometrica
 

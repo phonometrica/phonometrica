@@ -47,6 +47,8 @@ public:
 
 	std::pair<double,double> currentWindow() const { return { window_start, window_end }; }
 
+	virtual void setYAxisItemVisible(bool value) { }
+
 protected:
 
     double xPosToTime(double x) const;
