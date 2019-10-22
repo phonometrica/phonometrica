@@ -70,57 +70,110 @@ AudioPlayer::~AudioPlayer()
     }
 }
 
-int AudioPlayer::playback(void *out, void *, unsigned int nframes, double,
-                          RtAudioStreamStatus status, void *d)
+int AudioPlayer::playback(void *out, void *, unsigned int nframe, double, RtAudioStreamStatus status, void *d)
 {
     auto player = reinterpret_cast<AudioPlayer*>(d);
     auto output = reinterpret_cast<double*>(out);
+    const intptr_t sample_count = nframe * player->data->channels();
+    play_silence(output, sample_count); // make sure we have a clean output buffer
 
-    if (player->paused())
-    {
-        auto size = size_t(sizeof(double) * nframes * player->data->channels());
-        play_silence(output, size);
-
+	if (status) {
+		qDebug("Stream underflow detected!");
+	}
+    if (player->paused()) {
         return KEEP_PLAYING;
     }
-
-    if (status)
-        qDebug("Stream underflow detected!");
 
     auto handle = player->data->handle();
     // seek to the current file position
     handle.seek(player->position, SEEK_SET);
 
-
     // how far are we from the end?
     sf_count_t left_over = player->remaining_frames();
-    sf_count_t len = (nframes > left_over) ? left_over : nframes;
+    sf_count_t len = (nframe > left_over) ? left_over : nframe;
 
 #if PHON_MACOS
-    sf_count_t size_in_sf = FRAME_COUNT / player->ratio();
-    // Read data with libsndfile
-    sf_count_t nread_in = handle.readf(player->buffer(), size_in_sf);
-    player->position += nread_in;
-    // Set size of the output buffer
-    spx_uint32_t nread_out = nread_in * player->ratio();
+    // The resampler doesn't provide us with a predictable number of samples, whereas RTAudio expects a fixed-size
+    // buffer. We perform several calls to the resampler until we have a full buffer and cache extra samples for the
+    // next iteration
+    auto resampler = player->resampler();
+	double *end = output + nframe; // end of first channel
+	double *it = output;
 
-    spx_uint32_t nread_in_spx = (spx_uint32_t)nread_in;
-    int error = speex_resampler_process_float(player->resampler(), MONO_CHANNEL, player->buffer(), &nread_in_spx, output, &nread_out);
+	while (it < end)
+	{
+		// First, flush the cache and write it to the output buffer. If we have more samples in the cache than fits
+		// the output buffer, save the extra samples for the next iteration and return.
+		intptr_t extra = it + player->cached_samples - end;
+		if (extra >= 0)
+		{
+			intptr_t consumed = player->cached_samples - extra;
+			memcpy(it, player->cache(), consumed * sizeof(double));
+			memmove(player->cache(), player->cache() + consumed, extra * sizeof(double));
+			player->cached_samples = extra;
+			break;
+		}
+		else
+		{
+			memcpy(it, player->cache(), player->cached_samples * sizeof(double));
+			it += player->cached_samples;
+			player->cached_samples = 0;
+		}
+
+		// Do we still have samples to write? (Note that it's possible, and in fact likely, that we'll still have
+		// samples to write even though we have finished reading, because of the resampler's latency.)
+		if (player->remaining > 0)
+		{
+			double *buffer = player->buffer();
+
+			// If we have finished reading, fill the buffer with silence.
+			if (len == 0)
+			{
+				play_silence(buffer, nframe);
+			}
+			else
+			{
+				intptr_t count = handle.readf(buffer, len);
+				player->position += count;
+				for (intptr_t i = count; i < nframe; i++) buffer[i] = 0.0;
+			}
+			Span<double> input(player->buffer(), nframe);
+
+			double *resampled_buffer = nullptr;
+			auto written = resampler->process(input.data(), input.size(), resampled_buffer);
+			if (written > player->remaining) written = player->remaining;
+			// We now try to fill the output; left over samples are cached.
+			auto buffer_end = (std::min)(it + written, end);
+			intptr_t consumed = 0;
+			while (it != buffer_end)
+			{
+				*it++ = resampled_buffer[consumed++];
+			}
+			player->cached_samples = written - consumed;
+			memcpy(player->cache(), resampled_buffer + consumed, player->cached_samples * sizeof(double));
+			player->remaining -= written;
+		}
+		else
+		{
+			auto size = size_t(nframe * player->data->channels());
+			play_silence(output, size);
+		}
+	}
+
+	// Duplicate first channel.
+	memcpy(output + nframe, output, sizeof(double) * nframe);
 #else
     player->position += handle.readf(output, len);
 #endif
+
     auto t = double(player->position) / handle.samplerate();
     emit player->current_time(t);
 
-    if (left_over > 0)
-        return KEEP_PLAYING;
-    else
-    {
-        // zero out buffer to avoid playing it twice
-        memset(output, 0, sizeof(double) * nframes);
+    if (left_over > 0) {
+		return KEEP_PLAYING;
     }
-
     emit player->done();
+
     return STOP_PLAYING;
 }
 
@@ -131,9 +184,12 @@ void AudioPlayer::prepare()
 #if PHON_MACOS
     m_params.nChannels = 2;
     output_rate = MAC_SAMPLE_RATE;
-    m_ratio = double(output_rate) / data->sample_rate();
-    m_buffer.resize(FRAME_COUNT);
+    remaining = (data->size() / data->channels()) * double(output_rate) / data->sample_rate();
+    auto input_size = floor(FRAME_COUNT * double(output_rate) / data->sample_rate());
+    m_buffer.resize(input_size);
+    m_cache.resize(input_size);
 #else
+    input_size = FRAME_COUNT;
     m_params.nChannels = (unsigned int) data->channels();
     output_rate = (unsigned int) data->sample_rate();
 #endif
@@ -160,7 +216,7 @@ void AudioPlayer::play(double from, double to)
 		if (duration < MINIMUM_DURATION)
 		{
 			from = 0.0;
-			to = MINIMUM_DURATION;
+			to = duration;
 		}
 		else
 		{
@@ -176,7 +232,7 @@ void AudioPlayer::play(double from, double to)
 
 void AudioPlayer::run()
 {
-    unsigned int frame_count = FRAME_COUNT;
+	unsigned int frame_count = FRAME_COUNT;
 
 	try
 	{
@@ -208,7 +264,7 @@ void AudioPlayer::initialize_resampling(uint32_t output_rate)
         return;
     }
     auto input_rate = (uint32_t) data->sample_rate();
-    m_resampler = std::make_unique<Resampler>(input_rate, output_rate, FRAME_COUNT);
+    m_resampler = std::make_unique<Resampler>(input_rate, output_rate, m_buffer.size());
 }
 
 bool AudioPlayer::paused() const
@@ -241,7 +297,7 @@ void AudioPlayer::interrupt()
 
 void AudioPlayer::play_silence(double *data, size_t size)
 {
-    memset(data, 0, size);
+    memset(data, 0, size * sizeof(double));
 }
 
 void AudioPlayer::error_callback(RtAudioError::Type type, const std::string &msg)

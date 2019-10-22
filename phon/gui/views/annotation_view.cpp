@@ -162,6 +162,8 @@ LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 
 bool AnnotationView::save()
 {
+	SpeechView::save();
+
     if (!annot->modified()) return true;
 
 	auto reply = QMessageBox::question(this, tr("Save annotation?"),

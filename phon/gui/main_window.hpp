@@ -118,7 +118,7 @@ private:
 
     void loadPluginsAndScripts(const String &dir);
 
-    std::shared_ptr<Plugin> loadPlugin(const String &path);
+    void loadPlugin(const String &path);
 
     void importMetadata();
 

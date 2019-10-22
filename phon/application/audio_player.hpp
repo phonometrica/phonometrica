@@ -67,8 +67,6 @@ public:
 
 #if PHON_MACOS
 	double *buffer() { return m_buffer.data(); }
-
-	double ratio() const { return m_ratio; }
 #endif
 
     Resampler *resampler() { return m_resampler.get(); }
@@ -93,8 +91,8 @@ public slots:
 
 private:
 
-    static int playback(void *output, void *input, unsigned int nframes, double stream_time,
-                        RtAudioStreamStatus status, void *data);
+    static int playback(void *output, void *input, unsigned int nframe, double stream_time,
+						RtAudioStreamStatus status, void *data);
 
     void prepare();
 
@@ -128,9 +126,15 @@ private:
 
 #if PHON_MACOS
 
-    Array<double> m_buffer;
+	double * cache() { return m_cache.data(); }
 
-    double m_ratio = 1.0;
+	intptr_t remaining = 0;
+
+	std::vector<double> m_cache; // extra samples are stored here for the next iteration
+
+	intptr_t cached_samples = 0; // number of samples in the cache
+
+    Array<double> m_buffer;
 #endif
 
     // Current audio data being played, if any

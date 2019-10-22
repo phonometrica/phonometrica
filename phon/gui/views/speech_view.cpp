@@ -581,4 +581,13 @@ void SpeechView::setPlotVisibility()
 	action_enable_intensity->setChecked(value);
 }
 
+bool SpeechView::save()
+{
+	if (player.isRunning()) {
+		player.interrupt();
+	}
+
+	return true;
+}
+
 } // namespace phonometrica

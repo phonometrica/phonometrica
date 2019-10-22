@@ -57,6 +57,8 @@ public:
 
     SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWidget *parent = nullptr);
 
+    bool save() override;
+
     void post_initialize() override;
 
 	void setSelection(double t1, double t2);

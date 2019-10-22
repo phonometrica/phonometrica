@@ -994,12 +994,11 @@ void MainWindow::setDatabaseConnection()
 	connect(&db, &MetaDatabase::saving_metadata, this, &MainWindow::updateStatus);
 }
 
-std::shared_ptr<Plugin> MainWindow::loadPlugin(const String &path)
+void MainWindow::loadPlugin(const String &path)
 {
 	String msg("Loading plugin ");
 	msg.append(path);
 	updateStatus(msg);
-	std::shared_ptr<Plugin> plugin;
 
 	auto menu = new QMenu;
 
@@ -1032,7 +1031,7 @@ std::shared_ptr<Plugin> MainWindow::loadPlugin(const String &path)
 
 	try
 	{
-		plugin = std::make_shared<Plugin>(runtime, path, script_callback);
+		auto plugin = std::make_shared<Plugin>(runtime, path, script_callback);
 
 		if (plugin->has_entries())
 		{
@@ -1067,8 +1066,6 @@ std::shared_ptr<Plugin> MainWindow::loadPlugin(const String &path)
 		delete menu;
 		throw;
 	}
-
-	return plugin;
 }
 
 void MainWindow::installPlugin(bool)
@@ -1094,8 +1091,8 @@ void MainWindow::installPlugin(bool)
 	if (diff.size() == 1)
 	{
 		String path = filesystem::join(plugin_dir, diff.front());
-		auto plugin = loadPlugin(path);
-		String label = plugin->label();
+		loadPlugin(path);
+		String label = plugins.last()->label();
 		auto msg = utils::format("The \"%\" plugin has been installed!", label);
 
 		QMessageBox dlg(QMessageBox::Information, tr("Success"), QString::fromStdString(msg));
