@@ -56,9 +56,9 @@ public slots:
 
     void closeEvent (QCloseEvent *event) override;
 
-private slots:
-
     void showConsole(bool);
+
+private slots:
 
     void showInfo(bool);
 

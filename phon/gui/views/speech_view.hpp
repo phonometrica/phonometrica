@@ -59,9 +59,11 @@ public:
 
     bool save() override;
 
-    void post_initialize() override;
+    void postInitialize() override;
 
 	void setSelection(double t1, double t2);
+
+	AutoSound sound() const { return m_sound; }
 
 protected slots:
 

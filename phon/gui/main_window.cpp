@@ -45,6 +45,7 @@
 #include <phon/runtime/object.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
+#include <phon/include/speech_analysis_phon.hpp>
 #include <phon/include/transphon_phon.hpp>
 #include <phon/utils/file_system.hpp>
 #include <phon/utils/any.hpp>
@@ -90,7 +91,8 @@ MainWindow::MainWindow(Runtime &rt, QWidget *parent)
     adjustSplitters();
 
     auto viewer = main_area->viewer();
-    connect(main_area->console(), &Console::shown, file_manager, &FileManager::updateConsoleStatus);
+    connect(main_area->console(), &Console::shown, this, &MainWindow::showConsole);
+	connect(main_area->console(), &Console::shown, [this](bool value) { show_console->setChecked(!value); });
     connect(main_area->infoPanel(), &InfoPanel::shown, file_manager, &FileManager::updateInfoStatus);
     connect(file_manager, &FileManager::toggleConsole, main_area, &MainArea::toggleConsole);
     connect(file_manager, &FileManager::toggleInfo, main_area, &MainArea::toggleInfo);
@@ -707,6 +709,28 @@ void MainWindow::setShellFunctions()
 		rt.push_null();
 	};
 
+	auto get_current_sound = [this](Runtime &rt) {
+		auto viewer = main_area->viewer();
+		auto sound = viewer->getCurrentSound();
+		if (sound) {
+			rt.new_user_data(Sound::meta(), "Sound", sound);
+		}
+		else {
+			rt.push_null();
+		}
+	};
+
+	auto get_current_annot = [this](Runtime &rt) {
+		auto viewer = main_area->viewer();
+		auto annot = viewer->getCurrentAnnotation();
+		if (annot) {
+			rt.new_user_data(Annotation::meta(), "Annotation", annot);
+		}
+		else {
+			rt.push_null();
+		}
+	};
+
 	runtime.add_global_function("view_text", view_text, 2);
 	runtime.add_global_function("warning", warning, 1);
 	runtime.add_global_function("alert", alert, 1);
@@ -721,6 +745,8 @@ void MainWindow::setShellFunctions()
 	runtime.add_global_function("get_plugin_version", get_plugin_version, 1);
 	runtime.add_global_function("get_plugin_resource", get_plugin_resource, 2);
 	runtime.add_global_function("set_status", set_status, 1);
+	runtime.add_global_function("get_current_sound", get_current_sound, 0);
+	runtime.add_global_function("get_current_annotation", get_current_annot, 0);
 
     runtime.get_global("phon");
     {
@@ -803,6 +829,8 @@ void MainWindow::preInitialize()
 
 void MainWindow::postInitialize()
 {
+	run_script(runtime, speech_analysis);
+
 	// Load system plugins and scripts, and then the user's plugins and scripts.
 	String resources_dir = Settings::get_string(runtime, "resources_directory");
 	String user_dir = Settings::settings_directory();

@@ -35,6 +35,7 @@
 #include <phon/gui/views/annotation_view.hpp>
 #include <phon/gui/views/spreadsheet_view.hpp>
 #include <phon/gui/views/start_view.hpp>
+#include <phon/gui/console.hpp>
 #include <phon/application/project.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/utils/file_system.hpp>
@@ -102,19 +103,21 @@ void Viewer::closeView(int index)
 
 void Viewer::registerView(View *view)
 {
+	connect(view, &View::sendCommand, runtime.console, &Console::execute);
     connect(view, &View::modified, this, &Viewer::viewModified);
     connect(view, &View::saved, this, &Viewer::viewSaved);
 }
 
 void Viewer::unregisterView(View *view)
 {
+	disconnect(view, &View::sendCommand, runtime.console, &Console::execute);
     disconnect(view, &View::modified, this, &Viewer::viewModified);
     disconnect(view, &View::saved, this, &Viewer::viewSaved);
 }
 
 void Viewer::addView(View *view, const QString &label)
 {
-    view->post_initialize();
+	view->postInitialize();
     registerView(view);
     addTab(view, label);
     setCurrentWidget(view);
@@ -271,6 +274,18 @@ void Viewer::editAnnotation(AutoAnnotation annot, intptr_t layer, double from, d
 void Viewer::closeCurrentView()
 {
 	closeTab(currentIndex());
+}
+
+AutoSound Viewer::getCurrentSound() const
+{
+	auto view = qobject_cast<SpeechView*>(this->widget(currentIndex()));
+	return view ? view->sound() : AutoSound();
+}
+
+AutoAnnotation Viewer::getCurrentAnnotation() const
+{
+	auto view = qobject_cast<AnnotationView*>(this->widget(currentIndex()));
+	return view ? view->annotation() : AutoAnnotation();
 }
 
 } // phonometrica

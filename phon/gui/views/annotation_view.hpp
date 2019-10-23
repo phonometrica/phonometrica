@@ -51,6 +51,8 @@ public:
 
     void openSelection(intptr_t layer, double from, double to);
 
+    AutoAnnotation annotation() const { return annot; }
+
 protected:
 
     void addAnnotationMenu(Toolbar *toolbar) override;

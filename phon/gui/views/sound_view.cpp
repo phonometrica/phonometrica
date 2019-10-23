@@ -32,7 +32,7 @@ namespace phonometrica {
 
 
 SoundView::SoundView(Runtime &rt, std::shared_ptr<Sound> sound, QWidget *parent) :
-    SpeechView(rt, sound, parent),  m_sound(std::move(sound))
+    SpeechView(rt, sound, parent)
 {
 
 }

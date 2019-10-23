@@ -15,6 +15,7 @@ This release brings more sound visualization options, as well as a number of enh
 - uninstall plugin (``Tools > uninstall plugin``)
 - new resampler
 - resample and/or convert sound to WAV, AIFF or FLAC
+- Sound objects are now accessible from the scripting engine
 
 
 0.5.2 (04/10/2019)

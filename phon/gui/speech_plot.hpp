@@ -74,6 +74,8 @@ public:
 
 	void setPersistentCursor(double value);
 
+	bool hasPersistentCursor() const { return m_persistent_cursor >= 0; }
+
 signals:
 
     void timeSelection(double, double);
@@ -135,8 +137,6 @@ protected:
     virtual bool isMainPlot() const { return false; }
 
     virtual void moveWindow(double t1, double t2);
-
-    bool hasPersistentCursor() const { return m_persistent_cursor >= 0; }
 
     bool hasSelection() const;
 

@@ -42,8 +42,6 @@ public:
 
     IntensityPlot(Runtime &rt, const AutoSound &sound, QWidget *parent = nullptr);
 
-    void getIntensityUnderCursor();
-
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;
 
 protected:

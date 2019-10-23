@@ -69,7 +69,6 @@ void Console::runCommand(QString cmd, bool from_script)
 {
     if (!this->isVisible())
     {
-        this->show();
         emit shown(false);
     }
     interpretCommand(cmd, from_script);
@@ -233,6 +232,12 @@ void Console::moveToEnd()
 void Console::warn(const String &str)
 {
 	printError(str);
+}
+
+void Console::execute(const String &cmd)
+{
+	insertPlainText(cmd);
+	runCommand(cmd, false);
 }
 
 

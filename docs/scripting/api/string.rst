@@ -30,7 +30,7 @@ Methods
 
 .. method:: at(pos)
 
-Get character at position ``pos``.
+Get character at position ``pos``. If ``pos`` is negative, counting starts from the end.
 
 
 ------------
@@ -64,7 +64,7 @@ See also: :func:`ltrim`, :func:`rtrim`
 
 ------------
 
-.. method:: ltrim(str)
+.. method:: ltrim()
 
 Returns a copy of the string with whitespace characters removed at the
 left end of the string.
@@ -118,7 +118,7 @@ See also: :func:`starts\_with`
 
 .. method:: contains(substring)
 
-Returns true if the string ends with ``substring``, and ``false``
+Returns true if the string contains ``substring``, and ``false``
 otherwise.
 
 
@@ -140,7 +140,7 @@ Note: matches don't overlap.
 
 ------------
 
-.. method:: to\_upper(str)
+.. method:: to\_upper()
 
 Returns a copy of the string where each code point has been converted to
 upper case.
@@ -228,14 +228,6 @@ Another, simpler way to concatenate strings is to use the operator ``+``.
 
 ------------
 
-.. method:: contains(substr)
-
-Returns true if the string contains ``substr`` and false otherwise. If
-``substr`` is the empty string, the result is true.
-
-
-------------
-
 .. method:: remove(substr)
 
 Returns a copy of the string where all (non-overlapping) instances of the
@@ -288,14 +280,16 @@ Returns a new string with all the characters in the string in reversed
 order.
 
 
-.. function:: insert(pos, other)
+------------
+
+.. method:: insert(pos, other)
 
 Returns a copy of the string with ``other`` inserted at position ``pos``
 
 
 ------------
 
-.. function:: mid(str, from, to)
+.. method:: mid(from, to)
 
 Returns the substring of ``str`` starting at index ``from`` and ending
 at index ``to`` (inclusive). If ``to`` equals ``-1``, returns the
@@ -303,15 +297,15 @@ substring from ``from`` until the end of the string.
 
 .. code:: phon
 
-    local s = "c'était ça"
+    var s = "c'était ça"
 
-    print(string.mid(s, 3, 7)) # "était"
-    print(string.mid(s, 3,-1)) # "était ça"
+    print(s.mid(3, 7)) # "était"
+    print(s.mid(3,-1)) # "était ça"
 
 
 ------------
 
-.. function:: left(str, n)
+.. method:: left(n)
 
 Get the substring corresponding to the ``n`` first characters of the
 string.
@@ -319,7 +313,7 @@ string.
 
 ------------
 
-.. function:: right(str, n)
+.. method:: right(n)
 
 Get the substring corresponding to the ``n`` last characters of the
 string.
@@ -327,7 +321,7 @@ string.
 
 ------------
 
-.. function:: split(str, delim)
+.. method:: split(delim)
 
 Returns a table of strings which have been split at each occurrence of
 the substring ``delim``. If ``delim`` is the empty string, it returns a

@@ -50,7 +50,7 @@ SpeechView::SpeechView(Runtime &rt, const AutoSound &sound, QWidget *parent) :
     // in post_initialize(), which is called by the viewer after the view is created and has its vtable set.
 }
 
-void SpeechView::post_initialize()
+void SpeechView::postInitialize()
 {
 	PHON_LOG("post-initializing speech view");
 	setupUi();
@@ -616,7 +616,14 @@ void SpeechView::getIntensity(bool)
 	if (intensity_plot->isHidden()) {
 		QMessageBox::critical(this, tr("Cannot measure intensity"), tr("The intensity plot is not visible"));
 	}
-	intensity_plot->getIntensityUnderCursor();
+
+	if (!intensity_plot->hasPersistentCursor()) {
+		QMessageBox::critical(this, tr("Cannot measure intensity"), tr("First select a time point"));
+		return;
+	}
+	double t = intensity_plot->persistentCursor();
+	auto cmd = String::format("report_intensity(%.10f)", t);
+	emit sendCommand(cmd);
 }
 
 } // namespace phonometrica

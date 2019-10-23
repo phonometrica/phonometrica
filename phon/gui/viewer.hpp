@@ -50,6 +50,10 @@ public:
 
     void closeCurrentView();
 
+    AutoSound getCurrentSound() const;
+
+    AutoAnnotation getCurrentAnnotation() const;
+
 signals:
 
 public slots:

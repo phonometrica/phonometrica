@@ -25,6 +25,7 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * zip, by Kuba Podgórski, based on miniz, by Rich Geldreich (public domain), see `github.com/kuba--/zip <https://github.com/kuba--/zip>`_
 * CMake, by Kitware Inc. (BSD 3-clause), see `cmake.org <https://cmake.org/>`_
 * Noto fonts, by Google (SIL Open Font License v1.1), see `www.google.com/get/noto/ <https://www.google.com/get/noto/>`_
+* sigslot, by Pierre-Antoine Lacaze (MIT), see `github.com/palacaze/sigslot/ <https://github.com/palacaze/sigslot/>`_
 
 Phonometrica also uses `GitHub <https://github.com>`_ to host its source code. The source code is available `here <https://github.com/phonometrica/phonometrica>`_.
 

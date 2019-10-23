@@ -55,6 +55,9 @@ public slots:
 
 	void setPrompt();
 
+	// Similar to runCommand(), but prints the command before executing it
+	void execute(const String &s);
+
 protected:
 
     void keyPressEvent(QKeyEvent *e) override;

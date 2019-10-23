@@ -153,21 +153,4 @@ void IntensityPlot::emptyCache()
 	db_data.clear();
 }
 
-void IntensityPlot::getIntensityUnderCursor()
-{
-	if (!hasPersistentCursor()) {
-		QMessageBox::critical(this, tr("Cannot measure intensity"), tr("First select a "));
-		return;
-	}
-	try
-	{
-		auto dB = m_sound->get_intensity(persistentCursor());
-		qDebug() << "Intensity at time " << persistentCursor() << " = " << dB << " dB";
-	}
-	catch (std::runtime_error &e)
-	{
-		QMessageBox::critical(this, tr("Cannot measure intensity"), e.what());
-	}
-}
-
 } // namespace phonometrica

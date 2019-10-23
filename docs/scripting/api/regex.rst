@@ -1,7 +1,7 @@
 Regular expressions
 ===================
 
-This page documents the ``Regex`` class.
+This page documents the ``Regex`` type.
 
 General concepts
 ----------------
@@ -68,26 +68,25 @@ expression. To enable non-greedy behavior, we must use the quantifier
 Functions
 ---------
 
-.. module:: regex
+.. class:: Regex
 
-.. function:: new(pattern)
+.. method:: Regex(pattern)
 
-Create and return a new regular expression (regex) from a string
-pattern. The regex can be matched against any string.
+Create a new regular expression from a string pattern. The regex can be matched against any string.
 
 .. code:: phon
 
-    local re = regex.new("^(..)")
-    -- Do something with re...
+    var re = new Regex("^(..)")
+    # Do something with re...
 
 See also: :func:`pattern`
 
 
 ------------
 
-.. function:: match(re, subject)
+.. method:: match(subject)
 
-Match regular expression ``re`` against string ``subject``. Returns
+Match regular expression against string ``subject``. Returns
 ``true`` if there was a match, ``false`` otherwise.
 
 See also: :func:`count`, :func:`capture`, :func:`has\_match`
@@ -95,10 +94,10 @@ See also: :func:`count`, :func:`capture`, :func:`has\_match`
 
 ------------
 
-.. function:: has\_match(re)
+.. method:: has\_match()
 
 Returns ``true`` if the last call to ``match`` was sucessful, and
-``false`` if was unsuccessful or if ``match`` was not called.
+``false`` if it was unsuccessful or if ``match`` was not called.
 
 See also: :func:`match`
 

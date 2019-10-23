@@ -32,6 +32,8 @@
 #include <windows.h>
 #endif
 #include <sndfile.h>
+#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/object.hpp>
 #include <phon/application/sound.hpp>
 #include <phon/application/resampler.hpp>
 #include <phon/speech/signal_processing.hpp>
@@ -46,6 +48,7 @@ namespace phonometrica {
 
 Array<String> Sound::the_supported_sound_formats;
 Array<String> Sound::the_common_sound_formats;
+Object *Sound::metaobject = nullptr;
 
 Sound::Sound(VFolder *parent, String path) :
 		VFile(parent, std::move(path))
@@ -285,6 +288,106 @@ Array<double> Sound::get_intensity(intptr_t start_pos, intptr_t end_pos, double 
 	int window_size = get_intensity_window_size();
 
 	return speech::get_intensity(input, m_data->sample_rate(), window_size, time_step);
+}
+
+void Sound::initialize(Runtime &rt)
+{
+	metaobject = new Object(rt, PHON_CUSERDATA, rt.object_meta);
+	rt.permanent_objects.append(metaobject);
+
+	auto new_sound = [](Runtime &rt) {
+		rt.push_null(); // TODO: Sound ctor
+	};
+
+	auto sound_path = [](Runtime &rt) {
+		auto sound = rt.cast_user_data<AutoSound>(0);
+		rt.push(sound->path());
+	};
+
+	auto sound_duration = [](Runtime &rt) {
+		auto sound = rt.cast_user_data<AutoSound>(0);
+		rt.push(sound->duration());
+	};
+
+	auto sound_sample_rate = [](Runtime &rt) {
+		auto sound = rt.cast_user_data<AutoSound>(0);
+		rt.push(sound->sample_rate());
+	};
+
+	auto sound_channel_count = [](Runtime &rt) {
+		auto sound = rt.cast_user_data<AutoSound>(0);
+		rt.push(sound->nchannel());
+	};
+
+	auto add_property = [](Runtime &rt) {
+		auto sound = rt.cast_user_data<AutoSound>(0);
+		auto category = rt.to_string(1);
+		std::any value;
+		if (rt.is_boolean(2))
+			value = rt.to_boolean(2);
+		else if (rt.is_number(2))
+			value = rt.to_number(2);
+		else
+			value = rt.to_string(2);
+
+		sound->add_property(Property(std::move(category), std::move(value)));
+		rt.push_null();
+	};
+
+	auto remove_property = [](Runtime &rt) {
+		auto sound = rt.cast_user_data<AutoSound>(0);
+		auto category = rt.to_string(1);
+		sound->remove_property(category);
+		rt.push_null();
+	};
+
+	auto get_property = [](Runtime &rt) {
+		auto sound = rt.cast_user_data<AutoSound>(0);
+		auto category = rt.to_string(1);
+		auto prop = sound->get_property(category);
+
+		if (prop.valid())
+		{
+			if (prop.is_text())
+				rt.push(prop.value());
+			else if (prop.is_numeric())
+				rt.push(prop.numeric_value());
+			else if (prop.is_boolean())
+				rt.push_boolean(prop.boolean_value());
+			else
+			{
+				throw error("[Internal error] Invalid property type");
+			}
+		}
+		else
+		{
+			rt.push_null();
+		}
+	};
+
+	auto get_intensity = [](Runtime &rt) {
+		auto sound = rt.cast_user_data<AutoSound>(0);
+		auto time = rt.to_number(1);
+		sound->open();
+		if (time < 0 || time > sound->duration()) {
+			throw error("Invalid time %", time);
+		}
+		rt.push(sound->get_intensity(time));
+	};
+
+	rt.push(metaobject);
+	{
+		rt.add_accessor("path", sound_path);
+		rt.add_accessor("duration", sound_duration);
+		rt.add_accessor("sample_rate", sound_sample_rate);
+		rt.add_accessor("channel_count", sound_channel_count);
+		rt.add_method("Sound.meta.add_property", add_property, 2);
+		rt.add_method("Sound.meta.remove_property", remove_property, 2);
+		rt.add_method("Sound.meta.get_property", get_property, 1);
+		rt.add_method("Sound.meta.get_intensity", get_intensity, 1);
+	}
+	rt.new_native_constructor(new_sound, new_sound, "Sound", 1);
+	rt.def_global("Sound", PHON_DONTENUM);
 }
 
 } // namespace phonometrica

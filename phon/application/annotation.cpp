@@ -166,6 +166,18 @@ void Annotation::initialize(Runtime &rt)
         rt.push(annot->path());
     };
 
+    auto annot_sound = [](Runtime &rt) {
+    	auto annot = rt.cast_user_data<AutoAnnotation>(0);
+    	if (annot->has_sound())
+	    {
+		    rt.new_user_data(Sound::meta(), "Sound", annot->sound());
+	    }
+	    else
+	    {
+	    	rt.push_null();
+	    }
+    };
+
     auto add_property = [](Runtime &rt) {
     	auto annot = rt.cast_user_data<AutoAnnotation>(0);
     	annot->open();
@@ -337,10 +349,11 @@ void Annotation::initialize(Runtime &rt)
     rt.push(metaobject);
     {
         rt.add_accessor("path", annot_path);
+        rt.add_accessor("sound", annot_sound);
 	    rt.add_accessor("layer_count", get_layer_count);
         rt.add_method("Annotation.meta.add_property", add_property, 2);
 	    rt.add_method("Annotation.meta.remove_property", remove_property, 2);
-	    rt.add_method("Annotation.meta.get_property", get_property, 2);
+	    rt.add_method("Annotation.meta.get_property", get_property, 1);
         rt.add_method("Annotation.meta.bind_to_sound", bind_to_sound, 1);
 	    rt.add_method("Annotation.meta.get_event_start", get_event_start, 3);
 	    rt.add_method("Annotation.meta.get_event_end", get_event_end, 3);

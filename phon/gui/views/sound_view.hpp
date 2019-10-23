@@ -44,7 +44,6 @@ public:
 
 private:
 
-    std::shared_ptr<Sound> m_sound;
 };
 
 } // namespace phonometrica

@@ -935,17 +935,56 @@ void Project::initialize(Runtime &rt)
     };
 
     auto get_annotation = [](Runtime &rt) {
-    	auto path = rt.to_string(1);
+	    auto &files = Project::instance()->m_files;
+	    auto path = rt.to_string(1);
+	    auto file = files.find(path);
 
-    	for (auto &pair : Project::instance()->m_files)
+	    if (file == files.end())
 	    {
-    		if (pair.second->is_annotation() && pair.first == path)
-    		{
-			    rt.new_user_data(Annotation::meta(), "Annotation", downcast<Annotation>(pair.second));
-    			return;
-    		}
+		    rt.push_null();
 	    }
-    	rt.push_null();
+	    else if (file->second->is_annotation())
+	    {
+			rt.new_user_data(Annotation::meta(), "Annotation", downcast<Annotation>(file->second));
+	    }
+	    else
+	    {
+		    throw error("File \"%\" is not an annotation", path);
+	    }
+    };
+
+    auto get_sounds = [](Runtime &rt) {
+    	Array<Variant> result;
+    	auto &files = Project::instance()->m_files;
+    	for (auto &pair : files)
+		{
+    		if (pair.second->is_sound())
+			{
+    		    rt.new_user_data(Sound::meta(), "Sound", downcast<Sound>(pair.second));
+    			result.append(std::move(rt.get(-1)));
+			}
+		}
+
+    	rt.push(std::move(result));
+    };
+
+    auto get_sound = [](Runtime &rt) {
+    	auto &files = Project::instance()->m_files;
+    	auto path = rt.to_string(1);
+		auto file = files.find(path);
+
+		if (file == files.end())
+		{
+			rt.push_null();
+		}
+		else if (file->second->is_sound())
+		{
+			rt.new_user_data(Sound::meta(), "Sound", downcast<Sound>(file->second));
+		}
+		else
+		{
+			throw error("File \"%\" is not a sound", path);
+		}
     };
 
     auto is_empty = [](Runtime &rt) {
@@ -956,6 +995,8 @@ void Project::initialize(Runtime &rt)
 	{
 		rt.add_global_function("get_annotations", get_annotations, 0);
 		rt.add_global_function("get_annotation", get_annotation, 1);
+		rt.add_global_function("get_sounds", get_sounds, 0);
+		rt.add_global_function("get_sound", get_sound, 1);
 
         rt.push(new Object(rt, PHON_COBJECT, rt.object_meta));
         {
@@ -973,6 +1014,7 @@ void Project::initialize(Runtime &rt)
 	rt.pop();
 
     Annotation::initialize(rt);
+    Sound::initialize(rt);
 }
 
 void Project::clear()

@@ -46,13 +46,15 @@ public:
 
     virtual void makeFocused() { }
 
-    virtual void post_initialize() { }
+    virtual void postInitialize() { }
 
 signals:
 
     void modified();
 
     void saved();
+
+	void sendCommand(const String &);
 
 public slots:
 };
