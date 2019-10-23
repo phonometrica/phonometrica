@@ -35,8 +35,8 @@
 
 namespace phonometrica {
 
-Waveform::Waveform(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
-    SpeechPlot(rt, std::move(data), parent)
+Waveform::Waveform(Runtime &rt, const AutoSound &sound, QWidget *parent) :
+    SpeechPlot(rt, sound, parent)
 {
 	PHON_LOG("creating waveform");
 

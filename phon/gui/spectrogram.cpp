@@ -42,8 +42,8 @@
 
 namespace phonometrica {
 
-Spectrogram::Spectrogram(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
-	SpeechPlot(rt, std::move(data), parent)
+Spectrogram::Spectrogram(Runtime &rt, const AutoSound &sound, QWidget *parent) :
+	SpeechPlot(rt, sound, parent)
 {
 	PHON_LOG("creating spectrogram");
 

@@ -35,8 +35,8 @@
 
 namespace phonometrica {
 
-SpeechPlot::SpeechPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
-    SpeechWidget(parent), rt(rt), m_data(std::move(data))
+SpeechPlot::SpeechPlot(Runtime &rt, const AutoSound &sound, QWidget *parent) :
+    SpeechWidget(parent), rt(rt), m_sound(sound), m_data(sound->data())
 {
     setMouseTracking(true);
 }
@@ -175,7 +175,7 @@ void SpeechPlot::paintEvent(QPaintEvent *event)
         auto pen = painter.pen();
         pen.setColor(QColor("orange"));
         painter.setPen(pen);
-        auto x = timeToXPos(persistent_cursor);
+        auto x = timeToXPos(m_persistent_cursor);
         painter.drawLine(QPointF(x, 0.0), QPointF(x, height()));
     }
 
@@ -437,7 +437,7 @@ void SpeechPlot::updateSettings()
 void SpeechPlot::setPersistentCursor(double value)
 {
 	clearCurrentTime();
-	persistent_cursor = value;
+	m_persistent_cursor = value;
 }
 
 } // namespace phonometrica

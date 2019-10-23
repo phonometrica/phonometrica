@@ -34,6 +34,7 @@
 #include <sndfile.h>
 #include <phon/application/sound.hpp>
 #include <phon/application/resampler.hpp>
+#include <phon/speech/signal_processing.hpp>
 
 #if PHON_MACOS
 const int BUFFER_SIZE = 4096;
@@ -246,6 +247,44 @@ void Sound::convert(const String &path, int sample_rate, Sound::Format fmt)
 	}
 
 	input->seek(0);
+}
+
+int Sound::get_intensity_window_size() const
+{
+	// Praat's settings
+	double min_pitch = 100;
+	double effective_duration = 3.2 / min_pitch;
+
+	return int(std::ceil(effective_duration * m_data->sample_rate()));
+}
+
+double Sound::get_intensity(double time)
+{
+	assert(m_data);
+
+	int window_size = get_intensity_window_size();
+	auto first_sample = m_data->time_to_frame(time) - (window_size / 2);
+	auto start = m_data->data() + first_sample - 1;
+
+	if (start < m_data->data()) {
+		throw error("Time point % is to close to the beginning of the file", time);
+	}
+	if (start + window_size > m_data->data() + m_data->size()) {
+		throw error("Time point % is to close to the end of the file", time);
+	}
+
+	Span<double> frame(start, window_size);
+	auto win = speech::create_window(window_size, window_size, speech::WindowType::Hamming);
+
+	return speech::get_intensity(frame, win);
+}
+
+Array<double> Sound::get_intensity(intptr_t start_pos, intptr_t end_pos, double time_step)
+{
+	auto input = m_data->get(start_pos, end_pos);
+	int window_size = get_intensity_window_size();
+
+	return speech::get_intensity(input, m_data->sample_rate(), window_size, time_step);
 }
 
 } // namespace phonometrica

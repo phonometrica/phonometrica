@@ -53,7 +53,10 @@ enum class WindowType
 
 Array<double> create_window(intptr_t N, intptr_t fftlen, WindowType type);
 
-Array<double> get_intensity(const Span<double> &input, int samplerate, intptr_t window_size, double time_step, WindowType type = WindowType::Hamming);
+// Get intensity for a frame.
+double get_intensity(Span<double> frame, Span<double> window);
+
+Array<double> get_intensity(Span<double> input, int samplerate, intptr_t window_size, double time_step, WindowType type = WindowType::Hamming);
 
 
 template<typename Container>

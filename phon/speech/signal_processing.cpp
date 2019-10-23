@@ -103,13 +103,28 @@ Array<double> create_window(intptr_t N, intptr_t fftlen, WindowType type)
     return result;
 }
 
+double get_intensity(Span<double> frame, Span<double> window)
+{
+	assert(frame.size() == window.size());
+	constexpr double Iref = 4.0e-10;
+	double power = 0.0;
+
+	for (intptr_t i = 0; i < frame.size(); i++)
+	{
+		auto value = frame[i] * window[i];
+		power += value * value;
+	}
+	auto avg_power = power / window.size();
+
+	return 10 * log10(avg_power / Iref);
+}
+
 Array<double>
-get_intensity(const Span<double> &input, int samplerate, intptr_t window_size, double time_step, WindowType type)
+get_intensity(Span<double> input, int samplerate, intptr_t window_size, double time_step, WindowType type)
 {
     auto window = create_window(window_size, window_size, type);
-    auto win = window.data();
+    Span<double> win = window;
     auto frame_shift = int(time_step * samplerate);
-//    const int n = int((double(input.size() - window_size))/frame_shift)+1;
     auto n = int(ceil(double(input.size() - frame_shift) / double(window_size - frame_shift)));
     auto data = input.begin();
     auto limit = input.end();
@@ -126,21 +141,8 @@ get_intensity(const Span<double> &input, int samplerate, intptr_t window_size, d
 //            win = window.data();
 //            window_size = frames_left;
         }
-        auto d = data;
-        double power = 0.0;
-        for (intptr_t i = 0; i < window_size; i++)
-        {
-            assert(d < limit);
-            double sample = *d++;
-            assert(std::isfinite(sample));
-            auto value = sample * win[i];
-            power += value * value;
-        }
-
-        auto avg_power = power / window_size;
-        assert(std::isfinite(avg_power));
-        constexpr double Iref = 4.0e-10;
-        auto dB = 10 * log10(avg_power / Iref);
+        Span<double> d(data, window_size);
+        auto dB = get_intensity(d, win);
         output.append(dB);
         data += frame_shift;
     }

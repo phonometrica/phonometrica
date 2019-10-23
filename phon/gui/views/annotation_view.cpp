@@ -43,7 +43,7 @@
 namespace phonometrica {
 
 AnnotationView::AnnotationView(Runtime &rt, std::shared_ptr<Annotation> annot, QWidget *parent) :
-    SpeechView(rt, annot->sound()->data(), parent), annot(std::move(annot))
+    SpeechView(rt, annot->sound(), parent), annot(std::move(annot))
 {
 	PHON_LOG("Opening annotation in AnnotationView ctor");
     this->annot->open();

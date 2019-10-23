@@ -82,11 +82,17 @@ public:
 
     void convert(const String &path, int sample_rate, Format fmt);
 
+	double get_intensity(double time);
+
+	Array<double> get_intensity(intptr_t start_pos, intptr_t end_pos, double time_step);
+
 private:
 
 	void load() override;
 
 	void write() override;
+
+	int get_intensity_window_size() const;
 
 	static Array<String> the_supported_sound_formats, the_common_sound_formats;
 

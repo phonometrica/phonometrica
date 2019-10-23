@@ -43,8 +43,8 @@
 #include <phon/gui/space_line.hpp>
 #include <phon/gui/y_axis_widget.hpp>
 #include <phon/gui/toolbar.hpp>
+#include <phon/application/sound.hpp>
 #include <phon/application/audio_player.hpp>
-#include <phon/application/audio_data.hpp>
 #include <phon/runtime/runtime.hpp>
 
 namespace phonometrica {
@@ -55,7 +55,7 @@ class SpeechView : public View
 
 public:
 
-    SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWidget *parent = nullptr);
+    SpeechView(Runtime &rt, const AutoSound &sound, QWidget *parent = nullptr);
 
     bool save() override;
 
@@ -111,6 +111,8 @@ protected slots:
 
     void setPersistentCursor(double);
 
+    void getIntensity(bool);
+
 protected:
 
 	void setupUi();
@@ -132,6 +134,8 @@ protected:
     void setPlotVisibility();
 
     Runtime &runtime;
+
+    AutoSound m_sound;
 
     std::shared_ptr<AudioData> m_data;
 

@@ -30,7 +30,7 @@
 #define PHONOMETRICA_SPEECH_PLOT_HPP
 
 #include <QPainter>
-#include <phon/application/audio_data.hpp>
+#include <phon/application/sound.hpp>
 #include <phon/gui/speech_widget.hpp>
 #include <phon/gui/mouse_tracking.hpp>
 
@@ -44,7 +44,7 @@ class SpeechPlot : public SpeechWidget
 
 public:
 
-    SpeechPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
+    SpeechPlot(Runtime &rt, const AutoSound &sound, QWidget *parent = nullptr);
 
     void zoomIn();
 
@@ -68,7 +68,9 @@ public:
 
     void updateSettings();
 
-	void clearPersistentCursor() { persistent_cursor = -1; }
+    double persistentCursor() const { return m_persistent_cursor; }
+
+	void clearPersistentCursor() { m_persistent_cursor = -1; }
 
 	void setPersistentCursor(double value);
 
@@ -134,7 +136,7 @@ protected:
 
     virtual void moveWindow(double t1, double t2);
 
-    bool hasPersistentCursor() const { return persistent_cursor >= 0; }
+    bool hasPersistentCursor() const { return m_persistent_cursor >= 0; }
 
     bool hasSelection() const;
 
@@ -159,6 +161,8 @@ protected:
 
     Runtime &rt;
 
+    AutoSound m_sound;
+
     std::shared_ptr<AudioData> m_data;
 
     // Cache window (times in seconds)
@@ -175,7 +179,7 @@ protected:
     double tick = -1;
 
     // Time of the persistent cursor.
-    double persistent_cursor = -1;
+    double m_persistent_cursor = -1;
 
     // track mouse button
     bool button_pressed = false;

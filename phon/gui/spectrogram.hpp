@@ -45,7 +45,7 @@ class Spectrogram final : public SpeechPlot
 
 public:
 
-    Spectrogram(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
+    Spectrogram(Runtime &rt, const AutoSound &sound, QWidget *parent = nullptr);
 
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;
 

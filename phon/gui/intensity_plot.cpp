@@ -27,6 +27,7 @@
  ***********************************************************************************************************************/
 
 #include <QDebug>
+#include <QMessageBox>
 #include <phon/gui/intensity_plot.hpp>
 #include <phon/runtime/runtime.hpp>
 #include <phon/application/settings.hpp>
@@ -35,8 +36,8 @@
 
 namespace phonometrica {
 
-IntensityPlot::IntensityPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent) :
-    SpeechPlot(rt, std::move(data), parent)
+IntensityPlot::IntensityPlot(Runtime &rt, const AutoSound &sound, QWidget *parent) :
+    SpeechPlot(rt, sound, parent)
 {
 	PHON_LOG("creating intensity plot");
 
@@ -134,14 +135,7 @@ void IntensityPlot::calculateIntensity()
 {
     auto start_pos = m_data->time_to_frame(window_start);
     auto end_pos = m_data->time_to_frame(window_end);
-    auto input = m_data->get(start_pos, end_pos);
-
-    // Praat's settings
-    double min_pitch = 100;
-    double effective_duration = 3.2 / min_pitch;
-    int window_size = int(std::ceil(effective_duration * m_data->sample_rate()));
-
-    db_data = speech::get_intensity(input, m_data->sample_rate(), window_size, time_step);
+	db_data = m_sound->get_intensity(start_pos, end_pos, time_step);
     cached_start = window_start;
     cached_end = window_end;
 }
@@ -158,4 +152,22 @@ void IntensityPlot::emptyCache()
 {
 	db_data.clear();
 }
+
+void IntensityPlot::getIntensityUnderCursor()
+{
+	if (!hasPersistentCursor()) {
+		QMessageBox::critical(this, tr("Cannot measure intensity"), tr("First select a "));
+		return;
+	}
+	try
+	{
+		auto dB = m_sound->get_intensity(persistentCursor());
+		qDebug() << "Intensity at time " << persistentCursor() << " = " << dB << " dB";
+	}
+	catch (std::runtime_error &e)
+	{
+		QMessageBox::critical(this, tr("Cannot measure intensity"), e.what());
+	}
+}
+
 } // namespace phonometrica

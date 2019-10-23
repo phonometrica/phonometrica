@@ -42,8 +42,8 @@
 
 namespace phonometrica {
 
-SpeechView::SpeechView(Runtime &rt, const std::shared_ptr<AudioData> &data, QWidget *parent) :
-		View(parent), m_data(data), player(rt, this, data), runtime(rt)
+SpeechView::SpeechView(Runtime &rt, const AutoSound &sound, QWidget *parent) :
+		View(parent), m_sound(sound), m_data(sound->data()), player(rt, this, sound->data()), runtime(rt)
 {
 	PHON_LOG("Constructing speech annotation");
     // We can't set up the UI in the constructor because we need to call virtual methods. Instead, we do it
@@ -87,16 +87,24 @@ Toolbar *SpeechView::makeToolbar()
     action_enable_pitch->setCheckable(true);
     action_enable_pitch->setChecked(true);
     auto action_pitch_settings = new QAction(tr("Pitch settings..."), this);
+    auto action_get_pitch = new QAction(tr("Get pitch"), this);
     pitch_menu->addAction(action_enable_pitch);
-    pitch_menu->addAction(action_pitch_settings);
+	pitch_menu->addAction(action_get_pitch);
+	pitch_menu->addSeparator();
+	pitch_menu->addAction(action_pitch_settings);
+    action_get_pitch->setEnabled(false);
 
     auto intensity_menu = new QMenu;
     action_enable_intensity = new QAction(tr("Show intensity"), this);
     action_enable_intensity->setCheckable(true);
     action_enable_intensity->setChecked(true);
     auto action_intensity_settings = new QAction(tr("Intensity settings..."), this);
+    auto action_get_intensity = new QAction(tr("Get intensity"), this);
     intensity_menu->addAction(action_enable_intensity);
+    intensity_menu->addAction(action_get_intensity);
+    intensity_menu->addSeparator();
     intensity_menu->addAction(action_intensity_settings);
+
 
     auto options_menu = new QMenu;
 
@@ -203,6 +211,7 @@ Toolbar *SpeechView::makeToolbar()
     connect(action_formants_settings, &QAction::triggered, this, &SpeechView::changeFormantsSettings);
     connect(action_spectrum_settings, &QAction::triggered, this, &SpeechView::changeSpectrogramSettings);
     connect(action_intensity_settings, &QAction::triggered, this, &SpeechView::changeIntensitySettings);
+    connect(action_get_intensity, &QAction::triggered, this, &SpeechView::getIntensity);
     connect(waveform, &SpeechPlot::windowHasChanged, this, &SpeechView::setWindowTimes);
     connect(doc, &QAction::triggered, this, &SpeechView::showDocumentation);
 
@@ -453,10 +462,10 @@ void SpeechView::setupUi()
 	PHON_LOG("Creating UI for speech view");
 
 	// Create objects first so that we can connect them to signals
-	waveform = new Waveform(runtime, m_data, this);
-	spectrogram = new Spectrogram(runtime, m_data, this);
-	pitch_plot = new PitchPlot(runtime, m_data, this);
-	intensity_plot = new IntensityPlot(runtime, m_data, this);
+	waveform = new Waveform(runtime, m_sound, this);
+	spectrogram = new Spectrogram(runtime, m_sound, this);
+	pitch_plot = new PitchPlot(runtime, m_sound, this);
+	intensity_plot = new IntensityPlot(runtime, m_sound, this);
 
 	plots.append(waveform);
 	plots.append(spectrogram);
@@ -600,6 +609,14 @@ void SpeechView::setPersistentCursor(double time)
 		plot->setPersistentCursor(time);
 		plot->repaint();
 	}
+}
+
+void SpeechView::getIntensity(bool)
+{
+	if (intensity_plot->isHidden()) {
+		QMessageBox::critical(this, tr("Cannot measure intensity"), tr("The intensity plot is not visible"));
+	}
+	intensity_plot->getIntensityUnderCursor();
 }
 
 } // namespace phonometrica

@@ -40,8 +40,9 @@ class IntensityPlot final : public SpeechPlot
 
 public:
 
-    IntensityPlot(Runtime &rt, std::shared_ptr<AudioData> data, QWidget *parent = nullptr);
+    IntensityPlot(Runtime &rt, const AutoSound &sound, QWidget *parent = nullptr);
 
+    void getIntensityUnderCursor();
 
     void drawYAxis(QWidget *y_axis, int y1, int y2) override;
 
