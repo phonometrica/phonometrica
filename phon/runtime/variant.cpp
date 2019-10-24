@@ -767,6 +767,11 @@ double Variant::to_number() const
     throw std::runtime_error("[Type error] value is not a number");
 }
 
+bool Variant::is_array() const
+{
+	return is_object() && as.object->type == PHON_CARRAY;
+}
+
 void Variant::Storage::swap(Variant::Storage &other)
 {
     Storage tmp;

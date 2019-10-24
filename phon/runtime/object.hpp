@@ -25,6 +25,7 @@
 #include <phon/file.hpp>
 #include <phon/runtime/common.hpp>
 #include <phon/runtime/variant.hpp>
+#include <phon/utils/matrix.hpp>
 
 namespace phonometrica {
 
@@ -95,6 +96,7 @@ public:
         bool boolean;
         double number;
         String string;
+        Matrix<double> array;
         struct
         {
             Function *function;

@@ -1,0 +1,246 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Sounds &#8212; Phonometrica 0.6.0 documentation</title>
+    <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="String processing" href="string.html" />
+    <link rel="prev" title="Regular expressions" href="regex.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="string.html" title="String processing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="regex.html" title="Regular expressions"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Sounds</a><ul>
+<li><a class="reference internal" href="#global-functions">Global functions</a></li>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#fields">Fields</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="regex.html"
+                        title="previous chapter">Regular expressions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="string.html"
+                        title="next chapter">String processing</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="sounds">
+<h1>Sounds<a class="headerlink" href="#sounds" title="Permalink to this headline">¶</a></h1>
+<p>This page documents the <code class="docutils literal notranslate"><span class="pre">Sound</span></code> type, which represents a sound file loaded in memory.</p>
+<div class="section" id="global-functions">
+<h2>Global functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="get_sounds">
+<code class="descname">get_sounds</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_sounds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Return a list of all the sounds in the current project.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="get_sound">
+<code class="descname">get_sound</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#get_sound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Return the <code class="docutils literal notranslate"><span class="pre">Sound</span></code> object from the current project whose path is <code class="docutils literal notranslate"><span class="pre">path</span></code>, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if there is no such
+sound. If the object exists but is not a sound, an error is thrown.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="get_current_sound">
+<code class="descname">get_current_sound</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_current_sound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Return the <code class="docutils literal notranslate"><span class="pre">Sound</span></code> object loaded in the current view, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if the current view is neither an annotation view
+nor a sound view.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="report_intensity">
+<code class="descname">report_intensity</code><span class="sig-paren">(</span><em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#report_intensity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>This is a convenience function that displays the intensity at the given time in the current view.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="report_pitch">
+<code class="descname">report_pitch</code><span class="sig-paren">(</span><em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#report_pitch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>This is a convenience function that displays the pitch at the given time in the current view.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="report_formants">
+<code class="descname">report_formants</code><span class="sig-paren">(</span><em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#report_formants" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>This is a convenience function that displays the values of the visible formants at the given time in the current view.</p>
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Sound">
+<em class="property">class </em><code class="descname">Sound</code><a class="headerlink" href="#Sound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<hr class="docutils" />
+<dl class="method">
+<dt id="add_property">
+<code class="descname">add_property</code><span class="sig-paren">(</span><em>category</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#add_property" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Adds a property to the sound. <code class="docutils literal notranslate"><span class="pre">category</span></code> must be a string and <code class="docutils literal notranslate"><span class="pre">value</span></code> can be a string, a number or a Boolean.
+If the file already has a property with the same category, the value will be replaced with the new one.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="remove_property">
+<code class="descname">remove_property</code><span class="sig-paren">(</span><em>category</em><span class="sig-paren">)</span><a class="headerlink" href="#remove_property" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Removes the property whose category is <code class="docutils literal notranslate"><span class="pre">category</span></code> from the sound. If there is no such category, this method
+does nothing.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt>
+<code class="descname">remove_property</code><span class="sig-paren">(</span><em>category</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<p>Gets the property whose category is <code class="docutils literal notranslate"><span class="pre">category</span></code> from the sound, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if there is no such category.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="get_intensity">
+<code class="descname">get_intensity</code><span class="sig-paren">(</span><em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#get_intensity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Measures the intensity (in dB) at the given time.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="get_pitch">
+<code class="descname">get_pitch</code><span class="sig-paren">(</span><em>time</em><span class="optional">[</span>, <em>minimum_pitch</em><span class="optional">[</span>, <em>maximum_pitch</em><span class="optional">[</span>, <em>voicing_threshold</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#get_pitch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the pitch (in Hz) at the given time, or <code class="docutils literal notranslate"><span class="pre">undefined</span></code> if the sound is unvoiced at that time. Optionally, you can specify the minimum and maximum pitches, as well as the
+voicing threshold used by the pitch detection algorithm. If these optional parameters are not provided, your current settings will be used instead.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="get_formants">
+<code class="descname">get_formants</code><span class="sig-paren">(</span><em>time</em><span class="optional">[</span>, <em>nformant</em><span class="optional">[</span>, <em>maximum_frequency</em><span class="optional">[</span>, <em>window_length</em><span class="optional">[</span>, <em>lpc_order</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#get_formants" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> containing <code class="docutils literal notranslate"><span class="pre">nformant</span></code> rows and 2 columns. The first column contains formant values (in Hertz), such that F1 is at index (1, 1), F2 is at index (2, 1), etc.
+The second column contains the formants’ bandwidths: F1’s bandwidth is at index (1, 2), F2’s bandwidth is at (2, 2), etc. Optionally, you can specify the number of formants to extract,
+the maximum possible frequency of the last formant, the analysis window length and the LPC order. If these optional parameters are not provided, your current settings
+will be used instead.</p>
+</div>
+<div class="section" id="fields">
+<h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="path">
+<code class="descname">path</code><a class="headerlink" href="#path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the path of the sound file.</p>
+<hr class="docutils" />
+<dl class="attribute">
+<dt id="duration">
+<code class="descname">duration</code><a class="headerlink" href="#duration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the duration of the file in seconds.</p>
+<hr class="docutils" />
+<dl class="attribute">
+<dt id="sample_rate">
+<code class="descname">sample_rate</code><a class="headerlink" href="#sample_rate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the sample rate of the file in Hertz.</p>
+<hr class="docutils" />
+<dl class="attribute">
+<dt id="channel_count">
+<code class="descname">channel_count</code><a class="headerlink" href="#channel_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the number of channels in the file.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="string.html" title="String processing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="regex.html" title="Regular expressions"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
+      </ul>
+    </div>
+    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+    
+
+  </body>
+</html>

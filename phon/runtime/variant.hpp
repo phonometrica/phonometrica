@@ -99,6 +99,7 @@ enum ClassTag : uint8_t
 {
     PHON_COBJECT,
     PHON_CLIST,
+    PHON_CARRAY,
     PHON_CFUNCTION,
     PHON_CSCRIPT,    /* function created from global/eval code */
     PHON_CCFUNCTION, /* built-in function */
@@ -174,6 +175,8 @@ struct Variant final
     bool is_regex() const;
 
     bool is_file() const;
+
+    bool is_array() const;
 
     bool is_user_data(const char *tag) const;
 

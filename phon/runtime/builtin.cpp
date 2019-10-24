@@ -191,6 +191,7 @@ void Runtime::initialize()
     number_meta = new Object(*this, PHON_CNUMBER, object_meta);
     string_meta = new Object(*this, PHON_CSTRING, object_meta);
     regex_meta = new Object(*this, PHON_COBJECT, object_meta);
+    array_meta = new Object(*this, PHON_CARRAY, object_meta);
     date_meta = new Object(*this, PHON_CDATE, object_meta);
     file_meta = new Object(*this, PHON_CFILE, object_meta);
 
@@ -202,6 +203,7 @@ void Runtime::initialize()
     init_number();
     init_string();
     init_regexp();
+    init_array();
     init_file();
     init_date();
     init_math();

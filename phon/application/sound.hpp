@@ -32,6 +32,7 @@
 #include <phon/application/vfs.hpp>
 #include <phon/application/audio_data.hpp>
 #include <phon/third_party/rtaudio/RtAudio.h>
+#include <phon/utils/matrix.hpp>
 
 namespace phonometrica {
 
@@ -86,9 +87,13 @@ public:
 
     void convert(const String &path, int sample_rate, Format fmt);
 
+    double get_pitch(double time, double min_pitch, double max_pitch, double threshold);
+
 	double get_intensity(double time);
 
 	Array<double> get_intensity(intptr_t start_pos, intptr_t end_pos, double time_step);
+
+	Matrix<double> get_formants(double time, int nformant, double nyquist_frequency, double window_size, int lpc_order);
 
 	static void initialize(Runtime &rt);
 

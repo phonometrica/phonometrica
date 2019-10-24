@@ -152,7 +152,7 @@ void Runtime::init_regexp()
 {
     push(regex_meta);
     {
-        add_accessor("Regex.meta.pattern", regex_to_string);
+        add_accessor("pattern", regex_to_string);
         add_method("Regex.meta.to_string", regex_to_string, 0);
         add_method("Regex.meta.match", regex_match, 0);
 		add_method("Regex.meta.has_match", regex_has_match, 0);

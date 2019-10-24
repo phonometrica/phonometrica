@@ -62,7 +62,7 @@ Topics
 	
    intro/install
    intro/start
-   annotation
+   sound
    query
    scripting/index
    scripting/plugins

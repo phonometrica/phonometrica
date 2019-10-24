@@ -44,6 +44,7 @@
   <ul>
 <li><a class="reference internal" href="#">File manipulation</a><ul>
 <li><a class="reference internal" href="#general-concepts">General concepts</a></li>
+<li><a class="reference internal" href="#global-functions">Global functions</a></li>
 <li><a class="reference internal" href="#methods">Methods</a></li>
 </ul>
 </li>
@@ -77,10 +78,19 @@
             
   <div class="section" id="file-manipulation">
 <h1>File manipulation<a class="headerlink" href="#file-manipulation" title="Permalink to this headline">¶</a></h1>
-<p>This page documents the <code class="docutils literal notranslate"><span class="pre">File</span></code> class, which can be used to read and write text files.</p>
+<p>This page documents the <code class="docutils literal notranslate"><span class="pre">File</span></code> type, which can be used to read and write text files.</p>
 <div class="section" id="general-concepts">
 <h2>General concepts<a class="headerlink" href="#general-concepts" title="Permalink to this headline">¶</a></h2>
-<p>This class provides functions to read and create files. The default encoding is UTF-8. Other supported included are UTF-16 and UTF-32 (read-only).</p>
+<p>This type provides methods to read and create files. The default encoding is UTF-8. Other supported included are UTF-16 and UTF-32 (read-only).</p>
+</div>
+<div class="section" id="global-functions">
+<h2>Global functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="read_file">
+<code class="descname">read_file</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#read_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Return the content of the file named <code class="docutils literal notranslate"><span class="pre">path</span></code> as a string.</p>
 </div>
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
@@ -115,63 +125,63 @@ must be one of the following strings:</p>
 <li><code class="docutils literal notranslate"><span class="pre">utf32be</span></code> = UTF-32 big endian</li>
 </ul>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="close">
 <code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#close" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Close the file. Once the file is closed, no further reading or writing operations are allowed.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="eof">
 <code class="descname">eof</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#eof" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns <code class="docutils literal notranslate"><span class="pre">true</span></code> if the cursor is positionned at the end of the file, <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="rewind">
 <code class="descname">rewind</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#rewind" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Rewind the cursor to the beginning of the file.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="size">
 <code class="descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#size" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Return the number of bytes in the file.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="write">
 <code class="descname">write</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="headerlink" href="#write" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Write <code class="docutils literal notranslate"><span class="pre">text</span></code> into <code class="docutils literal notranslate"><span class="pre">file</span></code>.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="write_line">
 <code class="descname">write_line</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="headerlink" href="#write_line" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Write <code class="docutils literal notranslate"><span class="pre">text</span></code> into <code class="docutils literal notranslate"><span class="pre">file</span></code>, and append a new line separator.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="write_byte">
 <code class="descname">write_byte</code><span class="sig-paren">(</span><em>byte</em><span class="sig-paren">)</span><a class="headerlink" href="#write_byte" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Write a single byte into the file.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="read_byte">
 <code class="descname">read_byte</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#read_byte" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Read a single byte from the file.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="read_line">
 <code class="descname">read_line</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#read_line" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -184,13 +194,6 @@ must be one of the following strings:</p>
 <dd></dd></dl>
 
 <p>Return the content of the file as a table whose elements are the lines of the file.</p>
-<hr class="docutils" />
-<dl class="staticmethod">
-<dt id="read_all">
-<em class="property">static </em><code class="descname">read_all</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#read_all" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Return the content of the file named <code class="docutils literal notranslate"><span class="pre">path</span></code> as a string.</p>
 </div>
 </div>
 

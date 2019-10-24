@@ -16,8 +16,9 @@ All string functions assume that strings are encoded according to the
 UTF-8 `Unicode <http://www.unicode.org>`_ standard. A good tutorial
 about UTF-8 can be found at the following address:
 `http://www.zehnet.de/2005/02/12/unicode-utf-8-tutorial <http://www.zehnet.de/2005/02/12/unicode-utf-8-tutorial>`_.
-In the remainder of this document, the word *character* is used to mean
-*code point*, unless otherwise noted.
+In the remainder of this document, the term *character* is used to mean
+*extended grapheme cluster* in the sense of the Unicode specification. This generally corresponds to the notion
+of "user-perceived character".
 
 
 Methods
@@ -31,18 +32,6 @@ Methods
 .. method:: at(pos)
 
 Get character at position ``pos``. If ``pos`` is negative, counting starts from the end.
-
-
-------------
-
-.. attribute:: length
-
-Returns the length of the string, in Unicode code points.
-
-.. code:: phon
-
-    var s = "안녕하세요"
-    print(s.length) # Prints "5"
 
 
 ------------
@@ -326,3 +315,18 @@ string.
 Returns a table of strings which have been split at each occurrence of
 the substring ``delim``. If ``delim`` is the empty string, it returns a
 list of the characters in the string.
+
+
+Fields
+------
+
+
+.. attribute:: length
+
+Returns the length of the string, in Unicode extended grapheme clusters.
+
+.. code:: phon
+
+    var s = "안녕하세요"
+    print(s.length) # Prints "5"
+

@@ -19,7 +19,7 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Event handling" href="event.html" />
+    <link rel="next" title="Numeric arrays" href="array.html" />
     <link rel="prev" title="Advanced notions" href="../tutorial/advanced.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -29,7 +29,7 @@
           <a href="../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="event.html" title="Event handling"
+          <a href="array.html" title="Numeric arrays"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="../tutorial/advanced.html" title="Advanced notions"
@@ -43,8 +43,9 @@
   <h3><a href="../../index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Annotations</a><ul>
-<li><a class="reference internal" href="#general-concepts">General concepts</a></li>
-<li><a class="reference internal" href="#module-Annotation">Functions</a></li>
+<li><a class="reference internal" href="#global-functions">Global functions</a></li>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#fields">Fields</a></li>
 </ul>
 </li>
 </ul>
@@ -53,8 +54,8 @@
   <p class="topless"><a href="../tutorial/advanced.html"
                         title="previous chapter">Advanced notions</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="event.html"
-                        title="next chapter">Event handling</a></p>
+  <p class="topless"><a href="array.html"
+                        title="next chapter">Numeric arrays</a></p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <div class="searchformwrapper">
@@ -77,25 +78,143 @@
             
   <div class="section" id="annotations">
 <h1>Annotations<a class="headerlink" href="#annotations" title="Permalink to this headline">¶</a></h1>
-<p>This page documents the <code class="docutils literal notranslate"><span class="pre">Annotation</span></code> type.</p>
-<div class="section" id="general-concepts">
-<h2>General concepts<a class="headerlink" href="#general-concepts" title="Permalink to this headline">¶</a></h2>
-<p>An <code class="docutils literal notranslate"><span class="pre">Annotation</span></code> object represents a time-aligned annotation of a sound file, on one or more layers.</p>
-</div>
-<div class="section" id="module-Annotation">
-<span id="functions"></span><h2>Functions<a class="headerlink" href="#module-Annotation" title="Permalink to this headline">¶</a></h2>
+<p>This page documents the <code class="docutils literal notranslate"><span class="pre">Annotation</span></code> type, which corresponds to a time-aligned annotation of a sound file, on one or more layers.</p>
+<div class="section" id="global-functions">
+<h2>Global functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="Annotation.new">
-<code class="descclassname">Annotation.</code><code class="descname">new</code><span class="sig-paren">(</span><em>pattern</em><span class="sig-paren">)</span><a class="headerlink" href="#Annotation.new" title="Permalink to this definition">¶</a></dt>
+<dt id="get_annotations">
+<code class="descname">get_annotations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_annotations" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Create and return a new regular expression (regex) from a string
-pattern. The regex can be matched against any string.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">local</span> <span class="n">re</span> <span class="o">=</span> <span class="n">regex</span><span class="p">.</span><span class="kr">new</span><span class="p">(</span><span class="s">&quot;^(..)&quot;</span><span class="p">)</span>
-<span class="o">--</span> <span class="kr">Do</span> <span class="n">something</span> <span class="n">with</span> <span class="n">re</span><span class="p">...</span>
-</pre></div>
+<p>Return a list of all the annotations in the current project.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="get_annotation">
+<code class="descname">get_annotation</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#get_annotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Return the <code class="docutils literal notranslate"><span class="pre">Annotation</span></code> object from the current project whose path is <code class="docutils literal notranslate"><span class="pre">path</span></code>, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if there is no such
+annotation. If the object exists but is not an annotation, an error is thrown.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="get_current_annotation">
+<code class="descname">get_current_annotation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_current_annotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Return the <code class="docutils literal notranslate"><span class="pre">Annotation</span></code> object loaded in the current view, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if the current view is not an annotation view.</p>
 </div>
-<p>See also: <a class="reference internal" href="regex.html#pattern" title="pattern"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">pattern()</span></code></a></p>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Annotation">
+<em class="property">class </em><code class="descname">Annotation</code><a class="headerlink" href="#Annotation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<hr class="docutils" />
+<dl class="method">
+<dt id="add_property">
+<code class="descname">add_property</code><span class="sig-paren">(</span><em>category</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#add_property" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Adds a property to the annotation. <code class="docutils literal notranslate"><span class="pre">category</span></code> must be a string and <code class="docutils literal notranslate"><span class="pre">value</span></code> can be a string, a number or a Boolean.
+If the file already has a property with the same category, the value will be replaced with the new one.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="remove_property">
+<code class="descname">remove_property</code><span class="sig-paren">(</span><em>category</em><span class="sig-paren">)</span><a class="headerlink" href="#remove_property" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Removes the property whose category is <code class="docutils literal notranslate"><span class="pre">category</span></code> from the annotation. If there is no such category, this method
+does nothing.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt>
+<code class="descname">remove_property</code><span class="sig-paren">(</span><em>category</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<p>Gets the property whose category is <code class="docutils literal notranslate"><span class="pre">category</span></code> from the annotation, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if there is no such category.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="bind_to_sound">
+<code class="descname">bind_to_sound</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#bind_to_sound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Binds the annotation to the sound file whose path is <code class="docutils literal notranslate"><span class="pre">path</span></code>. If the sound file is not in the current project,
+it will be automatically imported.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="get_event_start">
+<code class="descname">get_event_start</code><span class="sig-paren">(</span><em>layer_index</em>, <em>event_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Gets the start time of an event on a given layer. Note that if the event is an instant, its start time is equal to
+its end time.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="get_event_end">
+<code class="descname">get_event_end</code><span class="sig-paren">(</span><em>layer_index</em>, <em>event_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_end" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Gets the end time of an event on a given layer. Note that if the event is an instant, its end time is equal to
+its start time.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="get_event_text">
+<code class="descname">get_event_text</code><span class="sig-paren">(</span><em>layer_index</em>, <em>event_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Gets the text of an event on a given layer.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="set_event_text">
+<code class="descname">set_event_text</code><span class="sig-paren">(</span><em>layer_index</em>, <em>event_index</em>, <em>new_text</em><span class="sig-paren">)</span><a class="headerlink" href="#set_event_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Sets the text of an event on a given layer.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="get_event_count">
+<code class="descname">get_event_count</code><span class="sig-paren">(</span><em>layer_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the number of events on a given layer.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="get_layer_label">
+<code class="descname">get_layer_label</code><span class="sig-paren">(</span><em>layer_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_layer_label" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Gets the layer’s label.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="set_layer_label">
+<code class="descname">set_layer_label</code><span class="sig-paren">(</span><em>layer_index</em>, <em>new_label</em><span class="sig-paren">)</span><a class="headerlink" href="#set_layer_label" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Sets the layer’s label.</p>
+</div>
+<div class="section" id="fields">
+<h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="path">
+<code class="descname">path</code><a class="headerlink" href="#path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the path of the sound file.</p>
+<hr class="docutils" />
+<dl class="attribute">
+<dt id="sound">
+<code class="descname">sound</code><a class="headerlink" href="#sound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the <code class="docutils literal notranslate"><span class="pre">Sound</span></code> object to which the annotation is bound, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if it is not bound to any sound.</p>
+<hr class="docutils" />
+<dl class="attribute">
+<dt id="layer_count">
+<code class="descname">layer_count</code><a class="headerlink" href="#layer_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the number of layers in the annotation.</p>
 </div>
 </div>
 
@@ -112,7 +231,7 @@ pattern. The regex can be matched against any string.</p>
           <a href="../../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="event.html" title="Event handling"
+          <a href="array.html" title="Numeric arrays"
              >next</a> |</li>
         <li class="right" >
           <a href="../tutorial/advanced.html" title="Advanced notions"

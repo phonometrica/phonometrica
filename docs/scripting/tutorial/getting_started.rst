@@ -134,6 +134,37 @@ We can also assign a new value at a given index, like so:
 Indices start at 1 and can be negative: -1 represents the last element, -2 the second-to-last element, and so on.
 
 
+Array
+~~~~~
+
+An ``Array`` is a two-dimensional numeric array (i.e. a matrix). Elements in a matrix are accessed with a set of two indices, noted *(i, j)*,
+where *i* represents the *i* th row and *j* represents the *j* th column. Indices in each dimension start at 1 and can be negative.
+(Negative indices start from the end of the dimension.)
+
+You can create a new array by passing the number of rows and columns to the constructor. For instance, here is how to create an array containing 3 rows and 4 columns:
+
+.. code:: phon
+
+    var array = new Array(3, 4)
+    
+    for i = 1 to array.row_count do
+
+        for j = 1 to array.column_count do
+            array.set(i, j, i + j)
+        end
+    end
+    print(array)
+
+This code will produce the following output:
+
+
+.. code:: phon
+
+    2.0000000000, 3.0000000000, 4.0000000000, 5.0000000000, 6.0000000000
+    3.0000000000, 4.0000000000, 5.0000000000, 6.0000000000, 7.0000000000
+    4.0000000000, 5.0000000000, 6.0000000000, 7.0000000000, 8.0000000000
+
+
 Object
 ~~~~~~
 

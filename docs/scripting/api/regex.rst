@@ -115,8 +115,30 @@ than the number returned by the ``count`` function.
 
 See also: :func:`count`, :func:`match`, :func:`first`, :func:`last`
 
+------------
+
+.. method:: first(nth)
+
+Returns the index of the first character of the ``nth`` capture. If
+``nth`` equals ``0``, it returns the index of the first character in the
+whole matched string.
+
+See also: :func:`capture`, :func:`last`
+
 
 ------------
+
+.. method:: last(nth)
+
+Returns the index of the last character of the ``nth`` capture. If
+``nth`` equals ``0``, it returns the index of the last character in the
+whole matched string.
+
+See also: :func:`match`, :func:`first`
+
+
+Fields
+------
 
 .. attribute:: length
 
@@ -146,25 +168,3 @@ See also: :func:`capture`, :func:`match`
 
 Returns the pattern (as a ``String``) from which the regular
 expression was constructed.
-
-
-------------
-
-.. method:: first(nth)
-
-Returns the index of the first character of the ``nth`` capture. If
-``nth`` equals ``0``, it returns the index of the first character in the
-whole matched string.
-
-See also: :func:`capture`, :func:`last`
-
-
-------------
-
-.. method:: last(nth)
-
-Returns the index of the last character of the ``nth`` capture. If
-``nth`` equals ``0``, it returns the index of the last character in the
-whole matched string.
-
-See also: :func:`match`, :func:`first`

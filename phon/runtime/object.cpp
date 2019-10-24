@@ -70,6 +70,8 @@ Object::~Object()
         this->as.c.function.~native_callback_t();
         this->as.c.name.~String();
     }
+    else if (this->type == PHON_CARRAY)
+    	this->as.array.~Matrix();
 
     // Detach object from the GC chain.
 //    if (this == runtime->gcobj) {

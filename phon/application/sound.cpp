@@ -35,8 +35,11 @@
 #include <phon/runtime/runtime.hpp>
 #include <phon/runtime/object.hpp>
 #include <phon/application/sound.hpp>
+#include <phon/application/settings.hpp>
 #include <phon/application/resampler.hpp>
 #include <phon/speech/signal_processing.hpp>
+#include <phon/third_party/swipe/swipe.h>
+#include <phon/utils/matrix.hpp>
 
 #if PHON_MACOS
 const int BUFFER_SIZE = 4096;
@@ -261,6 +264,120 @@ int Sound::get_intensity_window_size() const
 	return int(std::ceil(effective_duration * m_data->sample_rate()));
 }
 
+Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_frequency, double window_size, int lpc_order)
+{
+	Matrix<double> result(nformant, 2);
+	result.setZero(nformant, 2);
+	using namespace speech;
+	assert(m_data);
+	PHON_LOG("Calculating formants");
+
+	double Fs = nyquist_frequency * 2;
+	int nframe = int(ceil(window_size * Fs));
+	if (nframe % 2 == 1) nframe++;
+	auto first_sample = m_data->time_to_frame(time) - nframe / 2;
+	auto last_sample = first_sample + nframe;
+
+	if (first_sample < 1) {
+		throw error("Time point % is to close to the beginning of the file", time);
+	}
+	if (last_sample > m_data->size()) {
+		throw error("Time point % is to close to the end of the file", time);
+	}
+
+	auto input = m_data->get(first_sample, last_sample);
+	auto win = create_window(nframe, nframe, WindowType::Hann);
+	std::vector<double> buffer(nframe, 0.0);
+	std::vector<double> tmp; // not needed if sampling rates are equal
+	Span<double> output;
+	// Apply pre-emphasis from 50 Hz.
+	pre_emphasis(input, m_data->sample_rate(), 50);
+
+	if (Fs == m_data->sample_rate())
+	{
+		output = input;
+	}
+	else
+	{
+		tmp = resample(input, m_data->sample_rate(), Fs);
+		output = Span<double>(tmp);
+	}
+
+	// Apply window.
+	auto it = output.begin();
+	for (int j = 0; j < nframe; j++)
+	{
+		buffer[j] = *it++ * win[j+1];
+	}
+
+	auto coeffs = get_lpc_coefficients(buffer, lpc_order);
+	std::vector<double> freqs, bw;
+	bool ok = speech::get_formants(coeffs, Fs, freqs, bw);
+
+	if (!ok)
+	{
+		for (int i = 0; i < nformant; i++)
+		{
+			result(i, 0) = std::nan("");
+			result(i, 1) = std::nan("");
+		}
+
+		return result;
+	}
+
+	int count = 0;
+	const double max_freq = Fs / 2 - 50;
+	for (int k = 0; k < freqs.size(); k++)
+	{
+		auto freq = freqs[k];
+		if (freq > 50 && freq < max_freq && bw[k] < 400)
+		{
+			result(count, 0) = freq;
+			result(count++, 1) = bw[k];
+		}
+		if (count == nformant) break;
+	}
+	for (int k = count; k < nformant; k++)
+	{
+		result(k, 0) = std::nan("");
+		result(k, 1) = std::nan("");
+	}
+
+	return result;
+}
+
+double Sound::get_pitch(double time, double min_pitch, double max_pitch, double threshold)
+{
+	assert(m_data);
+	PHON_LOG("Calculating pitch");
+	const double time_step = 0.01;
+	// We use 90ms window centered around the time of measurement, with a time step = 10ms. This will yield a 9 point
+	// pitch estimate, and we return the center point (i.e. the 5th).
+	intptr_t step = time_step * m_data->sample_rate();
+	auto first_sample = m_data->time_to_frame(time) - step * 4.5;
+	auto last_sample = first_sample + step * 7;
+
+	if (first_sample < 1) {
+		throw error("Time point % is to close to the beginning of the file", time);
+	}
+	if (last_sample > m_data->size()) {
+		throw error("Time point % is to close to the end of the file", time);
+	}
+
+	auto input = m_data->get(first_sample, last_sample);
+	// Borrow reference to avoid copying
+	vector vec;
+	vec.x = (int) input.size();
+	vec.v = input.data();
+
+	PHON_LOG("Running SWIPE");
+	auto tmp = swipe(vec, m_data->sample_rate(), min_pitch, max_pitch, threshold, time_step);
+	auto pitch = Array<double>::from_memory(tmp.v, tmp.x);
+	PHON_LOG("point estimate at time " << time << " = " pitch[5]);
+
+	return pitch[5];
+}
+
 double Sound::get_intensity(double time)
 {
 	assert(m_data);
@@ -375,6 +492,71 @@ void Sound::initialize(Runtime &rt)
 		rt.push(sound->get_intensity(time));
 	};
 
+	auto get_pitch = [](Runtime &rt) {
+		auto sound = rt.cast_user_data<AutoSound>(0);
+		auto time = rt.to_number(1);
+		sound->open();
+		double min_pitch, max_pitch, threshold;
+		String category("pitch_tracking");
+
+		if (rt.arg_count() >= 2 && rt.is_number(2))
+		{
+			min_pitch = rt.to_number(2);
+		}
+		else
+		{
+			min_pitch = Settings::get_number(rt, category, "minimum_pitch");
+		}
+		if (rt.arg_count() >= 3 && rt.is_number(3))
+		{
+			max_pitch = rt.to_number(3);
+		}
+		else
+		{
+			max_pitch = Settings::get_number(rt, category, "maximum_pitch");
+		}
+		if (rt.arg_count() >= 4 && rt.is_number(4))
+		{
+			threshold = rt.to_number(4);
+		}
+		else
+		{
+			threshold = Settings::get_number(rt, category, "voicing_threshold");
+		}
+		rt.push(sound->get_pitch(time, min_pitch, max_pitch, threshold));
+	};
+
+	auto get_formants = [](Runtime &rt) {
+		auto sound = rt.cast_user_data<AutoSound>(0);
+		auto time = rt.to_number(1);
+		String category("formants");
+		double nyquist, win_size;
+		int nformant, lpc_order;
+
+		if (rt.arg_count() >= 2)
+			nformant = rt.to_integer(2);
+		else
+			nformant = Settings::get_number(rt, category, "number_of_formants");
+
+		if (rt.arg_count() >= 3)
+			nyquist = rt.to_number(3);
+		else
+			nyquist = Settings::get_number(rt, category, "max_frequency");
+
+		if (rt.arg_count() >= 4)
+			win_size = rt.to_number(4);
+		else
+			win_size = Settings::get_number(rt, category, "window_size");
+
+		if (rt.arg_count() == 5)
+			lpc_order = rt.to_integer(5);
+		else
+			lpc_order = Settings::get_number(rt, category, "lpc_order");
+
+		auto result = sound->get_formants(time, nformant, nyquist, win_size, lpc_order);
+		rt.push(std::move(result));
+	};
+
 	rt.push(metaobject);
 	{
 		rt.add_accessor("path", sound_path);
@@ -385,6 +567,8 @@ void Sound::initialize(Runtime &rt)
 		rt.add_method("Sound.meta.remove_property", remove_property, 2);
 		rt.add_method("Sound.meta.get_property", get_property, 1);
 		rt.add_method("Sound.meta.get_intensity", get_intensity, 1);
+		rt.add_method("Sound.meta.get_pitch", get_pitch, 1);
+		rt.add_method("Sound.meta.get_formants", get_formants, 1);
 	}
 	rt.new_native_constructor(new_sound, new_sound, "Sound", 1);
 	rt.def_global("Sound", PHON_DONTENUM);

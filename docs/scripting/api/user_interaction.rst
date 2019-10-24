@@ -4,8 +4,8 @@ User interaction
 This page describes global functions that allow you to interact with the user.
 
 
-Functions
----------
+Global functions
+----------------
 
 
 .. function:: warning(message [, title])
@@ -80,3 +80,11 @@ See also: :func:`save\_file\_dialog`,
 Displays ``message`` in the status bar for ``timeout`` seconds. If
 ``timeout`` is ``0``, the message is displayed until the next one
 appears.
+
+
+------------
+
+.. function:: view\_text(path [, title [, width]])
+
+Opens the plain text file ``path`` in a new dialog. Optionally, you can specify the dialog's ``title`` and set its
+``width``.

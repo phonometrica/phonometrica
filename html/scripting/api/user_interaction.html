@@ -43,7 +43,7 @@
   <h3><a href="../../index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">User interaction</a><ul>
-<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#global-functions">Global functions</a></li>
 </ul>
 </li>
 </ul>
@@ -77,8 +77,8 @@
   <div class="section" id="user-interaction">
 <h1>User interaction<a class="headerlink" href="#user-interaction" title="Permalink to this headline">¶</a></h1>
 <p>This page describes global functions that allow you to interact with the user.</p>
-<div class="section" id="functions">
-<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="global-functions">
+<h2>Global functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="warning">
 <code class="descname">warning</code><span class="sig-paren">(</span><em>message</em><span class="optional">[</span>, <em>title</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#warning" title="Permalink to this definition">¶</a></dt>
@@ -152,6 +152,14 @@ field whose value is <cite>text</cite>. This function returns the content of the
 <p>Displays <code class="docutils literal notranslate"><span class="pre">message</span></code> in the status bar for <code class="docutils literal notranslate"><span class="pre">timeout</span></code> seconds. If
 <code class="docutils literal notranslate"><span class="pre">timeout</span></code> is <code class="docutils literal notranslate"><span class="pre">0</span></code>, the message is displayed until the next one
 appears.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="view_text">
+<code class="descname">view_text</code><span class="sig-paren">(</span><em>path</em><span class="optional">[</span>, <em>title</em><span class="optional">[</span>, <em>width</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#view_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Opens the plain text file <code class="docutils literal notranslate"><span class="pre">path</span></code> in a new dialog. Optionally, you can specify the dialog’s <code class="docutils literal notranslate"><span class="pre">title</span></code> and set its
+<code class="docutils literal notranslate"><span class="pre">width</span></code>.</p>
 </div>
 </div>
 

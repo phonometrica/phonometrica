@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Operating System" href="system.html" />
-    <link rel="prev" title="Regular expressions" href="regex.html" /> 
+    <link rel="prev" title="Sounds" href="sound.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -32,7 +32,7 @@
           <a href="system.html" title="Operating System"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="regex.html" title="Regular expressions"
+          <a href="sound.html" title="Sounds"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
@@ -45,13 +45,14 @@
 <li><a class="reference internal" href="#">String processing</a><ul>
 <li><a class="reference internal" href="#general-concepts">General concepts</a></li>
 <li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#fields">Fields</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="regex.html"
-                        title="previous chapter">Regular expressions</a></p>
+  <p class="topless"><a href="sound.html"
+                        title="previous chapter">Sounds</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="system.html"
                         title="next chapter">Operating System</a></p>
@@ -89,8 +90,9 @@ original string unchanged.</p>
 UTF-8 <a class="reference external" href="http://www.unicode.org">Unicode</a> standard. A good tutorial
 about UTF-8 can be found at the following address:
 <a class="reference external" href="http://www.zehnet.de/2005/02/12/unicode-utf-8-tutorial">http://www.zehnet.de/2005/02/12/unicode-utf-8-tutorial</a>.
-In the remainder of this document, the word <em>character</em> is used to mean
-<em>code point</em>, unless otherwise noted.</p>
+In the remainder of this document, the term <em>character</em> is used to mean
+<em>extended grapheme cluster</em> in the sense of the Unicode specification. This generally corresponds to the notion
+of “user-perceived character”.</p>
 </div>
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
@@ -104,18 +106,7 @@ In the remainder of this document, the word <em>character</em> is used to mean
 <code class="descname">at</code><span class="sig-paren">(</span><em>pos</em><span class="sig-paren">)</span><a class="headerlink" href="#at" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Get character at position <code class="docutils literal notranslate"><span class="pre">pos</span></code>.</p>
-<hr class="docutils" />
-<dl class="attribute">
-<dt id="length">
-<code class="descname">length</code><a class="headerlink" href="#length" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns the length of the string, in Unicode code points.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;안녕하세요&quot;</span>
-<span class="n">print</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">length</span><span class="p">)</span> <span class="c1"># Prints &quot;5&quot;</span>
-</pre></div>
-</div>
+<p>Get character at position <code class="docutils literal notranslate"><span class="pre">pos</span></code>. If <code class="docutils literal notranslate"><span class="pre">pos</span></code> is negative, counting starts from the end.</p>
 <hr class="docutils" />
 <dl class="method">
 <dt id="trim">
@@ -134,7 +125,7 @@ ends of the string.</p>
 <hr class="docutils" />
 <dl class="method">
 <dt id="ltrim">
-<code class="descname">ltrim</code><span class="sig-paren">(</span><em>str</em><span class="sig-paren">)</span><a class="headerlink" href="#ltrim" title="Permalink to this definition">¶</a></dt>
+<code class="descname">ltrim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ltrim" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a copy of the string with whitespace characters removed at the
@@ -183,7 +174,7 @@ right end of the string.</p>
 <code class="descname">contains</code><span class="sig-paren">(</span><em>substring</em><span class="sig-paren">)</span><a class="headerlink" href="#contains" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns true if the string ends with <code class="docutils literal notranslate"><span class="pre">substring</span></code>, and <code class="docutils literal notranslate"><span class="pre">false</span></code>
+<p>Returns true if the string contains <code class="docutils literal notranslate"><span class="pre">substring</span></code>, and <code class="docutils literal notranslate"><span class="pre">false</span></code>
 otherwise.</p>
 <hr class="docutils" />
 <dl class="method">
@@ -202,7 +193,7 @@ otherwise.</p>
 <hr class="docutils" />
 <dl class="method">
 <dt id="to_upper">
-<code class="descname">to_upper</code><span class="sig-paren">(</span><em>str</em><span class="sig-paren">)</span><a class="headerlink" href="#to_upper" title="Permalink to this definition">¶</a></dt>
+<code class="descname">to_upper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#to_upper" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a copy of the string where each code point has been converted to
@@ -281,14 +272,6 @@ position <code class="docutils literal notranslate"><span class="pre">at</span><
 Another, simpler way to concatenate strings is to use the operator <code class="docutils literal notranslate"><span class="pre">+</span></code>.</p>
 <hr class="docutils" />
 <dl class="method">
-<dt>
-<code class="descname">contains</code><span class="sig-paren">(</span><em>substr</em><span class="sig-paren">)</span></dt>
-<dd></dd></dl>
-
-<p>Returns true if the string contains <code class="docutils literal notranslate"><span class="pre">substr</span></code> and false otherwise. If
-<code class="docutils literal notranslate"><span class="pre">substr</span></code> is the empty string, the result is true.</p>
-<hr class="docutils" />
-<dl class="method">
 <dt id="remove">
 <code class="descname">remove</code><span class="sig-paren">(</span><em>substr</em><span class="sig-paren">)</span><a class="headerlink" href="#remove" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -337,52 +320,66 @@ removed.</p>
 
 <p>Returns a new string with all the characters in the string in reversed
 order.</p>
-<dl class="function">
+<hr class="docutils" />
+<dl class="method">
 <dt id="insert">
 <code class="descname">insert</code><span class="sig-paren">(</span><em>pos</em>, <em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#insert" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a copy of the string with <code class="docutils literal notranslate"><span class="pre">other</span></code> inserted at position <code class="docutils literal notranslate"><span class="pre">pos</span></code></p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="mid">
-<code class="descname">mid</code><span class="sig-paren">(</span><em>str</em>, <em>from</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#mid" title="Permalink to this definition">¶</a></dt>
+<code class="descname">mid</code><span class="sig-paren">(</span><em>from</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#mid" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the substring of <code class="docutils literal notranslate"><span class="pre">str</span></code> starting at index <code class="docutils literal notranslate"><span class="pre">from</span></code> and ending
 at index <code class="docutils literal notranslate"><span class="pre">to</span></code> (inclusive). If <code class="docutils literal notranslate"><span class="pre">to</span></code> equals <code class="docutils literal notranslate"><span class="pre">-1</span></code>, returns the
 substring from <code class="docutils literal notranslate"><span class="pre">from</span></code> until the end of the string.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">local</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;c&#39;était ça&quot;</span>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;c&#39;était ça&quot;</span>
 
-<span class="n">print</span><span class="p">(</span><span class="n">string</span><span class="p">.</span><span class="n">mid</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span> <span class="c1"># &quot;était&quot;</span>
-<span class="n">print</span><span class="p">(</span><span class="n">string</span><span class="p">.</span><span class="n">mid</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># &quot;était ça&quot;</span>
+<span class="n">print</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">mid</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span> <span class="c1"># &quot;était&quot;</span>
+<span class="n">print</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">mid</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># &quot;était ça&quot;</span>
 </pre></div>
 </div>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="left">
-<code class="descname">left</code><span class="sig-paren">(</span><em>str</em>, <em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#left" title="Permalink to this definition">¶</a></dt>
+<code class="descname">left</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#left" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Get the substring corresponding to the <code class="docutils literal notranslate"><span class="pre">n</span></code> first characters of the
 string.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="right">
-<code class="descname">right</code><span class="sig-paren">(</span><em>str</em>, <em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#right" title="Permalink to this definition">¶</a></dt>
+<code class="descname">right</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#right" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Get the substring corresponding to the <code class="docutils literal notranslate"><span class="pre">n</span></code> last characters of the
 string.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="method">
 <dt id="split">
-<code class="descname">split</code><span class="sig-paren">(</span><em>str</em>, <em>delim</em><span class="sig-paren">)</span><a class="headerlink" href="#split" title="Permalink to this definition">¶</a></dt>
+<code class="descname">split</code><span class="sig-paren">(</span><em>delim</em><span class="sig-paren">)</span><a class="headerlink" href="#split" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a table of strings which have been split at each occurrence of
 the substring <code class="docutils literal notranslate"><span class="pre">delim</span></code>. If <code class="docutils literal notranslate"><span class="pre">delim</span></code> is the empty string, it returns a
 list of the characters in the string.</p>
+</div>
+<div class="section" id="fields">
+<h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="length">
+<code class="descname">length</code><a class="headerlink" href="#length" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the length of the string, in Unicode extended grapheme clusters.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;안녕하세요&quot;</span>
+<span class="n">print</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">length</span><span class="p">)</span> <span class="c1"># Prints &quot;5&quot;</span>
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -402,7 +399,7 @@ list of the characters in the string.</p>
           <a href="system.html" title="Operating System"
              >next</a> |</li>
         <li class="right" >
-          <a href="regex.html" title="Regular expressions"
+          <a href="sound.html" title="Sounds"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 

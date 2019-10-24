@@ -115,6 +115,10 @@ protected slots:
 
     void getIntensity(bool);
 
+    void getPitch(bool);
+
+    void getFormants(bool);
+
 protected:
 
 	void setupUi();

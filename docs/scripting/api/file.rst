@@ -1,12 +1,21 @@
 File manipulation
 =================
 
-This page documents the ``File`` class, which can be used to read and write text files.
+This page documents the ``File`` type, which can be used to read and write text files.
 
 General concepts
 ----------------
 
-This class provides functions to read and create files. The default encoding is UTF-8. Other supported included are UTF-16 and UTF-32 (read-only). 
+This type provides methods to read and create files. The default encoding is UTF-8. Other supported included are UTF-16 and UTF-32 (read-only). 
+
+
+Global functions
+----------------
+
+.. function:: read_file(path)
+
+Return the content of the file named ``path`` as a string.
+
 
 
 Methods
@@ -40,55 +49,55 @@ must be one of the following strings:
 
 ------------
 
-.. function:: close()
+.. method:: close()
 
 Close the file. Once the file is closed, no further reading or writing operations are allowed.
 
 ------------
 
-.. function:: eof()
+.. method:: eof()
 
 Returns ``true`` if the cursor is positionned at the end of the file, ``false`` otherwise.
 
 ------------
 
-.. function:: rewind()
+.. method:: rewind()
 
 Rewind the cursor to the beginning of the file.
 
 ------------
 
-.. function:: size()
+.. method:: size()
 
 Return the number of bytes in the file.
 
 ------------
 
-.. function:: write(text)
+.. method:: write(text)
 
 Write ``text`` into ``file``.
 
 ------------
 
-.. function:: write_line(text)
+.. method:: write_line(text)
 
 Write ``text`` into ``file``, and append a new line separator.
 
 ------------
 
-.. function:: write_byte(byte)
+.. method:: write_byte(byte)
 
 Write a single byte into the file.
 
 ------------
 
-.. function:: read_byte()
+.. method:: read_byte()
 
 Read a single byte from the file.
 
 ------------
 
-.. function:: read_line()
+.. method:: read_line()
 
 Read a line from the file file. If the cursor is at the end of the file, return a empty string.
 
@@ -98,8 +107,3 @@ Read a line from the file file. If the cursor is at the end of the file, return 
 
 Return the content of the file as a table whose elements are the lines of the file.
 
-------------
-
-.. staticmethod:: read_all(path)
-
-Return the content of the file named ``path`` as a string.

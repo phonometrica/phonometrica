@@ -477,6 +477,13 @@ void Runtime::push(String &&v)
 	++top;
 }
 
+void Runtime::push(Matrix<double> m)
+{
+	auto obj = new Object(*this, PHON_CARRAY, array_meta);
+	new (&obj->as.array) Matrix<double>(std::move(m));
+	push(obj);
+}
+
 void Runtime::push(const char *v, intptr_t n)
 {
 	push(String(v, n));
@@ -629,6 +636,8 @@ static const char *js_typeof(Runtime *J, int idx)
 				return "Regex";
 			if (v->is_file())
 				return "File";
+			if (v->is_array())
+				return "Array";
 			if (v->is_user_data())
 				return v->as.object->as.user.tag;
 			return "Object";
@@ -646,6 +655,14 @@ Regex &Runtime::to_regex(int idx)
 	if (v->type == PHON_TOBJECT && v->as.object->type == PHON_CREGEX)
 		return v->as.object->as.regex;
 	throw raise("Type error", "not a Regex");
+}
+
+Matrix<double> &Runtime::to_array(int idx)
+{
+	Variant *v = stack_index(idx);
+	if (v->type == PHON_TOBJECT && v->as.object->type == PHON_CARRAY)
+		return v->as.object->as.array;
+	throw raise("Type error", "not an Array");
 }
 
 
@@ -869,6 +886,10 @@ bool Runtime::has_field(Object *obj, const String &name)
 		else if (obj->type == PHON_CREGEX)
 		{
 			push(obj->as.regex.count());
+		}
+		else if (obj->type == PHON_CARRAY)
+		{
+			push(obj->as.array.size());
 		}
 		else if (obj->type == PHON_COBJECT)
 		{
@@ -2259,6 +2280,5 @@ void Runtime::clear_stack()
 	--bot;
 //    top = --bot;
 }
-
 
 } // namespace phonometrica

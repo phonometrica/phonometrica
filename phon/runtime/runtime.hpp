@@ -23,7 +23,7 @@
 #include <unordered_set>
 #include <phon/string.hpp>
 #include <phon/runtime/toplevel.hpp>
-
+#include <phon/utils/matrix.hpp>
 
 namespace phonometrica {
 
@@ -144,6 +144,8 @@ public:
 
     void push(Variant &&v);
 
+    void push(Matrix<double> m);
+
     std::optional<Variant> next_iterator(int idx);
 
     void new_objectx();
@@ -214,6 +216,8 @@ public:
     bool to_boolean(int idx) const;
 
 	Regex & to_regex(int idx);
+
+	Matrix<double> &to_array(int idx);
 
     File &to_file(int idx);
 
@@ -333,6 +337,8 @@ private:
 
     void init_regexp();
 
+    void init_array();
+
     void init_file();
 
     void init_math();
@@ -393,6 +399,7 @@ public:
     Object *number_meta = nullptr;
     Object *string_meta = nullptr;
     Object *regex_meta = nullptr;
+    Object *array_meta = nullptr;
     Object *date_meta = nullptr;
     Object *file_meta = nullptr;
 

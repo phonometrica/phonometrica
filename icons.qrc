@@ -61,5 +61,6 @@
         <file>icons/number/7.png</file>
         <file>icons/number/8.png</file>
         <file>icons/number/9.png</file>
+        <file>icons/mouse.png</file>
     </qresource>
 </RCC>

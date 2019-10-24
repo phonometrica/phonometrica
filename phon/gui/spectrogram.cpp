@@ -498,4 +498,9 @@ void Spectrogram::enableFormantTracking(bool value)
 	emptyCache();
 }
 
+bool Spectrogram::hasFormants() const
+{
+	return isVisible() && show_formants;
+}
+
 } // namespace phonometrica

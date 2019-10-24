@@ -55,6 +55,7 @@
 <li><a class="reference internal" href="#number">Number</a></li>
 <li><a class="reference internal" href="#string">String</a></li>
 <li><a class="reference internal" href="#list">List</a></li>
+<li><a class="reference internal" href="#array">Array</a></li>
 <li><a class="reference internal" href="#object">Object</a></li>
 <li><a class="reference internal" href="#function">Function</a></li>
 </ul>
@@ -189,6 +190,30 @@ original string unchanged.</p>
 </pre></div>
 </div>
 <p>Indices start at 1 and can be negative: -1 represents the last element, -2 the second-to-last element, and so on.</p>
+</div>
+<div class="section" id="array">
+<h3>Array<a class="headerlink" href="#array" title="Permalink to this headline">¶</a></h3>
+<p>An <code class="docutils literal notranslate"><span class="pre">Array</span></code> is a two-dimensional numeric array (i.e. a matrix). Elements in a matrix are accessed with a set of two indices, noted <em>(i, j)</em>,
+where <em>i</em> represents the <em>i</em> th row and <em>j</em> represents the <em>j</em> th column. Indices in each dimension start at 1 and can be negative.
+(Negative indices start from the end of the dimension.)</p>
+<p>You can create a new array by passing the number of rows and columns to the constructor. For instance, here is how to create an array containing 3 rows and 4 columns:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">array</span> <span class="o">=</span> <span class="kr">new</span> <span class="n">Array</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+<span class="kr">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span> <span class="kr">to</span> <span class="n">array</span><span class="p">.</span><span class="n">row_count</span> <span class="kr">do</span>
+
+    <span class="kr">for</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span> <span class="kr">to</span> <span class="n">array</span><span class="p">.</span><span class="n">column_count</span> <span class="kr">do</span>
+        <span class="n">array</span><span class="p">.</span><span class="kr">set</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span>
+    <span class="kr">end</span>
+<span class="kr">end</span>
+<span class="n">print</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This code will produce the following output:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="mf">2.0000000000</span><span class="p">,</span> <span class="mf">3.0000000000</span><span class="p">,</span> <span class="mf">4.0000000000</span><span class="p">,</span> <span class="mf">5.0000000000</span><span class="p">,</span> <span class="mf">6.0000000000</span>
+<span class="mf">3.0000000000</span><span class="p">,</span> <span class="mf">4.0000000000</span><span class="p">,</span> <span class="mf">5.0000000000</span><span class="p">,</span> <span class="mf">6.0000000000</span><span class="p">,</span> <span class="mf">7.0000000000</span>
+<span class="mf">4.0000000000</span><span class="p">,</span> <span class="mf">5.0000000000</span><span class="p">,</span> <span class="mf">6.0000000000</span><span class="p">,</span> <span class="mf">7.0000000000</span><span class="p">,</span> <span class="mf">8.0000000000</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="object">
 <h3>Object<a class="headerlink" href="#object" title="Permalink to this headline">¶</a></h3>

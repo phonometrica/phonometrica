@@ -79,7 +79,10 @@ Toolbar *SpeechView::makeToolbar()
 	action_enable_formants = new QAction(tr("Show formants"), this);
 	action_enable_formants->setCheckable(true);
 	auto action_formants_settings = new QAction(tr("Formant settings..."), this);
+	auto action_get_formants = new QAction(tr("Get formants"), this);
 	formants_menu->addAction(action_enable_formants);
+	formants_menu->addAction(action_get_formants);
+	formants_menu->addSeparator();
 	formants_menu->addAction(action_formants_settings);
 
     auto pitch_menu = new QMenu;
@@ -92,7 +95,6 @@ Toolbar *SpeechView::makeToolbar()
 	pitch_menu->addAction(action_get_pitch);
 	pitch_menu->addSeparator();
 	pitch_menu->addAction(action_pitch_settings);
-    action_get_pitch->setEnabled(false);
 
     auto intensity_menu = new QMenu;
     action_enable_intensity = new QAction(tr("Show intensity"), this);
@@ -105,14 +107,6 @@ Toolbar *SpeechView::makeToolbar()
     intensity_menu->addSeparator();
     intensity_menu->addAction(action_intensity_settings);
 
-
-    auto options_menu = new QMenu;
-
-    auto action_enable_tracking = new QAction(tr("Enable mouse tracking"), this);
-    action_enable_tracking->setCheckable(true);
-    action_enable_tracking->setChecked(Settings::get_boolean(runtime, "enable_mouse_tracking"));
-    options_menu->addAction(action_enable_tracking);
-
     auto toolbar = new Toolbar(this);
     play_action = new QAction(QIcon(":/icons/play.png"), "Play");
     auto stop = new QAction(QIcon(":/icons/stop.png"), "Stop");
@@ -124,11 +118,6 @@ Toolbar *SpeechView::makeToolbar()
     auto view_all = new QAction(QIcon(":/icons/expand.png"), "View whole file");
     auto select = new QAction(QIcon(":/icons/selection.png"), "Select window...");
     auto doc = new QAction(QIcon(":/icons/question.png"), "Documentation");
-    auto options_button = new QToolButton;
-    options_button->setIcon(QIcon(":/icons/settings.png"));
-    options_button->setToolTip(tr("Waveform options"));
-    options_button->setMenu(options_menu);
-    options_button->setPopupMode(QToolButton::InstantPopup);
 
     auto wave_button = new QToolButton;
     wave_button->setIcon(QIcon(":/icons/waveform.png"));
@@ -160,6 +149,10 @@ Toolbar *SpeechView::makeToolbar()
     intensity_button->setMenu(intensity_menu);
     intensity_button->setPopupMode(QToolButton::InstantPopup);
 
+	auto action_enable_tracking = new QAction(QIcon(":/icons/mouse.png"), tr("Enable mouse tracking"));
+	action_enable_tracking->setCheckable(true);
+	action_enable_tracking->setChecked(Settings::get_boolean(runtime, "enable_mouse_tracking"));
+
     toolbar->addAction(play_action);
     toolbar->addAction(stop);
     toolbar->addAction(move_back);
@@ -177,7 +170,7 @@ Toolbar *SpeechView::makeToolbar()
     toolbar->addWidget(pitch_button);
     toolbar->addWidget(intensity_button);
     toolbar->addSeparator();
-    toolbar->addWidget(options_button);
+    toolbar->addAction(action_enable_tracking);
 
 #if PHON_MACOS || PHON_WINDOWS
 	toolbar->setMaximumHeight(30);
@@ -212,6 +205,8 @@ Toolbar *SpeechView::makeToolbar()
     connect(action_spectrum_settings, &QAction::triggered, this, &SpeechView::changeSpectrogramSettings);
     connect(action_intensity_settings, &QAction::triggered, this, &SpeechView::changeIntensitySettings);
     connect(action_get_intensity, &QAction::triggered, this, &SpeechView::getIntensity);
+    connect(action_get_pitch, &QAction::triggered, this, &SpeechView::getPitch);
+    connect(action_get_formants, &QAction::triggered, this, &SpeechView::getFormants);
     connect(waveform, &SpeechPlot::windowHasChanged, this, &SpeechView::setWindowTimes);
     connect(doc, &QAction::triggered, this, &SpeechView::showDocumentation);
 
@@ -615,6 +610,7 @@ void SpeechView::getIntensity(bool)
 {
 	if (intensity_plot->isHidden()) {
 		QMessageBox::critical(this, tr("Cannot measure intensity"), tr("The intensity plot is not visible"));
+		return;
 	}
 
 	if (!intensity_plot->hasPersistentCursor()) {
@@ -623,6 +619,38 @@ void SpeechView::getIntensity(bool)
 	}
 	double t = intensity_plot->persistentCursor();
 	auto cmd = String::format("report_intensity(%.10f)", t);
+	emit sendCommand(cmd);
+}
+
+void SpeechView::getPitch(bool)
+{
+	if (pitch_plot->isHidden()) {
+		QMessageBox::critical(this, tr("Cannot measure pitch"), tr("The pitch plot is not visible"));
+		return;
+	}
+
+	if (!pitch_plot->hasPersistentCursor()) {
+		QMessageBox::critical(this, tr("Cannot measure pitch"), tr("First select a time point"));
+		return;
+	}
+	double t = pitch_plot->persistentCursor();
+	auto cmd = String::format("report_pitch(%.10f)", t);
+	emit sendCommand(cmd);
+}
+
+void SpeechView::getFormants(bool)
+{
+	if (!spectrogram->hasFormants()) {
+		QMessageBox::critical(this, tr("Cannot measure formants"),
+				tr("The spectrogram must be visible and must have formant tracking enabled"));
+		return;
+	}
+	if (!spectrogram->hasPersistentCursor()) {
+		QMessageBox::critical(this, tr("Cannot measure formants"), tr("First select a time point"));
+		return;
+	}
+	double t = pitch_plot->persistentCursor();
+	auto cmd = String::format("report_formants(%.10f)", t);
 	emit sendCommand(cmd);
 }
 

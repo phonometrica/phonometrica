@@ -20,102 +20,123 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 04/10/2019                                                                                                 *
+ * Created: 24/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: display spectrogram in speech view.                                                                        *
+ * Purpose: Array type, which represents a 2D numeric array (i.e. a matrix).                                           *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SPECTROGRAM_HPP
-#define PHONOMETRICA_SPECTROGRAM_HPP
-
-#include <QImage>
-#include <phon/gui/speech_plot.hpp>
-#include <phon/utils/matrix.hpp>
-#include <phon/speech/signal_processing.hpp>
+#include <phon/runtime/object.hpp>
+#include <phon/runtime/toplevel.hpp>
 
 namespace phonometrica {
 
-class Runtime;
-
-
-class Spectrogram final : public SpeechPlot
+static intptr_t normalize_index(intptr_t i, intptr_t size)
 {
-    Q_OBJECT
+	if (i > 0 && i <= size)
+		return --i;
+	if (i < 0 && i <= -size)
+		return size + i;
 
-public:
+	throw error("[Index error] Index % out of range in array dimension with % elements", i, size);
+}
 
-    Spectrogram(Runtime &rt, const AutoSound &sound, QWidget *parent = nullptr);
+static void new_array(Runtime &rt)
+{
+	if (rt.arg_count() != 2) {
+		rt.raise("Error", "Array expected two arguments, %d received", rt.arg_count());
+	}
+	int nrow = rt.to_integer(1);
+	int ncol = rt.to_integer(2);
+	auto obj = new Object(rt, PHON_CARRAY, rt.array_meta);
 
-    void drawYAxis(QWidget *y_axis, int y1, int y2) override;
+	try
+	{
+		new (&obj->as.array) Matrix<double>(nrow, ncol);
+	}
+	catch (std::runtime_error &e)
+	{
+		rt.raise("Math error", "%s", e.what());
+	}
 
-    void enableFormantTracking(bool value);
+	rt.push(obj);
+}
 
-    bool hasFormants() const;
+static void array_nrow(Runtime &rt)
+{
+	auto &array = rt.to_array(0);
+	rt.push_int(array.rows());
+}
 
-protected:
+static void array_ncol(Runtime &rt)
+{
+	auto &array = rt.to_array(0);
+	rt.push_int(array.cols());
+}
 
-    void renderPlot(QPaintEvent *event) override;
+static void array_get(Runtime &rt)
+{
+	auto &array = rt.to_array(0);
+	if (rt.arg_count() != 2) {
+		rt.raise("Error", "expected 2 arguments, received %d", rt.arg_count());
+	}
+	intptr_t i = rt.to_integer(1);
+	intptr_t j = rt.to_integer(2);
+	i = normalize_index(i, array.rows());
+	j = normalize_index(j, array.cols());
+	rt.push(array(i,j));
+}
 
-    virtual bool needsRefresh() const override;
+static void array_set(Runtime &rt)
+{
+	auto &array = rt.to_array(0);
+	if (rt.arg_count() != 3) {
+		rt.raise("Error", "expected 3 arguments, received %d", rt.arg_count());
+	}
+	intptr_t i = rt.to_integer(1);
+	intptr_t j = rt.to_integer(2);
+	i = normalize_index(i, array.rows());
+	j = normalize_index(j, array.cols());
+	double value = rt.to_number(3);
+	array(i,j) = value;
+	rt.push_null();
+}
 
-    void resizeEvent(QResizeEvent *) override;
+static void array_to_string(Runtime &rt)
+{
+	auto &array = rt.to_array(0);
+	String s;
 
-	void readSettings() override;
+	for (intptr_t i = 0; i < array.rows(); i++)
+	{
+		for (intptr_t j = 0; j < array.cols(); j++)
+		{
+			s.append(String::convert(array(i,j)));
+			if (j < array.cols() - 1) {
+				s.append(", ");
+			}
+		}
 
-	void emptyCache() override;
+		if (i < array.rows() - 1) {
+			s.append('\n');
+		}
+	}
 
-private:
+	rt.push(std::move(s));
+}
 
-	Matrix<double> computeSpectrogram();
-
-	void estimateFormants();
-
-	int formantToYPos(double hz);
-
-	void readSpectrogramSettings();
-
-	void readFormantsSettings();
-
-	// Cached spectrogram.
-	QImage image;
-
-	// A matrix containing i time measurements across j formants.
-	Matrix<double> formants;
-
-	QList<QPainterPath> formant_paths;
-
-	// Duration of the analysis window for spectrograms.
-	double spectrum_window_length;
-
-	// Highest frequency.
-	double max_freq;
-
-	// Pre-emphasis factor.
-	double preemph_threshold;
-
-	// Dynamic range (in dB). Values below the threshold [max_dB - dynamic_range] are treated as 0.
-	int dynamic_range;
-
-	// Duration of the analysis window for formants.
-	double formant_window_length;
-
-	// Nyquist frequency range for formant analysis.
-	double max_formant_frequency;
-
-	// Number of prediction coefficients for LPC analysis.
-	int lpc_order;
-
-	// Number of formants to display.
-	int nformant;
-
-	// Window type for the spectrogram.
-	speech::WindowType window_type;
-
-	// Enable formant tracking.
-	bool show_formants = false;
-};
+void Runtime::init_array()
+{
+	push(array_meta);
+	{
+		add_accessor("row_count", array_nrow);
+		add_accessor("column_count", array_ncol);
+		add_method("Array.meta.to_string", array_to_string, 0);
+		add_method("Array.meta.get", array_get, 2);
+		add_method("Array.meta.set", array_set, 3);
+	}
+	new_native_constructor(new_array, new_array, "Array", 1);
+	def_global("Array", PHON_DONTENUM);
+}
 
 } // namespace phonometrica
-
-#endif //PHONOMETRICA_SPECTROGRAM_HPP
