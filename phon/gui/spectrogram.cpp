@@ -503,4 +503,20 @@ bool Spectrogram::hasFormants() const
 	return isVisible() && show_formants;
 }
 
+void Spectrogram::mouseMoveEvent(QMouseEvent *event)
+{
+	SpeechPlot::mouseMoveEvent(event);
+	if (mouse_tracking == MouseTracking::Enabled)
+	{
+		auto f = yPosToHertz(event->y());
+		auto msg = QString("Frequency at cursor = %1 Hz").arg(f);
+		emit statusMessage(msg);
+	}
+}
+
+double Spectrogram::yPosToHertz(int y) const
+{
+	return (max_freq * (height() - y)) / height();
+}
+
 } // namespace phonometrica

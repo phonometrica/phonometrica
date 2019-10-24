@@ -65,6 +65,8 @@ protected:
 
 	void emptyCache() override;
 
+	void mouseMoveEvent(QMouseEvent *event) override;
+
 private:
 
 	Matrix<double> computeSpectrogram();
@@ -76,6 +78,8 @@ private:
 	void readSpectrogramSettings();
 
 	void readFormantsSettings();
+
+	double yPosToHertz(int y) const;
 
 	// Cached spectrogram.
 	QImage image;

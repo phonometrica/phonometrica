@@ -546,6 +546,7 @@ void SpeechView::setupUi()
 		connect(plot, &SpeechPlot::zoomToSelectionRequested, this, &SpeechView::zoomToSelection);
 		connect(plot, &SpeechPlot::yAxisModified, y_axis, &YAxisWidget::refresh);
 		connect(plot, &SpeechPlot::persistentCursorRequested, this, &SpeechView::setPersistentCursor);
+		connect(plot, &SpeechPlot::statusMessage, this, &SpeechView::statusMessage);
 	}
 
 	for (auto plot1 : plots)

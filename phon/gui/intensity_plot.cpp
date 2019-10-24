@@ -153,4 +153,20 @@ void IntensityPlot::emptyCache()
 	db_data.clear();
 }
 
+double IntensityPlot::yPosToIntensity(int y) const
+{
+	return (double(max_dB - min_dB) * (height() - y)) / height() + min_dB;
+}
+
+void IntensityPlot::mouseMoveEvent(QMouseEvent *event)
+{
+	SpeechPlot::mouseMoveEvent(event);
+	if (mouse_tracking == MouseTracking::Enabled)
+	{
+		double dB = yPosToIntensity(event->y());
+		QString msg = QString("Intensity at cursor = %1 dB").arg(dB);
+		emit statusMessage(msg);
+	}
+}
+
 } // namespace phonometrica

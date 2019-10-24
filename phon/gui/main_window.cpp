@@ -107,6 +107,7 @@ MainWindow::MainWindow(Runtime &rt, QWidget *parent)
     connect(Project::instance(), &Project::request_save, viewer, &Viewer::saveViews);
     connect(file_manager->tree(), &ProjectCtrl::view_file, viewer, &Viewer::view);
     connect(file_manager->tree(), &ProjectCtrl::view_annotation, viewer, &Viewer::editAnnotation);
+    connect(main_area->viewer(), &Viewer::statusMessage, this, &MainWindow::updateStatus);
 
     setDatabaseConnection();
 }

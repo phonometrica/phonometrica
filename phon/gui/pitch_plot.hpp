@@ -56,9 +56,13 @@ protected:
 
 	void emptyCache() override;
 
+	void mouseMoveEvent(QMouseEvent *event) override;
+
 private:
 
-    double pitchToYPos(double hz);
+    double pitchToYPos(double hz) const;
+
+    double yPosToHertz(int y) const;
 
     void calculatePitch();
 

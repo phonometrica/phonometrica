@@ -56,6 +56,8 @@ public:
 
 signals:
 
+	void statusMessage(const QString &);
+
 public slots:
 
     void closeTab(int index);

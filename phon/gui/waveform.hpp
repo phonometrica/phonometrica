@@ -74,6 +74,8 @@ protected:
 
 	void emptyCache() override;
 
+	void mouseMoveEvent(QMouseEvent *event) override;
+
 private:
 
 	void setMagnitude(double value);
@@ -84,6 +86,8 @@ private:
 
     // Map sample to plot y coordinate.
     double sampleToHeight(double s) const;
+
+    double yPosToAmplitude(int y) const;
 
     // We cache the sinusoidal so that we don't need to recalculate it on each redraw if the geometry and window
     // haven't changed.

@@ -332,4 +332,21 @@ void Waveform::setGlobalMagnitude(double value)
 	global_magnitude = value;
 }
 
+void Waveform::mouseMoveEvent(QMouseEvent *event)
+{
+	SpeechPlot::mouseMoveEvent(event);
+	if (mouse_tracking == MouseTracking::Enabled)
+	{
+		double amp = yPosToAmplitude(event->y());
+		QString msg = QString("Amplitude at cursor = %1").arg(amp);
+		emit statusMessage(msg);
+	}
+}
+
+double Waveform::yPosToAmplitude(int y) const
+{
+	const double H = (double)this->height() / 2;
+	return (H - y) * magnitude / H;
+}
+
 } // namespace phonometrica

@@ -133,7 +133,7 @@ void PitchPlot::renderPlot(QPaintEvent *)
     painter.drawPath(path);
 }
 
-double PitchPlot::pitchToYPos(double hz)
+double PitchPlot::pitchToYPos(double hz) const
 {
     return height() - ((hz - min_pitch) * height() / (max_pitch - min_pitch));
 }
@@ -175,6 +175,22 @@ void PitchPlot::readSettings()
 void PitchPlot::emptyCache()
 {
 	pitch_data.clear();
+}
+
+void PitchPlot::mouseMoveEvent(QMouseEvent *event)
+{
+	SpeechPlot::mouseMoveEvent(event);
+	if (mouse_tracking == MouseTracking::Enabled)
+	{
+		double f = yPosToHertz(event->y());
+		QString msg = QString("Frequency at cursor = %1 Hz").arg(f);
+		emit statusMessage(msg);
+	}
+}
+
+double PitchPlot::yPosToHertz(int y) const
+{
+	return (double(max_pitch - min_pitch) * (height() - y)) / height() + min_pitch;
 }
 
 } // namespace phonometrica

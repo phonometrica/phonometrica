@@ -103,6 +103,7 @@ void Viewer::closeView(int index)
 
 void Viewer::registerView(View *view)
 {
+	connect(view, &View::statusMessage, this, &Viewer::statusMessage);
 	connect(view, &View::sendCommand, runtime.console, &Console::execute);
     connect(view, &View::modified, this, &Viewer::viewModified);
     connect(view, &View::saved, this, &Viewer::viewSaved);
@@ -110,6 +111,7 @@ void Viewer::registerView(View *view)
 
 void Viewer::unregisterView(View *view)
 {
+	disconnect(view, &View::statusMessage, this, &Viewer::statusMessage);
 	disconnect(view, &View::sendCommand, runtime.console, &Console::execute);
     disconnect(view, &View::modified, this, &Viewer::viewModified);
     disconnect(view, &View::saved, this, &Viewer::viewSaved);

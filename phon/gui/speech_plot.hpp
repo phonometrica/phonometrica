@@ -30,6 +30,7 @@
 #define PHONOMETRICA_SPEECH_PLOT_HPP
 
 #include <QPainter>
+#include <QMouseEvent>
 #include <phon/application/sound.hpp>
 #include <phon/gui/speech_widget.hpp>
 #include <phon/gui/mouse_tracking.hpp>
@@ -95,6 +96,8 @@ signals:
 	void zoomToSelectionRequested(bool dummy);
 
 	void persistentCursorRequested(double time);
+
+	void statusMessage(const QString &);
 
 public slots:
 

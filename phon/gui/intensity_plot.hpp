@@ -54,11 +54,15 @@ protected:
 
     void emptyCache() override;
 
+	void mouseMoveEvent(QMouseEvent *event) override;
+
 private:
 
     void calculateIntensity();
 
     double intensityToYPos(double dB) const;
+
+    double yPosToIntensity(int y) const;
 
     Array<double> db_data;
 

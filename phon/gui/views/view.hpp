@@ -56,6 +56,8 @@ signals:
 
 	void sendCommand(const String &);
 
+	void statusMessage(const QString &);
+
 public slots:
 };
 

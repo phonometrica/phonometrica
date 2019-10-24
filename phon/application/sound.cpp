@@ -273,10 +273,9 @@ Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_fre
 	PHON_LOG("Calculating formants");
 
 	double Fs = nyquist_frequency * 2;
-	int nframe = int(ceil(window_size * Fs));
-	if (nframe % 2 == 1) nframe++;
-	auto first_sample = m_data->time_to_frame(time) - nframe / 2;
-	auto last_sample = first_sample + nframe;
+	int nframe_orig = int(ceil(window_size * this->sample_rate()));
+	auto first_sample = m_data->time_to_frame(time) - nframe_orig / 2;
+	auto last_sample = first_sample + nframe_orig;
 
 	if (first_sample < 1) {
 		throw error("Time point % is to close to the beginning of the file", time);
@@ -286,8 +285,6 @@ Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_fre
 	}
 
 	auto input = m_data->get(first_sample, last_sample);
-	auto win = create_window(nframe, nframe, WindowType::Hann);
-	std::vector<double> buffer(nframe, 0.0);
 	std::vector<double> tmp; // not needed if sampling rates are equal
 	Span<double> output;
 	// Apply pre-emphasis from 50 Hz.
@@ -302,6 +299,9 @@ Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_fre
 		tmp = resample(input, m_data->sample_rate(), Fs);
 		output = Span<double>(tmp);
 	}
+	int nframe = output.size();
+	auto win = create_window(nframe, nframe, WindowType::Hann);
+	std::vector<double> buffer(nframe, 0.0);
 
 	// Apply window.
 	auto it = output.begin();
