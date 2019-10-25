@@ -1,7 +1,7 @@
 Release notes
 -------------
 
-0.6.0 (??/10/2019)
+0.6.0 (25/10/2019)
 ~~~~~~~~~~~~~~~~~~
 
 This release brings more sound visualization and analysis options, as well as a number of enhancements and bug fixes.
@@ -18,6 +18,7 @@ This release brings more sound visualization and analysis options, as well as a 
 - Sound objects are now accessible from the scripting engine
 - measure pitch, intensity and formants under the cursor
 - show/hide layers in annotation views
+- ``Export annotation(s) to plain text...`` (in ``File > Export``)
 - updated documentation
 
 

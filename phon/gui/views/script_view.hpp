@@ -55,6 +55,8 @@ public:
 
     void makeFocused() override;
 
+	bool finalize() override;
+
 private slots:
 
     void runScript(bool);

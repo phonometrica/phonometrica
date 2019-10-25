@@ -203,4 +203,37 @@ void ScriptView::makeFocused()
     m_editor->setFocus();
 }
 
+bool ScriptView::finalize()
+{
+	if (m_script->modified() && !isEmpty())
+	{
+		auto reply = QMessageBox::question(this, tr("Save script?"),
+				tr("The current script has unsaved modifications. Would you like to save it?"),
+				QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+
+		if (reply == QMessageBox::Yes)
+		{
+			if (!m_script->has_path())
+			{
+				QString dir = Settings::get_string(rt, "last_directory");
+				auto path = QFileDialog::getSaveFileName(this, tr("Save script..."), dir, tr("Scripts (*.phon)"));
+
+				if (path.isEmpty()) {
+					return false; // cancelled
+				}
+				m_script->set_path(path, true);
+			}
+
+			m_script->set_content(m_editor->toPlainText());
+			m_script->save();
+		}
+		else if (reply == QMessageBox::Cancel)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 } // phonometrica

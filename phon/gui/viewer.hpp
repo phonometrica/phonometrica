@@ -46,13 +46,13 @@ public:
 
     explicit Viewer(Runtime &rt, QWidget *parent = nullptr);
 
-    ~Viewer() override;
-
     void closeCurrentView();
 
     AutoSound getCurrentSound() const;
 
     AutoAnnotation getCurrentAnnotation() const;
+
+    bool finalize();
 
 signals:
 

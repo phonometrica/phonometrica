@@ -387,12 +387,6 @@ void Spectrogram::estimateFormants()
 	auto win = create_window(nframe, nframe, WindowType::Hann);
 	std::vector<double> buffer(nframe, 0.0);
 
-	qDebug() << "Original sampling rate: " << m_data->sample_rate();
-	qDebug() << "Downsampling rate: " << Fs;
-	qDebug() << "Window length: " << formant_window_length;
-	qDebug() << "nframe: " << nframe;
-	qDebug() << "LPC order: " << lpc_order;
-
 	// Calculate LPC at each time point.
 	for (int i = 0; i < xpoints.size(); i++)
 	{

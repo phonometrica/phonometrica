@@ -14,7 +14,7 @@ Overview
 ========
 
 Phonometrica is a free, open-source software platform for the annotation and analysis of speech corpora.
-It offers a user-friendly interface to manage, annotate and query language corpora.
+It offers a user-friendly interface to manage, annotate, analyze and query language corpora.
 It is particularly well suited for dealing with time-aligned data. The main features it offers are:
 
    * Project management: organize files into projects.

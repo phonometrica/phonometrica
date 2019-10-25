@@ -119,6 +119,8 @@ protected slots:
 
     void getFormants(bool);
 
+    bool finalize() override { return true; }
+
 protected:
 
 	void setupUi();

@@ -48,6 +48,8 @@ public:
 
     virtual void postInitialize() { }
 
+    virtual bool finalize() { return true; }
+
 signals:
 
     void modified();

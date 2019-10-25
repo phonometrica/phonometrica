@@ -46,6 +46,8 @@ public:
 
     StartView(QWidget *parent, Runtime &rt);
 
+	bool finalize() override { return true; }
+
 private slots:
 
     void onAddFiles();

@@ -911,6 +911,9 @@ void MainWindow::updateInfoAction(bool)
 
 bool MainWindow::finalize()
 {
+	if (!main_area->viewer()->finalize()) {
+		return false;
+	}
     auto project = Project::instance();
 
     if (project->modified())

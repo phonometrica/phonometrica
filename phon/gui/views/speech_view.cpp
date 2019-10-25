@@ -362,6 +362,11 @@ void SpeechView::enableMouseTracking(bool enable)
 
 void SpeechView::showSpectrogram(bool checked)
 {
+	if (!checked)
+	{
+		action_enable_formants->setChecked(false);
+		showFormants(false);
+	}
 	auto s = String::format("phon.settings.sound_plots['spectrogram'] = %s", (checked ? "true" : "false"));
 	runtime.do_string(s);
 	spectrogram->setVisible(checked);
@@ -378,6 +383,11 @@ void SpeechView::showPitch(bool checked)
 
 void SpeechView::showFormants(bool checked)
 {
+	if (checked)
+	{
+		action_enable_spectrum->setChecked(true);
+		showSpectrogram(true);
+	}
 	auto s = String::format("phon.settings.sound_plots['formants'] = %s", (checked ? "true" : "false"));
 	runtime.do_string(s);
 	spectrogram->enableFormantTracking(checked);

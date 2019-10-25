@@ -53,6 +53,8 @@ public:
 
     AutoAnnotation annotation() const { return annot; }
 
+	bool finalize() override;
+
 protected:
 
     void addAnnotationMenu(Toolbar *toolbar) override;

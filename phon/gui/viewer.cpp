@@ -52,11 +52,6 @@ Viewer::Viewer(Runtime &rt, QWidget *parent) :
     setStartView();
 }
 
-Viewer::~Viewer()
-{
-	saveViews();
-}
-
 void Viewer::setStartView()
 {
     if (!runtime.is_text_mode())
@@ -288,6 +283,18 @@ AutoAnnotation Viewer::getCurrentAnnotation() const
 {
 	auto view = qobject_cast<AnnotationView*>(this->widget(currentIndex()));
 	return view ? view->annotation() : AutoAnnotation();
+}
+
+bool Viewer::finalize()
+{
+	for (int i = 0; i < this->count(); i++)
+	{
+		setCurrentIndex(i);
+		auto view = qobject_cast<View*>(widget(i));
+		if (!view->finalize()) return false;
+	}
+
+	return true;
 }
 
 } // phonometrica

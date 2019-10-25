@@ -164,6 +164,40 @@ LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 	return layer;
 }
 
+bool AnnotationView::finalize()
+{
+	if (annot->modified())
+	{
+		auto reply = QMessageBox::question(this, tr("Save annotation?"),
+			tr("The current annotation has been modified. Would you like to save it?"),
+			QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+
+		if (reply == QMessageBox::Yes)
+		{
+			if (!annot->has_path())
+			{
+				QString dir = Settings::get_string(runtime, "last_directory");
+				auto path = QFileDialog::getSaveFileName(this, tr("Save annotation..."), dir, tr("Annotation (*.phon-annot)"));
+
+				if (path.isEmpty()) {
+					return false; // cancelled
+				}
+				if (!path.endsWith(PHON_EXT_ANNOTATION)) {
+					path.append(PHON_EXT_ANNOTATION);
+				}
+				annot->set_path(path, true);
+			}
+			annot->save();
+		}
+		else if (reply == QMessageBox::Cancel)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool AnnotationView::save()
 {
 	SpeechView::save();
@@ -188,7 +222,10 @@ bool AnnotationView::save()
             if (path.isEmpty()) {
                 return false; // cancelled
             }
-            annot->set_path(path, true);
+	        if (!path.endsWith(PHON_EXT_ANNOTATION)) {
+		        path.append(PHON_EXT_ANNOTATION);
+	        }
+	        annot->set_path(path, true);
             Project::instance()->register_file(path, annot);
         }
         annot->save();

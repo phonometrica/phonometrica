@@ -47,6 +47,7 @@
 <li><a class="reference internal" href="#wavebar">Wavebar</a></li>
 <li><a class="reference internal" href="#waveform">Waveform</a></li>
 <li><a class="reference internal" href="#spectrogram">Spectrogram</a></li>
+<li><a class="reference internal" href="#formant-tracks">Formant tracks</a></li>
 <li><a class="reference internal" href="#pitch-track">Pitch track</a></li>
 <li><a class="reference internal" href="#intensity-track">Intensity track</a></li>
 </ul>
@@ -139,10 +140,27 @@ where <span class="math notranslate nohighlight">\(f\)</span> is the pre-emphasi
 </ul>
 <p>You can show or hide the spectrogram using the <code class="docutils literal notranslate"><span class="pre">Show</span> <span class="pre">spectrogram</span></code> command in the spectrogram menu.</p>
 </div>
+<div class="section" id="formant-tracks">
+<h3>Formant tracks<a class="headerlink" href="#formant-tracks" title="Permalink to this headline">¶</a></h3>
+<p>Formant tracks are overlaid over the spectrogram, so the spectrogram must be visible to be able to display formants. By default,
+Phonometrica shows the first 4 formants (F1, F2, F3, F4), if they are defined. Phonometrica formant tracking algorithm is based
+on Linear Predictive Coding (LPC). The <code class="docutils literal notranslate"><span class="pre">Formant</span> <span class="pre">settings...</span></code> command (available from the formants menu <a class="reference internal" href="_images/formants.png"><img alt="formants" src="_images/formants.png" style="width: 16px; height: 16px;" /></a> in the
+toolbar) allows you adjust the formant tracking algorithm’s parameters:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">number</span> <span class="pre">of</span> <span class="pre">formants</span></code>: this is the maximum number of formants that will be extracted and displayed over the spectrogram</li>
+<li><code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">frequency</span></code>: this is the highest frequency in the sound below which formants are expected to be found. For</li>
+</ul>
+<p>vowel analysis, a good rule of thumb is to use 5000 Hz for male voices and 5500 for female voices. We usually expect to find 5 formants
+within this frequency range.
+* <code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">length</span></code>: this is the duration (in seconds) of the analysis window that will be used to calculate prediction coefficients.
+* <code class="docutils literal notranslate"><span class="pre">LPC</span> <span class="pre">order</span></code>: this represents the number of prediction coefficients that will be used to perform LPC analysis. For a male voice,
+we usually expect roughly one formant per thousand Hertz. (Add 10% for female voices.) By default, Phonometrica applies the following
+formula:  <span class="math notranslate nohighlight">\(LPC order = 2n + 2\)</span>, where <em>n</em> is the expected number of formants.</p>
+</div>
 <div class="section" id="pitch-track">
 <h3>Pitch track<a class="headerlink" href="#pitch-track" title="Permalink to this headline">¶</a></h3>
 <p>The pitch track is a two-dimensional representation of the sound which shows how pitch (measured in Hertz) changes over time. Phonometrica uses the SWIPE algorithm <a class="reference internal" href="#cam2007" id="id1">[CAM2007]</a> for
-pitch tracking. The <code class="docutils literal notranslate"><span class="pre">Pitch</span> <span class="pre">settings...</span></code> command (available from the pitch menu <a class="reference internal" href="_images/voice.png"><img alt="pitch" src="_images/voice.png" style="width: 16px; height: 16px;" /></a> in the toolbar) allows you to adjust the algorithm’s settings:</p>
+pitch tracking. The <code class="docutils literal notranslate"><span class="pre">Pitch</span> <span class="pre">settings...</span></code> command (available from the pitch menu <a class="reference internal" href="_images/voice.png"><img alt="pitch" src="_images/voice.png" style="width: 16px; height: 16px;" /></a> in the toolbar) allows you to adjust the algorithm’s parameters:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">minimum</span> <span class="pre">pitch</span></code>: this is the lowest pitch value expected to be found in the sound.</li>
 <li><code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">pitch</span></code>: this is the highest pitch value expected to be found in the sound.</li>
