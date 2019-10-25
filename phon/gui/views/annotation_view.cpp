@@ -69,11 +69,12 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	layer_button->setPopupMode(QToolButton::InstantPopup);
 	auto add_layer_action = layer_menu->addAction(tr("Add new layer..."));
 	auto remove_layer_action = layer_menu->addAction(tr("Remove selected layer"));
-	auto show_layer_action = layer_menu->addAction(tr("Select visible layers"));
 	layer_menu->addSeparator();
 	auto dup_layer_action = layer_menu->addAction(tr("Duplicate selected layer"));
 	auto rename_layer_action = layer_menu->addAction(tr("Rename selected layer"));
 	auto clear_layer_action = layer_menu->addAction(tr("Clear selected layer"));
+	layer_menu->addSeparator();
+	auto show_layer_action = layer_menu->addAction(tr("Select visible layers"));
 
 	// Manage anchors.
 	link_button = new QToolButton;

@@ -1,0 +1,212 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Sound annotation &#8212; Phonometrica 0.6.0 documentation</title>
+    <link rel="stylesheet" href="_static/yeen.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Queries" href="query.html" />
+    <link rel="prev" title="Sound visualization and analysis" href="sound.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="query.html" title="Queries"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="sound.html" title="Sound visualization and analysis"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.6.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Sound annotation</a><ul>
+<li><a class="reference internal" href="#opening-annotation-views">Opening annotation views</a></li>
+<li><a class="reference internal" href="#creating-a-new-annotation">Creating a new annotation</a><ul>
+<li><a class="reference internal" href="#creating-layers-and-events">Creating layers and events</a></li>
+<li><a class="reference internal" href="#labelling-events">Labelling events</a></li>
+<li><a class="reference internal" href="#managing-layers">Managing layers</a></li>
+<li><a class="reference internal" href="#saving-annotations">Saving annotations</a></li>
+<li><a class="reference internal" href="#importing-and-exporting-annotations">Importing and exporting annotations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sound.html"
+                        title="previous chapter">Sound visualization and analysis</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="query.html"
+                        title="next chapter">Queries</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="sound-annotation">
+<span id="sound-annot"></span><h1>Sound annotation<a class="headerlink" href="#sound-annotation" title="Permalink to this headline">¶</a></h1>
+<p>This page explains how to work with <strong>annotation views</strong>, which are used to create, display and edit sound annotations. Annotation views share most of their features with <strong>sound views</strong>, and
+we recommend that you first get familiar with how sound views work (see <a class="reference internal" href="sound.html#sound-view"><span class="std std-ref">Sound visualization and analysis</span></a>) before reading this page.</p>
+<div class="section" id="opening-annotation-views">
+<h2>Opening annotation views<a class="headerlink" href="#opening-annotation-views" title="Permalink to this headline">¶</a></h2>
+<p>Phonometrica currently supports two annotation formats: its own XML-based native format and Praat’s TextGrid format. If you already have an annotation in
+one of these formats in your current project, you can open it by double-clicking on it or right-right clicking on it and choosing
+<code class="docutils literal notranslate"><span class="pre">View</span> <span class="pre">file</span></code>. This will open a new annotation view in the viewer.</p>
+<p>Note that to be able to view (or edit) an annotation, it must first be bound to a sound file. To do this, you can either select the annotation and the
+sound you want to bind in the file manager, right-click on any of them, and choose <code class="docutils literal notranslate"><span class="pre">Bind</span> <span class="pre">annotation</span> <span class="pre">to</span> <span class="pre">sound</span> <span class="pre">file</span></code>, or you can click on the annotation
+in the file manager and click on the <code class="docutils literal notranslate"><span class="pre">Bind...</span></code> button in the information panel. Note that although you can have several annotations bound to the same
+sound file, each annotation can be bound to one sound file at most.</p>
+</div>
+<div class="section" id="creating-a-new-annotation">
+<h2>Creating a new annotation<a class="headerlink" href="#creating-a-new-annotation" title="Permalink to this headline">¶</a></h2>
+<p>Phonometrica offers a complete environment for speech annotation, which allows you to create new annotations and edit existing ones.</p>
+<div class="section" id="creating-layers-and-events">
+<h3>Creating layers and events<a class="headerlink" href="#creating-layers-and-events" title="Permalink to this headline">¶</a></h3>
+<p>To create a new annotation, you must first import the sound you want to annotate into the current project, for example using the command <code class="docutils literal notranslate"><span class="pre">File</span> <span class="pre">&gt;</span> <span class="pre">Add</span> <span class="pre">file(s)</span> <span class="pre">to</span> <span class="pre">project...</span></code>.
+Next, right-click on the sound file and choose <code class="docutils literal notranslate"><span class="pre">Create</span> <span class="pre">annotation</span></code>: this will open a new annotation view in the viewer. Since your annotation is empty, the view will look similar to
+a sound view, but it will contain a few additional buttons dedicated to sound annotation in its toolbar.</p>
+<p>The first thing we need to do is to add one or more annotation <strong>layers</strong>. Each layer stores a specific type of speech <strong>event</strong>, and is relatively independent from the other layers
+in the annotation. There are two type of events: <strong>intervals</strong> are used to identify a portion of the sound file, and have a start time and an end time (and hence a duration); <em>instants</em>
+are used to stamp a specific point in the sound file. Intervals and instants cannot be mixed on a given layer: therefore, when you create a new layer, you need to decide whether it
+will store intervals or instants. You can create a new layer using the <code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">new</span> <span class="pre">layer...</span></code> command from the layer menu <a class="reference internal" href="_images/layers.png"><img alt="layer" src="_images/layers.png" style="width: 16px; height: 16px;" /></a>. A new dialog will appear and will ask you the layer’s
+name (you can leave it empty), the layer’s type (intervals vs instants) and the layer’s index (by default, it will be added after all existing layers, if any).</p>
+<div class="figure">
+<img alt="_images/layer_dialog.png" src="_images/layer_dialog.png" />
+</div>
+<p>Once the layer is created, it will appear below the sound plots. If it is an instant layer, it will be empty; otherwise, it will contain one interval spanning from the beginning to
+the end of the file. Whatever type of layer you created, you can create new events by adding <strong>anchors</strong>, which are time stamps in the sound file. Phonometrica’s data model is based
+on <strong>annotation graphs</strong> <a class="reference internal" href="#bir2001" id="id1">[BIR2001]</a>, so annotations are represented as a single graph: time points (i.e. anchors) represent nodes in the graph, and events represent labeled arcs
+between these nodes. This means that an event always “knows” whether it shares an anchor with another event on an another layer: this makes it easy to represent hierarchical
+structures (e.g. words that contain syllables that contain segments) and alignment (e.g. words that are aligned with their part of speech).</p>
+<p>To create one or more anchor(s), click on the <code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">anchor</span></code> button <a class="reference internal" href="_images/anchor.png"><img alt="anchor" src="_images/anchor.png" style="width: 16px; height: 16px;" /></a>. You can then move your cursor anywhere in the layer you want to annotate and a moving anchor will follow
+the mouse cursor: every time you click on the left button, a new anchor will be added where you click. Once you have added all the anchors you wanted to add, click again on the <code class="docutils literal notranslate"><span class="pre">Add</span>
+<span class="pre">anchor</span></code> button. To remove one or more anchor(s), click on the <code class="docutils literal notranslate"><span class="pre">Remove</span> <span class="pre">anchor</span></code> button <a class="reference internal" href="_images/delete.png"><img alt="remove" src="_images/delete.png" style="width: 16px; height: 16px;" /></a>, click on the anchors you want to delete to remove them, and click again on the <code class="docutils literal notranslate"><span class="pre">Remove</span>
+<span class="pre">anchor</span></code> button to let Phonometrica that you have finished editing anchors.</p>
+<p>By default, if you have more than one layer of the same type (i.e. two or more instant layers or two or more interval layers), Phonometrica will add (or remove) an anchor on all the
+instant layers if you added (or removed) an anchor on an instant layer, and on all the interval layers if you added (or removed) an anchor on an interval layer. This is because
+anchors are shared across layers. If you prefer to edit anchors on a single layer at a time, click on the <code class="docutils literal notranslate"><span class="pre">Share/unshare</span> <span class="pre">anchors</span></code> button <a href="#id2"><span class="problematic" id="id3">|share|</span></a>. The icon will become a broken
+link <a class="reference internal" href="_images/broken_link.png"><img alt="unshare" src="_images/broken_link.png" style="width: 16px; height: 16px;" /></a>, which indicates that layers no longer share anchors. You can switch back and forth between the two modes (sharing and unsharing) at will, according to your needs.
+Note that when anchors are not shared, you can still share new anchors across layers: whenever you add an anchor on a layer, a dotted gray line will be projected on the other layers.
+If you click on any of these temporary anchors, it will be changed to a permanent anchor. This allows you to have more control over which layers share which anchors.</p>
+<p>Finally, you can move any anchor by clicking on it and dragging it with the mouse to the desired position. If anchors are shared, the anchor will be moved on all layers (of the same
+type) that share this anchor. If anchors are not shared, the anchor will be moved on a single layer at a time.</p>
+</div>
+<div class="section" id="labelling-events">
+<h3>Labelling events<a class="headerlink" href="#labelling-events" title="Permalink to this headline">¶</a></h3>
+<p>Once you have created events on one or more layers, you will most likely want to label them. To do this, you can simply double-click on the event you want to edit: this will open
+a small dialog where you can input the event’s label. Once you are done editing the label, press the <code class="docutils literal notranslate"><span class="pre">Enter</span></code> key to validate the label. You can cancel the editing by clicking on
+the <code class="docutils literal notranslate"><span class="pre">Esc</span></code> key.</p>
+<p>Instead of using the mouse, you can edit events using the keyboard. First click on any event to give it focus. Once an event is focused, you can use the keyboard the arrows to navigate
+in the annotation. The Up and Down arrows allow you to move to the previous and next layer, respectively, whereas the Left and Right arrows allow you to move to the previous and next
+layer within a single layer. Once you have focused the event you want to edit, simply press <code class="docutils literal notranslate"><span class="pre">Enter</span></code> to open the event editor and press <code class="docutils literal notranslate"><span class="pre">Enter</span></code> again to validate or <code class="docutils literal notranslate"><span class="pre">Esc</span></code> to
+cancel the editing.</p>
+<p>If you are repeatedly editing events on a given layer and you are not satisfied with the event editor’s position, you can move it up or down. Phonometrica will remember its vertical
+position for each layer and will place it at the same vertical position the next time you edit an event on this layer. This allows you, for example, to make sure that the pitch track
+is always visible if your annotating prosody.</p>
+</div>
+<div class="section" id="managing-layers">
+<h3>Managing layers<a class="headerlink" href="#managing-layers" title="Permalink to this headline">¶</a></h3>
+<p>The layer menu <a class="reference internal" href="_images/layers.png"><img alt="layer" src="_images/layers.png" style="width: 16px; height: 16px;" /></a> offers a number of options to manage layers. You can click on any layer and choose the appropriate command to rename, remove, duplicate or clear the content
+of a layer. In addition, the <code class="docutils literal notranslate"><span class="pre">Select</span> <span class="pre">visible</span> <span class="pre">layers</span></code> command allows you to selectively show and hide layers. This is particularly useful when you have many layers and you would
+like to focus on a specific subset.</p>
+</div>
+<div class="section" id="saving-annotations">
+<h3>Saving annotations<a class="headerlink" href="#saving-annotations" title="Permalink to this headline">¶</a></h3>
+<p>To save an annotation, simply click on the <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">annotation</span></code> button <a class="reference internal" href="_images/save.png"><img alt="save" src="_images/save.png" style="width: 16px; height: 16px;" /></a> in the toolbar. The annotation will be saved to Phonometrica’s own native format (with a <code class="docutils literal notranslate"><span class="pre">.phon-annot</span></code> extension).
+This format is based on the XML standard and uses the UTF-8 encoding: as a result, it can be opened in any text editor and can be easily processed by any XML-compliant piece of software.</p>
+<p>In addition to the annotation graph itself, a native annotation file contains all the metadata associated with the file (properties, description, sound file). Therefore, you can easily share or move these files without
+losing any information.</p>
+</div>
+<div class="section" id="importing-and-exporting-annotations">
+<h3>Importing and exporting annotations<a class="headerlink" href="#importing-and-exporting-annotations" title="Permalink to this headline">¶</a></h3>
+<p>In addition to its own native annotation format (<code class="docutils literal notranslate"><span class="pre">.phon-annot</span></code> extension), Phonometrica allows you seemlessly work with annotations in the widely used TextGrid format (<code class="docutils literal notranslate"><span class="pre">.TextGrid</span></code> extension),
+which is produced by the <a class="reference external" href="http://www.praat.org">Praat</a> program. Phonometrica can read TextGrid file s encoded in UTF-8 or UTF-16 and can write them
+(currently, in UTF-8 only).</p>
+<p>To convert an a native Phonometrica annotation to a TextGrid, right-click on it in the file manager and choose <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">as</span> <span class="pre">Praat</span> <span class="pre">TextGrid...</span></code>. Likewise,
+to convert a TextGrid to a Phonometrica annotation, right-click on it and choose <code class="docutils literal notranslate"><span class="pre">Save</span> <span class="pre">as</span> <span class="pre">Phonometrica</span> <span class="pre">annotation...</span></code>. Both commands will give you
+the opportunity to import the file into the current project.</p>
+<p>TextGrid files can be visualized and edited like native annotations, but please note that due to the limitations of the TextGrid format, metadata will
+<em>not</em> be stored in the TextGrid file. Instead, they will be stored in a database associated with your project, which is stored in your Phonometrica
+directory in your user directory.</p>
+</div>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<table class="docutils citation" frame="void" id="bir2001" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[BIR2001]</a></td><td>Bird, Steven &amp; Mark Liberman. 2001. A Formal Framework for Linguistic Annotation. <em>Speech Communication</em> 33(1–2). 23–60.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="query.html" title="Queries"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="sound.html" title="Sound visualization and analysis"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.6.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+    
+
+  </body>
+</html>

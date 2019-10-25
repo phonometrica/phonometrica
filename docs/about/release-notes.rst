@@ -4,7 +4,7 @@ Release notes
 0.6.0 (??/10/2019)
 ~~~~~~~~~~~~~~~~~~
 
-This release brings more sound visualization options, as well as a number of enhancements and bug fixes.
+This release brings more sound visualization and analysis options, as well as a number of enhancements and bug fixes.
 
 - spectrogram in sound and annotation views
 - LPC-based formant tracking
@@ -16,6 +16,9 @@ This release brings more sound visualization options, as well as a number of enh
 - new resampler
 - resample and/or convert sound to WAV, AIFF or FLAC
 - Sound objects are now accessible from the scripting engine
+- measure pitch, intensity and formants under the cursor
+- show/hide layers in annotation views
+- updated documentation
 
 
 0.5.2 (04/10/2019)

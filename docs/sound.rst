@@ -1,13 +1,15 @@
+.. _sound-view:
+
 Sound visualization and analysis
 ================================
 
-Phonometrica offers a dedicated environment for speech visualization and annotation. To visualize a sound file, you need to open it in a **sound view**. 
+Phonometrica offers a dedicated environment for speech visualization and analysis. To visualize a sound file, you need to open it in a **sound view**. 
 To open a sound view, double-click on a sound file in the file manager, on right-click on it and choose ``View file`` from the context menu. 
 When it is opened, the sound view will display the first 10 seconds of the sound file, or the whole sound file if it is shorter than that.
 
 
-Parts of a sound view
----------------------
+Structure of sound views
+------------------------
 
 Toolbar
 ~~~~~~~
