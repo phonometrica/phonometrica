@@ -66,7 +66,7 @@ private:
 
     void calculatePitch();
 
-    Array<double> pitch_data;
+    std::vector<double> pitch_data;
 
     double min_pitch;
 

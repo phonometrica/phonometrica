@@ -20,59 +20,23 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 31/03/2019                                                                                                 *
+ * Created: 25/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: Intensity plot in a sound or annotation view. The normalized intensity of the sound wave is interpreted    *
- * in Pascal. Intensity is expressed in dB SPL, with a reference intensity set to 20 micropascal (or 0.00002 Pascal).  *
+ * Purpose: Signal class similar to Qt's signal. We use this mainly to avoid multiple inheritance when we would need   *
+ * to inherit from QObject to get access to Qt's signal/slot mechanism.                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_INTENSITY_PLOT_HPP
-#define PHONOMETRICA_INTENSITY_PLOT_HPP
+#ifndef PHONOMETRICA_SIGNAL_HPP
+#define PHONOMETRICA_SIGNAL_HPP
 
-#include <phon/gui/speech_plot.hpp>
+#include <phon/third_party/sigslot/signal.hpp>
 
 namespace phonometrica {
 
-class IntensityPlot final : public SpeechPlot
-{
-    Q_OBJECT
-
-public:
-
-    IntensityPlot(Runtime &rt, const AutoSound &sound, QWidget *parent = nullptr);
-
-    void drawYAxis(QWidget *y_axis, int y1, int y2) override;
-
-protected:
-
-    void renderPlot(QPaintEvent *event) override;
-
-    bool needsRefresh() const override;
-
-    void readSettings() override;
-
-    void emptyCache() override;
-
-	void mouseMoveEvent(QMouseEvent *event) override;
-
-private:
-
-    void calculateIntensity();
-
-    double intensityToYPos(double dB) const;
-
-    double yPosToIntensity(int y) const;
-
-    std::vector<double> db_data;
-
-    double min_dB = 50;
-
-    double max_dB = 100;
-
-    double time_step = 0.01;
-};
+template <typename... T>
+using Signal = sigslot::signal<T...>;
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_INTENSITY_PLOT_HPP
+#endif // PHONOMETRICA_SIGNAL_HPP

@@ -35,6 +35,7 @@
 
 #include <cmath>
 #include <complex>
+#include <vector>
 #include <phon/array.hpp>
 #include <phon/utils/span.hpp>
 
@@ -56,7 +57,7 @@ Array<double> create_window(intptr_t N, intptr_t fftlen, WindowType type);
 // Get intensity for a frame.
 double get_intensity(Span<double> frame, Span<double> window);
 
-Array<double> get_intensity(Span<double> input, int samplerate, intptr_t window_size, double time_step, WindowType type = WindowType::Hamming);
+std::vector<double> get_intensity(Span<double> input, int samplerate, intptr_t window_size, double time_step, WindowType type = WindowType::Hamming);
 
 
 template<typename Container>

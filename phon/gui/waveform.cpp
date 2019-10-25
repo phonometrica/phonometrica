@@ -94,7 +94,9 @@ void Waveform::drawWave()
     auto first_sample = m_data->time_to_frame(window_start);
     auto last_sample = m_data->time_to_frame(window_end);
     auto sample_count = last_sample - first_sample + 1;
-    auto raw_data = m_data->data() + first_sample - 1; // to base 0
+    auto raw_data = m_data->data() + first_sample;
+    qDebug() << "waveform: first sample = " << first_sample;
+    qDebug() << "waveform: last sample = " << last_sample;
 
     if (scaling == Scaling::Global)
     {

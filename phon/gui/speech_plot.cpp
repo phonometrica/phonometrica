@@ -30,8 +30,6 @@
 #include <QWheelEvent>
 #include <QDebug>
 #include <phon/gui/speech_plot.hpp>
-#include "speech_plot.hpp"
-
 
 namespace phonometrica {
 
@@ -140,6 +138,7 @@ void SpeechPlot::updatePlot()
 
 void SpeechPlot::paintEvent(QPaintEvent *event)
 {
+	qDebug() << "Painting speech plot: " << window_start << " to " << window_end;
     QPalette pal = palette();
     pal.setColor(QPalette::Background, Qt::white);
     setAutoFillBackground(true);

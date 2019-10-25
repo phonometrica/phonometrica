@@ -91,7 +91,7 @@ public:
 
 	double get_intensity(double time);
 
-	Array<double> get_intensity(intptr_t start_pos, intptr_t end_pos, double time_step);
+	std::vector<double> get_intensity(intptr_t start_pos, intptr_t end_pos, double time_step);
 
 	Matrix<double> get_formants(double time, int nformant, double nyquist_frequency, double window_size, int lpc_order);
 

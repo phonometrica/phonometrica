@@ -151,14 +151,14 @@ void PitchPlot::calculatePitch()
     auto input = m_data->get(first_sample, last_sample);
     auto sample_rate = m_data->sample_rate();
 
-    // Borrow reference to avoid copying
     vector vec;
     vec.x = (int) input.size();
     vec.v = input.data();
 
 	PHON_LOG("Running SWIPE");
     auto tmp = swipe(vec, sample_rate, min_pitch, max_pitch, voicing_threshold, time_step);
-    pitch_data = Array<double>::from_memory(tmp.v, tmp.x);
+    pitch_data = std::vector<double>(tmp.v, tmp.v + tmp.x);
+    utils::free(tmp.v);
     cached_start = window_start;
     cached_end = window_end;
 }

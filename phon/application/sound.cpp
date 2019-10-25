@@ -284,7 +284,7 @@ Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_fre
 		throw error("Time point % is to close to the end of the file", time);
 	}
 
-	auto input = m_data->get(first_sample, last_sample);
+	auto input = m_data->copy(first_sample, last_sample);
 	std::vector<double> tmp; // not needed if sampling rates are equal
 	Span<double> output;
 	// Apply pre-emphasis from 50 Hz.
@@ -399,7 +399,7 @@ double Sound::get_intensity(double time)
 	return speech::get_intensity(frame, win);
 }
 
-Array<double> Sound::get_intensity(intptr_t start_pos, intptr_t end_pos, double time_step)
+std::vector<double> Sound::get_intensity(intptr_t start_pos, intptr_t end_pos, double time_step)
 {
 	auto input = m_data->get(start_pos, end_pos);
 	int window_size = get_intensity_window_size();

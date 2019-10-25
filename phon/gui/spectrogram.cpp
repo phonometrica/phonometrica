@@ -223,14 +223,14 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	first_sample = first_sample + (samples_per_pixel / 2) - (nframe / 2);
 	last_sample = first_sample + (samples_per_pixel * (w - 1)) + (samples_per_pixel / 2) + (nframe / 2);
 
-	if (first_sample < 1)
+	if (first_sample < 0)
 	{
-		first_sample = 1;
+		first_sample = 0;
 	}
 	auto total_sample_count = m_data->size();
-	if (last_sample > total_sample_count)
+	if (last_sample >= total_sample_count)
 	{
-		last_sample = total_sample_count;
+		last_sample = total_sample_count - 1;
 	}
 
 	// Weight power.
@@ -243,7 +243,7 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	std::vector<std::complex<float>> input(nfft, std::complex<float>(0, 0));
 	std::vector<std::complex<float>> output(nfft, std::complex<float>(0, 0));
 
-	Array<double> buffer = m_data->get(first_sample, last_sample);
+	auto buffer = m_data->copy(first_sample, last_sample);
 	pre_emphasis(buffer, sample_rate, preemph_threshold);
 
 	intptr_t left_offset = samples_per_pixel / 2 - nframe / 2;
@@ -363,7 +363,7 @@ void Spectrogram::estimateFormants()
 
 	auto from = m_data->time_to_frame(window_start);
 	auto to = m_data->time_to_frame(window_end);
-	auto input = m_data->get(from, to);
+	auto input = m_data->copy(from, to);
 	std::vector<double> tmp; // not needed if sampling rates are equal
 	Span<double> output;
 

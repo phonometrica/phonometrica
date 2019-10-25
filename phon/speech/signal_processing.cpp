@@ -119,7 +119,7 @@ double get_intensity(Span<double> frame, Span<double> window)
 	return 10 * log10(avg_power / Iref);
 }
 
-Array<double>
+std::vector<double>
 get_intensity(Span<double> input, int samplerate, intptr_t window_size, double time_step, WindowType type)
 {
     auto window = create_window(window_size, window_size, type);
@@ -129,7 +129,8 @@ get_intensity(Span<double> input, int samplerate, intptr_t window_size, double t
     auto data = input.begin();
     auto limit = input.end();
     assert(frame_shift < window_size);
-    Array<double> output(n);
+    std::vector<double> output;
+    output.reserve(n);
 
     while (data < limit)
     {
@@ -143,7 +144,7 @@ get_intensity(Span<double> input, int samplerate, intptr_t window_size, double t
         }
         Span<double> d(data, window_size);
         auto dB = get_intensity(d, win);
-        output.append(dB);
+        output.push_back(dB);
         data += frame_shift;
     }
 

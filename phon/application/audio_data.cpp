@@ -48,12 +48,12 @@ AudioData::AudioData(const SndfileHandle &h, bool load) :
 	if (load)
 	{
 		m_data.resize(m_handle.frames() * m_handle.channels());
-		double* ptr = m_data.data();
+		auto ptr = m_data.begin();
 		auto end = m_data.end();
 
 		while (ptr < end)
 		{
-			auto count = m_handle.readf(ptr, BUFFER_SIZE);
+			auto count = m_handle.readf(&*ptr, BUFFER_SIZE);
 			ptr += count * m_handle.channels();
 			//emit bufferLoaded(progress);
 		}
@@ -63,19 +63,27 @@ AudioData::AudioData(const SndfileHandle &h, bool load) :
 
 Span<double> AudioData::get(intptr_t first_frame, intptr_t last_frame)
 {
-	if (last_frame < 0) last_frame = (intptr_t) m_handle.frames();
-	assert(first_frame > 0);
-	first_frame--;
+	if (last_frame < 0) last_frame = (intptr_t) m_handle.frames() - 1;
+	assert(first_frame >= 0);
 	auto count = last_frame - first_frame;
 
 	return { m_data.data() + first_frame, count };
 }
 
+std::vector<double> AudioData::copy(intptr_t first_frame, intptr_t last_frame)
+{
+	if (last_frame < 0) last_frame = (intptr_t) m_handle.frames() - 1;
+	assert(first_frame >= 0);
+	auto from = m_data.data() + first_frame;
+	auto to = m_data.data() + last_frame;
+
+	return std::vector<double>(from, to);
+}
+
 std::vector<float> AudioData::read(intptr_t first_frame, intptr_t last_frame)
 {
-	if (last_frame < 0) last_frame = (intptr_t) m_handle.frames();
-	assert(first_frame > 0);
-	first_frame--;
+	if (last_frame < 0) last_frame = (intptr_t) m_handle.frames() - 1;
+	assert(first_frame >= 0);
 	auto count = last_frame - first_frame;
 	std::vector<float> result(count * m_handle.channels(), 0.0);
 
@@ -101,7 +109,7 @@ int AudioData::read(double *buffer, int count)
 
 void AudioData::seek(size_t pos)
 {
-	m_handle.seek(0, SEEK_SET);
+	m_handle.seek(pos, SEEK_SET);
 }
 
 } // namespace phonometrica

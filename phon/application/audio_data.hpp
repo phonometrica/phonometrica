@@ -54,7 +54,9 @@ public:
 
     double *data() { return m_data.data(); }
 
-    Span<double> get(intptr_t first_frame = 1, intptr_t last_frame = -1);
+    Span<double> get(intptr_t first_frame = 0, intptr_t last_frame = -1);
+
+	std::vector<double> copy(intptr_t first_frame = 0, intptr_t last_frame = -1);
 
 	std::vector<float> read(intptr_t first_frame, intptr_t last_frame);
 
@@ -78,8 +80,8 @@ public:
 
     intptr_t time_to_frame(double time) const
     {
-        auto s = (intptr_t) round(time * sample_rate() + 1);
-        return std::min<intptr_t>(s, m_handle.frames());
+        auto s = (intptr_t) round(time * sample_rate());
+        return std::min<intptr_t>(s, m_handle.frames() - 1);
     }
 
     double duration() const { return (double)m_handle.frames() / sample_rate(); }
@@ -88,7 +90,7 @@ public:
 
 private:
 
-    Array<double> m_data;
+    std::vector<double> m_data;
 
     SndfileHandle m_handle;
 };
