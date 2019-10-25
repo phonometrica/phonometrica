@@ -175,9 +175,6 @@ if (BUILD_GUI)
     # SPTK
     include_directories(phon/third_party/sptk/include/)
 
-    # Needed by Speex
-    add_definitions(-DHAVE_CONFIG_H)
-
     file(GLOB_RECURSE APP_FILES
             phon/application/*.cpp phon/application/*.hpp
             phon/speech/*.cpp phon/speech/*.hpp

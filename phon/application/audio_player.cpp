@@ -264,7 +264,7 @@ void AudioPlayer::initialize_resampling(uint32_t output_rate)
     }
     auto input_rate = (uint32_t) data->sample_rate();
 #if PHON_MACOS
-    int size = m_buffer.size()
+    int size = m_buffer.size();
 #else
 	int size = FRAME_COUNT;
 #endif

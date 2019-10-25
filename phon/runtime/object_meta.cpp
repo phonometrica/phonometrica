@@ -72,6 +72,9 @@ static void object_to_string(Runtime &rt)
         case PHON_CNUMBER:
             rt.push("[object Number]");
             break;
+        case PHON_CARRAY:
+        	rt.push("[object Array]");
+        	break;
         case PHON_CSTRING:
             rt.push("[object String]");
             break;
