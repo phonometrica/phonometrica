@@ -89,7 +89,7 @@ See also: :func:`pattern`
 Match regular expression against string ``subject``. Returns
 ``true`` if there was a match, ``false`` otherwise.
 
-See also: :func:`count`, :func:`capture`, :func:`has\_match`
+See also: :func:`count`, :func:`group`, :func:`has\_match`
 
 
 ------------
@@ -104,7 +104,7 @@ See also: :func:`match`
 
 ------------
 
-.. method:: capture(nth)
+.. method:: group(nth)
 
 Returns the ``nth`` captured sub-expression in the last successful call
 to ``match``. If ``nth`` equals ``0``, the whole matched string is
@@ -123,7 +123,7 @@ Returns the index of the first character of the ``nth`` capture. If
 ``nth`` equals ``0``, it returns the index of the first character in the
 whole matched string.
 
-See also: :func:`capture`, :func:`last`
+See also: :func:`group`, :func:`last`
 
 
 ------------
@@ -158,7 +158,7 @@ sub-expression, if there was no match or if ``match`` was not called.
         end       
     end
 
-See also: :func:`capture`, :func:`match`
+See also: :func:`group`, :func:`match`
 
 
 ------------
