@@ -584,11 +584,15 @@ bool Runtime::is_regex(int idx) const
 	return stack_index(idx)->is_regex();
 }
 
+bool Runtime::is_array(int idx) const
+{
+	return stack_index(idx)->is_array();
+}
+
 bool Runtime::is_file(int idx) const
 {
 	return stack_index(idx)->is_file();
 }
-
 
 bool Runtime::is_user_data(int idx, const char *tag) const
 {

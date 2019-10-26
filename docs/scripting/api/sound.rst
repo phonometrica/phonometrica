@@ -1,3 +1,5 @@
+.. _sound-type:
+
 Sounds
 ======
 
@@ -46,6 +48,71 @@ This is a convenience function that displays the pitch at the given time in the 
 This is a convenience function that displays the values of the visible formants at the given time in the current view.
 
 
+------------
+
+.. function:: hertz_to_bark(f)
+
+Converts frequency ``f`` (in Hertz) to bark. See [TRA1990]_.
+
+Note: if ``f`` is an ``Array``, the conversion is applied to all the elements in the array.
+
+------------
+
+.. function:: bark_to_hertz(z)
+
+Converts frequency ``z`` (in bark) to Hertz. See [TRA1990]_.
+
+Note: if ``z`` is an ``Array``, the conversion is applied to all the elements in the array.
+
+------------
+
+.. function:: hertz_to_erb(f)
+
+Converts frequency ``f`` (in Hertz) to ERB units. See [GLA1990]_.
+
+Note: if ``f`` is an ``Array``, the conversion is applied to all the elements in the array.
+
+------------
+
+.. function:: erb_to_hertz(e)
+
+Converts frequency ``e`` (in ERB units) to Hertz. See [GLA1990]_.
+
+Note: if ``e`` is an ``Array``, the conversion is applied to all the elements in the array.
+
+------------
+
+.. function:: hertz_to_mel(f)
+
+Converts frequency ``f`` (in Hertz) to mel.
+
+Note: if ``f`` is an ``Array``, the conversion is applied to all the elements in the array.
+
+------------
+
+.. function:: mel_to_hertz(mel)
+
+Converts frequency ``mel`` (in mel) to Hertz.
+
+Note: if ``mel`` is an ``Array``, the conversion is applied to all the elements in the array.
+
+------------
+
+.. function:: hertz_to_semitones(f0 [, ref])
+
+Converts frequency ``f0`` (in Hertz) to semitones, using ``ref`` as a reference frequency (in Hertz). If ``ref`` is not provided,
+it is equal to 100 Hz.
+
+Note: if ``f0`` is an ``Array``, the conversion is applied to all the elements in the array.
+
+------------
+
+.. function:: semitones_to_hertz(st)
+
+Converts the number of semitones ``st`` to Hertz, using ``ref`` as a reference frequency (in Hertz). If ``ref`` is not provided,
+it is equal to 100 Hz.
+
+Note: if ``st`` is an ``Array``, the conversion is applied to all the elements in the array.
 
 Methods
 -------
@@ -127,3 +194,9 @@ Returns the sample rate of the file in Hertz.
 .. attribute:: channel_count
 
 Returns the number of channels in the file.
+
+------------
+
+.. [GLA1990] Glasberg, Brian R & Brian C.J Moore. 1990. Derivation of auditory filter shapes from notched-noise data. *Hearing Research* 47(1–2). 103–138.
+
+.. [TRA1990] Traunmüller, Hartmut. 1990. Analytical expressions for the tonotopic sensory scale. *The Journal of the Acoustical Society of America* 88(1). 97–100.

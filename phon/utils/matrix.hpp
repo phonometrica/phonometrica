@@ -29,12 +29,16 @@
 #ifndef PHONOMETRICA_MATRIX_HPP
 #define PHONOMETRICA_MATRIX_HPP
 
+#include <functional>
 #include <phon/third_party/Eigen/Dense>
 
 namespace phonometrica {
 
 template <typename T>
 using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+
+// Convert an input matrix element-wise using formula.
+Matrix<double> apply(const Matrix<double> &input, const std::function<double(double)> &formula);
 
 } // namespace phonometrica
 

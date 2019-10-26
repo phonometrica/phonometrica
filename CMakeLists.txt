@@ -29,14 +29,14 @@ add_definitions(-DPHON_VERSION_MAJOR=0)
 # Minor release: incremented when new features and/or bug fixes are introduced
 add_definitions(-DPHON_VERSION_MINOR=6)
 # Revision release: incremented when bugs are fixed are small features are added
-add_definitions(-DPHON_VERSION_MICRO=0)
+add_definitions(-DPHON_VERSION_MICRO=1)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=0)
+add_definitions(-DPHON_VERSION_NANO=1)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=10)
-add_definitions(-DPHON_RELEASE_DATE_DAY=25)
+add_definitions(-DPHON_RELEASE_DATE_DAY=26)
 
 # Operating system
 if(WIN32)
@@ -188,6 +188,7 @@ if (BUILD_GUI)
             phon/third_party/qxt/qxtcheckcombobox.cpp
             phon/third_party/sptk/*.c
             phon/third_party/sptk/*.cpp
+            #phon/third_party/snack/*.c
             phon/third_party/swipe/*.c phon/third_party/swipe/*.cpp phon/third_party/swipe/*.h
     )
 
