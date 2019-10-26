@@ -203,6 +203,8 @@ public:
 
     bool is_regex(int idx) const;
 
+    bool is_array(int idx) const;
+
     bool is_file(int idx) const;
 
     bool is_user_data(int idx, const char *tag) const;

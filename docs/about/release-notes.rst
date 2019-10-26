@@ -1,6 +1,11 @@
 Release notes
 -------------
 
+0.6.1 (??/10/2019)
+~~~~~~~~~~~~~~~~~~
+
+- scripting functions to convert between Hertz and bark, ERB units, mel and semitones (see :ref:`sound-type`). These functions accept a ``Number`` or an ``Array``.
+
 0.6.0 (25/10/2019)
 ~~~~~~~~~~~~~~~~~~
 

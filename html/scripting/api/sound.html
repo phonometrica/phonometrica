@@ -77,7 +77,7 @@
           <div class="body" role="main">
             
   <div class="section" id="sounds">
-<h1>Sounds<a class="headerlink" href="#sounds" title="Permalink to this headline">¶</a></h1>
+<span id="sound-type"></span><h1>Sounds<a class="headerlink" href="#sounds" title="Permalink to this headline">¶</a></h1>
 <p>This page documents the <code class="docutils literal notranslate"><span class="pre">Sound</span></code> type, which represents a sound file loaded in memory.</p>
 <div class="section" id="global-functions">
 <h2>Global functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
@@ -124,6 +124,72 @@ nor a sound view.</p>
 <dd></dd></dl>
 
 <p>This is a convenience function that displays the values of the visible formants at the given time in the current view.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="hertz_to_bark">
+<code class="descname">hertz_to_bark</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#hertz_to_bark" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Converts frequency <code class="docutils literal notranslate"><span class="pre">f</span></code> (in Hertz) to bark. See <a class="reference internal" href="#tra1990" id="id1">[TRA1990]</a>.</p>
+<p>Note: if <code class="docutils literal notranslate"><span class="pre">f</span></code> is an <code class="docutils literal notranslate"><span class="pre">Array</span></code>, the conversion is applied to all the elements in the array.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="bark_to_hertz">
+<code class="descname">bark_to_hertz</code><span class="sig-paren">(</span><em>z</em><span class="sig-paren">)</span><a class="headerlink" href="#bark_to_hertz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Converts frequency <code class="docutils literal notranslate"><span class="pre">z</span></code> (in bark) to Hertz. See <a class="reference internal" href="#tra1990" id="id2">[TRA1990]</a>.</p>
+<p>Note: if <code class="docutils literal notranslate"><span class="pre">z</span></code> is an <code class="docutils literal notranslate"><span class="pre">Array</span></code>, the conversion is applied to all the elements in the array.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="hertz_to_erb">
+<code class="descname">hertz_to_erb</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#hertz_to_erb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Converts frequency <code class="docutils literal notranslate"><span class="pre">f</span></code> (in Hertz) to ERB units. See <a class="reference internal" href="#gla1990" id="id3">[GLA1990]</a>.</p>
+<p>Note: if <code class="docutils literal notranslate"><span class="pre">f</span></code> is an <code class="docutils literal notranslate"><span class="pre">Array</span></code>, the conversion is applied to all the elements in the array.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="erb_to_hertz">
+<code class="descname">erb_to_hertz</code><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#erb_to_hertz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Converts frequency <code class="docutils literal notranslate"><span class="pre">e</span></code> (in ERB units) to Hertz. See <a class="reference internal" href="#gla1990" id="id4">[GLA1990]</a>.</p>
+<p>Note: if <code class="docutils literal notranslate"><span class="pre">e</span></code> is an <code class="docutils literal notranslate"><span class="pre">Array</span></code>, the conversion is applied to all the elements in the array.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="hertz_to_mel">
+<code class="descname">hertz_to_mel</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#hertz_to_mel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Converts frequency <code class="docutils literal notranslate"><span class="pre">f</span></code> (in Hertz) to mel.</p>
+<p>Note: if <code class="docutils literal notranslate"><span class="pre">f</span></code> is an <code class="docutils literal notranslate"><span class="pre">Array</span></code>, the conversion is applied to all the elements in the array.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="mel_to_hertz">
+<code class="descname">mel_to_hertz</code><span class="sig-paren">(</span><em>mel</em><span class="sig-paren">)</span><a class="headerlink" href="#mel_to_hertz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Converts frequency <code class="docutils literal notranslate"><span class="pre">mel</span></code> (in mel) to Hertz.</p>
+<p>Note: if <code class="docutils literal notranslate"><span class="pre">mel</span></code> is an <code class="docutils literal notranslate"><span class="pre">Array</span></code>, the conversion is applied to all the elements in the array.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="hertz_to_semitones">
+<code class="descname">hertz_to_semitones</code><span class="sig-paren">(</span><em>f0</em><span class="optional">[</span>, <em>ref</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#hertz_to_semitones" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Converts frequency <code class="docutils literal notranslate"><span class="pre">f0</span></code> (in Hertz) to semitones, using <code class="docutils literal notranslate"><span class="pre">ref</span></code> as a reference frequency (in Hertz). If <code class="docutils literal notranslate"><span class="pre">ref</span></code> is not provided,
+it is equal to 100 Hz.</p>
+<p>Note: if <code class="docutils literal notranslate"><span class="pre">f0</span></code> is an <code class="docutils literal notranslate"><span class="pre">Array</span></code>, the conversion is applied to all the elements in the array.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="semitones_to_hertz">
+<code class="descname">semitones_to_hertz</code><span class="sig-paren">(</span><em>st</em><span class="sig-paren">)</span><a class="headerlink" href="#semitones_to_hertz" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Converts the number of semitones <code class="docutils literal notranslate"><span class="pre">st</span></code> to Hertz, using <code class="docutils literal notranslate"><span class="pre">ref</span></code> as a reference frequency (in Hertz). If <code class="docutils literal notranslate"><span class="pre">ref</span></code> is not provided,
+it is equal to 100 Hz.</p>
+<p>Note: if <code class="docutils literal notranslate"><span class="pre">st</span></code> is an <code class="docutils literal notranslate"><span class="pre">Array</span></code>, the conversion is applied to all the elements in the array.</p>
 </div>
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
@@ -210,6 +276,19 @@ will be used instead.</p>
 <dd></dd></dl>
 
 <p>Returns the number of channels in the file.</p>
+<hr class="docutils" />
+<table class="docutils citation" frame="void" id="gla1990" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[GLA1990]</td><td><em>(<a class="fn-backref" href="#id3">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> Glasberg, Brian R &amp; Brian C.J Moore. 1990. Derivation of auditory filter shapes from notched-noise data. <em>Hearing Research</em> 47(1–2). 103–138.</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="tra1990" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[TRA1990]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>)</em> Traunmüller, Hartmut. 1990. Analytical expressions for the tonotopic sensory scale. <em>The Journal of the Acoustical Society of America</em> 88(1). 97–100.</td></tr>
+</tbody>
+</table>
 </div>
 </div>
 

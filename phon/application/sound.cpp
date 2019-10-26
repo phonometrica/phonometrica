@@ -38,6 +38,7 @@
 #include <phon/application/settings.hpp>
 #include <phon/application/resampler.hpp>
 #include <phon/speech/signal_processing.hpp>
+#include <phon/speech/speech_utils.hpp>
 #include <phon/third_party/swipe/swipe.h>
 #include <phon/utils/matrix.hpp>
 
@@ -556,6 +557,131 @@ void Sound::initialize(Runtime &rt)
 		auto result = sound->get_formants(time, nformant, nyquist, win_size, lpc_order);
 		rt.push(std::move(result));
 	};
+
+	auto hz2bark = [](Runtime &rt) {
+		auto f = speech::hertz_to_bark;
+		if (rt.is_array(1))
+		{
+			auto &array = rt.to_array(1);
+			rt.push(apply(array, f));
+		}
+		else
+		{
+			auto hz = rt.to_number(1);
+			rt.push(f(hz));
+		}
+	};
+
+	auto bark2hz = [](Runtime &rt) {
+		auto f = speech::bark_to_hertz;
+		if (rt.is_array(1))
+		{
+			auto &array = rt.to_array(1);
+			rt.push(apply(array, f));
+		}
+		else
+		{
+			auto hz = rt.to_number(1);
+			rt.push(f(hz));
+		}
+	};
+
+	auto hz2erb = [](Runtime &rt) {
+		auto f = speech::hertz_to_erb;
+		if (rt.is_array(1))
+		{
+			auto &array = rt.to_array(1);
+			rt.push(apply(array, f));
+		}
+		else
+		{
+			auto hz = rt.to_number(1);
+			rt.push(f(hz));
+		}
+	};
+
+	auto erb2hz = [](Runtime &rt) {
+		auto f = speech::erb_to_hertz;
+		if (rt.is_array(1))
+		{
+			auto &array = rt.to_array(1);
+			rt.push(apply(array, f));
+		}
+		else
+		{
+			auto hz = rt.to_number(1);
+			rt.push(f(hz));
+		}
+	};
+
+	auto hz2mel = [](Runtime &rt) {
+		auto f = speech::hertz_to_mel;
+		if (rt.is_array(1))
+		{
+			auto &array = rt.to_array(1);
+			rt.push(apply(array, f));
+		}
+		else
+		{
+			auto hz = rt.to_number(1);
+			rt.push(f(hz));
+		}
+	};
+
+	auto mel2hz = [](Runtime &rt) {
+		auto f = speech::mel_to_hertz;
+		if (rt.is_array(1))
+		{
+			auto &array = rt.to_array(1);
+			rt.push(apply(array, f));
+		}
+		else
+		{
+			auto hz = rt.to_number(1);
+			rt.push(f(hz));
+		}
+	};
+
+	auto hz2st = [](Runtime &rt) {
+		double ref = rt.arg_count() > 1 ? rt.to_number(2) : 100;
+		auto f = [=](double hz) { return speech::hertz_to_semitones(hz, ref); };
+
+		if (rt.is_array(1))
+		{
+			auto &array = rt.to_array(1);
+			rt.push(apply(array, f));
+		}
+		else
+		{
+			auto hz = rt.to_number(1);
+			rt.push(f(hz));
+		}
+	};
+
+	auto st2hz = [](Runtime &rt) {
+		double ref = rt.arg_count() > 1 ? rt.to_number(2) : 100;
+		auto f = [=](double st) { return speech::semitones_to_hertz(st, ref); };
+
+		if (rt.is_array(1))
+		{
+			auto &array = rt.to_array(1);
+			rt.push(apply(array, f));
+		}
+		else
+		{
+			auto hz = rt.to_number(1);
+			rt.push(f(hz));
+		}
+	};
+
+	rt.add_global_function("hertz_to_bark", hz2bark, 1);
+	rt.add_global_function("bark_to_hertz", bark2hz, 1);
+	rt.add_global_function("hertz_to_erb", hz2erb, 1);
+	rt.add_global_function("erb_to_hertz", erb2hz, 1);
+	rt.add_global_function("hertz_to_mel", hz2mel, 1);
+	rt.add_global_function("mel_to_hertz", mel2hz, 1);
+	rt.add_global_function("hertz_to_semitones", hz2st, 1);
+	rt.add_global_function("semitones_to_hertz", st2hz, 1);
 
 	rt.push(metaobject);
 	{
