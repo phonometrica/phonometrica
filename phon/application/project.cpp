@@ -921,15 +921,23 @@ void Project::initialize(Runtime &rt)
 
     auto get_annotations = [](Runtime &rt) {
     	Array<Variant> result;
+    	std::vector<AutoAnnotation> tmp;
     	auto &files = Project::instance()->m_files;
     	for (auto &pair : files)
 		{
     		if (pair.second->is_annotation())
 			{
-    		    rt.new_user_data(Annotation::meta(), "Annotation", downcast<Annotation>(pair.second));
-    			result.append(std::move(rt.get(-1)));
+    		    tmp.push_back(downcast<Annotation>(pair.second));
 			}
 		}
+    	result.reserve(tmp.size());
+    	std::sort(tmp.begin(), tmp.end(), [](const AutoAnnotation &a1, const AutoAnnotation &a2) { return a1->path() < a2->path(); });
+
+    	for (auto &annot : tmp)
+	    {
+		    rt.new_user_data(Annotation::meta(), "Annotation", std::move(annot));
+		    result.append(std::move(rt.get(-1)));
+	    }
 
     	rt.push(std::move(result));
     };
@@ -955,15 +963,23 @@ void Project::initialize(Runtime &rt)
 
     auto get_sounds = [](Runtime &rt) {
     	Array<Variant> result;
+    	std::vector<AutoSound> tmp;
     	auto &files = Project::instance()->m_files;
     	for (auto &pair : files)
 		{
     		if (pair.second->is_sound())
 			{
-    		    rt.new_user_data(Sound::meta(), "Sound", downcast<Sound>(pair.second));
-    			result.append(std::move(rt.get(-1)));
+    		    tmp.push_back(downcast<Sound>(pair.second));
 			}
 		}
+    	result.reserve(tmp.size());
+    	std::sort(tmp.begin(), tmp.end(), [](const AutoSound &s1, const AutoSound &s2) { return s1->path() < s2->path(); });
+
+    	for (auto &sound : tmp)
+	    {
+		    rt.new_user_data(Sound::meta(), "Sound", std::move(sound));
+		    result.append(std::move(rt.get(-1)));
+	    }
 
     	rt.push(std::move(result));
     };

@@ -29,6 +29,7 @@
 #include <QtGlobal>
 #include <QPainter>
 #include <QTextBlock>
+#include <QDebug>
 #include <phon/gui/code_editor.hpp>
 
 
@@ -198,6 +199,36 @@ void CodeEditor::highlightCurrentLine(const QColor &color)
     }
 
     setExtraSelections(extraSelections);
+}
+
+void CodeEditor::keyPressEvent(QKeyEvent *event)
+{
+	if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return)
+	{
+		// Add the same level of indentation as the previous line.
+		auto pos = textCursor().position();
+		auto lines = this->toPlainText().left(pos).split('\n');
+		if (!lines.isEmpty())
+		{
+			auto &ln = lines.last();
+			QString spacing;
+			int count = 0;
+			qDebug() << "LINE: " << ln;
+			for (QChar c : ln)
+			{
+				if (c.isSpace()) count++;
+				else break;
+			}
+			// First insert the new line.
+			QPlainTextEdit::keyPressEvent(event);
+			// Then insert the spacing.
+			textCursor().insertText(ln.left(count));
+		}
+	}
+	else
+	{
+		QPlainTextEdit::keyPressEvent(event);
+	}
 }
 
 } // namespace phonometrica
