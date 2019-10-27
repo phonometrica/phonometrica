@@ -20,6 +20,12 @@ set(DEBUG_CONSOLE OFF)
 set(ENABLE_LOGGING OFF)
 set(USE_FFTW OFF)
 
+if (WIN32)
+    set(QT_DIR "C:/Qt5/5.12.5/mingw73_64/lib/cmake/Qt5")
+    set(BOOST_DIR "C:/Devel/Lib/boost_1_66_0")
+    set(LIBSNDFILE_DIR "C:/Devel/Lib/libsndfile")
+endif()
+
 ###########################
 ##  VERSION INFORMATION  ##
 ###########################
@@ -95,8 +101,6 @@ if (BUILD_GUI)
 
     # Find the QtWidgets library
     if (WIN32)
-        set(QT_DIR "C:/Qt5/5.12.5/mingw73_64/lib/cmake/Qt5")
-        #find_package(Qt5 REQUIRED PATHS C:/Qt/Qt-5.13.0/lib/cmake/Qt5/ COMPONENTS Widgets Core Gui)
         set(Qt5_DIR ${QT_DIR})
         find_package(Qt5 REQUIRED PATHS ${QT_DIR} COMPONENTS Widgets Core Gui)
     elseif (APPLE)
@@ -123,7 +127,7 @@ if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES)
 	add_definitions(-DUTF8PROC_STATIC)
 	add_definitions(-DENABLE_SNDFILE_WINDOWS_PROTOTYPES=1 -DENABLE_SNDFILE_WINDOWS_PROTOTYPES=1)
-    include_directories("C:/Lib/boost_1_66_0")
+    include_directories(${BOOST_DIR})
 
     if(MSVC)
         add_definitions(-D_CRT_SECURE_NO_WARNINGS=1)
@@ -226,12 +230,12 @@ if (BUILD_GUI)
     if (WIN32)
         add_definitions(-D__WINDOWS_DS__=1)
         add_definitions(-D_USE_MATH_DEFINES) # for M_PI
-        include_directories("C:/Lib/libsndfile")
-        link_directories("C:/Lib/libsndfile")
+        include_directories(${LIBSNDFILE_DIR})
+        link_directories(${LIBSNDFILE_DIR})
         #add_subdirectory("${PROJECT_SOURCE_DIR}/libsndfile")
         target_link_libraries(
                 ${PROJECT_NAME} phon-runtime pcre2-8 ${FFT_LIB} ole32 winmm dsound
-				C:/Lib/libsndfile/libsndfile-1.lib
+				${LIBSNDFILE_DIR}/libsndfile-1.lib
                 Qt5::Core Qt5::Gui Qt5::Widgets
         )
     elseif (APPLE)
