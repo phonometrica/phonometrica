@@ -26,8 +26,10 @@ Phonometrica uses (parts of) the following open source components, sometimes wit
 * CMake, by Kitware Inc. (BSD 3-clause), see `cmake.org <https://cmake.org/>`_
 * Noto fonts, by Google (SIL Open Font License v1.1), see `www.google.com/get/noto/ <https://www.google.com/get/noto/>`_
 * sigslot, by Pierre-Antoine Lacaze (MIT), see `github.com/palacaze/sigslot/ <https://github.com/palacaze/sigslot/>`_
+* Eigen, by  Benoît Jacob, Gaël Guennebaud and contributors (MPL2), see `eigen.tuxfamily.org <http://eigen.tuxfamily.org>`_
+* RpolyPluPlus, by Chris Sweeney (BSD), see `github.com/sweeneychris/RpolyPlusPlus <https://github.com/sweeneychris/RpolyPlusPlus>`_
 
-Phonometrica also uses `GitHub <https://github.com>`_ to host its source code. The source code is available `here <https://github.com/phonometrica/phonometrica>`_.
+Phonometrica uses `GitHub <https://github.com>`_ to host its source code. The source code is available `here <https://github.com/phonometrica/phonometrica>`_.
 
 We are also grateful to JetBrains for providing us with an academic license of their `C++ editor <https://www.jetbrains.com/clion/>`_.
 

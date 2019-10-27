@@ -37,6 +37,9 @@ namespace phonometrica {
 template <typename T>
 using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
+template <typename T>
+using Vector = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+
 // Convert an input matrix element-wise using formula.
 Matrix<double> apply(const Matrix<double> &input, const std::function<double(double)> &formula);
 
