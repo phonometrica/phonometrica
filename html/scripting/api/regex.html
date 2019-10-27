@@ -167,7 +167,7 @@ expression. To enable non-greedy behavior, we must use the quantifier
 
 <p>Match regular expression against string <code class="docutils literal notranslate"><span class="pre">subject</span></code>. Returns
 <code class="docutils literal notranslate"><span class="pre">true</span></code> if there was a match, <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
-<p>See also: <a class="reference internal" href="string.html#count" title="count"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">count()</span></code></a>, <a class="reference internal" href="#capture" title="capture"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">capture()</span></code></a>, <a class="reference internal" href="#has_match" title="has_match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">has_match()</span></code></a></p>
+<p>See also: <a class="reference internal" href="string.html#count" title="count"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">count()</span></code></a>, <a class="reference internal" href="#group" title="group"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">group()</span></code></a>, <a class="reference internal" href="#has_match" title="has_match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">has_match()</span></code></a></p>
 <hr class="docutils" />
 <dl class="method">
 <dt id="has_match">
@@ -179,8 +179,8 @@ expression. To enable non-greedy behavior, we must use the quantifier
 <p>See also: <a class="reference internal" href="#match" title="match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">match()</span></code></a></p>
 <hr class="docutils" />
 <dl class="method">
-<dt id="capture">
-<code class="descname">capture</code><span class="sig-paren">(</span><em>nth</em><span class="sig-paren">)</span><a class="headerlink" href="#capture" title="Permalink to this definition">¶</a></dt>
+<dt id="group">
+<code class="descname">group</code><span class="sig-paren">(</span><em>nth</em><span class="sig-paren">)</span><a class="headerlink" href="#group" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the <code class="docutils literal notranslate"><span class="pre">nth</span></code> captured sub-expression in the last successful call
@@ -198,7 +198,7 @@ than the number returned by the <code class="docutils literal notranslate"><span
 <p>Returns the index of the first character of the <code class="docutils literal notranslate"><span class="pre">nth</span></code> capture. If
 <code class="docutils literal notranslate"><span class="pre">nth</span></code> equals <code class="docutils literal notranslate"><span class="pre">0</span></code>, it returns the index of the first character in the
 whole matched string.</p>
-<p>See also: <a class="reference internal" href="#capture" title="capture"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">capture()</span></code></a>, <a class="reference internal" href="#last" title="last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">last()</span></code></a></p>
+<p>See also: <a class="reference internal" href="#group" title="group"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">group()</span></code></a>, <a class="reference internal" href="#last" title="last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">last()</span></code></a></p>
 <hr class="docutils" />
 <dl class="method">
 <dt id="last">
@@ -231,7 +231,7 @@ sub-expression, if there was no match or if <code class="docutils literal notran
 <span class="kr">end</span>
 </pre></div>
 </div>
-<p>See also: <a class="reference internal" href="#capture" title="capture"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">capture()</span></code></a>, <a class="reference internal" href="#match" title="match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">match()</span></code></a></p>
+<p>See also: <a class="reference internal" href="#group" title="group"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">group()</span></code></a>, <a class="reference internal" href="#match" title="match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">match()</span></code></a></p>
 <hr class="docutils" />
 <dl class="attribute">
 <dt id="pattern">
