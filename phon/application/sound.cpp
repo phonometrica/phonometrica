@@ -301,7 +301,7 @@ Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_fre
 		output = Span<double>(tmp);
 	}
 	int nframe = output.size();
-	auto win = create_window(nframe, nframe, WindowType::Hann);
+	auto win = create_window(nframe, nframe, WindowType::Hamming);
 	std::vector<double> buffer(nframe, 0.0);
 
 	// Apply window.

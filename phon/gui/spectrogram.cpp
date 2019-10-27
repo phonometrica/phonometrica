@@ -384,7 +384,7 @@ void Spectrogram::estimateFormants()
 
 	int nframe = int(ceil(formant_window_length * Fs));
 	if (nframe % 2 == 1) nframe++;
-	auto win = create_window(nframe, nframe, WindowType::Hann);
+	auto win = create_window(nframe, nframe, WindowType::Hamming);
 	std::vector<double> buffer(nframe, 0.0);
 
 	// Calculate LPC at each time point.
