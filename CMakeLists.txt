@@ -95,7 +95,10 @@ if (BUILD_GUI)
 
     # Find the QtWidgets library
     if (WIN32)
-        find_package(Qt5 REQUIRED PATHS C:/Qt/Qt-5.13.0/lib/cmake/Qt5/ COMPONENTS Widgets Core Gui)
+        set(QT_DIR "C:/Qt5/5.12.5/mingw73_64/lib/cmake/Qt5")
+        #find_package(Qt5 REQUIRED PATHS C:/Qt/Qt-5.13.0/lib/cmake/Qt5/ COMPONENTS Widgets Core Gui)
+        set(Qt5_DIR ${QT_DIR})
+        find_package(Qt5 REQUIRED PATHS ${QT_DIR} COMPONENTS Widgets Core Gui)
     elseif (APPLE)
         find_package(Qt5 REQUIRED PATHS $ENV{HOME}/Qt/5.11.2/clang_64/lib/cmake/Qt5/ COMPONENTS Widgets Core Gui)
         include_directories(/opt/local/include)
