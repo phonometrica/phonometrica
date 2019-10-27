@@ -188,6 +188,7 @@ if (BUILD_GUI)
             phon/third_party/qxt/qxtcheckcombobox.cpp
             phon/third_party/sptk/*.c
             phon/third_party/sptk/*.cpp
+            phon/third_party/rpolyplusplus/*.cc
             #phon/third_party/snack/*.c
             phon/third_party/swipe/*.c phon/third_party/swipe/*.cpp phon/third_party/swipe/*.h
     )

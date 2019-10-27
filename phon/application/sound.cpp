@@ -267,10 +267,10 @@ int Sound::get_intensity_window_size() const
 
 Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_frequency, double window_size, int lpc_order)
 {
+	load();
 	Matrix<double> result(nformant, 2);
 	result.setZero(nformant, 2);
 	using namespace speech;
-	assert(m_data);
 	PHON_LOG("Calculating formants");
 
 	double Fs = nyquist_frequency * 2;
@@ -349,7 +349,7 @@ Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_fre
 
 double Sound::get_pitch(double time, double min_pitch, double max_pitch, double threshold)
 {
-	assert(m_data);
+	load();
 	PHON_LOG("Calculating pitch");
 	const double time_step = 0.01;
 	// We use 90ms window centered around the time of measurement, with a time step = 10ms. This will yield a 9 point
@@ -381,8 +381,7 @@ double Sound::get_pitch(double time, double min_pitch, double max_pitch, double 
 
 double Sound::get_intensity(double time)
 {
-	assert(m_data);
-
+	load();
 	int window_size = get_intensity_window_size();
 	auto first_sample = m_data->time_to_frame(time) - (window_size / 2);
 	auto start = m_data->data() + first_sample - 1;

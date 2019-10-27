@@ -4,6 +4,7 @@ Release notes
 0.6.1 (??/10/2019)
 ~~~~~~~~~~~~~~~~~~
 
+- improved LPC analysis
 - scripting functions to convert between Hertz and bark, ERB units, mel and semitones (see :ref:`sound-type`). These functions accept a ``Number`` or an ``Array``.
 - ``get_annotations()`` and ``get_sounds()`` now return a sorted list
 - automatic indentation in script views

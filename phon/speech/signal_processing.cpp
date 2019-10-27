@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <SPTK.h>
 #include <phon/speech/signal_processing.hpp>
+#include <phon/third_party/rpolyplusplus/find_polynomial_roots_jenkins_traub.h>
 
 namespace phonometrica {
 namespace speech {
@@ -168,29 +169,29 @@ static std::vector<size_t> sort_indices(const std::vector<T> &v) {
 // Formant estimatation adapted from
 // https://www.mathworks.com/help/signal/ug/formant-estimation-with-lpc-coefficients.html
 
-std::vector<double> get_lpc_coefficients(const Span<double> &frame, int npole)
+Vector<double> get_lpc_coefficients(const Span<double> &frame, int npole)
 {
-	std::vector<double> coeff(npole+1, 0.0);
+	Vector<double> coeff(npole+1);
 	lpc(frame.data(), frame.size(), coeff.data(), npole, 0.000001);
 
 	return coeff;
 }
 
-bool get_formants(const Span<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw)
+bool get_formants(const Vector<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw)
 {
-	std::vector<std::complex<double>> roots(lpc_coeffs.size(), std::complex<double>());
 	int order = lpc_coeffs.size() - 1;
-	bool ok = root_pol(lpc_coeffs.data(), order, (complex*)roots.data(), 0, 1.0e-14, 1000);
+	Eigen::VectorXd real_roots(order), complex_roots(order);
+	bool ok = rpoly_plus_plus::FindPolynomialRootsJenkinsTraub(lpc_coeffs, &real_roots, &complex_roots);
 	if (!ok) return false;
 	std::vector<double> angz;
+	std::vector<std::complex<double>> roots;
 
-	std::vector<std::complex<double>> tmp;
-
-	for (auto z : roots)
+	for (int i = 0; i < complex_roots.size(); i++)
 	{
-		if (z.imag() >= 0) tmp.push_back(z);
+		if (complex_roots[i] >= 0) {
+			roots.emplace_back(real_roots[i], complex_roots[i]);
+		}
 	}
-	roots = std::move(tmp);
 
 	for (auto z : roots)
 	{
@@ -204,7 +205,7 @@ bool get_formants(const Span<double> &lpc_coeffs, double Fs, std::vector<double>
 
 	for (auto i : indices)
 	{
-		double b = -0.5*(Fs/M_2PI)*log(std::abs(roots[i]));
+		double b = -0.5 * (Fs/M_2PI) * log(std::abs(roots[i]));
 		bw.push_back(b);
 	}
 
