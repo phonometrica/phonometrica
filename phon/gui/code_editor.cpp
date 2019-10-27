@@ -29,7 +29,6 @@
 #include <QtGlobal>
 #include <QPainter>
 #include <QTextBlock>
-#include <QDebug>
 #include <phon/gui/code_editor.hpp>
 
 
@@ -213,7 +212,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
 			auto &ln = lines.last();
 			QString spacing;
 			int count = 0;
-			qDebug() << "LINE: " << ln;
+
 			for (QChar c : ln)
 			{
 				if (c.isSpace()) count++;
@@ -223,6 +222,9 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
 			QPlainTextEdit::keyPressEvent(event);
 			// Then insert the spacing.
 			textCursor().insertText(ln.left(count));
+			if (ln.endsWith(" then") || ln.endsWith(" do")) {
+				textCursor().insertText("\t");
+			}
 		}
 	}
 	else
