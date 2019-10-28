@@ -2,6 +2,8 @@
 #include <phon/string.hpp>
 #include <phon/dictionary.hpp>
 
+using namespace phonometrica;
+
 TEST_CASE("Test empty string", "[string]")
 {
 	String s;

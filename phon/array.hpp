@@ -377,7 +377,7 @@ public:
 	{
 		assert(ndim() == 2);
 		assert(row > 0 && col > 0);
-		auto pos = (col - 1) * row + row - 1;
+		size_type pos = (col - 1) * nrow() + row - 1;
 
 		return m_data[pos];
 	}
@@ -386,7 +386,7 @@ public:
 	{
 		assert(ndim() == 2);
 		assert(row > 0 && col > 0);
-		auto pos = (col - 1) * row + row - 1;
+		auto pos = (col - 1) * nrow() + row - 1;
 
 		return m_data[pos];
 	}

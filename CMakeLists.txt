@@ -37,7 +37,7 @@ add_definitions(-DPHON_VERSION_MINOR=6)
 # Revision release: incremented when bugs are fixed are small features are added
 add_definitions(-DPHON_VERSION_MICRO=2)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=1)
+add_definitions(-DPHON_VERSION_NANO=0)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
@@ -264,7 +264,8 @@ endif(BUILD_GUI)
 
 
 if(BUILD_UNIT_TEST)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
     file(GLOB TEST_FILES ./unit_test/*.cpp)
     add_executable(test_phon ${TEST_FILES})
-    target_link_libraries(test_phon phon-runtime pcre2-8)
+    target_link_libraries(test_phon phon-runtime pcre2-8 Qt5::Core)
 endif(BUILD_UNIT_TEST)
