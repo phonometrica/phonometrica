@@ -67,8 +67,6 @@ unsigned short number_to_uint16(double n);
 
 String number_to_string(Runtime *J, char *buf, double number);
 
-double string_to_number(Runtime *J, const String &string);
-
 
 /* dump.cpp */
 void dump_object(Runtime *J, Object *obj);

@@ -110,7 +110,7 @@ enum js_OpCode
     OP_EQ,
     OP_NE,
     OP_JCASE,
-    OP_BITAND,
+    OP_CONCAT,
     OP_BITXOR,
     OP_BITOR,
 

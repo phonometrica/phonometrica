@@ -1,7 +1,14 @@
 Release notes
 -------------
 
-0.6.1 (??/10/2019)
+0.6.2 (??/11/2019)
+~~~~~~~~~~~~~~~~~~
+
+- new concatenation operator ``&``
+- more ``Array`` methods
+- the multiplication and division operators can now operate on two arrays, or on an array and a a scalar value.
+
+0.6.1 (27/10/2019)
 ~~~~~~~~~~~~~~~~~~
 
 - improved LPC analysis

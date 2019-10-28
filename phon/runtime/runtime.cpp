@@ -317,7 +317,7 @@ double Runtime::to_number(Variant *v)
     case PHON_TNUMBER:
         return v->as.number;
     case PHON_TSTRING:
-        return string_to_number(this, v->as.string);
+        return v->as.string.to_float();
     case PHON_TOBJECT:
         var_to_primitive(this, v, PHON_HINT_NUMBER);
         return to_number(v);
@@ -2008,19 +2008,67 @@ static void jsR_run(Runtime *J, Function *F)
 				/* Multiplicative operators */
 
 			case OP_MUL:
-				x = J->to_number(-2);
-				y = J->to_number(-1);
-				J->pop(2);
-				J->push(x * y);
+			{
+				if (J->is_array(-2))
+				{
+					auto &X = J->to_array(-2);
+					if (J->is_array(-1))
+					{
+						auto &Y = J->to_array(-1);
+						if (X.rows() == Y.cols() && X.cols() == Y.rows())
+						{
+							J->pop(2);
+							J->push(X*Y);
+						}
+						else
+						{
+							J->raise("Math error", "Cannot multiply matrices with dimensions %ldx%ld and %ldx%ld",
+									X.rows(), X.cols(), Y.rows(), Y.cols());
+						}
+					}
+					else
+					{
+						y = J->to_number(-1);
+						J->pop(2);
+						J->push(X*y);
+					}
+				}
+				else
+				{
+					x = J->to_number(-2);
+					if (J->is_array(-1))
+					{
+						auto &Y = J->to_array(-1);
+						J->pop(2);
+						J->push(x*Y);
+					}
+					else
+					{
+						y = J->to_number(-1);
+						J->pop(2);
+						J->push(x * y);
+					}
+				}
 				break;
-
+			}
 			case OP_DIV:
-				x = J->to_number(-2);
-				y = J->to_number(-1);
-				J->pop(2);
-				J->push(x / y);
+			{
+				if (J->is_array(-2))
+				{
+					auto &X = J->to_array(-2);
+					y = J->to_number(-1);
+					J->pop(2);
+					J->push(X / y);
+				}
+				else
+				{
+					x = J->to_number(-2);
+					y = J->to_number(-1);
+					J->pop(2);
+					J->push(x / y);
+				}
 				break;
-
+			}
 			case OP_MOD:
 				x = J->to_number(-2);
 				y = J->to_number(-1);
@@ -2031,7 +2079,10 @@ static void jsR_run(Runtime *J, Function *F)
 				/* Additive operators */
 
 			case OP_ADD:
-				js_concat(J);
+				x = J->to_number(-2);
+				y = J->to_number(-1);
+				J->pop(2);
+				J->push(x + y);
 				break;
 
 			case OP_SUB:
@@ -2122,11 +2173,8 @@ static void jsR_run(Runtime *J, Function *F)
 
 				/* Binary bitwise operators */
 
-			case OP_BITAND:
-				ix = J->to_int32(-2);
-				iy = J->to_int32(-1);
-				J->pop(2);
-				J->push(ix & iy);
+			case OP_CONCAT:
+				js_concat(J);
 				break;
 
 			case OP_BITXOR:

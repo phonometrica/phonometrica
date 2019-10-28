@@ -38,7 +38,7 @@ function report_formants(time)
             var bw = result.get(i, 2)
 
             if fmt then
-                print(label + " = " + fmt + " Hz\t bandwidth = " + bw + "Hz")
+                print(label + " = " + fmt + " Hz\t bandwidth = " + bw + " Hz")
             else
                 print(label + " = undefined")
             end

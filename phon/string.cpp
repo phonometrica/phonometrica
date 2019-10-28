@@ -1496,6 +1496,10 @@ Substring String::next_grapheme(intptr_t i) const
 
 double String::to_float(Substring str, bool *ok)
 {
+	if (str == "undefined") {
+		return std::nan("");
+	}
+
 	auto ch = str.begin();
 	bool numeric = true;
 	double value = std::nan("");

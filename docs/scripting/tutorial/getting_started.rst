@@ -105,7 +105,14 @@ Internally, strings are encoded as UTF-8, which is the most widespread Unicode e
 Strings are immutable, which means that they can never be modified. Functions which "modify" a string always return a modified copy, leaving the
 original string unchanged.
 
+You can use the concatenation operator ``&`` to concatenate two or more values. If they are not strings, they will automatically 
+ be converted to strings.
 
+.. code:: phon
+
+    var pi = 3.14
+    print("The value of pi is " & pi)
+    
 
 List
 ~~~~
@@ -220,7 +227,7 @@ We can then *call* the function with specific values for ``x`` and ``y``:
 
     var rect = { height: 100, width: 30 }
     var a = area(rect.height, rect.width)
-    print("The area of the rectangle is ", a)
+    print("The area of the rectangle is " & a)
 
 
 If a function is called with fewer arguments than it expects, missing arguments are replaced by ``null``. 
@@ -255,7 +262,7 @@ It is often necessary to execute a code block only if a certain condition is sat
     elsif extension == ".xml" then
         print("This is an XML file")
     else
-        print("extension '" + extension + "' not recognized")
+        print("extension '" & extension & "' not recognized")
     end
 
 
@@ -348,7 +355,7 @@ the keys of an object.
     var person =  { name : "john", surname : "smith", age : 38 }
 
     foreach key in person do
-        print(key, " -> ", person[key])
+        print(key & " -> " & person[key])
     end
 
 

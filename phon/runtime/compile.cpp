@@ -745,7 +745,7 @@ static void cexp(JF, Ast *exp)
         cbinary(J, F, exp, OP_BITXOR);
         break;
     case EXP_BITAND:
-        cbinary(J, F, exp, OP_BITAND);
+        cbinary(J, F, exp, OP_CONCAT);
         break;
     case EXP_EQ:
         cbinary(J, F, exp, OP_EQ);
@@ -824,7 +824,7 @@ static void cexp(JF, Ast *exp)
         cassignop(J, F, exp, OP_USHR);
         break;
     case EXP_ASS_BITAND:
-        cassignop(J, F, exp, OP_BITAND);
+        cassignop(J, F, exp, OP_CONCAT);
         break;
     case EXP_ASS_BITXOR:
         cassignop(J, F, exp, OP_BITXOR);

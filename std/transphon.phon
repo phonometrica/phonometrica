@@ -98,7 +98,7 @@ if result then
 				var esthetic = ""
 		
 				for k=1 to annotation_file_name_length do
-					esthetic = esthetic + "%"
+					esthetic = esthetic & "%"
 				end
 				
 				output_file.write_line(esthetic)
@@ -132,7 +132,7 @@ if result then
 					
 					# Write the title of each layer in the output file
 					var layer_title = (annotation_files[j].get_layer_label(tier))
-					output_file.write_line("%%%% Layer: " + layer_title)
+					output_file.write_line("%%%% Layer: " & layer_title)
 					output_file.write_line("")
 				
 					##### Intervals loop
@@ -148,7 +148,7 @@ if result then
 							
 							# Write the text from each interval in the output file. Type of writing depending on which separator is chosen.
 							if result.separator == 1 then
-								output_file.write(text_in_interval + " ")
+								output_file.write(text_in_interval & " ")
 							elsif result.separator == 2 then
 								output_file.write_line(text_in_interval)				
 							elsif result.separator == 3 then
@@ -172,7 +172,7 @@ if result then
 	end
 	output_file.close()
 
-	var show = ask("Annotations have been written to '" + path + "'.\nWould you like to view the file?")
+	var show = ask("Annotations have been written to '" & path & "'.\nWould you like to view the file?")
 	
 	if show then
 		view_text(path, system.get_base_name(path), 500)

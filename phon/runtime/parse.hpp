@@ -82,7 +82,7 @@ enum AstType
     EXP_LT,
     EXP_NE,
     EXP_EQ,
-    EXP_BITAND,
+    EXP_BITAND, // now used for concatenation
     EXP_BITXOR,
     EXP_BITOR,
     EXP_LOGAND,

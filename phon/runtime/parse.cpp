@@ -1142,6 +1142,15 @@ static int jsP_setnumnode(Ast *node, double x)
     return 1;
 }
 
+static int setstrnode(Ast *node, String s)
+{
+	node->type = EXP_STRING;
+	new (&node->string) String(std::move(s));
+	node->a = node->b = node->c = node->d = nullptr;
+
+	return 1;
+}
+
 static int jsP_foldconst(Ast *node)
 {
     double x, y;
@@ -1203,8 +1212,20 @@ static int jsP_foldconst(Ast *node)
                 return jsP_setnumnode(node, toint32(x) >> (touint32(y) & 0x1F));
             case EXP_USHR:
                 return jsP_setnumnode(node, touint32(x) >> (touint32(y) & 0x1F));
-            case EXP_BITAND:
-                return jsP_setnumnode(node, toint32(x) & toint32(y));
+            case EXP_BITAND: // this is now concat
+            {
+				String s;
+				if (double(intptr_t(x)) == x)
+					s.append(String::convert(intptr_t(x)));
+				else
+					s.append(String::convert(x));
+				if (double(intptr_t(y)) == y)
+					s.append(String::convert(intptr_t(y)));
+				else
+					s.append(String::convert(y));
+
+				return setstrnode(node, std::move(s));
+            }
             case EXP_BITXOR:
                 return jsP_setnumnode(node, toint32(x) ^ toint32(y));
             case EXP_BITOR:

@@ -43,11 +43,12 @@ static intptr_t normalize_index(intptr_t i, intptr_t size)
 
 static void new_array(Runtime &rt)
 {
-	if (rt.arg_count() != 2) {
-		rt.raise("Error", "Array expected two arguments, %d received", rt.arg_count());
+	int argc = rt.arg_count();
+	if (argc < 1 || argc > 2) {
+		rt.raise("Error", "Array expected 1 or 2 arguments, %d received", argc);
 	}
-	int nrow = rt.to_integer(1);
-	int ncol = rt.to_integer(2);
+	intptr_t nrow = rt.to_integer(1);
+	intptr_t ncol = (argc == 2) ? rt.to_integer(2) : 1;
 	auto obj = new Object(rt, PHON_CARRAY, rt.array_meta);
 
 	try
@@ -77,11 +78,12 @@ static void array_ncol(Runtime &rt)
 static void array_get(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
-	if (rt.arg_count() != 2) {
-		rt.raise("Error", "expected 2 arguments, received %d", rt.arg_count());
+	int argc = rt.arg_count();
+	if (argc < 1 || argc > 2) {
+		rt.raise("Error", "expected 1 or 2 arguments, received %d", argc);
 	}
 	intptr_t i = rt.to_integer(1);
-	intptr_t j = rt.to_integer(2);
+	intptr_t j = (argc == 2) ? rt.to_integer(2) : 0;
 	i = normalize_index(i, array.rows());
 	j = normalize_index(j, array.cols());
 	rt.push(array(i,j));
@@ -90,14 +92,27 @@ static void array_get(Runtime &rt)
 static void array_set(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
-	if (rt.arg_count() != 3) {
-		rt.raise("Error", "expected 3 arguments, received %d", rt.arg_count());
+	int argc = rt.arg_count();
+	if (argc < 2 || argc > 3) {
+		rt.raise("Error", "expected 2 or 3 arguments, received %d", argc);
 	}
-	intptr_t i = rt.to_integer(1);
-	intptr_t j = rt.to_integer(2);
+	intptr_t i, j;
+	double value;
+	i = rt.to_integer(1);
 	i = normalize_index(i, array.rows());
-	j = normalize_index(j, array.cols());
-	double value = rt.to_number(3);
+
+	if (argc == 2)
+	{
+		j = 0;
+		value = rt.to_number(2);
+	}
+	else
+	{
+		j = rt.to_integer(2);
+		value = rt.to_number(3);
+		j = normalize_index(j, array.cols());
+	}
+
 	array(i,j) = value;
 	rt.push_null();
 }
@@ -125,6 +140,45 @@ static void array_to_string(Runtime &rt)
 	rt.push(std::move(s));
 }
 
+static void array_transpose(Runtime &rt)
+{
+	auto &array = rt.to_array(0);
+	rt.push(array.transpose());
+}
+
+static void array_add(Runtime &rt)
+{
+	auto &M = rt.to_array(0);
+	double x = rt.to_number(1);
+
+	for (intptr_t i = 0; i < M.rows(); i++)
+	{
+		for (intptr_t j = 0; j < M.cols(); j++)
+		{
+			M(i, j) += x;
+		}
+	}
+
+	rt.push_null();
+}
+
+static void array_sub(Runtime &rt)
+{
+	auto &M = rt.to_array(0);
+	double x = rt.to_number(1);
+
+	for (intptr_t i = 0; i < M.rows(); i++)
+	{
+		for (intptr_t j = 0; j < M.cols(); j++)
+		{
+			M(i, j) -= x;
+		}
+	}
+
+	rt.push_null();
+}
+
+
 void Runtime::init_array()
 {
 	push(array_meta);
@@ -134,6 +188,9 @@ void Runtime::init_array()
 		add_method("Array.meta.to_string", array_to_string, 0);
 		add_method("Array.meta.get", array_get, 2);
 		add_method("Array.meta.set", array_set, 3);
+		add_method("Array.meta.transpose", array_transpose, 0);
+		add_method("Array.meta.add", array_add, 1);
+		add_method("Array.meta.sub", array_sub, 1);
 	}
 	new_native_constructor(new_array, new_array, "Array", 1);
 	def_global("Array", PHON_DONTENUM);

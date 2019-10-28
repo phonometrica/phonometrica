@@ -235,29 +235,6 @@ double string_to_float(const char *s, char **ep)
     return 0;
 }
 
-/* ToNumber() on a string */
-double string_to_number(Runtime *J, const String &str)
-{
-    char *e;
-    double n;
-    auto s = str.data();
-    while (is_white(*s) || is_new_line(*s)) ++s;
-    if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X') && s[2] != 0)
-        n = strtol(s + 2, &e, 16);
-    else if (!strncmp(s, "Infinity", 8))
-        n = INFINITY, e = (char *) s + 8;
-    else if (!strncmp(s, "+Infinity", 9))
-        n = INFINITY, e = (char *) s + 9;
-    else if (!strncmp(s, "-Infinity", 9))
-        n = -INFINITY, e = (char *) s + 9;
-    else
-        n = string_to_float(s, &e);
-    while (is_white(*e) || is_new_line(*e)) ++e;
-    if (*e) return NAN;
-    return n;
-}
-
-
 /* ToString() on a number */
 String number_to_string(Runtime *J, char *buf, double f)
 {
@@ -550,6 +527,11 @@ int js_instanceof(Runtime *J)
 
 void js_concat(Runtime *J)
 {
+	auto str = J->to_string(-2);
+	str.append(J->to_string(-1));
+	J->pop(2);
+	J->push(std::move(str));
+#if 0
     var_to_primitive(J, -2, PHON_HINT_NONE);
     var_to_primitive(J, -1, PHON_HINT_NONE);
 
@@ -567,6 +549,7 @@ void js_concat(Runtime *J)
         J->pop(2);
         J->push(x + y);
     }
+#endif
 }
 
 int js_compare(Runtime *J, int *okay)
