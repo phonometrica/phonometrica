@@ -22,104 +22,104 @@
  *                                                                                                                     *
  * Created: 04/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: display spectrogram in speech view.                                                                        *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SPECTROGRAM_HPP
-#define PHONOMETRICA_SPECTROGRAM_HPP
+#include <phon/analysis/speech_utils.hpp>
 
-#include <QImage>
-#include <phon/gui/speech_plot.hpp>
-#include <phon/utils/matrix.hpp>
-#include <phon/analysis/signal_processing.hpp>
+namespace phonometrica::speech {
 
-namespace phonometrica {
-
-class Runtime;
-
-
-class Spectrogram final : public SpeechPlot
+// Credits: https://helloacm.com/how-to-implement-and-unit-test-linespace-algorithm-in-c/
+std::vector<double> linspace(double from, double to, int num, bool include_boundaries)
 {
-    Q_OBJECT
+	std::vector<double> points;
+	// Exclude end points but add 2 points computed *inside* the window.
+	if (!include_boundaries) num += 2;
 
-public:
+	double length = (to - from) / (num - 1);
 
-    Spectrogram(Runtime &rt, const AutoSound &sound, QWidget *parent = nullptr);
+	if (include_boundaries) {
+		points.push_back(from);
+	}
+	for (int i = 1; i < num - 1; i ++) {
+		points.push_back(from + i * length);
+	}
+	if (include_boundaries) {
+		points.push_back(to);
+	}
 
-    void drawYAxis(QWidget *y_axis, int y1, int y2) override;
+	return points;
+}
 
-    void enableFormantTracking(bool value);
+std::vector<double> get_time_points(double from, double to, double step, bool include_boundaries)
+{
+	std::vector<double> points;
+	points.reserve((to - from) / step);
+	if (include_boundaries) points.push_back(from);
+	double t = from + step;
+	while (t < to)
+	{
+		points.push_back(t);
+		t += step;
+	}
+	if (include_boundaries) points.push_back(to);
 
-    bool hasFormants() const;
+	return points;
+}
 
-protected:
+double hertz_to_bark(double hz)
+{
+	double z = ((26.81 * hz) / (1960 + hz)) - 0.53;
+	if (z < 2) z = z + 0.15 * (2 - z);
+	else if (z > 20.1) z = z + 0.22 * (z - 20.1);
 
-    void renderPlot(QPaintEvent *event) override;
+	return z;
+}
 
-    virtual bool needsRefresh() const override;
+double bark_to_hertz(double z)
+{
+	if (z < 2) z = (z - 0.3) / 0.85;
+	else if (z > 20.1) z = (z + 4.422) / 1.22;
+	double hz = 1960 * ((z + 0.53) / (26.28 - z));
 
-    void resizeEvent(QResizeEvent *) override;
+	return hz;
+}
 
-	void readSettings() override;
+double hertz_to_erb(double hz)
+{
+	constexpr double A = 1000 * 2.302585093 / (24.7 * 4.37);
+	double erb = A * log10(1 + 0.00437 * hz);
 
-	void emptyCache() override;
+	return erb;
+}
 
-	void mouseMoveEvent(QMouseEvent *event) override;
+double erb_to_hertz(double erb)
+{
+	constexpr double A = 1000 * 2.302585093 / (24.7 * 4.37);
+	double hz = (10 * (erb / A) - 1) / 0.00437;
 
-private:
+	return hz;
+}
 
-	Matrix<double> computeSpectrogram();
+double hertz_to_mel(double hz)
+{
+	return 2595 * log10(1 + hz / 700);
+}
 
-	void estimateFormants();
+double mel_to_hertz(double mel)
+{
+	return 700 * (pow(10, mel / 2595) - 1);
+}
 
-	int formantToYPos(double hz);
+double hertz_to_semitones(double f0, double ref)
+{
+	return 12 * log2(f0 / ref);
+}
 
-	void readSpectrogramSettings();
+double semitones_to_hertz(double st, double ref)
+{
+	return ref * pow(2, st / 12);
+}
 
-	void readFormantsSettings();
-
-	double yPosToHertz(int y) const;
-
-	// Cached spectrogram.
-	QImage image;
-
-	// A matrix containing i time measurements across j formants.
-	Matrix<double> formants;
-
-	QList<QPainterPath> formant_paths;
-
-	// Duration of the analysis window for spectrograms.
-	double spectrum_window_length;
-
-	// Highest frequency.
-	double max_freq;
-
-	// Pre-emphasis factor.
-	double preemph_threshold;
-
-	// Dynamic range (in dB). Values below the threshold [max_dB - dynamic_range] are treated as 0.
-	int dynamic_range;
-
-	// Duration of the analysis window for formants.
-	double formant_window_length;
-
-	// Nyquist frequency range for formant analysis.
-	double max_formant_frequency;
-
-	// Number of prediction coefficients for LPC analysis.
-	int lpc_order;
-
-	// Number of formants to display.
-	int nformant;
-
-	// Window type for the spectrogram.
-	speech::WindowType window_type;
-
-	// Enable formant tracking.
-	bool show_formants = false;
-};
-
-} // namespace phonometrica
-
-#endif //PHONOMETRICA_SPECTROGRAM_HPP
+} // namespace phonometrica::speech

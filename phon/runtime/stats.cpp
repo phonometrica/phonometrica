@@ -20,106 +20,26 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 04/10/2019                                                                                                 *
+ * Created: 28/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: display spectrogram in speech view.                                                                        *
+ * Purpose: statistical functions for the scripting engine.                                                            *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SPECTROGRAM_HPP
-#define PHONOMETRICA_SPECTROGRAM_HPP
-
-#include <QImage>
-#include <phon/gui/speech_plot.hpp>
-#include <phon/utils/matrix.hpp>
-#include <phon/analysis/signal_processing.hpp>
+#include <phon/runtime/toplevel.hpp>
+#include <phon/analysis/statistics.hpp>
 
 namespace phonometrica {
 
-class Runtime;
-
-
-class Spectrogram final : public SpeechPlot
+static void math_sum(Runtime &rt)
 {
-    Q_OBJECT
+	auto &x = rt.to_array(1);
+	rt.push(stats::sum(x));
+}
 
-public:
-
-    Spectrogram(Runtime &rt, const AutoSound &sound, QWidget *parent = nullptr);
-
-    void drawYAxis(QWidget *y_axis, int y1, int y2) override;
-
-    void enableFormantTracking(bool value);
-
-    bool hasFormants() const;
-
-protected:
-
-    void renderPlot(QPaintEvent *event) override;
-
-    virtual bool needsRefresh() const override;
-
-    void resizeEvent(QResizeEvent *) override;
-
-	void readSettings() override;
-
-	void emptyCache() override;
-
-	void mouseMoveEvent(QMouseEvent *event) override;
-
-private:
-
-	Matrix<double> computeSpectrogram();
-
-	void estimateFormants();
-
-	int formantToYPos(double hz);
-
-	void readSpectrogramSettings();
-
-	void readFormantsSettings();
-
-	double yPosToHertz(int y) const;
-
-	// Cached spectrogram.
-	QImage image;
-
-	// A matrix containing i time measurements across j formants.
-	Matrix<double> formants;
-
-	QList<QPainterPath> formant_paths;
-
-	// Duration of the analysis window for spectrograms.
-	double spectrum_window_length;
-
-	// Highest frequency.
-	double max_freq;
-
-	// Pre-emphasis factor.
-	double preemph_threshold;
-
-	// Dynamic range (in dB). Values below the threshold [max_dB - dynamic_range] are treated as 0.
-	int dynamic_range;
-
-	// Duration of the analysis window for formants.
-	double formant_window_length;
-
-	// Nyquist frequency range for formant analysis.
-	double max_formant_frequency;
-
-	// Number of prediction coefficients for LPC analysis.
-	int lpc_order;
-
-	// Number of formants to display.
-	int nformant;
-
-	// Window type for the spectrogram.
-	speech::WindowType window_type;
-
-	// Enable formant tracking.
-	bool show_formants = false;
-};
+void Runtime::init_stats()
+{
+	add_global_function("sum", math_sum, 1);
+}
 
 } // namespace phonometrica
-
-#endif //PHONOMETRICA_SPECTROGRAM_HPP

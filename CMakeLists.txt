@@ -184,7 +184,7 @@ if (BUILD_GUI)
 
     file(GLOB_RECURSE APP_FILES
             phon/application/*.cpp phon/application/*.hpp
-            phon/speech/*.cpp phon/speech/*.hpp
+            phon/analysis/*.cpp phon/analysis/*.hpp
             phon/gui/*.cpp phon/gui/*.hpp
             phon/third_party/pugixml/pugixml.cpp
             phon/third_party/rtaudio/RtAudio.cpp

@@ -37,8 +37,8 @@
 #include <phon/application/sound.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/resampler.hpp>
-#include <phon/speech/signal_processing.hpp>
-#include <phon/speech/speech_utils.hpp>
+#include <phon/analysis/signal_processing.hpp>
+#include <phon/analysis/speech_utils.hpp>
 #include <phon/third_party/swipe/swipe.h>
 #include <phon/utils/matrix.hpp>
 

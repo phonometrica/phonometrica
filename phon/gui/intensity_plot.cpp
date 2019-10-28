@@ -32,7 +32,7 @@
 #include <phon/runtime/runtime.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/reset_intensity_settings_phon.hpp>
-#include <phon/speech/signal_processing.hpp>
+#include <phon/analysis/signal_processing.hpp>
 
 namespace phonometrica {
 

@@ -1,6 +1,6 @@
 Maintainer: Julien Eychenne <jeychenne@gmail.com>
 Architecture: amd64
-Version: 0.6.1
+Version: 0.6.2
 Section: science
 HomePage: <http://www.phonometrica-ling.org>
 Package: phonometrica

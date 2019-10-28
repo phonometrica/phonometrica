@@ -42,7 +42,7 @@ template <typename T>
 using Vector = Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
 
 // Convert an input matrix element-wise using formula.
-Array<double> apply(const Array<double> &input, const std::function<double(double)> &formula);
+Array<double> apply(const Array<double> &X, const std::function<double(double)> &formula);
 
 Array<double> transpose(const Array<double> &X);
 

@@ -345,6 +345,8 @@ private:
 
     void init_math();
 
+    void init_stats();
+
     void init_json();
 
     void init_date();

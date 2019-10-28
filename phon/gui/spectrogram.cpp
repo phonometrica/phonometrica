@@ -35,7 +35,7 @@
 #include <phon/application/settings.hpp>
 #include <phon/application/resampler.hpp>
 #include <phon/gui/spectrogram.hpp>
-#include <phon/speech/speech_utils.hpp>
+#include <phon/analysis/speech_utils.hpp>
 #include <phon/include/reset_spectrogram_settings_phon.hpp>
 #include <phon/include/reset_formants_settings_phon.hpp>
 #include <phon/utils/matrix.hpp>

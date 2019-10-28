@@ -126,6 +126,20 @@ FILE *open_file(const String &path, const char *mode);
 
 FILE *reopen_file(const String &path, const char *mode, FILE *stream);
 
+
+template<class T>
+T minimum(T x, T y, T z)
+{
+	return (std::min)((std::min)(x, y), z);
+}
+
+
+template<class T>
+T maximum(T x, T y, T z)
+{
+	return (std::max)((std::max)(x, y), z);
+}
+
 }} // namespace::utils
 
 #endif // PHONOMETRICA_HELPERS_HPP
