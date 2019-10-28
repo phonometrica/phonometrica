@@ -65,6 +65,10 @@ private slots:
 
     void saveScript(bool);
 
+    void commentCode(bool);
+
+    void uncommentCode(bool);
+
 private:
 
     void loadScript();

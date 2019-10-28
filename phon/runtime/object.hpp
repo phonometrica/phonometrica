@@ -96,7 +96,7 @@ public:
         bool boolean;
         double number;
         String string;
-        Matrix<double> array;
+        Array<double> array;
         struct
         {
             Function *function;

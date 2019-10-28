@@ -305,12 +305,14 @@ public:
 
 	size_type nrow() const noexcept
 	{
+		if (ndim() == 1) return size();
 		assert(ndim() == 2);
 		return m_dim.d2.nrow;
 	}
 
 	size_type ncol() const noexcept
 	{
+		if (ndim() == 1) return 1;
 		assert(ndim() == 2);
 		return m_dim.d2.ncol;
 	}

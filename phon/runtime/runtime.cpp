@@ -477,10 +477,10 @@ void Runtime::push(String &&v)
 	++top;
 }
 
-void Runtime::push(Matrix<double> m)
+void Runtime::push(Array<double> m)
 {
 	auto obj = new Object(*this, PHON_CARRAY, array_meta);
-	new (&obj->as.array) Matrix<double>(std::move(m));
+	new (&obj->as.array) Array<double>(std::move(m));
 	push(obj);
 }
 
@@ -661,7 +661,7 @@ Regex &Runtime::to_regex(int idx)
 	throw raise("Type error", "not a Regex");
 }
 
-Matrix<double> &Runtime::to_array(int idx)
+Array<double> &Runtime::to_array(int idx)
 {
 	Variant *v = stack_index(idx);
 	if (v->type == PHON_TOBJECT && v->as.object->type == PHON_CARRAY)
@@ -2015,22 +2015,22 @@ static void jsR_run(Runtime *J, Function *F)
 					if (J->is_array(-1))
 					{
 						auto &Y = J->to_array(-1);
-						if (X.rows() == Y.cols() && X.cols() == Y.rows())
+						if (X.nrow() == Y.ncol() && X.ncol() == Y.nrow())
 						{
 							J->pop(2);
-							J->push(X*Y);
+							J->push(mul(X, Y));
 						}
 						else
 						{
 							J->raise("Math error", "Cannot multiply matrices with dimensions %ldx%ld and %ldx%ld",
-									X.rows(), X.cols(), Y.rows(), Y.cols());
+									X.nrow(), X.ncol(), Y.nrow(), Y.ncol());
 						}
 					}
 					else
 					{
 						y = J->to_number(-1);
 						J->pop(2);
-						J->push(X*y);
+						J->push(mul(X,y));
 					}
 				}
 				else
@@ -2040,7 +2040,7 @@ static void jsR_run(Runtime *J, Function *F)
 					{
 						auto &Y = J->to_array(-1);
 						J->pop(2);
-						J->push(x*Y);
+						J->push(mul(Y,x));
 					}
 					else
 					{
@@ -2058,7 +2058,7 @@ static void jsR_run(Runtime *J, Function *F)
 					auto &X = J->to_array(-2);
 					y = J->to_number(-1);
 					J->pop(2);
-					J->push(X / y);
+					J->push(div(X,y));
 				}
 				else
 				{

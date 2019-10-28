@@ -71,7 +71,7 @@ Object::~Object()
         this->as.c.name.~String();
     }
     else if (this->type == PHON_CARRAY)
-    	this->as.array.~Matrix();
+    	this->as.array.~Array();
 
     // Detach object from the GC chain.
 //    if (this == runtime->gcobj) {

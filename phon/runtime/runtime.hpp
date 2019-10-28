@@ -144,7 +144,7 @@ public:
 
     void push(Variant &&v);
 
-    void push(Matrix<double> m);
+    void push(Array<double> m);
 
     std::optional<Variant> next_iterator(int idx);
 
@@ -219,7 +219,7 @@ public:
 
 	Regex & to_regex(int idx);
 
-	Matrix<double> &to_array(int idx);
+	Array<double> &to_array(int idx);
 
     File &to_file(int idx);
 

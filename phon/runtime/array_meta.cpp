@@ -31,16 +31,6 @@
 
 namespace phonometrica {
 
-static intptr_t normalize_index(intptr_t i, intptr_t size)
-{
-	if (i > 0 && i <= size)
-		return --i;
-	if (i < 0 && i <= -size)
-		return size + i;
-
-	throw error("[Index error] Index % out of range in array dimension with % elements", i, size);
-}
-
 static void new_array(Runtime &rt)
 {
 	int argc = rt.arg_count();
@@ -50,70 +40,84 @@ static void new_array(Runtime &rt)
 	intptr_t nrow = rt.to_integer(1);
 	intptr_t ncol = (argc == 2) ? rt.to_integer(2) : 1;
 	auto obj = new Object(rt, PHON_CARRAY, rt.array_meta);
-
-	try
-	{
-		new (&obj->as.array) Matrix<double>(nrow, ncol);
-	}
-	catch (std::runtime_error &e)
-	{
-		rt.raise("Math error", "%s", e.what());
-	}
-
+	new (&obj->as.array) Array<double>(nrow, ncol);
 	rt.push(obj);
 }
 
 static void array_nrow(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
-	rt.push_int(array.rows());
+	rt.push_int(array.nrow());
 }
 
 static void array_ncol(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
-	rt.push_int(array.cols());
+	rt.push_int(array.ncol());
+}
+
+static void array_dim_count(Runtime &rt)
+{
+	auto &array = rt.to_array(0);
+	rt.push_int(array.ndim());
 }
 
 static void array_get(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
 	int argc = rt.arg_count();
-	if (argc < 1 || argc > 2) {
+
+	if (argc == 1)
+	{
+		if (array.ndim() != 1) {
+			rt.raise("Index error", "One index provided in array with %ld dimensions", array.ndim());
+		}
+		intptr_t i = rt.to_integer(1);
+		rt.push(array.at(i));
+	}
+	else if (argc == 2)
+	{
+		if (array.ndim() != 2) {
+			rt.raise("Index error", "2 indexes provided in array with %ld dimensions", array.ndim());
+		}
+		intptr_t i = rt.to_integer(1);
+		intptr_t j = rt.to_integer(2);
+		rt.push(array.at(i,j));
+	}
+	else
+	{
 		rt.raise("Error", "expected 1 or 2 arguments, received %d", argc);
 	}
-	intptr_t i = rt.to_integer(1);
-	intptr_t j = (argc == 2) ? rt.to_integer(2) : 0;
-	i = normalize_index(i, array.rows());
-	j = normalize_index(j, array.cols());
-	rt.push(array(i,j));
 }
 
 static void array_set(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
 	int argc = rt.arg_count();
-	if (argc < 2 || argc > 3) {
-		rt.raise("Error", "expected 2 or 3 arguments, received %d", argc);
-	}
-	intptr_t i, j;
-	double value;
-	i = rt.to_integer(1);
-	i = normalize_index(i, array.rows());
 
 	if (argc == 2)
 	{
-		j = 0;
-		value = rt.to_number(2);
+		if (array.ndim() != 1) {
+			rt.raise("Index error", "One index provided in array with %ld dimensions", array.ndim());
+		}
+		intptr_t i = rt.to_integer(1);
+		double value = rt.to_number(2);
+		array.at(i) = value;
+	}
+	else if (argc == 3)
+	{
+		if (array.ndim() != 2) {
+			rt.raise("Index error", "2 indexes provided in array with %ld dimensions", array.ndim());
+		}
+		intptr_t i = rt.to_integer(1);
+		intptr_t j = rt.to_integer(2);
+		double value = rt.to_number(3);
+		array.at(i, j) = value;
 	}
 	else
 	{
-		j = rt.to_integer(2);
-		value = rt.to_number(3);
-		j = normalize_index(j, array.cols());
+		rt.raise("Error", "expected 1 or 2 arguments, received %d", argc);
 	}
-
-	array(i,j) = value;
 	rt.push_null();
 }
 
@@ -121,20 +125,18 @@ static void array_to_string(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
 	String s;
+	intptr_t nrow = array.nrow();
+	intptr_t ncol = array.ncol();
 
-	for (intptr_t i = 0; i < array.rows(); i++)
+	for (intptr_t i = 1; i <= nrow; i++)
 	{
-		for (intptr_t j = 0; j < array.cols(); j++)
+		for (intptr_t j = 1; j <= ncol; j++)
 		{
 			s.append(String::convert(array(i,j)));
-			if (j < array.cols() - 1) {
-				s.append(", ");
-			}
+			if (j < array.ncol()) s.append(", ");
 		}
 
-		if (i < array.rows() - 1) {
-			s.append('\n');
-		}
+		if (ncol > 1 && i < array.nrow()) s.append('\n');
 	}
 
 	rt.push(std::move(s));
@@ -142,42 +144,39 @@ static void array_to_string(Runtime &rt)
 
 static void array_transpose(Runtime &rt)
 {
-	auto &array = rt.to_array(0);
-	rt.push(array.transpose());
+	auto &X = rt.to_array(0);
+
+	rt.push(transpose(X));
 }
 
 static void array_add(Runtime &rt)
 {
-	auto &M = rt.to_array(0);
-	double x = rt.to_number(1);
+	auto &X = rt.to_array(0);
+	double n = rt.to_number(1);
+	rt.push(add(X, n));
 
-	for (intptr_t i = 0; i < M.rows(); i++)
-	{
-		for (intptr_t j = 0; j < M.cols(); j++)
-		{
-			M(i, j) += x;
-		}
-	}
-
-	rt.push_null();
 }
 
 static void array_sub(Runtime &rt)
 {
-	auto &M = rt.to_array(0);
-	double x = rt.to_number(1);
-
-	for (intptr_t i = 0; i < M.rows(); i++)
-	{
-		for (intptr_t j = 0; j < M.cols(); j++)
-		{
-			M(i, j) -= x;
-		}
-	}
-
-	rt.push_null();
+	auto &X = rt.to_array(0);
+	double n = rt.to_number(1);
+	rt.push(sub(X, n));
 }
 
+static void array_mul(Runtime &rt)
+{
+	auto &X = rt.to_array(0);
+	double n = rt.to_number(1);
+	rt.push(mul(X, n));
+}
+
+static void array_div(Runtime &rt)
+{
+	auto &X = rt.to_array(0);
+	double n = rt.to_number(1);
+	rt.push(div(X, n));
+}
 
 void Runtime::init_array()
 {
@@ -185,12 +184,15 @@ void Runtime::init_array()
 	{
 		add_accessor("row_count", array_nrow);
 		add_accessor("column_count", array_ncol);
+		add_accessor("dim_count", array_dim_count);
 		add_method("Array.meta.to_string", array_to_string, 0);
 		add_method("Array.meta.get", array_get, 2);
 		add_method("Array.meta.set", array_set, 3);
 		add_method("Array.meta.transpose", array_transpose, 0);
 		add_method("Array.meta.add", array_add, 1);
 		add_method("Array.meta.sub", array_sub, 1);
+		add_method("Array.meta.mul", array_mul, 1);
+		add_method("Array.meta.div", array_div, 1);
 	}
 	new_native_constructor(new_array, new_array, "Array", 1);
 	def_global("Array", PHON_DONTENUM);

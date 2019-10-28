@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Numeric arrays &#8212; Phonometrica 0.6.1 documentation</title>
+    <title>Numeric arrays &#8212; Phonometrica 0.6.2 documentation</title>
     <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="annotation.html" title="Annotations"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.2 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
       </ul>
     </div>
@@ -77,10 +77,10 @@
             
   <div class="section" id="numeric-arrays">
 <h1>Numeric arrays<a class="headerlink" href="#numeric-arrays" title="Permalink to this headline">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">Array</span></code> type represents a two-dimensional numeric array (i.e. a matrix). Elements in a matrix are accessed with a set of two indices, noted <em>(i, j)</em>,
-where <em>i</em> represents the <em>i*th row and *j</em> represents the <em>j*th column. Indices in each dimension start at 1 and can be negative.
-(Negative indices start from the end of the dimension.) For example, index *(3, 2)</em> represents the item in the third row in the second column, whereas
-<em>(1, -1)</em> represents element in the first row and in the last column.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Array</span></code> type represents a numeric array with one or two dimensions. Elements along each dimension start at 1 and can be negative.
+(Negative indices start from the end of the dimension.) Two-dimensional arrays are accessed with a pair of indices noted <em>(i, j)</em>,
+where <em>i</em> represents the <em>i</em> th row and <em>j</em> represents the <em>j</em> th column. For example, index <em>(3, 2)</em> represents the item in the third
+row in the second column, whereas <em>(1, -1)</em> represents element in the first row and in the last column.</p>
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -90,22 +90,59 @@ where <em>i</em> represents the <em>i*th row and *j</em> represents the <em>j*th
 
 <dl class="method">
 <dt>
-<code class="descname">Array</code><span class="sig-paren">(</span><em>nrow</em>, <em>ncol</em><span class="sig-paren">)</span></dt>
+<code class="descname">Array</code><span class="sig-paren">(</span><em>m</em><span class="optional">[</span>, <em>n</em><span class="optional">]</span><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
-<p>Constructs a matrix with <code class="docutils literal notranslate"><span class="pre">nrow</span></code> rows and <code class="docutils literal notranslate"><span class="pre">ncol</span></code> columns. All elements are initialized to 0.</p>
+<p>Constructs a vector with <code class="docutils literal notranslate"><span class="pre">m</span></code> elements  or an <code class="docutils literal notranslate"><span class="pre">m</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix. All elements are initialized to 0.</p>
+<hr class="docutils" />
 <dl class="method">
 <dt id="get">
-<code class="descname">get</code><span class="sig-paren">(</span><em>i</em>, <em>j</em><span class="sig-paren">)</span><a class="headerlink" href="#get" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get</code><span class="sig-paren">(</span><em>i</em><span class="optional">[</span>, <em>j</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#get" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns the value at row <code class="docutils literal notranslate"><span class="pre">i</span></code> and column <code class="docutils literal notranslate"><span class="pre">j</span></code>.</p>
+<p>Returns the value at index <code class="docutils literal notranslate"><span class="pre">i</span></code> in a vector or at index <code class="docutils literal notranslate"><span class="pre">(i,j)</span></code> in a matrix.</p>
+<hr class="docutils" />
 <dl class="method">
 <dt id="set">
-<code class="descname">set</code><span class="sig-paren">(</span><em>i</em>, <em>j</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#set" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set</code><span class="sig-paren">(</span><em>i</em>, <span class="optional">[</span><em>j</em>, <span class="optional">]</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#set" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Sets the element at row <code class="docutils literal notranslate"><span class="pre">i</span></code> and column <code class="docutils literal notranslate"><span class="pre">j</span></code> with the given <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
+<p>Sets the element at index <code class="docutils literal notranslate"><span class="pre">i</span></code> in a vector or at index <code class="docutils literal notranslate"><span class="pre">(i,j)</span></code> in a matrix.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="transpose">
+<code class="descname">transpose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transpose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the transpose of the matrix.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a new array where <code class="docutils literal notranslate"><span class="pre">n</span></code> was added to each element in the original array.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="sub">
+<code class="descname">sub</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#sub" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a new array where <code class="docutils literal notranslate"><span class="pre">n</span></code> was subtracted from each element in the original array.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="mul">
+<code class="descname">mul</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#mul" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a new array where each element in the original array was multiplied by <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="div">
+<code class="descname">div</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#div" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a new array where each element in the original array was divided by <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 </div>
 <div class="section" id="fields">
 <h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
@@ -127,6 +164,12 @@ where <em>i</em> represents the <em>i*th row and *j</em> represents the <em>j*th
 <dd></dd></dl>
 
 <p>Returns the number of columns in the array.</p>
+<dl class="attribute">
+<dt id="dim_count">
+<code class="descname">dim_count</code><a class="headerlink" href="#dim_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the number of dimensions of the array.</p>
 </div>
 </div>
 
@@ -148,7 +191,7 @@ where <em>i</em> represents the <em>i*th row and *j</em> represents the <em>j*th
         <li class="right" >
           <a href="annotation.html" title="Annotations"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.2 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
       </ul>
     </div>

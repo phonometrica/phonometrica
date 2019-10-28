@@ -144,11 +144,11 @@ Indices start at 1 and can be negative: -1 represents the last element, -2 the s
 Array
 ~~~~~
 
-An ``Array`` is a two-dimensional numeric array (i.e. a matrix). Elements in a matrix are accessed with a set of two indices, noted *(i, j)*,
-where *i* represents the *i* th row and *j* represents the *j* th column. Indices in each dimension start at 1 and can be negative.
-(Negative indices start from the end of the dimension.)
+An ``Array`` is a one or two dimension numeric array. Elements along each dimension start at 1 and can be negative.
+(Negative indices start from the end of the dimension.) Two-dimensional arrays are accessed with a pair of indices noted *(i, j)*,
+where *i* represents the *i* th row and *j* represents the *j* th column. 
 
-You can create a new array by passing the number of rows and columns to the constructor. For instance, here is how to create an array containing 3 rows and 4 columns:
+You can create a new array by passing the size of each dimension to the constructor. For instance, here is how to create an array containing 3 rows and 4 columns:
 
 .. code:: phon
 
@@ -387,3 +387,25 @@ an optional error message. It will trigger an error with the error message if th
         return x * y
     end
 
+
+Operators
+---------
+
+Mathematical operators
+~~~~~~~~~~~~~~~~~~~~~~
+
+Phonometrica supports the following mathematical operators: ``+`` (addition), ``-`` (subtraction), 
+``*`` (multiplication) and ``/`` (division). Multiplication and division take precedence over addition and 
+subtraction. These operators implicitly convert the left and right expressions to ``Number`` if needed.
+
+
+Boolean operators
+~~~~~~~~~~~~~~~~~
+
+Phonometrica supports the 3 standard Boolean operators ``and``, ``or`` and ``not``. 
+
+Concatenatation operator
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The concatenation operator ``&`` allows to concatenate two or more strings. It implicitly converts values to
+``String`` if needed.

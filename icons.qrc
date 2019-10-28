@@ -62,5 +62,7 @@
         <file>icons/number/8.png</file>
         <file>icons/number/9.png</file>
         <file>icons/mouse.png</file>
+        <file>icons/toggle_on.png</file>
+        <file>icons/toggle_off.png</file>
     </qresource>
 </RCC>

@@ -75,6 +75,16 @@ static void Math_log(Runtime &rt)
     rt.push(log(rt.to_number(1)));
 }
 
+static void Math_log10(Runtime &rt)
+{
+	rt.push(log10(rt.to_number(1)));
+}
+
+static void Math_log2(Runtime &rt)
+{
+	rt.push(log2(rt.to_number(1)));
+}
+
 static void Math_pow(Runtime &rt)
 {
     double x = rt.to_number(1);
@@ -183,6 +193,27 @@ void Runtime::init_math()
 {
     srand(time(nullptr));
 
+	add_global_function("abs", Math_abs, 1);
+	add_global_function("acos", Math_acos, 1);
+	add_global_function("asin", Math_asin, 1);
+	add_global_function("atan", Math_atan, 1);
+	add_global_function("atan2", Math_atan2, 2);
+	add_global_function("ceil", Math_ceil, 1);
+	add_global_function("cos", Math_cos, 1);
+	add_global_function("exp", Math_exp, 1);
+	add_global_function("floor", Math_floor, 1);
+	add_global_function("log", Math_log, 1);
+	add_global_function("log10", Math_log10, 1);
+	add_global_function("log2", Math_log2, 1);
+	add_global_function("max", Math_max, 0); /* 2 */
+	add_global_function("min", Math_min, 0); /* 2 */
+	add_global_function("pow", Math_pow, 2);
+	add_global_function("random", Math_random, 0);
+	add_global_function("round", Math_round, 1);
+	add_global_function("sin", Math_sin, 1);
+	add_global_function("sqrt", Math_sqrt, 1);
+	add_global_function("tan", Math_tan, 1);
+
     push(new Object(*this, PHON_CMATH, object_meta));
     {
         add_math_constant("E", 2.7182818284590452354);
@@ -193,25 +224,6 @@ void Runtime::init_math()
         add_math_constant("PI", 3.1415926535897932);
         add_math_constant("SQRT1_2", 0.7071067811865476);
         add_math_constant("SQRT2", 1.4142135623730951);
-
-        add_method("math.abs", Math_abs, 1);
-        add_method("math.acos", Math_acos, 1);
-        add_method("math.asin", Math_asin, 1);
-        add_method("math.atan", Math_atan, 1);
-        add_method("math.atan2", Math_atan2, 2);
-        add_method("math.ceil", Math_ceil, 1);
-        add_method("math.cos", Math_cos, 1);
-        add_method("math.exp", Math_exp, 1);
-        add_method("math.floor", Math_floor, 1);
-        add_method("math.log", Math_log, 1);
-        add_method("math.max", Math_max, 0); /* 2 */
-        add_method("math.min", Math_min, 0); /* 2 */
-        add_method("math.pow", Math_pow, 2);
-        add_method("math.random", Math_random, 0);
-        add_method("math.round", Math_round, 1);
-        add_method("math.sin", Math_sin, 1);
-        add_method("math.sqrt", Math_sqrt, 1);
-        add_method("math.tan", Math_tan, 1);
     }
     def_global("math", PHON_DONTENUM);
 }

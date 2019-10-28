@@ -30,19 +30,87 @@
 
 namespace phonometrica {
 
-Matrix<double> apply(const Matrix<double> &input, const std::function<double(double)> &formula)
+Array<double> apply(const Array<double> &input, const std::function<double(double)> &formula)
 {
-	Matrix<double> output(input.rows(), input.cols());
+	Array<double> output(input.nrow(), input.ncol());
 
-	for (intptr_t i = 0; i < input.rows(); i++)
+	for (intptr_t j = 1; j <= input.ncol(); j++)
 	{
-		for (intptr_t j = 0; j < input.cols(); j++)
+		for (intptr_t i = 1; i <= input.nrow(); i++)
 		{
 			output(i, j) = formula(input(i, j));
 		}
 	}
 
 	return output;
+}
+
+Array<double> transpose(const Array<double> &X)
+{
+	if (X.ndim() != 2) {
+		throw error("Cannot transpose array with % dimensions", X.ndim());
+	}
+	Array<double> Y(X.ncol(), X.nrow());
+	Eigen::Map<Matrix<double>> X1(const_cast<double*>(X.data()), X.nrow(), X.ncol());
+	Eigen::Map<Matrix<double>> Y1(const_cast<double*>(Y.data()), Y.nrow(), Y.ncol());
+	Y1 = X1.transpose();
+
+	return Y;
+}
+
+Array<double> mul(const Array<double> &X, const Array<double> &Y)
+{
+	Array<double> Z(X.nrow(), Y.ncol());
+	Eigen::Map<Matrix<double>> X1(const_cast<double*>(X.data()), X.nrow(), X.ncol());
+	Eigen::Map<Matrix<double>> Y1(const_cast<double*>(Y.data()), Y.nrow(), Y.ncol());
+	Eigen::Map<Matrix<double>> Z1(const_cast<double*>(Z.data()), Z.nrow(), Z.ncol());
+	Z1 = X1 * Y1;
+
+	return Z;
+}
+
+Array<double> mul(const Array<double> &X, double n)
+{
+	Array<double> Y(X.nrow(), X.ncol());
+
+	for (intptr_t i = 1; i <= X.size(); i++) {
+		Y[i] = X[i] * n;
+	}
+
+	return Y;
+}
+
+Array<double> div(const Array<double> &X, double n)
+{
+	Array<double> Y(X.nrow(), X.ncol());
+
+	for (intptr_t i = 1; i <= X.size(); i++) {
+		Y[i] = X[i] / n;
+	}
+
+	return Y;
+}
+
+Array<double> add(const Array<double> &X, double n)
+{
+	Array<double> Y(X.nrow(), X.ncol());
+
+	for (intptr_t i = 1; i <= X.size(); i++) {
+		Y[i] = X[i] + n;
+	}
+
+	return Y;
+}
+
+Array<double> sub(const Array<double> &X, double n)
+{
+	Array<double> Y(X.nrow(), X.ncol());
+
+	for (intptr_t i = 1; i <= X.size(); i++) {
+		Y[i] = X[i] - n;
+	}
+
+	return Y;
 }
 
 } // namespace phonometrica

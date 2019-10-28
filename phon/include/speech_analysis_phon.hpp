@@ -5,7 +5,7 @@ static const char *speech_analysis_script = R"_(function report_intensity(time)
     var sound = get_current_sound()
     if sound then
         var dB = sound.get_intensity(time)
-        print("Intensity at time " + time + " s = " + dB + " dB")
+        print("Intensity at time " & time & " s = " & dB & " dB")
     else
         alert("No sound or annotation view is currently selected!")
     end
@@ -16,9 +16,9 @@ function report_pitch(time)
     if sound then
         var f0 = sound.get_pitch(time)
         if f0 then
-            print("Pitch at time " + time + " s = " + f0 + " Hz")
+            print("Pitch at time " & time & " s = " & f0 & " Hz")
         else
-            print("Pitch at time " + time + " s = undefined")
+            print("Pitch at time " & time & " s = undefined")
         end
     else
         alert("No sound or annotation view is currently selected!")
@@ -26,21 +26,21 @@ function report_pitch(time)
 end
 
 function report_formants(time)
-    print("Formants at time " + time + " s:")
+    print("Formants at time " & time & " s:")
     var sound = get_current_sound()
     if sound then
         var result = sound.get_formants(time)
         var nformant = result.row_count
 
         for var i = 1 to nformant do
-            var label = "F" + String(i)
+            var label = "F" & i
             var fmt = result.get(i, 1)
             var bw = result.get(i, 2)
 
             if fmt then
-                print(label + " = " + fmt + " Hz\t bandwidth = " + bw + " Hz")
+                print(label & " = " & fmt & " Hz\t bandwidth = " & bw & " Hz")
             else
-                print(label + " = undefined")
+                print(label & " = undefined")
             end
         end
     else

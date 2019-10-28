@@ -265,11 +265,10 @@ int Sound::get_intensity_window_size() const
 	return int(std::ceil(effective_duration * m_data->sample_rate()));
 }
 
-Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_frequency, double window_size, int lpc_order)
+Array<double> Sound::get_formants(double time, int nformant, double nyquist_frequency, double window_size, int lpc_order)
 {
 	load();
-	Matrix<double> result(nformant, 2);
-	result.setZero(nformant, 2);
+	Array<double> result(nformant, 2, 0.0);
 	using namespace speech;
 	PHON_LOG("Calculating formants");
 
@@ -317,10 +316,10 @@ Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_fre
 
 	if (!ok)
 	{
-		for (int i = 0; i < nformant; i++)
+		for (int i = 1; i <= nformant; i++)
 		{
-			result(i, 0) = std::nan("");
 			result(i, 1) = std::nan("");
+			result(i, 2) = std::nan("");
 		}
 
 		return result;
@@ -333,15 +332,15 @@ Matrix<double> Sound::get_formants(double time, int nformant, double nyquist_fre
 		auto freq = freqs[k];
 		if (freq > 50 && freq < max_freq && bw[k] < 400)
 		{
-			result(count, 0) = freq;
-			result(count++, 1) = bw[k];
+			result(++count, 1) = freq;
+			result(count, 2) = bw[k];
 		}
 		if (count == nformant) break;
 	}
-	for (int k = count; k < nformant; k++)
+	for (int k = count+1; k <= nformant; k++)
 	{
-		result(k, 0) = std::nan("");
 		result(k, 1) = std::nan("");
+		result(k, 2) = std::nan("");
 	}
 
 	return result;
