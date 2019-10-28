@@ -39,8 +39,8 @@ Source: "C:\Devel\build\x64-Release\phonometrica.exe"; DestDir: "{app}"; Flags: 
 ;Source: "C:\Devel\build\x64-Release\phonometrica.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Julien\Documents\Devel\phonometrica\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Julien\Documents\Devel\phonometrica\LICENSE-FR"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Lib\deploy_mingw\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Users\Julien\Documents\Devel\phonometrica\std\*"; DestDir: "{app}\std"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Devel\Deploy\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+;Source: "C:\Users\Julien\Documents\Devel\phonometrica\std\*"; DestDir: "{app}\std"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "C:\Users\Julien\Documents\Devel\phonometrica\html\*"; DestDir: "{app}\html"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "C:\Users\Julien\Documents\Devel\phonometrica\licenses\*"; DestDir: "{app}\other_licenses"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
