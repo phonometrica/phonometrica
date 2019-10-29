@@ -46,7 +46,7 @@ Regex::Regex(const String &pattern, int flags, Regex::Jit jit) :
     m_pattern(pattern), m_flags(flags), m_jit(jit)
 {
 	m_regex = pcre2_compile((PCRE2_SPTR) pattern.data(), pattern.size(),
-	                        (uint32_t) flags, &m_error_code, &m_error_offset, nullptr);
+	                        (uint32_t) flags|PCRE2_UTF, &m_error_code, &m_error_offset, nullptr);
 
 	if (m_regex == nullptr) {
 		throw error("compilation of regular expression failed at position %: %",

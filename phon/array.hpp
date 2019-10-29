@@ -377,7 +377,7 @@ public:
 
 	reference operator()(size_type row, size_type col)
 	{
-		assert(ndim() == 2);
+		assert(ndim() <= 2);
 		assert(row > 0 && col > 0);
 		size_type pos = (col - 1) * nrow() + row - 1;
 
@@ -386,7 +386,7 @@ public:
 
 	const_reference operator()(size_type row, size_type col) const
 	{
-		assert(ndim() == 2);
+		assert(ndim() <= 2);
 		assert(row > 0 && col > 0);
 		auto pos = (col - 1) * nrow() + row - 1;
 

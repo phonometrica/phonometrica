@@ -31,15 +31,37 @@
 
 namespace phonometrica {
 
-static void math_sum(Runtime &rt)
+static void stat_sum(Runtime &rt)
 {
 	auto &x = rt.to_array(1);
-	rt.push(stats::sum(x));
+	if (rt.arg_count() > 1)
+	{
+		auto dim = rt.to_integer(2);
+		if (x.ndim() == 1 && dim == 1)
+			rt.push(stats::sum(x));
+		else
+			rt.push(stats::sum(x, dim));
+	}
+	else
+	{
+		rt.push(stats::sum(x));
+	}
+}
+
+static void stat_chi2(Runtime &rt)
+{
+	auto &x = rt.to_array(1);
+	auto result = stats::chi2_test(x);
+	rt.new_object();
+	rt.add_numeric_field("chi2", std::get<0>(result));
+	rt.add_numeric_field("df", std::get<1>(result));
+	rt.add_numeric_field("p", std::get<2>(result));
 }
 
 void Runtime::init_stats()
 {
-	add_global_function("sum", math_sum, 1);
+	add_global_function("sum", stat_sum, 1);
+	add_global_function("chi2_test", stat_chi2, 1);
 }
 
 } // namespace phonometrica

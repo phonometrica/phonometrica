@@ -1,7 +1,8 @@
 #ifndef SPEECH_ANALYSIS_PHON_SCRIPT_INCLUDE
 #define SPEECH_ANALYSIS_PHON_SCRIPT_INCLUDE
 
-static const char *speech_analysis_script = R"_(function report_intensity(time)
+static const char *speech_analysis_script = R"_(
+function report_intensity(time)
     var sound = get_current_sound()
     if sound then
         var dB = sound.get_intensity(time)

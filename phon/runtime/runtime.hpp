@@ -104,7 +104,7 @@ public:
 
     void set_field(int idx, const String &name);
 
-    void def_field(int idx, const String &name, int atts);
+    void def_field(int idx, const String &name, int atts = PHON_DONTENUM);
 
     void del_field(int idx, const String &name);
 
@@ -236,6 +236,8 @@ public:
     void add_math_constant(const char *name, double number);
 
     void add_string_field(const char *name, const char *string);
+
+    void add_numeric_field(const char *name, double n);
 
     double to_number(int idx);
 

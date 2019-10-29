@@ -371,6 +371,12 @@ void Runtime::add_string_field(const char *name, const char *string)
     def_field(-2, name, PHON_DONTENUM);
 }
 
+void Runtime::add_numeric_field(const char *name, double n)
+{
+	push(n);
+	def_field(-2, name, PHON_DONTENUM);
+}
+
 Variant &Runtime::get(int idx)
 {
     return *stack_index(idx);

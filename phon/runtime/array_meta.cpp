@@ -133,7 +133,7 @@ static void array_to_string(Runtime &rt)
 		for (intptr_t j = 1; j <= ncol; j++)
 		{
 			s.append(String::convert(array(i,j)));
-			if (j < array.ncol()) s.append(", ");
+			if (j < array.ncol() || (ncol == 1 && i < nrow)) s.append(", ");
 		}
 
 		if (ncol > 1 && i < array.nrow()) s.append('\n');
@@ -186,8 +186,8 @@ void Runtime::init_array()
 		add_accessor("column_count", array_ncol);
 		add_accessor("dim_count", array_dim_count);
 		add_method("Array.meta.to_string", array_to_string, 0);
-		add_method("Array.meta.get", array_get, 2);
-		add_method("Array.meta.set", array_set, 3);
+		add_method("Array.meta.get", array_get, 1);
+		add_method("Array.meta.set", array_set, 2);
 		add_method("Array.meta.transpose", array_transpose, 0);
 		add_method("Array.meta.add", array_add, 1);
 		add_method("Array.meta.sub", array_sub, 1);

@@ -155,6 +155,8 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 	auto &events = annot->get_layer_events(layer_index);
 	QueryMatchSet matches;
 	static String sep(" ");
+	PHON_LOG("search for text matches in " << annot->path());
+	std::string_view p = annot->path();
 
 	for (intptr_t i = 1; i <= events.size(); i++)
 	{

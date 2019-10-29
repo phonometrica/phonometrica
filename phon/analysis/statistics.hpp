@@ -35,6 +35,8 @@ namespace phonometrica { namespace stats {
 
 double sum(const Array<double> &x);
 
+Array<double> sum(const Array<double> &x, intptr_t dim);
+
 double mean(const Array<double> &x);
 
 double sample_variance(const Array<double> &x);
@@ -48,6 +50,9 @@ double t_statistic1(const Array<double> &vector, double mu);
 double t_statistic2(const Array<double> &vector1, const Array<double> &vector2);
 
 double f_statistic(const Array<double> &vector1, const Array<double> &vector2);
+
+// Pearson's chi-squared test
+std::tuple<double,double,double> chi2_test(const Array<double> &data);
 
 // Student's one-sample t-test
 double student_ttest1(const Array<double> &vector, double mu, double &t, bool double_sided = true);

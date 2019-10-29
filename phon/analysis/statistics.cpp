@@ -29,6 +29,7 @@
 #include <math.h>
 #include <boost/math/distributions/students_t.hpp>
 #include <boost/math/distributions/fisher_f.hpp>
+#include <boost/math/distributions/chi_squared.hpp>
 #include <phon/analysis/statistics.hpp>
 
 namespace phonometrica { namespace stats {
@@ -49,6 +50,50 @@ double sum(const Array<double> &x)
     }
 
     return sum;
+}
+
+Array<double> sum(const Array<double> &x, intptr_t dim)
+{
+	if (dim > x.ndim()) {
+		throw error("Cannot access dimension % in Array with % dimensions", dim, x.ndim());
+	}
+	auto nrow = x.nrow();
+	auto ncol = x.ncol();
+
+	switch (dim)
+	{
+		case 1:
+		{
+			Array<double> result(nrow, 0.0);
+			for (intptr_t i = 1; i <= nrow; i++)
+			{
+				double total = 0;
+				for (intptr_t j = 1; j <= ncol; j++)
+				{
+					total += x(i,j);
+				}
+				result[i] = total;
+			}
+			return result;
+		}
+		case 2:
+		{
+			Array<double> result(ncol, 0.0);
+			for (intptr_t j = 1; j <= ncol; j++)
+			{
+				double total = 0;
+				for (intptr_t i = 1; i <= nrow; i++)
+				{
+					total += x(i,j);
+				}
+				result[j] = total;
+
+			}
+			return result;
+		}
+		default:
+			throw error("sum not supported for arrays with % dimensions", dim);
+	}
 }
 
 double mean(const Array<double> &x)
@@ -105,6 +150,34 @@ static inline double compute_ttest(double t, double df, bool double_sided)
     int coeff = double_sided ? 2 : 1;
 
     return cdf(complement(dist, std::abs(t))) * coeff;
+}
+
+std::tuple<double,double,double> chi2_test(const Array<double> &data)
+{
+	if (data.ndim() != 2) {
+		throw error("Chi squared test expected a two-dimensional array");
+	}
+	auto total = sum(data);
+	auto row_sum = sum(data, 1);
+	auto col_sum = sum(data, 2);
+	double chi2 = 0;
+	auto ncol = data.ncol();
+	auto nrow = data.nrow();
+
+	for (intptr_t j = 1; j <= ncol; j++)
+	{
+		for (intptr_t i = 1; i <= nrow; i++)
+		{
+			auto observed = data(i, j);
+			auto expected = (row_sum[i] * col_sum[j]) / total;
+			chi2 += pow(observed - expected, 2) / expected;
+		}
+	}
+	auto df = (nrow - 1) * (ncol - 1);
+	boost::math::chi_squared dist(df);
+	auto p = 1 - boost::math::cdf(dist, chi2);
+
+	return { chi2, df, p };
 }
 
 double student_ttest1(const Array<double> &vector, double mu, double &t, bool double_sided)

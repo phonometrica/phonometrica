@@ -222,7 +222,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
 			QPlainTextEdit::keyPressEvent(event);
 			// Then insert the spacing.
 			textCursor().insertText(ln.left(count));
-			if (ln.endsWith(" then") || ln.endsWith(" do")) {
+			if (ln.endsWith(" then") || ln.endsWith(" do") || ln.trimmed().startsWith("function ")) {
 				textCursor().insertText("\t");
 			}
 		}

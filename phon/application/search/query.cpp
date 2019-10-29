@@ -87,7 +87,6 @@ QueryMatchList Query::filter_data()
 	{
 		progress.setValue(i++);
 		if (progress.wasCanceled()) return QueryMatchList();
-
 		annot->open();
 		auto matches = search_tree->filter(annot, QueryMatchSet());
 		auto new_size = results.size() + matches.size();
