@@ -989,6 +989,14 @@ void Runtime::get_field(Object *obj, intptr_t pos)
 			auto &v = obj->as.list.at(pos);
 			push(v);
 		}
+		else if (obj->type == PHON_CARRAY)
+		{
+			auto &x = obj->as.array;
+			if (x.ndim() != 1) {
+				throw raise("Index error", "1 index provided, but array has %ld dimensions", x.ndim());
+			}
+			push(x.at(pos));
+		}
 		else if (obj->type == PHON_CSTRING)
 		{
 			throw raise("Index error", "Cannot index String code point");
@@ -998,7 +1006,7 @@ void Runtime::get_field(Object *obj, intptr_t pos)
 		}
 		else
 		{
-			throw raise("Error", "%s (type id: %d)", "cannot get numeric index for object which is not a list", obj->type);
+			throw raise("Error", "%s (type id: %d)", "cannot get numeric index for object which is neither a list nor an array", obj->type);
 		}
 	}
 	catch (std::runtime_error &e)
@@ -1009,17 +1017,35 @@ void Runtime::get_field(Object *obj, intptr_t pos)
 
 void Runtime::set_field(Object *obj, intptr_t idx)
 {
-	if (obj->type != PHON_CLIST)
+	if (obj->type == PHON_CLIST)
 	{
-		throw raise("Error", "%s (type id: %d)", "cannot set numeric index for object which is not a list", obj->type);
+		try
+		{
+			obj->as.list.at(idx) = *stack_index(-1);
+		}
+		catch (std::runtime_error &e)
+		{
+			throw raise("Index error", e);
+		}
 	}
-	try
+	else if (obj->type == PHON_CARRAY)
 	{
-		obj->as.list.at(idx) = *stack_index(-1);
+		try
+		{
+			auto &x = obj->as.array;
+			if (x.ndim() != 1) {
+				throw error("1 index provided but array has %ld dimensions", x.ndim());
+			}
+			x.at(idx) = stack_index(-1)->to_number();
+		}
+		catch (std::exception &e)
+		{
+			throw raise("Index error", "%s", e.what());
+		}
 	}
-	catch (std::runtime_error &e)
+	else
 	{
-		throw raise("Index error", e);
+		throw raise("Index error", "%s (type id: %d)", "cannot set numeric index for object which is neither a list nor an array", obj->type);
 	}
 }
 
@@ -1855,6 +1881,23 @@ static void jsR_run(Runtime *J, Function *F)
 				js_rot3pop2(J);
 				break;
 			}
+			case OP_GETPROPX:
+			{
+				int argc = *pc++;
+				int pos = -1 - argc;
+				if (!J->is_array(pos)) {
+					throw J->raise("Index error", "Multi-dimensional indexing is only supported for numeric arrays");
+				}
+				auto &X = J->to_array(pos);
+				intptr_t i = J->to_integer(-2);
+				intptr_t j = J->to_integer(-1);
+				J->pop(argc + 1);
+				if (X.ndim() != 2) {
+					throw J->raise("Index error", "2 indexes provided, but array has %ld dimension(s)", X.ndim());
+				}
+				J->push(X.at(i,j));
+				break;
+			}
 			case OP_GETPROP_S:
 			{
 				auto &str = ST[*pc++];
@@ -1878,6 +1921,24 @@ static void jsR_run(Runtime *J, Function *F)
 					J->set_field(obj, str);
 				}
 				js_rot3pop2(J);
+				break;
+			}
+			case OP_SETPROPX:
+			{
+				int argc = *pc++;
+				int pos = -2 - argc;
+				if (!J->is_array(pos)) {
+					throw J->raise("Index error", "Multi-dimensional indexing is only supported for numeric arrays");
+				}
+				auto &X = J->to_array(pos);
+				intptr_t i = J->to_integer(-3);
+				intptr_t j = J->to_integer(-2);
+				double value = J->to_number(-1);
+				if (X.ndim() != 2) {
+					throw J->raise("Index error", "2 indexes provided, but array has %d dimension(s)", int(X.ndim()));
+				}
+				X.at(i,j) = value;
+				J->pop(argc + 1); // FIXME: stack underflow if we pop 4 arguments.
 				break;
 			}
 			case OP_SETPROP_S:

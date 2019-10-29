@@ -209,14 +209,13 @@ original string unchanged.</p>
 <h3>Array<a class="headerlink" href="#array" title="Permalink to this headline">¶</a></h3>
 <p>An <code class="docutils literal notranslate"><span class="pre">Array</span></code> is a one or two dimension numeric array. Elements along each dimension start at 1 and can be negative.
 (Negative indices start from the end of the dimension.) Two-dimensional arrays are accessed with a pair of indices noted <em>(i, j)</em>,
-where <em>i</em> represents the <em>i</em> th row and <em>j</em> represents the <em>j</em> th column.</p>
+where <em>i</em> represents the <em>i</em> th row and <em>j</em> represents the <em>j</em> th column. To get or set an element in an array, use the index <code class="docutils literal notranslate"><span class="pre">[]</span></code> operator.</p>
 <p>You can create a new array by passing the size of each dimension to the constructor. For instance, here is how to create an array containing 3 rows and 4 columns:</p>
 <div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">array</span> <span class="o">=</span> <span class="kr">new</span> <span class="n">Array</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 
 <span class="kr">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span> <span class="kr">to</span> <span class="n">array</span><span class="p">.</span><span class="n">row_count</span> <span class="kr">do</span>
-
     <span class="kr">for</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span> <span class="kr">to</span> <span class="n">array</span><span class="p">.</span><span class="n">column_count</span> <span class="kr">do</span>
-        <span class="n">array</span><span class="p">.</span><span class="kr">set</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">array</span><span class="o">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="o">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span>
     <span class="kr">end</span>
 <span class="kr">end</span>
 <span class="n">print</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>

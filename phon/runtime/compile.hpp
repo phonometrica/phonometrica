@@ -72,8 +72,10 @@ enum js_OpCode
     OP_INITSETTER,    /* <obj> <key> <closure> -- <obj> */
 
     OP_GETPROP,    /* <obj> <name> -- <value> */
+    OP_GETPROPX,   // Get index in multi-dimensional object
     OP_GETPROP_S,    /* <obj> -S- <value> */
     OP_SETPROP,    /* <obj> <name> <value> -- <value> */
+    OP_SETPROPX,    // Set index in multi-dimensional object
     OP_SETPROP_S,    /* <obj> <value> -S- <value> */
     OP_DELPROP,    /* <obj> <name> -- <success> */
     OP_DELPROP_S,    /* <obj> -S- <success> */

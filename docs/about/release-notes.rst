@@ -5,9 +5,11 @@ Release notes
 ~~~~~~~~~~~~~~~~~~
 
 - new concatenation operator ``&``
-- more ``Array`` methods
+- mathematical and statistical functions
+- improved ``Array`` type
 - the multiplication and division operators can now operate on two arrays, or on an array and a scalar value.
 - comment/uncomment selection in script views
+- bug fixes
 
 0.6.1 (27/10/2019)
 ~~~~~~~~~~~~~~~~~~

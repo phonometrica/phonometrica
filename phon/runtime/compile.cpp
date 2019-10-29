@@ -437,9 +437,20 @@ static void cassign(JF, Ast *exp)
         break;
     case EXP_INDEX:
         cexp(J, F, lhs->a);
-        cexp(J, F, lhs->b);
-        cexp(J, F, rhs);
-        emit(J, F, OP_SETPROP);
+        if (lhs->b->type == EXP_COMMA)
+        {
+	        cexp(J, F, lhs->b->a);
+	        cexp(J, F, lhs->b->b);
+	        cexp(J, F, rhs);
+	        emit(J, F, OP_SETPROPX);
+			emit(J, F, 2); // argc
+        }
+        else
+        {
+	        cexp(J, F, lhs->b);
+	        cexp(J, F, rhs);
+	        emit(J, F, OP_SETPROP);
+        }
         break;
     case EXP_MEMBER:
         cexp(J, F, lhs->a);
@@ -666,8 +677,18 @@ static void cexp(JF, Ast *exp)
 
     case EXP_INDEX:
         cexp(J, F, exp->a);
-        cexp(J, F, exp->b);
-        emit(J, F, OP_GETPROP);
+        if (exp->b->type == EXP_COMMA)
+        {
+        	cexp(J, F, exp->b->a);
+        	cexp(J, F, exp->b->b);
+        	emit(J, F, OP_GETPROPX);
+        	emit(J, F, 2); // argc
+        }
+        else
+        {
+	        cexp(J, F, exp->b);
+	        emit(J, F, OP_GETPROP);
+        }
         break;
 
     case EXP_MEMBER:

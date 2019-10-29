@@ -48,6 +48,57 @@ static void stat_sum(Runtime &rt)
 	}
 }
 
+static void stat_mean(Runtime &rt)
+{
+	auto &x = rt.to_array(1);
+	if (rt.arg_count() > 1)
+	{
+		auto dim = rt.to_integer(2);
+		if (x.ndim() == 1 && dim == 1)
+			rt.push(stats::mean(x));
+		else
+			rt.push(stats::mean(x, dim));
+	}
+	else
+	{
+		rt.push(stats::mean(x));
+	}
+}
+
+static void stat_var(Runtime &rt)
+{
+	auto &x = rt.to_array(1);
+	if (rt.arg_count() > 1)
+	{
+		auto dim = rt.to_integer(2);
+		if (x.ndim() == 1 && dim == 1)
+			rt.push(stats::sample_variance(x));
+		else
+			rt.push(stats::sample_variance(x, dim));
+	}
+	else
+	{
+		rt.push(stats::sample_variance(x));
+	}
+}
+
+static void stat_std(Runtime &rt)
+{
+	auto &x = rt.to_array(1);
+	if (rt.arg_count() > 1)
+	{
+		auto dim = rt.to_integer(2);
+		if (x.ndim() == 1 && dim == 1)
+			rt.push(stats::stdev(x));
+		else
+			rt.push(stats::stdev(x, dim));
+	}
+	else
+	{
+		rt.push(stats::stdev(x));
+	}
+}
+
 static void stat_chi2(Runtime &rt)
 {
 	auto &x = rt.to_array(1);
@@ -61,6 +112,9 @@ static void stat_chi2(Runtime &rt)
 void Runtime::init_stats()
 {
 	add_global_function("sum", stat_sum, 1);
+	add_global_function("mean", stat_mean, 1);
+	add_global_function("var", stat_var, 1);
+	add_global_function("std", stat_var, 1);
 	add_global_function("chi2_test", stat_chi2, 1);
 }
 

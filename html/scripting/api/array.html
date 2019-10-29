@@ -43,6 +43,7 @@
   <h3><a href="../../index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Numeric arrays</a><ul>
+<li><a class="reference internal" href="#array-indexing">Array indexing</a></li>
 <li><a class="reference internal" href="#methods">Methods</a></li>
 <li><a class="reference internal" href="#fields">Fields</a></li>
 </ul>
@@ -77,10 +78,20 @@
             
   <div class="section" id="numeric-arrays">
 <h1>Numeric arrays<a class="headerlink" href="#numeric-arrays" title="Permalink to this headline">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">Array</span></code> type represents a numeric array with one or two dimensions. Elements along each dimension start at 1 and can be negative.
-(Negative indices start from the end of the dimension.) Two-dimensional arrays are accessed with a pair of indices noted <em>(i, j)</em>,
+<p>The <code class="docutils literal notranslate"><span class="pre">Array</span></code> type represents a numeric array with one or two dimensions.</p>
+<div class="section" id="array-indexing">
+<h2>Array indexing<a class="headerlink" href="#array-indexing" title="Permalink to this headline">¶</a></h2>
+<p>To get or set an element in an array, use the index <code class="docutils literal notranslate"><span class="pre">[]</span></code> operator. Elements along each dimension start at 1 and can be negative.
+(Negative indices start from the end of the dimension.)
+Two-dimensional arrays are accessed with a pair of indices noted <em>(i, j)</em>,
 where <em>i</em> represents the <em>i</em> th row and <em>j</em> represents the <em>j</em> th column. For example, index <em>(3, 2)</em> represents the item in the third
 row in the second column, whereas <em>(1, -1)</em> represents element in the first row and in the last column.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="nc">X</span> <span class="o">=</span> <span class="kr">new</span> <span class="n">Array</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="nc">X</span><span class="o">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="o">]</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">print</span><span class="p">(</span><span class="nc">X</span><span class="o">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="o">]</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -94,20 +105,6 @@ row in the second column, whereas <em>(1, -1)</em> represents element in the fir
 <dd></dd></dl>
 
 <p>Constructs a vector with <code class="docutils literal notranslate"><span class="pre">m</span></code> elements  or an <code class="docutils literal notranslate"><span class="pre">m</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix. All elements are initialized to 0.</p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="get">
-<code class="descname">get</code><span class="sig-paren">(</span><em>i</em><span class="optional">[</span>, <em>j</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns the value at index <code class="docutils literal notranslate"><span class="pre">i</span></code> in a vector or at index <code class="docutils literal notranslate"><span class="pre">(i,j)</span></code> in a matrix.</p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="set">
-<code class="descname">set</code><span class="sig-paren">(</span><em>i</em>, <span class="optional">[</span><em>j</em>, <span class="optional">]</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#set" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Sets the element at index <code class="docutils literal notranslate"><span class="pre">i</span></code> in a vector or at index <code class="docutils literal notranslate"><span class="pre">(i,j)</span></code> in a matrix.</p>
 <hr class="docutils" />
 <dl class="method">
 <dt id="transpose">

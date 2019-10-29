@@ -101,6 +101,18 @@ double mean(const Array<double> &x)
     return sum(x) / x.size();
 }
 
+Array<double> mean(const Array<double> &x, int dim)
+{
+	auto sums = sum(x, dim);
+	auto size = dim == 1 ? x.ncol() : x.nrow();
+
+	for (intptr_t i = 1; i <= sums.size(); i++) {
+		sums[i] /= size;
+	}
+
+	return sums;
+}
+
 double sample_variance(const Array<double> &x)
 {
     double mu = mean(x);
@@ -110,15 +122,73 @@ double sample_variance(const Array<double> &x)
 
     for (intptr_t i = 0; i < count; ++i)
     {
-        sum += pow((data[i] - mu), 2.0);
+        sum += pow((data[i] - mu), 2);
     }
 
     return sum / (count - 1);
 }
 
+Array<double> sample_variance(const Array<double> &x, int dim)
+{
+	auto nrow = x.nrow();
+	auto ncol = x.ncol();
+	auto mu = mean(x, dim);
+
+	switch (dim)
+	{
+		case 1:
+		{
+			Array<double> result(nrow, 0.0);
+
+			for (intptr_t i = 1; i <= nrow; i++)
+			{
+				double total = 0;
+				for (intptr_t j = 1; j <= ncol; j++)
+				{
+					total += pow(x(i,j) - mu[j], 2);
+				}
+				result[i] = total / (ncol - 1);
+			}
+			return result;
+		}
+		case 2:
+		{
+			Array<double> result(ncol, 0.0);
+
+			for (intptr_t j = 1; j <= ncol; j++)
+			{
+				double total = 0;
+				for (intptr_t i = 1; i <= nrow; i++)
+				{
+					total += pow(x(i,j) - mu[i], 2);
+				}
+				result[j] = total / (nrow - 1);
+
+			}
+			return result;
+		}
+		default:
+			throw error("sum not supported for arrays with % dimensions", dim);
+	}
+}
+
 double stdev(const Array<double> &vector)
 {
     return sqrt(sample_variance(vector));
+}
+
+Array<double> stdev(const Array<double> &x, int dim)
+{
+	auto var = sample_variance(x, dim);
+	intptr_t count = var.size();
+    auto data = var.data();
+
+    for (intptr_t i = 0; i < count; ++i)
+    {
+        data[i] = sqrt(data[i]);
+    }
+
+    return var;
 }
 
 double t_statistic1(const Array<double> &vector, double mu)

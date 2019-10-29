@@ -39,9 +39,15 @@ Array<double> sum(const Array<double> &x, intptr_t dim);
 
 double mean(const Array<double> &x);
 
+Array<double> mean(const Array<double> &x, int dim);
+
 double sample_variance(const Array<double> &x);
 
+Array<double> sample_variance(const Array<double> &x, int dim);
+
 double stdev(const Array<double> &vector);
+
+Array<double> stdev(const Array<double> &x, int dim);
 
 // One-sample t-test
 double t_statistic1(const Array<double> &vector, double mu);

@@ -146,7 +146,7 @@ Array
 
 An ``Array`` is a one or two dimension numeric array. Elements along each dimension start at 1 and can be negative.
 (Negative indices start from the end of the dimension.) Two-dimensional arrays are accessed with a pair of indices noted *(i, j)*,
-where *i* represents the *i* th row and *j* represents the *j* th column. 
+where *i* represents the *i* th row and *j* represents the *j* th column. To get or set an element in an array, use the index ``[]`` operator. 
 
 You can create a new array by passing the size of each dimension to the constructor. For instance, here is how to create an array containing 3 rows and 4 columns:
 
@@ -155,9 +155,8 @@ You can create a new array by passing the size of each dimension to the construc
     var array = new Array(3, 4)
     
     for i = 1 to array.row_count do
-
         for j = 1 to array.column_count do
-            array.set(i, j, i + j)
+            array[i,j] = i + j
         end
     end
     print(array)
