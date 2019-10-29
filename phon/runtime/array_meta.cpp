@@ -31,7 +31,7 @@
 
 namespace phonometrica {
 
-static void new_array(Runtime &rt)
+static void array_ctor(Runtime &rt)
 {
 	int argc = rt.arg_count();
 
@@ -145,7 +145,7 @@ void Runtime::init_array()
 		add_method("Array.meta.mul", array_mul, 1);
 		add_method("Array.meta.div", array_div, 1);
 	}
-	new_native_constructor(new_array, new_array, "Array", 1);
+	new_native_constructor(array_ctor, array_ctor, "Array", 1);
 	def_global("Array", PHON_DONTENUM);
 }
 

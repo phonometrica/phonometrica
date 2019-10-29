@@ -9,7 +9,7 @@ Global functions
 
 .. function:: chi2_test(X)
 
-Calculates Pearson's chi-squared test on ``X``, which must be a two-dimensional array. This function returns an object
+Computes Pearson's chi-squared test on ``X``, which must be a two-dimensional array. This function returns an object
 with the following fields:
 
 * ``chi2``: the chi-squared value
@@ -28,7 +28,7 @@ over rows. If it is equal to 2, it is performed over columns.
 
 .. function:: report_chi2(X)
 
-Calculates and reports Pearson's chi-squared test on ``X``, which must be a two-dimensional array. This is a convenience wrapper
+Computes and reports Pearson's chi-squared test on ``X``, which must be a two-dimensional array. This is a convenience wrapper
 over ``chi2_test()``.
 
 ------------

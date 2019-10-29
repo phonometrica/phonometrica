@@ -386,6 +386,20 @@ void Runtime::new_list(intptr_t size)
     push(obj);
 }
 
+void Runtime::new_array(intptr_t size)
+{
+    auto obj = new Object(*this, PHON_CARRAY, array_meta);
+    new (&obj->as.array) Array<double>(size, 0.0);
+    push(obj);
+}
+
+void Runtime::new_array(intptr_t nrow, intptr_t ncol)
+{
+	auto obj = new Object(*this, PHON_CARRAY, array_meta);
+	new (&obj->as.array) Array<double>(nrow, ncol, 0.0);
+	push(obj);
+}
+
 void Runtime::new_boolean(bool v)
 {
     push(jsV_newboolean(this, v));

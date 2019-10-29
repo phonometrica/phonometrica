@@ -42,6 +42,7 @@ enum js_OpCode
     OP_CLOSURE,    /* -F- <closure> */
 
     OP_NEWLIST,
+    OP_NEWARRAY,
     OP_NEWOBJECT,
     OP_NEWREGEXP,    /* -S,opts- <regexp> */
 
@@ -68,6 +69,7 @@ enum js_OpCode
     OP_IN,        /* <name> <obj> -- <exists?> */
 
     OP_INITPROP,    /* <obj> <key> <val> -- <obj> */
+    OP_INITPROPX,
     OP_INITGETTER,    /* <obj> <key> <closure> -- <obj> */
     OP_INITSETTER,    /* <obj> <key> <closure> -- <obj> */
 

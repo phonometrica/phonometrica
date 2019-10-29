@@ -903,7 +903,7 @@ private:
 			return len + i;
 		}
 
-		throw error("Index % out of range in array with size %", i, len);
+		throw error("Index % out of range in array dimension with length %", i, len);
 	}
 
 	// Convert indexes to positive 1-based indexes.

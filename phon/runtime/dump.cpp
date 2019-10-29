@@ -68,6 +68,7 @@ static int prec(enum AstType type)
     case EXP_TRUE:
     case EXP_FALSE:
     case EXP_THIS:
+    case EXP_LIST:
     case EXP_ARRAY:
     case EXP_OBJECT:
         return 170;
@@ -424,6 +425,7 @@ static void pexpi(int d, int p, Ast *exp)
     case EXP_OBJECT:
         pobject(d, exp->a);
         break;
+    case EXP_LIST:
     case EXP_ARRAY:
         parray(d, exp->a);
         break;

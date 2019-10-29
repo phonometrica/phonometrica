@@ -39,6 +39,7 @@ enum AstType
     EXP_FALSE,
     EXP_THIS,
 
+    EXP_LIST,
     EXP_ARRAY,
     EXP_OBJECT,
     EXP_PROP_VAL,

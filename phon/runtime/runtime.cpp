@@ -1737,6 +1737,19 @@ static void jsR_run(Runtime *J, Function *F)
 				J->new_list(op.size);
 				break;
 			}
+			case OP_NEWARRAY:
+			{
+				SizeOpcode row, col;
+				memcpy(row.ins, pc, sizeof(SizeOpcode));
+				pc += OpSize;
+				memcpy(col.ins, pc, sizeof(SizeOpcode));
+				pc += OpSize;
+				if (row.size == 1)
+					J->new_array(col.size);
+				else
+					J->new_array(row.size, col.size);
+				break;
+			}
 			case OP_NEWREGEXP:
 				J->new_regex(ST[pc[0]], pc[1]);
 				pc += 2;

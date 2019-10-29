@@ -171,6 +171,14 @@ This code will produce the following output:
     4.0000000000, 5.0000000000, 6.0000000000, 7.0000000000, 8.0000000000
 
 
+Another way to produce the same output would be to use an array literal, which is indicated with the ``@[]`` operator. Inside the brackets, rows are separated by commas and 
+columns are separated by semicolons. Therefore, our array could be written as follows:
+
+.. code:: phon
+
+    var array = @[ 2, 3, 4, 5, 6; 3, 4, 5, 6, 7; 4, 5, 6, 7, 8]
+
+
 Object
 ~~~~~~
 

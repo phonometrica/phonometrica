@@ -800,18 +800,14 @@ static int jsY_lexx(Runtime *J)
 
         case '&':
             jsY_next(J);
-            if (jsY_accept(J, '&'))
-                return TK_AND;
-            if (jsY_accept(J, '='))
-                return TK_AND_ASS;
             return '&';
+
+        case '@':
+            jsY_next(J);
+            return '@';
 
         case '|':
             jsY_next(J);
-            if (jsY_accept(J, '|'))
-                return TK_OR;
-            if (jsY_accept(J, '='))
-                return TK_OR_ASS;
             return '|';
 
         case '^':

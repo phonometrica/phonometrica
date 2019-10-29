@@ -154,6 +154,10 @@ public:
 
     void new_list(intptr_t size = 0);
 
+    void new_array(intptr_t size);
+
+    void new_array(intptr_t nrow, intptr_t ncol);
+
     void push(Array<Variant> lst);
 
     void new_boolean(bool v);

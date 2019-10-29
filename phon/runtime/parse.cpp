@@ -214,25 +214,65 @@ static Ast *identifiername(Runtime *J)
     parse_error(J, "[Syntax error] unexpected token: %s (expected identifier or keyword)", get_token_string(J->lookahead));
 }
 
-static Ast *arrayelement(Runtime *J)
+static Ast *listelement(Runtime *J)
 {
     if (J->lookahead == ',')
         return EXP0(UNDEF);
     return assignment(J, 0);
 }
 
-static Ast *arrayliteral(Runtime *J)
+static Ast *listliteral(Runtime *J)
 {
     Ast *head, *tail;
     if (J->lookahead == ']')
         return nullptr;
-    head = tail = LIST(arrayelement(J));
+    head = tail = LIST(listelement(J));
     while (jsP_accept(J, ','))
     {
         if (J->lookahead != ']')
-            tail = tail->b = LIST(arrayelement(J));
+            tail = tail->b = LIST(listelement(J));
     }
     return jsP_list(head);
+}
+
+static Ast *arrayliteral(Runtime *J)
+{
+	Ast *head, *tail;
+	int token;
+	intptr_t prev_ncol = -1;
+	intptr_t ncol = 1;
+	intptr_t nrow = 1;
+
+	head = tail = LIST(listelement(J));
+	while ((token = J->lookahead) && (jsP_accept(J, ',') || jsP_accept(J, ';')))
+	{
+		if (token == ';')
+		{
+			if (ncol != prev_ncol && prev_ncol != -1)
+			{
+				parse_error(J, "[Syntax error] inconsistent number of rows in array declaration");
+			}
+			else
+			{
+				nrow++;
+				prev_ncol = ncol;
+				ncol = 0;
+			}
+		}
+		if (J->lookahead != ']')
+		{
+			ncol++;
+			tail = tail->b = LIST(listelement(J));
+		}
+	}
+
+	// Dirty hack!
+	assert(head->c == nullptr);
+	assert(head->d == nullptr);
+	head->c = reinterpret_cast<Ast*>(nrow);
+	head->d = reinterpret_cast<Ast*>(ncol);
+
+	return jsP_list(head);
 }
 
 static Ast *propname(Runtime *J)
@@ -395,7 +435,7 @@ static Ast *primary(Runtime *J)
     }
     if (jsP_accept(J, '['))
     {
-        a = EXP1(ARRAY, arrayliteral(J));
+        a = EXP1(LIST, listliteral(J));
         jsP_expect(J, ']');
         return a;
     }
@@ -405,6 +445,13 @@ static Ast *primary(Runtime *J)
         jsP_expect(J, ')');
         return a;
     }
+	if (jsP_accept(J, '@'))
+	{
+		jsP_expect(J, '[');
+        a = EXP1(ARRAY, arrayliteral(J));
+        jsP_expect(J, ']');
+        return a;
+	}
 
     parse_error(J, "[Syntax error] unexpected token in expression: %s", get_token_string(J->lookahead));
 }

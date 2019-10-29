@@ -10,6 +10,7 @@
 "exp_true",
 "exp_false",
 "exp_this",
+"exp_list",
 "exp_array",
 "exp_object",
 "exp_prop_val",

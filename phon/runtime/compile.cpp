@@ -320,7 +320,7 @@ static void cbinary(JF, Ast *exp, int opcode)
     emit(J, F, opcode);
 }
 
-static void carray(JF, Ast *list)
+static void clist(JF, Ast *list, bool is_array = false)
 {
     int i = 0;
 
@@ -332,7 +332,7 @@ static void carray(JF, Ast *list)
         size++;
         l = l->b;
     }
-    emit_size(J, F, size);
+    if (!is_array) emit_size(J, F, size);
 
     // Emit fields.
     while (list)
@@ -344,6 +344,41 @@ static void carray(JF, Ast *list)
 
         list = list->b;
     }
+}
+
+static void carray(JF, Ast *array)
+{
+	auto nrow = reinterpret_cast<intptr_t>(array->c);
+	auto ncol = reinterpret_cast<intptr_t>(array->d);
+	emit_size(J, F, nrow);
+	emit_size(J, F, ncol);
+
+	if (nrow == 1)
+	{
+		// One dimensional array.
+		clist(J, F, array, true);
+		return;
+	}
+
+	intptr_t i = 1, j = 0;
+
+	// Emit fields.
+	while (array)
+	{
+		emitnumber(J, F, i);
+		emitnumber(J, F, ++j);
+		if (j == ncol)
+		{
+			i++;
+			j = 0;
+		}
+		//emitline(J, F, array->a);
+		cexp(J, F, array->a);
+		emit(J, F, OP_SETPROPX);
+		emit(J, F, 2); // argc
+
+		array = array->b;
+	}
 }
 
 static void checkdup(JF, Ast *list, Ast *end)
@@ -662,10 +697,15 @@ static void cexp(JF, Ast *exp)
         cobject(J, F, exp->a);
         break;
 
-    case EXP_ARRAY:
+    case EXP_LIST:
         emit(J, F, OP_NEWLIST);
-        carray(J, F, exp->a);
+        clist(J, F, exp->a);
         break;
+
+    case EXP_ARRAY:
+    	emit(J, F, OP_NEWARRAY);
+    	carray(J, F, exp->a);
+    	break;
 
     case EXP_FUN:
         emitfunction(J, F, newfun(J, exp->a, exp->b, exp->c, 0, F->strict));
