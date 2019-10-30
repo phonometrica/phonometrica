@@ -1,0 +1,21 @@
+# Data from Johnson, Keith. 2008. *Quantitative Methods In Linguistics*. Malden, MA: Wiley-Blackwell.
+# VOT measurements for 1 Cherokee speaker at two time points (1971 vs 2001). The consonants that were
+# measured are /t/ and /k/.
+
+var vot_1971 = @[ 67, 127, 79, 150, 53, 65, 75, 109, 109, 126, 129, 119, 104, 153, 124, 107, 181, 166 ]
+
+var vot_2001 = @[ 84, 82, 72, 193, 129, 77, 72, 81, 45, 74, 102, 77, 187, 79, 86, 59, 74, 63, 75, 70, 106, 54, 49, 56, 58, 97 ]
+
+#print("Mean in 1971: " & mean(vot_1971))
+#print("Mean in 2001: " & mean(vot_2001))
+#print("Standard deviation in 1971: " & std(vot_1971))
+#print("Standard deviation in 2001: " & std(vot_2001))
+print(json.stringify(f_test(vot_2001, vot_1971, "greater"))) 
+
+#print(json.stringify(t_test1(vot_2001, 100, "greater")))
+
+#print("\n--------------------------")
+
+#
+#print(json.stringify(f_test(red_wine, white_wine)))
+

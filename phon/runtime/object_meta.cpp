@@ -40,8 +40,6 @@ static void jsB_Object(Runtime &rt)
 static void object_to_string(Runtime &rt)
 {
     if (rt.is_null(0))
-        rt.push("[object Undefined]");
-    else if (rt.is_null(0))
         rt.push("[object Null]");
     else
     {
@@ -49,7 +47,7 @@ static void object_to_string(Runtime &rt)
         switch (self->type)
         {
         case PHON_COBJECT:
-            rt.push("[object Object]");
+        	rt.push(self->to_string());
             break;
         case PHON_CLIST:
             rt.push("[object List]");

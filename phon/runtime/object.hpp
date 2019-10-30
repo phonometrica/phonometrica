@@ -77,6 +77,8 @@ public:
 
     void resize_list(Runtime &rt, int new_size);
 
+    String to_string();
+
 public:
 
     ClassTag type;

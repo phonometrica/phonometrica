@@ -33,6 +33,13 @@
 
 namespace phonometrica { namespace stats {
 
+enum class Alternative
+{
+	TwoTailed,
+	Greater,
+	Less
+};
+
 double sum(const Array<double> &x);
 
 Array<double> sum(const Array<double> &x, intptr_t dim);
@@ -50,27 +57,30 @@ double stdev(const Array<double> &vector);
 Array<double> stdev(const Array<double> &x, int dim);
 
 // One-sample t-test
-double t_statistic1(const Array<double> &vector, double mu);
+double t_statistic1(const Array<double> &x, double mu);
 
 // Two-sample t-test
-double t_statistic2(const Array<double> &vector1, const Array<double> &vector2);
+double t_statistic2(const Array<double> &x, const Array<double> &y);
 
-double f_statistic(const Array<double> &vector1, const Array<double> &vector2);
+double f_statistic(const Array<double> &x, const Array<double> &y);
 
 // Pearson's chi-squared test
 std::tuple<double,double,double> chi2_test(const Array<double> &data);
 
 // Student's one-sample t-test
-double student_ttest1(const Array<double> &vector, double mu, double &t, bool double_sided = true);
+std::tuple<double, double, double> student_ttest1(const Array<double> &x, double mu, Alternative alt = Alternative::TwoTailed);
 
 // Student's two-sample t-test (equal variance)
-double student_ttest2(const Array<double> &vector1, const Array<double> &vector2, double &t, bool double_sided = true);
+std::tuple<double, double, double>
+student_ttest2(const Array<double> &x, const Array<double> &y, Alternative alt = Alternative::TwoTailed);
 
 // Welch's two-sample t-test (unequal variance)
-double welch_ttest2(const Array<double> &vector1, const Array<double> &vector2, double &t, bool double_sided = true);
+std::tuple<double, double, double>
+welch_ttest2(const Array<double> &x, const Array<double> &y, Alternative alt = Alternative::TwoTailed);
 
 
-double f_test(const Array<double> &vector1, const Array<double> &vector2, double &F);
+std::tuple<double,double,double,double>
+f_test(const Array<double> &x, const Array<double> &y, Alternative alt = Alternative::TwoTailed);
 
 // Fleiss' Kappa for inter-rater agreement.
 // `ratings` is an n by k matrix, with n observations and k categories. Each (n,k) cell represents the number of raters

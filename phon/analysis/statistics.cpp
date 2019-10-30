@@ -145,7 +145,7 @@ Array<double> sample_variance(const Array<double> &x, int dim)
 				double total = 0;
 				for (intptr_t j = 1; j <= ncol; j++)
 				{
-					total += pow(x(i,j) - mu[j], 2);
+					total += pow(x(i,j) - mu[i], 2);
 				}
 				result[i] = total / (ncol - 1);
 			}
@@ -160,7 +160,7 @@ Array<double> sample_variance(const Array<double> &x, int dim)
 				double total = 0;
 				for (intptr_t i = 1; i <= nrow; i++)
 				{
-					total += pow(x(i,j) - mu[i], 2);
+					total += pow(x(i,j) - mu[j], 2);
 				}
 				result[j] = total / (nrow - 1);
 
@@ -191,37 +191,6 @@ Array<double> stdev(const Array<double> &x, int dim)
     return var;
 }
 
-double t_statistic1(const Array<double> &vector, double mu)
-{
-    return (mean(vector) - mu) / (stdev(vector) / sqrt(vector.size()));
-}
-
-double t_statistic2(const Array<double> &vector1, const Array<double> &vector2)
-{
-    double mu1 = mean(vector1);
-    double mu2 = mean(vector2);
-    double var1 = sample_variance(vector1);
-    double var2 = sample_variance(vector2);
-    double std_err = sqrt(var1/vector1.size() + var2/vector2.size());
-    // FIXME: pooled variance for Student's t-test?
-
-    return (mu1 - mu2) / std_err;
-}
-
-double f_statistic(const Array<double> &vector1, const Array<double> &vector2)
-{
-    return sample_variance(vector1) / sample_variance(vector2);
-}
-
-// For now, equal variance, two-sided
-static inline double compute_ttest(double t, double df, bool double_sided)
-{
-    boost::math::students_t dist(df);
-    int coeff = double_sided ? 2 : 1;
-
-    return cdf(complement(dist, std::abs(t))) * coeff;
-}
-
 std::tuple<double,double,double> chi2_test(const Array<double> &data)
 {
 	if (data.ndim() != 2) {
@@ -250,49 +219,121 @@ std::tuple<double,double,double> chi2_test(const Array<double> &data)
 	return { chi2, df, p };
 }
 
-double student_ttest1(const Array<double> &vector, double mu, double &t, bool double_sided)
+double t_statistic1(const Array<double> &x, double mu)
 {
-    t = t_statistic1(vector, mu);
-    double df = vector.size() - 1;
-
-    return compute_ttest(t, df, double_sided);
+    return (mean(x) - mu) / (stdev(x) / sqrt(x.size()));
 }
 
-double student_ttest2(const Array<double> &vector1, const Array<double> &vector2, double &t, bool double_sided)
+double t_statistic2(const Array<double> &x, const Array<double> &y, bool pooled)
 {
-    t = t_statistic2(vector1, vector2);
-    double df = vector1.size() + vector2.size() - 2;
+    double mu1 = mean(x);
+    double mu2 = mean(y);
+    double var1 = sample_variance(x);
+    double var2 = sample_variance(y);
 
-    return compute_ttest(t, df, double_sided);
+    double std_err;
+    if (pooled)
+    {
+    	auto se2 = ((x.size() - 1) * var1 + (y.size() - 1) * var2) / (x.size() + y.size() - 2);
+    	std_err = sqrt(se2 / x.size() + se2 / y.size());
+	    //std_err = sqrt(((x.size() - 1) * var1 + (y.size() - 1) * var2) / (x.size() + y.size() - 2));
+    }
+    else
+		std_err = sqrt(var1 / x.size() + var2 / y.size());
+
+    return (mu1 - mu2) / std_err;
 }
 
-double welch_ttest2(const Array<double> &vector1, const Array<double> &vector2, double &t, bool double_sided)
+static double compute_ttest(double t, double df, Alternative alt)
 {
-    double mu1 = mean(vector1);
-    double mu2 = mean(vector2);
-    double var1 = sample_variance(vector1);
-    double var2 = sample_variance(vector2);
-    double size1 = vector1.size();
-    double size2 = vector2.size();
+    boost::math::students_t dist(df);
+    auto prob = cdf(dist, t);
+
+    switch (alt)
+    {
+    	case Alternative::Greater:
+    		return 1 - prob;
+    	case Alternative::Less:
+    		return prob;
+    	default:
+    		return 2 * prob;
+    }
+}
+
+std::tuple<double, double, double> student_ttest1(const Array<double> &x, double mu, Alternative alt)
+{
+    auto t = t_statistic1(x, mu);
+    double df = x.size() - 1;
+    auto p = compute_ttest(t, df, alt);
+
+    return { t, df, p };
+}
+
+std::tuple<double, double, double> student_ttest2(const Array<double> &x, const Array<double> &y, Alternative alt)
+{
+    auto t = t_statistic2(x, y, true);
+    double df = x.size() + y.size() - 2;
+    auto p = compute_ttest(t, df, alt);
+
+    return { t, df, p };
+}
+
+std::tuple<double, double, double> welch_ttest2(const Array<double> &x, const Array<double> &y, Alternative alt)
+{
+    double mu1 = mean(x);
+    double mu2 = mean(y);
+    double var1 = sample_variance(x);
+    double var2 = sample_variance(y);
+    double size1 = x.size();
+    double size2 = y.size();
     double nvar1 = var1 / size1;
     double nvar2 = var2 / size2;
     double std_err = sqrt(nvar1 + nvar2);
 
-    t =  (mu1 - mu2) / std_err;
+    auto t =  (mu1 - mu2) / std_err;
     double df = pow(nvar1 + nvar2, 2.0) / (pow(nvar1, 2.0) / (size1 - 1) + pow(nvar2, 2.0) / (size2 - 1));
+    auto p = compute_ttest(t, df, alt);
 
-    return compute_ttest(t, df, double_sided);
+    return { t, df, p };
 }
 
-
-double f_test(const Array<double> &vector1, const Array<double> &vector2, double &F)
+double f_statistic(const Array<double> &x, const Array<double> &y)
 {
-    intptr_t df1 = vector1.size() - 1;
-    intptr_t df2 = vector2.size() - 1;
-    F = f_statistic(vector1, vector2);
-    boost::math::fisher_f dist(df1, df2);
+	double var1 = sample_variance(x);
+	double var2 = sample_variance(y);
+	return  var1 / var2;
+}
 
-    return cdf(dist, F) * 2; // double sided
+static double compute_f_test(double F, intptr_t df1, intptr_t df2)
+{
+	boost::math::fisher_f dist(df1, df2);
+	return cdf(dist, F);
+}
+
+std::tuple<double,double,double,double> f_test(const Array<double> &x, const Array<double> &y, Alternative alt)
+{
+	intptr_t df1 = x.size() - 1;
+	intptr_t df2 = y.size() - 1;
+	double var1 = sample_variance(x);
+	double var2 = sample_variance(y);
+	double F = var1 / var2;
+	double p;
+
+	switch (alt)
+	{
+		case Alternative::Greater:
+			p = compute_f_test(1./F, df2, df1);
+			break;
+		case Alternative::Less:
+			p = compute_f_test(F, df1, df2);
+			break;
+		default:
+			p = compute_f_test(F, df1, df2);
+			p += 1 - compute_f_test(1./F, df2, df1);
+			break;
+	}
+
+    return { F, df1, df2, p };
 }
 
 double kappa_fleiss(const Array<double> &ratings, intptr_t n)

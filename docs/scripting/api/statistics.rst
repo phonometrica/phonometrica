@@ -18,6 +18,19 @@ with the following fields:
 
 ------------
 
+.. function:: f_test(x, y [, alternative])
+
+Computes the F-test on ``x`` and ``y`` which must be one-dimensional arrays. If ``alternative`` is specified, it must
+be one of the following strings: ``"two-tailed"`` performs a two-tailed test (default), ``"less"`` performs a lef-tailed
+test and ``"greater"`` performs a right-tailed test.
+This function returns an object with the following fields:
+
+* ``f``: the *F* statistic
+* ``df``: the number of degrees of freedom
+* ``p``: the p-value
+
+------------
+
 .. function:: mean(x [, dim])
 
 Returns the mean of the array ``x``. If ``dim`` is specified, returns an ``Array`` where each element
@@ -49,7 +62,38 @@ over rows. If it is equal to 2, summation is performed over columns.
 
 ------------
 
-.. function:: var(x [, dim])
+.. function:: t_test(x, y [, equal_variance, [, alternative]])
+
+Computes a two-sample independent t-test for the mean between the samples ``x`` and ``y``, which must be one-dimensional
+arrays. If ``equal_variance`` is true, the variance of the two samples is assumed to be equal and Student's t-test is calculated,
+using the pooled standard error. If ``equal_variance`` is false (default), Welch's t-test is used instead.
+If ``alternative`` is specified, it must be one of the following strings: ``"two-tailed"`` performs a two-tailed test (default),
+``"less"`` performs a lef-tailed test and ``"greater"`` performs a right-tailed test.
+This function returns an object with the following fields:
+
+* ``t``: the *t* statistic
+* ``df1``: the number of degrees of freedom of ``x``
+* ``df2``: the number of degrees of freedom of ``y``
+* ``p``: the p-value
+
+------------
+
+.. function:: t_test1(x, mu [, alternative])
+
+Computes a one-sample t-test for the sample ``x``, which must a one-dimensional array, and which is tested against the theoretical
+mean ``mu``.
+
+If ``alternative`` is specified, it must be one of the following strings: ``"two-tailed"`` performs a two-tailed test (default),
+``"less"`` performs a lef-tailed test and ``"greater"`` performs a right-tailed test.
+This function returns an object with the following fields:
+
+* ``t``: the *t* statistic
+* ``df``: the number of degrees of freedom
+* ``p``: the p-value
+
+------------
+
+.. function:: variance(x [, dim])
 
 Returns the sample variance of the array ``x``. If ``dim`` is specified, returns an ``Array`` where each element
 represents the variance over the given dimension in a two dimension array. If dim is equal to 1, the calculation is performed

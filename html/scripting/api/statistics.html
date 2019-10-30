@@ -93,6 +93,21 @@ with the following fields:</p>
 </ul>
 <hr class="docutils" />
 <dl class="function">
+<dt id="f_test">
+<code class="descname">f_test</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="optional">[</span>, <em>alternative</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Computes the F-test on <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> which must be one-dimensional arrays. If <code class="docutils literal notranslate"><span class="pre">alternative</span></code> is specified, it must
+be one of the following strings: <code class="docutils literal notranslate"><span class="pre">&quot;two-tailed&quot;</span></code> performs a two-tailed test (default), <code class="docutils literal notranslate"><span class="pre">&quot;less&quot;</span></code> performs a lef-tailed
+test and <code class="docutils literal notranslate"><span class="pre">&quot;greater&quot;</span></code> performs a right-tailed test.
+This function returns an object with the following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">f</span></code>: the <em>F</em> statistic</li>
+<li><code class="docutils literal notranslate"><span class="pre">df</span></code>: the number of degrees of freedom</li>
+<li><code class="docutils literal notranslate"><span class="pre">p</span></code>: the p-value</li>
+</ul>
+<hr class="docutils" />
+<dl class="function">
 <dt id="mean">
 <code class="descname">mean</code><span class="sig-paren">(</span><em>x</em><span class="optional">[</span>, <em>dim</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#mean" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -128,8 +143,42 @@ represents the sum over the given dimension in a two dimension array. If dim is 
 over rows. If it is equal to 2, summation is performed over columns.</p>
 <hr class="docutils" />
 <dl class="function">
-<dt id="var">
-<code class="descname">var</code><span class="sig-paren">(</span><em>x</em><span class="optional">[</span>, <em>dim</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#var" title="Permalink to this definition">¶</a></dt>
+<dt id="t_test">
+<code class="descname">t_test</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="optional">[</span>, <em>equal_variance</em><span class="optional">[</span>, <em>alternative</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#t_test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Computes a two-sample independent t-test for the mean between the samples <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>, which must be one-dimensional
+arrays. If <code class="docutils literal notranslate"><span class="pre">equal_variance</span></code> is true, the variance of the two samples is assumed to be equal and Student’s t-test is calculated,
+using the pooled standard error. If <code class="docutils literal notranslate"><span class="pre">equal_variance</span></code> is false (default), Welch’s t-test is used instead.
+If <code class="docutils literal notranslate"><span class="pre">alternative</span></code> is specified, it must be one of the following strings: <code class="docutils literal notranslate"><span class="pre">&quot;two-tailed&quot;</span></code> performs a two-tailed test (default),
+<code class="docutils literal notranslate"><span class="pre">&quot;less&quot;</span></code> performs a lef-tailed test and <code class="docutils literal notranslate"><span class="pre">&quot;greater&quot;</span></code> performs a right-tailed test.
+This function returns an object with the following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">t</span></code>: the <em>t</em> statistic</li>
+<li><code class="docutils literal notranslate"><span class="pre">df1</span></code>: the number of degrees of freedom of <code class="docutils literal notranslate"><span class="pre">x</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">df2</span></code>: the number of degrees of freedom of <code class="docutils literal notranslate"><span class="pre">y</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">p</span></code>: the p-value</li>
+</ul>
+<hr class="docutils" />
+<dl class="function">
+<dt id="t_test1">
+<code class="descname">t_test1</code><span class="sig-paren">(</span><em>x</em>, <em>mu</em><span class="optional">[</span>, <em>alternative</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#t_test1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Computes a one-sample t-test for the sample <code class="docutils literal notranslate"><span class="pre">x</span></code>, which must a one-dimensional array, and which is tested against the theoretical
+mean <code class="docutils literal notranslate"><span class="pre">mu</span></code>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">alternative</span></code> is specified, it must be one of the following strings: <code class="docutils literal notranslate"><span class="pre">&quot;two-tailed&quot;</span></code> performs a two-tailed test (default),
+<code class="docutils literal notranslate"><span class="pre">&quot;less&quot;</span></code> performs a lef-tailed test and <code class="docutils literal notranslate"><span class="pre">&quot;greater&quot;</span></code> performs a right-tailed test.
+This function returns an object with the following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">t</span></code>: the <em>t</em> statistic</li>
+<li><code class="docutils literal notranslate"><span class="pre">df</span></code>: the number of degrees of freedom</li>
+<li><code class="docutils literal notranslate"><span class="pre">p</span></code>: the p-value</li>
+</ul>
+<hr class="docutils" />
+<dl class="function">
+<dt id="variance">
+<code class="descname">variance</code><span class="sig-paren">(</span><em>x</em><span class="optional">[</span>, <em>dim</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#variance" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the sample variance of the array <code class="docutils literal notranslate"><span class="pre">x</span></code>. If <code class="docutils literal notranslate"><span class="pre">dim</span></code> is specified, returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> where each element

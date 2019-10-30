@@ -217,5 +217,11 @@ void Object::resize_list(Runtime &rt, int new_size)
     as.list.resize(new_size);
 }
 
+String Object::to_string()
+{
+	//TODO: conversion to string
+	return "[object Object]";
+}
+
 
 } // namespace phonometrica
