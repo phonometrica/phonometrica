@@ -522,7 +522,12 @@ void MainWindow::setShellFunctions()
     };
 
     auto open_query_editor = [=](Runtime &rt) {
-    	this->openQueryEditor();
+	    this->openQueryEditor(QueryEditor::Type::Default);
+    	rt.push_null();
+    };
+
+    auto measure_formants = [=](Runtime &rt) {
+	    this->openQueryEditor(QueryEditor::Type::FormantMeasurement);
     	rt.push_null();
     };
 
@@ -763,6 +768,7 @@ void MainWindow::setShellFunctions()
         runtime.add_method("view_script", view_script, 1);
         runtime.add_method("run_script", run_script, 1);
         runtime.add_method("open_query_editor", open_query_editor, 0);
+        runtime.add_method("measure_formants", measure_formants, 0);
         runtime.add_method("run_last_query", run_last_query, 0);
         runtime.add_method("close_current_view", close_current_view, 0);
         runtime.add_method("view_annotation", view_annotation, 4);
@@ -968,15 +974,15 @@ void MainWindow::maximizeViewer()
     show_info->setChecked(false);
 }
 
-void MainWindow::openQueryEditor()
+void MainWindow::openQueryEditor(QueryEditor::Type type)
 {
-	openQueryEditor(nullptr);
+	openQueryEditor(nullptr, type);
 }
 
-void MainWindow::openQueryEditor(AutoProtocol protocol)
+void MainWindow::openQueryEditor(AutoProtocol protocol, QueryEditor::Type type)
 {
 	int context_length = (int) Settings::get_number(runtime, "match_window_length");
-	auto editor = new QueryEditor(runtime, std::move(protocol), this, context_length);
+	auto editor = new QueryEditor(runtime, std::move(protocol), this, type, context_length);
 	connect(editor, &QueryEditor::queryReady, this, &MainWindow::executeQuery);
 	editor->resize(1100, 800);
 	editor->show();
@@ -991,7 +997,7 @@ void MainWindow::runLastQuery()
 	}
 	else
 	{
-		openQueryEditor();
+		openQueryEditor(nullptr, QueryEditor::Type::Default);
 	}
 }
 
@@ -1058,7 +1064,7 @@ void MainWindow::loadPlugin(const String &path)
 		{
 			auto protocol = std::any_cast<AutoProtocol>(target);
 			connect(action, &QAction::triggered, [protocol, this](bool) {
-				openQueryEditor(protocol);
+				openQueryEditor(protocol, QueryEditor::Type::CodingProtocol);
 			});
 		}
 	};

@@ -20,86 +20,103 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 14/03/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: the viewer stores and manages views in the main window.                                                    *
+ * Purpose: Display results of a query.                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_VIEWER_HPP
-#define PHONOMETRICA_VIEWER_HPP
+#ifndef PHONOMETRICA_TEXT_QUERY_VIEW_HPP
+#define PHONOMETRICA_TEXT_QUERY_VIEW_HPP
 
-#include <QTabWidget>
+#include <QTableWidget>
+#include <QCheckBox>
 #include <phon/runtime/runtime.hpp>
-#include <phon/gui/views/script_view.hpp>
-#include <phon/gui/views/text_query_view.hpp>
+#include <phon/gui/views/view.hpp>
+#include <phon/application/annotation.hpp>
+#include <phon/application/query_table.hpp>
 
 namespace phonometrica {
 
-class View;
+class AudioPlayer;
 
-class Viewer final : public QTabWidget
+
+class TextQueryView final : public View
 {
     Q_OBJECT
 
 public:
 
-    explicit Viewer(Runtime &rt, QWidget *parent = nullptr);
+    TextQueryView(QWidget *parent, Runtime &rt, AutoQueryTable data);
 
-    void closeCurrentView();
-
-    AutoSound getCurrentSound() const;
-
-    AutoAnnotation getCurrentAnnotation() const;
-
-    bool finalize();
+	bool save() override;
 
 signals:
 
-	void statusMessage(const QString &);
+	void openAnnotation(AutoAnnotation, intptr_t, double, double);
 
-public slots:
 
-    void closeTab(int index);
+private slots:
 
-    void viewModified();
+	void refreshTable(bool);
 
-    void viewSaved();
+	void onCellClicked(int i, int j);
 
-    void showDocumentation(const String &page);
+	void onCellDoubleClicked(int i, int j);
 
-    void openScriptView(AutoScript script);
+	void openMatchInPraat(int i);
 
-    void openTableView(AutoDataset table);
+	void exportToCsv(bool);
 
-    void openScript(const String &path);
+	void provideContextMenu(const QPoint &pos);
 
-    void newScript();
+	void bookmarkMatch(int i);
 
-    void saveViews();
+protected:
 
-    void view(const std::shared_ptr<VFile> &file);
-
-    void editAnnotation(AutoAnnotation, intptr_t, double, double);
-
-    void closeAll();
+	void keyPressEvent(QKeyEvent *event) override;
 
 private:
 
-    void setStartView();
+	void fillTable();
 
-    void closeView(int index);
+	int getQueryFlags();
 
-    void registerView(View *view);
+	void playMatch(int i);
 
-    void unregisterView(View *view);
+	void editEvent(int i);
 
-    void addView(View *view, const QString &label);
+	void openInAnnotation(int i);
 
-    Runtime &runtime;
+	void enableQueryButtons(bool enable);
+
+	void stopPlayer();
+
+	bool isMatchCell(int jj) const;
+
+	Runtime &runtime;
+
+    std::shared_ptr<QueryTable> m_data;
+
+    QTableWidget *m_table;
+
+    QAction *property_action = nullptr;
+
+    QAction *context_action = nullptr;
+
+    QAction *info_action = nullptr;
+
+    QAction *match_action = nullptr;
+
+    QAction *play_action = nullptr;
+
+    QAction *stop_action = nullptr;
+
+    QAction *edit_action = nullptr;
+
+    std::unique_ptr<AudioPlayer> player;
 };
 
+} // namespace phonometrica
 
-} // phonometrica
-
-#endif // PHONOMETRICA_VIEWER_HPP
+#endif //PHONOMETRICA_TEXT_QUERY_VIEW_HPP

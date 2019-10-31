@@ -106,9 +106,9 @@ private:
 
     void adjustProject();
 
-    void openQueryEditor();
+    void openQueryEditor(QueryEditor::Type type);
 
-    void openQueryEditor(AutoProtocol protocol);
+    void openQueryEditor(AutoProtocol protocol, QueryEditor::Type type);
 
     void runLastQuery();
 

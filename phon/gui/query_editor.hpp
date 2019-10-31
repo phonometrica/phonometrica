@@ -52,7 +52,16 @@ class QueryEditor final : public QDialog
 
 public:
 
-	QueryEditor(Runtime &rt, AutoProtocol protocol, QWidget *parent, int context_length = 30);
+	enum class Type
+	{
+		Default,
+		CodingProtocol,
+		PitchMeasurement,
+		IntensityMeasurement,
+		FormantMeasurement
+	};
+
+	QueryEditor(Runtime &rt, AutoProtocol protocol, QWidget *parent, Type type, int context_length = 30);
 
 	void resurrect();
 
@@ -107,6 +116,8 @@ private:
 	Array<CheckListBox*> text_properties;
 
 	int properties_per_row = 3;
+
+	Type type;
 };
 
 } // namespace phonometrica

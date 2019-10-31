@@ -148,8 +148,8 @@ void Viewer::openTableView(AutoDataset table)
 
 	if (table->is_query_table())
 	{
-		auto query_view = new QueryView(this, runtime, std::dynamic_pointer_cast<QueryTable>(table));
-		connect(query_view, &QueryView::openAnnotation, this, &Viewer::editAnnotation);
+		auto query_view = new TextQueryView(this, runtime, std::dynamic_pointer_cast<QueryTable>(table));
+		connect(query_view, &TextQueryView::openAnnotation, this, &Viewer::editAnnotation);
 		view = query_view;
 	}
 	else if (table->is_spreadsheet())

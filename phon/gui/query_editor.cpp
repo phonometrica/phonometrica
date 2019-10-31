@@ -41,6 +41,7 @@
 #include <phon/gui/number_edit.hpp>
 #include <phon/gui/boolean_edit.hpp>
 #include <phon/gui/protocol_search_box.hpp>
+#include <phon/gui/formant_search_box.hpp>
 #include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
@@ -54,9 +55,10 @@ enum {
 	IndexDoesntMatch
 };
 
-QueryEditor::QueryEditor(Runtime &rt, AutoProtocol protocol, QWidget *parent, int context_length) :
+QueryEditor::QueryEditor(Runtime &rt, AutoProtocol protocol, QWidget *parent, Type type,  int context_length) :
 	QDialog(parent), runtime(rt), protocol(std::move(protocol))
 {
+	this->type = type;
 	setupUi(context_length);
 	setWindowFlags(Qt::Window);
 }
@@ -78,12 +80,14 @@ void QueryEditor::setupUi(int context_length)
 	help_button->setToolTip(tr("Show help page"));
 	name_layout->addWidget(help_button);
 
-	if (protocol)
+	switch (type)
 	{
-		search_box = new ProtocolSearchBox(protocol, main_widget, context_length);
-	}
-	else
-	{
+		case Type::CodingProtocol:
+			search_box = new ProtocolSearchBox(protocol, main_widget, context_length);
+			break;
+		case Type::FormantMeasurement:
+			search_box = new FormantSearchBox(main_widget);
+		default:
 		search_box = new DefaultSearchBox(main_widget, context_length);
 	}
 	search_box->postInitialize();
