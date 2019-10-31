@@ -42,17 +42,17 @@ foreach var name in dirs do
 	end
 			
 	var base = system.strip_extension(name)
-	var outname = system.join_path(outdir, base + '_phon.hpp')
-	var include = base.to_upper() + '_PHON_SCRIPT_INCLUDE'
+	var outname = system.join_path(outdir, base & '_phon.hpp')
+	var include = base.to_upper() & '_PHON_SCRIPT_INCLUDE'
 	var outfile = new File(outname, 'w')
 	
 	
-	outfile.write('#ifndef ' + include + '\n')
-	outfile.write('#define ' + include + '\n\n')
-	outfile.write('static const char *' + base + '_script = R"_(')
+	outfile.write('#ifndef ' & include & '\n')
+	outfile.write('#define ' & include & '\n\n')
+	outfile.write('static const char *' & base & '_script = R"_(')
 	outfile.write_lines(content)
 	outfile.write(')_";\n\n')
-	outfile.write('#endif /* ' + include + ' */')
+	outfile.write('#endif /* ' & include & ' */')
 	outfile.close()
 end
 	

@@ -48,7 +48,7 @@ AutoSearchNode ProtocolSearchBox::buildSearchTree()
 			p->case_sensitive(), op, rel, std::move(value));
 }
 
-void ProtocolSearchBox::setupUi()
+void ProtocolSearchBox::setupUi(Runtime &rt)
 {
 	auto layout = new QGridLayout;
 	layout->setContentsMargins(0,0,0,0);

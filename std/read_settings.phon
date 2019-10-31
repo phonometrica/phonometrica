@@ -92,7 +92,7 @@ phon.settings = {
 		number_of_formants: 4,
 		window_size: 0.049,
 		lpc_order: 12,
-		max_frequency: 5000
+		max_frequency: 5500
 	}
 }
 

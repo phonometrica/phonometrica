@@ -158,10 +158,6 @@ function new_query()
 	end
 end
 
-function run_last_query()
-	phon.run_last_query()
-end
-
 
 
 phon.show_help = function()
@@ -296,7 +292,9 @@ file_menu = [
 
 analysis_menu = [
 	["Search in annotations...", new_query, "ctrl+e"],
-	["Edit last query", run_last_query, "ctrl+l"]
+	["Measure formants...", phon.measure_formants],
+	null,
+	["Edit last query", phon.run_last_query, "ctrl+l"]
 ]
 
 help_menu = [

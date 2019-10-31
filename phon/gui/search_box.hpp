@@ -55,13 +55,13 @@ public:
 
 	SearchBox(QWidget *parent, const QString &title, int context_length);
 
-	void postInitialize();
+	void postInitialize(Runtime &rt);
 
 	virtual AutoSearchNode buildSearchTree() = 0;
 
 protected:
 
-	virtual void setupUi() = 0;
+	virtual void setupUi(Runtime &rt) = 0;
 
 	int context_length;
 };
@@ -70,7 +70,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------
 
 
-class DefaultSearchBox final : public SearchBox
+class DefaultSearchBox : public SearchBox
 {
 	Q_OBJECT
 
@@ -87,17 +87,15 @@ public:
 
 	AutoSearchNode buildSearchTree() override;
 
-protected:
-
-	void setupUi() override;
-
-private slots:
+protected slots:
 
 	void addSearchConstraint(bool dummy = true);
 
 	void removeSearchConstraint(bool dummy);
 
-private:
+protected:
+
+	void setupUi(Runtime &rt) override;
 
 	using Type = QueryParser::Type;
 	using Token = QueryParser::Token;
@@ -130,7 +128,7 @@ private:
 
 	Array<Token> getTokens();
 
-	QVBoxLayout *main_layout;
+	QVBoxLayout *main_layout = nullptr;
 
 	QPushButton *add_button, *remove_button;
 

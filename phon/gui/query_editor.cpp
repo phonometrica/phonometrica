@@ -87,10 +87,11 @@ void QueryEditor::setupUi(int context_length)
 			break;
 		case Type::FormantMeasurement:
 			search_box = new FormantSearchBox(main_widget);
+			break;
 		default:
 		search_box = new DefaultSearchBox(main_widget, context_length);
 	}
-	search_box->postInitialize();
+	search_box->postInitialize(runtime);
 
 	auto scroll_area = new QScrollArea;
 	scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -116,7 +117,7 @@ void QueryEditor::setupUi(int context_length)
 	main_layout->addWidget(scroll_area);
 	main_layout->addWidget(button_box);
 
-	setWindowTitle("Query editor (annotations)");
+	setWindowTitle("Query editor");
 	this->setLayout(main_layout);
 
 	connect(button_box, SIGNAL(accepted()), this, SLOT(accept()));

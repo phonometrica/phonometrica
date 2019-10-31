@@ -29,11 +29,15 @@
 #ifndef PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
 #define PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
 
+#include <QSpinBox>
+#include <QCheckBox>
+#include <QStackedLayout>
+#include <phon/gui/line_edit.hpp>
 #include <phon/gui/search_box.hpp>
 
 namespace phonometrica {
 
-class FormantSearchBox final : public SearchBox
+class FormantSearchBox final : public DefaultSearchBox
 {
 	Q_OBJECT
 
@@ -43,9 +47,25 @@ public:
 
 	AutoSearchNode buildSearchTree() override;
 
+private slots:
+
+	void changeMethod(int index);
+
 private:
 
-	void setupUi() override;
+	void setupUi(Runtime &rt) override;
+
+	QStackedLayout *stack;
+
+	QSpinBox *formant_spinbox, *lpc_spinbox;
+
+	QCheckBox *bark_checkbox, *erb_checkbox;
+
+	QLineEdit *max_freq_edit, *win_edit;
+
+	QLineEdit *param_min_freq_edit, *param_max_freq_edit, *param_step_freq_edit;
+
+	QSpinBox *param_lpc_min_spinbox, *param_lpc_max_spinbox;
 
 };
 

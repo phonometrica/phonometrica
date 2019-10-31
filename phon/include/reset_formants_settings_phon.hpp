@@ -5,7 +5,7 @@ static const char *reset_formants_settings_script = R"_(phon.settings.formants =
     number_of_formants: 4,
     window_size: 0.049,
     lpc_order: 12,
-    max_frequency: 5000
+    max_frequency: 5500
 })_";
 
 #endif /* RESET_FORMANTS_SETTINGS_PHON_SCRIPT_INCLUDE */

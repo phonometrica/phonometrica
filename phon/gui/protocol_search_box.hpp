@@ -48,7 +48,7 @@ public:
 
 protected:
 
-	 void setupUi() override;
+	 void setupUi(Runtime &rt) override;
 
 private:
 

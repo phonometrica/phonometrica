@@ -51,9 +51,9 @@ SearchBox::SearchBox(QWidget *parent, const QString &title, int context_length) 
 	this->context_length = context_length;
 }
 
-void SearchBox::postInitialize()
+void SearchBox::postInitialize(Runtime &rt)
 {
-	setupUi();
+	setupUi(rt);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ DefaultSearchBox::DefaultSearchBox(QWidget *parent, int context_length) :
 {
 }
 
-void DefaultSearchBox::setupUi()
+void DefaultSearchBox::setupUi(Runtime &rt)
 {
 	auto add_remove_layout = new QHBoxLayout;
 	add_button = new QPushButton(QIcon(":/icons/plus.png"), QString());
