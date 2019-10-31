@@ -18,64 +18,106 @@
 
 #include <phon/runtime/toplevel.hpp>
 #include <phon/runtime/object.hpp>
-
 #include <time.h>
 
 namespace phonometrica {
 
-static void Math_abs(Runtime &rt)
+static void math_abs(Runtime &rt)
 {
-    rt.push(fabs(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return abs(n); }));
+	else
+	    rt.push(fabs(rt.to_number(1)));
 }
 
-static void Math_acos(Runtime &rt)
+static void math_acos(Runtime &rt)
 {
-    rt.push(acos(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return acos(n); }));
+	else
+	    rt.push(acos(rt.to_number(1)));
 }
 
-static void Math_asin(Runtime &rt)
+static void math_asin(Runtime &rt)
 {
-    rt.push(asin(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return asin(n); }));
+	else
+	    rt.push(asin(rt.to_number(1)));
 }
 
-static void Math_atan(Runtime &rt)
+static void math_atan(Runtime &rt)
 {
-    rt.push(atan(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return atan(n); }));
+	else
+	    rt.push(atan(rt.to_number(1)));
 }
 
-static void Math_atan2(Runtime &rt)
+static void math_atan2(Runtime &rt)
 {
     double y = rt.to_number(1);
     double x = rt.to_number(2);
     rt.push(atan2(y, x));
 }
 
-static void Math_ceil(Runtime &rt)
+static void math_ceil(Runtime &rt)
 {
-    rt.push(ceil(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return ceil(n); }));
+	else
+	    rt.push(ceil(rt.to_number(1)));
 }
 
-static void Math_cos(Runtime &rt)
+static void math_cos(Runtime &rt)
 {
-    rt.push(cos(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return cos(n); }));
+	else
+	    rt.push(cos(rt.to_number(1)));
 }
 
-static void Math_exp(Runtime &rt)
+static void math_exp(Runtime &rt)
 {
-    rt.push(exp(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return exp(n); }));
+	else
+	    rt.push(exp(rt.to_number(1)));
 }
 
-static void Math_floor(Runtime &rt)
+static void math_floor(Runtime &rt)
 {
-    rt.push(floor(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return floor(n); }));
+	else
+	    rt.push(floor(rt.to_number(1)));
 }
 
-static void Math_log(Runtime &rt)
+static void math_log(Runtime &rt)
 {
-    rt.push(log(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return log(n); }));
+	else
+	    rt.push(log(rt.to_number(1)));
 }
 
-static void Math_pow(Runtime &rt)
+static void math_log10(Runtime &rt)
+{
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return log10(n); }));
+	else
+		rt.push(log10(rt.to_number(1)));
+}
+
+static void math_log2(Runtime &rt)
+{
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return log2(n); }));
+	else
+		rt.push(log2(rt.to_number(1)));
+}
+
+static void math_pow(Runtime &rt)
 {
     double x = rt.to_number(1);
     double y = rt.to_number(2);
@@ -85,7 +127,7 @@ static void Math_pow(Runtime &rt)
         rt.push(pow(x, y));
 }
 
-static void Math_random(Runtime &rt)
+static void math_random(Runtime &rt)
 {
     rt.push(rand() / (RAND_MAX + 1.0));
 }
@@ -110,36 +152,63 @@ static double do_round(double x, int n)
     return round(x * p) / p;
 }
 
-static void Math_round(Runtime &rt)
+static void math_round(Runtime &rt)
 {
-    double x = rt.to_number(1);
-    if (rt.arg_count() > 1)
-    {
-        auto n = (int) rt.to_integer(2);
-        rt.push(do_round(x, n));
-    }
-    else
-    {
-        rt.push(do_round(x));
-    }
+	if (rt.is_array(1))
+	{
+		auto &X = rt.to_array(1);	
+		if (rt.arg_count() > 1)
+		{
+			auto n = (int) rt.to_integer(2);
+			auto f = [=](double x) { return do_round(x, n); };
+			rt.push(apply(X, f));
+		}
+		else
+		{
+			auto f = [=](double x) { return do_round(x); };		
+			rt.push(apply(X, f));
+		}
+	}
+	else
+	{
+		double x = rt.to_number(1);
+		if (rt.arg_count() > 1)
+		{
+			auto n = (int) rt.to_integer(2);
+			rt.push(do_round(x, n));
+		}
+		else
+		{
+			rt.push(do_round(x));
+		}
+	}
 }
 
-static void Math_sin(Runtime &rt)
+static void math_sin(Runtime &rt)
 {
-    rt.push(sin(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return sin(n); }));
+	else
+	    rt.push(sin(rt.to_number(1)));
 }
 
-static void Math_sqrt(Runtime &rt)
+static void math_sqrt(Runtime &rt)
 {
-    rt.push(sqrt(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return sqrt(n); }));
+	else
+	    rt.push(sqrt(rt.to_number(1)));
 }
 
-static void Math_tan(Runtime &rt)
+static void math_tan(Runtime &rt)
 {
-    rt.push(tan(rt.to_number(1)));
+	if (rt.is_array(1))
+		rt.push(apply(rt.to_array(1), [](double n) { return tan(n); }));
+	else
+	    rt.push(tan(rt.to_number(1)));
 }
 
-static void Math_max(Runtime &rt)
+static void math_max(Runtime &rt)
 {
     int i, n = rt.top_count();
     double x = -INFINITY;
@@ -159,7 +228,7 @@ static void Math_max(Runtime &rt)
     rt.push(x);
 }
 
-static void Math_min(Runtime &rt)
+static void math_min(Runtime &rt)
 {
     int i, n = rt.top_count();
     double x = INFINITY;
@@ -183,37 +252,40 @@ void Runtime::init_math()
 {
     srand(time(nullptr));
 
+	add_global_function("abs", math_abs, 1);
+	add_global_function("acos", math_acos, 1);
+	add_global_function("asin", math_asin, 1);
+	add_global_function("atan", math_atan, 1);
+	add_global_function("atan2", math_atan2, 2);
+	add_global_function("ceil", math_ceil, 1);
+	add_global_function("cos", math_cos, 1);
+	add_global_function("exp", math_exp, 1);
+	add_global_function("floor", math_floor, 1);
+	add_global_function("log", math_log, 1);
+	add_global_function("log10", math_log10, 1);
+	add_global_function("log2", math_log2, 1);
+	add_global_function("max", math_max, 0); /* 2 */
+	add_global_function("min", math_min, 0); /* 2 */
+	add_global_function("pow", math_pow, 2);
+	add_global_function("random", math_random, 0);
+	add_global_function("round", math_round, 1);
+	add_global_function("sin", math_sin, 1);
+	add_global_function("sqrt", math_sqrt, 1);
+	add_global_function("tan", math_tan, 1);
+
     push(new Object(*this, PHON_CMATH, object_meta));
     {
         add_math_constant("E", 2.7182818284590452354);
-        add_math_constant("LN10", 2.302585092994046);
-        add_math_constant("LN2", 0.6931471805599453);
-        add_math_constant("LOG2E", 1.4426950408889634);
-        add_math_constant("LOG10E", 0.4342944819032518);
         add_math_constant("PI", 3.1415926535897932);
-        add_math_constant("SQRT1_2", 0.7071067811865476);
         add_math_constant("SQRT2", 1.4142135623730951);
-
-        add_method("math.abs", Math_abs, 1);
-        add_method("math.acos", Math_acos, 1);
-        add_method("math.asin", Math_asin, 1);
-        add_method("math.atan", Math_atan, 1);
-        add_method("math.atan2", Math_atan2, 2);
-        add_method("math.ceil", Math_ceil, 1);
-        add_method("math.cos", Math_cos, 1);
-        add_method("math.exp", Math_exp, 1);
-        add_method("math.floor", Math_floor, 1);
-        add_method("math.log", Math_log, 1);
-        add_method("math.max", Math_max, 0); /* 2 */
-        add_method("math.min", Math_min, 0); /* 2 */
-        add_method("math.pow", Math_pow, 2);
-        add_method("math.random", Math_random, 0);
-        add_method("math.round", Math_round, 1);
-        add_method("math.sin", Math_sin, 1);
-        add_method("math.sqrt", Math_sqrt, 1);
-        add_method("math.tan", Math_tan, 1);
     }
-    def_global("math", PHON_DONTENUM);
+    def_global("__math", PHON_DONTENUM);
+
+	do_string(R"__(this
+		E = __math.E
+		PI = __math.PI
+		SQRT2 = __math.SQRT2
+    )__");
 }
 
 } // namespace phonometrica

@@ -26,103 +26,127 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <random>
 #include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
 
 namespace phonometrica {
 
-static intptr_t normalize_index(intptr_t i, intptr_t size)
+static void array_ctor(Runtime &rt)
 {
-	if (i > 0 && i <= size)
-		return --i;
-	if (i < 0 && i <= -size)
-		return size + i;
+	int argc = rt.arg_count();
 
-	throw error("[Index error] Index % out of range in array dimension with % elements", i, size);
-}
-
-static void new_array(Runtime &rt)
-{
-	if (rt.arg_count() != 2) {
-		rt.raise("Error", "Array expected two arguments, %d received", rt.arg_count());
-	}
-	int nrow = rt.to_integer(1);
-	int ncol = rt.to_integer(2);
-	auto obj = new Object(rt, PHON_CARRAY, rt.array_meta);
-
-	try
+	if (argc == 1)
 	{
-		new (&obj->as.array) Matrix<double>(nrow, ncol);
+		intptr_t n = rt.to_integer(1);
+		auto obj = new Object(rt, PHON_CARRAY, rt.array_meta);
+		new (&obj->as.array) Array<double>(n, 0.0);
+		rt.push(obj);
 	}
-	catch (std::runtime_error &e)
+	else if (argc == 2)
 	{
-		rt.raise("Math error", "%s", e.what());
+		intptr_t nrow = rt.to_integer(1);
+		intptr_t ncol = rt.to_integer(2);
+		auto obj = new Object(rt, PHON_CARRAY, rt.array_meta);
+		new (&obj->as.array) Array<double>(nrow, ncol);
+		rt.push(obj);
 	}
-
-	rt.push(obj);
+	else
+	{
+		throw rt.raise("Error", "Array expected 1 or 2 arguments, %d received", argc);
+	}
 }
 
 static void array_nrow(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
-	rt.push_int(array.rows());
+	rt.push_int(array.nrow());
 }
 
 static void array_ncol(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
-	rt.push_int(array.cols());
+	rt.push_int(array.ncol());
 }
 
-static void array_get(Runtime &rt)
+static void array_dim_count(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
-	if (rt.arg_count() != 2) {
-		rt.raise("Error", "expected 2 arguments, received %d", rt.arg_count());
-	}
-	intptr_t i = rt.to_integer(1);
-	intptr_t j = rt.to_integer(2);
-	i = normalize_index(i, array.rows());
-	j = normalize_index(j, array.cols());
-	rt.push(array(i,j));
-}
-
-static void array_set(Runtime &rt)
-{
-	auto &array = rt.to_array(0);
-	if (rt.arg_count() != 3) {
-		rt.raise("Error", "expected 3 arguments, received %d", rt.arg_count());
-	}
-	intptr_t i = rt.to_integer(1);
-	intptr_t j = rt.to_integer(2);
-	i = normalize_index(i, array.rows());
-	j = normalize_index(j, array.cols());
-	double value = rt.to_number(3);
-	array(i,j) = value;
-	rt.push_null();
+	rt.push_int(array.ndim());
 }
 
 static void array_to_string(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
-	String s;
+	String s("@[");
+	intptr_t nrow = array.nrow();
+	intptr_t ncol = array.ncol();
 
-	for (intptr_t i = 0; i < array.rows(); i++)
+	for (intptr_t i = 1; i <= nrow; i++)
 	{
-		for (intptr_t j = 0; j < array.cols(); j++)
+		if (ncol > 1 && i != 1) s.append("  ");
+
+		for (intptr_t j = 1; j <= ncol; j++)
 		{
 			s.append(String::convert(array(i,j)));
-			if (j < array.cols() - 1) {
-				s.append(", ");
-			}
+			if (j < array.ncol() || (i < nrow)) s.append(", ");
 		}
 
-		if (i < array.rows() - 1) {
-			s.append('\n');
-		}
+		if (ncol > 1 && i < array.nrow()) s.append('\n');
 	}
 
+	s.append(']');
 	rt.push(std::move(s));
+}
+
+static void array_transpose(Runtime &rt)
+{
+	auto &X = rt.to_array(0);
+
+	rt.push(transpose(X));
+}
+
+static void array_add(Runtime &rt)
+{
+	auto &X = rt.to_array(0);
+	double n = rt.to_number(1);
+	rt.push(add(X, n));
+
+}
+
+static void array_sub(Runtime &rt)
+{
+	auto &X = rt.to_array(0);
+	double n = rt.to_number(1);
+	rt.push(sub(X, n));
+}
+
+static void array_mul(Runtime &rt)
+{
+	auto &X = rt.to_array(0);
+	double n = rt.to_number(1);
+	rt.push(mul(X, n));
+}
+
+static void array_div(Runtime &rt)
+{
+	auto &X = rt.to_array(0);
+	double n = rt.to_number(1);
+	rt.push(div(X, n));
+}
+
+static void array_shuffle(Runtime &rt)
+{
+	auto &x = rt.to_array(0);
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(x.begin(), x.end(), g);
+}
+
+static void array_clone(Runtime &rt)
+{
+	Array<double> copy = rt.to_array(0);
+	rt.push(std::move(copy));
 }
 
 void Runtime::init_array()
@@ -131,11 +155,17 @@ void Runtime::init_array()
 	{
 		add_accessor("row_count", array_nrow);
 		add_accessor("column_count", array_ncol);
+		add_accessor("dim_count", array_dim_count);
 		add_method("Array.meta.to_string", array_to_string, 0);
-		add_method("Array.meta.get", array_get, 2);
-		add_method("Array.meta.set", array_set, 3);
+		add_method("Array.meta.transpose", array_transpose, 0);
+		add_method("Array.meta.add", array_add, 1);
+		add_method("Array.meta.sub", array_sub, 1);
+		add_method("Array.meta.mul", array_mul, 1);
+		add_method("Array.meta.div", array_div, 1);
+		add_method("Array.meta.shuffle", array_shuffle, 0);
+		add_method("Array.meta.clone", array_clone, 0);
 	}
-	new_native_constructor(new_array, new_array, "Array", 1);
+	new_native_constructor(array_ctor, array_ctor, "Array", 1);
 	def_global("Array", PHON_DONTENUM);
 }
 

@@ -305,12 +305,14 @@ public:
 
 	size_type nrow() const noexcept
 	{
+		if (ndim() == 1) return size();
 		assert(ndim() == 2);
 		return m_dim.d2.nrow;
 	}
 
 	size_type ncol() const noexcept
 	{
+		if (ndim() == 1) return 1;
 		assert(ndim() == 2);
 		return m_dim.d2.ncol;
 	}
@@ -375,18 +377,18 @@ public:
 
 	reference operator()(size_type row, size_type col)
 	{
-		assert(ndim() == 2);
+		assert(ndim() <= 2);
 		assert(row > 0 && col > 0);
-		auto pos = (col - 1) * row + row - 1;
+		size_type pos = (col - 1) * nrow() + row - 1;
 
 		return m_data[pos];
 	}
 
 	const_reference operator()(size_type row, size_type col) const
 	{
-		assert(ndim() == 2);
+		assert(ndim() <= 2);
 		assert(row > 0 && col > 0);
-		auto pos = (col - 1) * row + row - 1;
+		auto pos = (col - 1) * nrow() + row - 1;
 
 		return m_data[pos];
 	}
@@ -417,18 +419,20 @@ public:
 
 	reference at(size_type row, size_type col)
 	{
-		auto i = to_base1(row);
-		auto j = to_base1(col);
+		auto i = to_base0(row, nrow());
+		auto j = to_base0(col, ncol());
+		auto pos = j * nrow() + i;
 
-		return (*this)(i, j);
+		return m_data[pos];
 	}
 
 	const_reference at(size_type row, size_type col) const
 	{
-		auto i = to_base1(row);
-		auto j = to_base1(col);
+		auto i = to_base0(row, nrow());
+		auto j = to_base0(col, ncol());
+		auto pos = j * nrow() + i;
 
-		return (*this)(i, j);
+		return m_data[pos];
 	}
 
 	// Note that the index sequence is mutated in place by converting all indexes to positive 1-based values.
@@ -888,6 +892,18 @@ private:
 		}
 
 		throw error("Index % out of range in array with size %", i, len);
+	}
+
+	intptr_t to_base0(intptr_t i, intptr_t len) const
+	{
+		if (i > 0 && i <= len) {
+			return i - 1;
+		}
+		if (i >= -len && i < 0) {
+			return len + i;
+		}
+
+		throw error("Index % out of range in array dimension with length %", i, len);
 	}
 
 	// Convert indexes to positive 1-based indexes.

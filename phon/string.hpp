@@ -179,6 +179,7 @@ public:
 	String &insert(iterator pos, Substring infix);
 	String &insert(intptr_t pos, Substring infix);
 	String &prepend(Substring prefix);
+	String &prepend(char32_t c);
 	String &append(Substring suffix);
 	String &append(char32_t c);
 

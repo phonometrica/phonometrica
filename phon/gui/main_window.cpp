@@ -46,6 +46,7 @@
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/include/speech_analysis_phon.hpp>
+#include <phon/include/statistical_analysis_phon.hpp>
 #include <phon/include/transphon_phon.hpp>
 #include <phon/utils/file_system.hpp>
 #include <phon/utils/any.hpp>
@@ -831,6 +832,7 @@ void MainWindow::preInitialize()
 void MainWindow::postInitialize()
 {
 	run_script(runtime, speech_analysis);
+	run_script(runtime, statistical_analysis);
 
 	// Load system plugins and scripts, and then the user's plugins and scripts.
 	String resources_dir = Settings::get_string(runtime, "resources_directory");

@@ -273,16 +273,16 @@ static void fmtindent(Runtime *J, String &buffer, std::string_view gap, int leve
 
 static int fmtvalue(Runtime *J, String &buffer, const String &key, const char *gap, int level);
 
-static void fmtobject(Runtime *J, String &buffer, Object *obj, const char *gap, int level)
+void Runtime::format_object(String &buffer, Object *obj, const char *gap, int level)
 {
     int save;
     int i, n;
 
-    n = J->top_count() - 1;
+    n = top_count() - 1;
     for (i = 4; i < n; ++i)
-        if (J->is_object(i))
-            if (J->to_object(i) == J->to_object(-1))
-                throw J->raise("Type error", "cyclic object value");
+        if (is_object(i))
+            if (to_object(i) == to_object(-1))
+                throw raise("Type error", "cyclic object value");
 
     n = 0;
     buffer.append('{');
@@ -301,18 +301,18 @@ static void fmtobject(Runtime *J, String &buffer, Object *obj, const char *gap, 
     {
         save = (int) buffer.size();
         if (n) buffer.append(',');
-        if (gap) fmtindent(J, buffer, gap, level + 1);
-        fmtstr(J, buffer, s.data());
+        if (gap) fmtindent(this, buffer, gap, level + 1);
+        fmtstr(this, buffer, s.data());
         buffer.append(':');
         if (gap)
             buffer.append(' ');
-        J->get_field(-1, s);
-        if (!fmtvalue(J, buffer, s, gap, level + 1))
+        get_field(-1, s);
+        if (!fmtvalue(this, buffer, s, gap, level + 1))
             buffer.chop(save);
         else
             ++n;
     }
-    if (gap && n) fmtindent(J, buffer, gap, level);
+    if (gap && n) fmtindent(this, buffer, gap, level);
     buffer.append('}');
 }
 
@@ -396,7 +396,7 @@ static int fmtvalue(Runtime *J, String &buffer, const String &key, const char *g
             fmtlist(J, buffer, gap, level);
             break;
         default:
-            fmtobject(J, buffer, obj, gap, level);
+	        J->format_object(buffer, obj, gap, level);
             break;
         }
     }

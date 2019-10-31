@@ -1,6 +1,8 @@
 #include <phon/regex.hpp>
 #include <phon/third_party/catch.hpp>
 
+using namespace phonometrica;
+
 TEST_CASE("Test regex", "[regex]")
 {
 	String pattern("^(..)llo");

@@ -7,7 +7,7 @@ var annot = files[1]
 annot.bind_to_sound("/home/julien/91aal1gw.flac")
 
 # Get annotation path
-print("Path: " + annot.path)
+print("Path: " & annot.path)
 
 # Add text, numeric and Boolean properties, respectively
 annot.add_property("Survey", "91A")
@@ -28,14 +28,14 @@ var label = annot.get_layer_label(1)
 annot.set_layer_label(1, label.to_upper())
 
 # Get number of layers in annotation
-print("Number of layers: " + annot.layer_count)
+print("Number of layers: " & annot.layer_count)
 
 # Query events events
 var layer = 1
 var last_event = annot.get_event_count(layer)
 var start_time = annot.get_event_start(layer, last_event)
 var end_time = annot.get_event_end(layer, last_event)
-print("Last event: " + annot.get_event_text(layer, last_event))
+print("Last event: " & annot.get_event_text(layer, last_event))
 annot.set_event_text(layer, last_event, "Hello world!")
 
 phon.view_annotation(annot, layer, start_time, end_time)

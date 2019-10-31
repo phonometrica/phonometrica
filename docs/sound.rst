@@ -72,12 +72,12 @@ toolbar) allows you adjust the formant tracking algorithm's parameters:
 
 * ``number of formants``: this is the maximum number of formants that will be extracted and displayed over the spectrogram
 * ``maximum frequency``: this is the highest frequency in the sound below which formants are expected to be found. For
-vowel analysis, a good rule of thumb is to use 5000 Hz for male voices and 5500 for female voices. We usually expect to find 5 formants
-within this frequency range.
+  vowel analysis, a good rule of thumb is to use 5000 Hz for male voices and 5500 for female voices. We usually expect to find 5 formants
+  within this frequency range.
 * ``window length``: this is the duration (in seconds) of the analysis window that will be used to calculate prediction coefficients.
 * ``LPC order``: this represents the number of prediction coefficients that will be used to perform LPC analysis. For a male voice,
-we usually expect roughly one formant per thousand Hertz. (Add 10% for female voices.) By default, Phonometrica applies the following
-formula:  :math:`LPC order = 2n + 2`, where *n* is the expected number of formants.
+  we usually expect roughly one formant per thousand Hertz. (Add 10% for female voices.) By default, Phonometrica applies the following
+  formula:  :math:`LPC order = 2n + 2`, where *n* is the expected number of formants.
 
 Pitch track
 ~~~~~~~~~~~

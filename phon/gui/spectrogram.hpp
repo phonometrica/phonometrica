@@ -32,7 +32,7 @@
 #include <QImage>
 #include <phon/gui/speech_plot.hpp>
 #include <phon/utils/matrix.hpp>
-#include <phon/speech/signal_processing.hpp>
+#include <phon/analysis/signal_processing.hpp>
 
 namespace phonometrica {
 

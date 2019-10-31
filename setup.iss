@@ -2,9 +2,9 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Phonometrica"
-#define MyAppVersion "0.6.0 (beta)"
+#define MyAppVersion "0.6.2"
 #define MyAppPublisher "Julien Eychenne & Léa Courdès-Murphy"
-#define MyAppURL "https://phonometrica.github.io"
+#define MyAppURL "http://www.phonometrica-ling.org"
 #define MyAppExeName "phonometrica.exe"
 
 [Setup]
@@ -36,11 +36,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "C:\Devel\build\x64-Release\phonometrica.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Devel\build\x64-Release\phonometrica.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "C:\Devel\build\x64-Release\phonometrica.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Julien\Documents\Devel\phonometrica\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\Julien\Documents\Devel\phonometrica\LICENSE-FR"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Lib\deploy\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Users\Julien\Documents\Devel\phonometrica\std\*"; DestDir: "{app}\std"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Devel\Deploy\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+;Source: "C:\Users\Julien\Documents\Devel\phonometrica\std\*"; DestDir: "{app}\std"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "C:\Users\Julien\Documents\Devel\phonometrica\html\*"; DestDir: "{app}\html"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "C:\Users\Julien\Documents\Devel\phonometrica\licenses\*"; DestDir: "{app}\other_licenses"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

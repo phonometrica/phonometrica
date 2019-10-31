@@ -1,7 +1,7 @@
 String processing
 =================
 
-This page documents the ``String`` class.
+This page documents the ``String`` type.
 
 General concepts
 ----------------
@@ -36,71 +36,10 @@ Get character at position ``pos``. If ``pos`` is negative, counting starts from 
 
 ------------
 
-.. method:: trim()
+.. method:: concat(other)
 
-Returns a copy of the string with whitespace characters removed at both
-ends of the string.
-
-.. code:: phon
-
-    var s = "\t  hello  \n"
-
-    s = s.trim()
-    print("$" + s + "$") # prints "$hello$"
-
-See also: :func:`ltrim`, :func:`rtrim`
-
-
-------------
-
-.. method:: ltrim()
-
-Returns a copy of the string with whitespace characters removed at the
-left end of the string.
-
-.. code:: phon
-
-    var s = "  hello  "
-
-    s = s.ltrim()
-    print("$" + s + "$") # prints "$hello  $"
-
-See also: :func:`trim`, :func:`rtrim`
-
-
-------------
-
-.. method:: rtrim()
-
-Returns a copy of the string with whitespace characters removed at the
-right end of the string.
-
-.. code:: phon
-
-    var s = "  hello  "
-
-    s = s.rtrim()
-    print("$" + s + "$") # prints "$  hello$"
-
-See also: :func:`ltrim`, :func:`trim`
-
-
-------------
-
-.. method:: starts\_with(prefix)
-
-Returns true if the string starts with ``prefix``, and ``false`` otherwise.
-
-See also: :func:`ends\_with`
-
-
-------------
-
-.. method:: ends\_with(suffix)
-
-Returns true if the string ends with ``suffix``, and ``false`` otherwise.
-
-See also: :func:`starts\_with`
+Create a new string which is the concatenation of ``this`` and ``other``.
+Another, simpler way to concatenate strings is to use the operator ``+``.
 
 
 ------------
@@ -129,90 +68,59 @@ Note: matches don't overlap.
 
 ------------
 
-.. method:: to\_upper()
+.. method:: ends\_with(suffix)
 
-Returns a copy of the string where each code point has been converted to
-upper case.
+Returns true if the string ends with ``suffix``, and ``false`` otherwise.
+
+See also: :func:`starts\_with`
+
+
+
+------------
+
+.. method:: insert(pos, other)
+
+Returns a copy of the string with ``other`` inserted at position ``pos``
+
+
+------------
+
+.. method:: left(n)
+
+Get the substring corresponding to the ``n`` first characters of the
+string.
+
+------------
+
+.. method:: ltrim()
+
+Returns a copy of the string with whitespace characters removed at the
+left end of the string.
 
 .. code:: phon
 
-    var s1 = "c'était ça"
-    var s2 = s1.to_upper()
+    var s = "  hello  "
 
-    print(s2) # prints "C'ÉTAIT ÇA"
+    s = s.ltrim()
+    print("$" + s + "$") # prints "$hello  $"
 
-See also: :func:`to\_lower`
+See also: :func:`trim`, :func:`rtrim`
 
 
 ------------
 
-.. method:: to\_lower()
+.. method:: mid(from, to)
 
-Returns a copy of the string where each code point has been converted to
-lower case.
+Returns the substring of ``str`` starting at index ``from`` and ending
+at index ``to`` (inclusive). If ``to`` equals ``-1``, returns the
+substring from ``from`` until the end of the string.
 
 .. code:: phon
 
-    var s1 = "C'ÉTAIT ÇA"
-    var s2 = s1.to_lower()
+    var s = "c'était ça"
 
-    print(s2) # prints "c'était ça"
-
-See also: :func:`to\_upper`
-
-
-------------
-
-.. method:: replace(old, new)
-
-Returns a copy of the string where all (non-overlapping) instances of the
-substring ``old`` have been replaced by ``new``.
-
-See also: :func:`replace\_at`,
-:func:`replace\_first`,
-:func:`replace\_last`
-
-
-------------
-
-.. method:: replace\_at(at, count, new)
-
-Returns a copy of the string where ``count`` code points, starting at
-position ``at``, have been replaced by ``new``.
-
-See also: :func:`replace`,
-:func:`replace\_first`,
-:func:`replace\_last`
-
-
-------------
-
-.. method:: replace\_first(str, old, new)
-
-Returns a copy of the string where the first instance of the substring
-``old`` has been replaced by ``new``.
-
-See also: :func:`replace\_at`,
-:func:`replace`, :func:`replace\_last`
-
-
-------------
-
-.. method:: replace\_last(str, old, new)
-
-Returns a copy of the string where the last instance of the substring
-``old`` has been replaced by ``new``.
-
-See also: :func:`replace\_at`,
-:func:`replace`, :func:`replace\_first`
-
-
-------------
-
-.. method:: concat(other)
-
-Create a new string which is the concatenation of ``this`` and ``other``.
-Another, simpler way to concatenate strings is to use the operator ``+``.
+    print(s.mid(3, 7)) # "était"
+    print(s.mid(3,-1)) # "était ça"
 
 
 ------------
@@ -263,41 +171,57 @@ See also: :func:`remove\_at`, :func:`remove`,
 
 ------------
 
+.. method:: replace(old, new)
+
+Returns a copy of the string where all (non-overlapping) instances of the
+substring ``old`` have been replaced by ``new``.
+
+See also: :func:`replace\_at`,
+:func:`replace\_first`,
+:func:`replace\_last`
+
+
+------------
+
+.. method:: replace\_at(at, count, new)
+
+Returns a copy of the string where ``count`` code points, starting at
+position ``at``, have been replaced by ``new``.
+
+See also: :func:`replace`,
+:func:`replace\_first`,
+:func:`replace\_last`
+
+
+------------
+
+.. method:: replace\_first(str, old, new)
+
+Returns a copy of the string where the first instance of the substring
+``old`` has been replaced by ``new``.
+
+See also: :func:`replace\_at`,
+:func:`replace`, :func:`replace\_last`
+
+
+------------
+
+.. method:: replace\_last(str, old, new)
+
+Returns a copy of the string where the last instance of the substring
+``old`` has been replaced by ``new``.
+
+See also: :func:`replace\_at`,
+:func:`replace`, :func:`replace\_first`
+
+
+------------
+
 .. method:: reverse()
 
 Returns a new string with all the characters in the string in reversed
 order.
 
-
-------------
-
-.. method:: insert(pos, other)
-
-Returns a copy of the string with ``other`` inserted at position ``pos``
-
-
-------------
-
-.. method:: mid(from, to)
-
-Returns the substring of ``str`` starting at index ``from`` and ending
-at index ``to`` (inclusive). If ``to`` equals ``-1``, returns the
-substring from ``from`` until the end of the string.
-
-.. code:: phon
-
-    var s = "c'était ça"
-
-    print(s.mid(3, 7)) # "était"
-    print(s.mid(3,-1)) # "était ça"
-
-
-------------
-
-.. method:: left(n)
-
-Get the substring corresponding to the ``n`` first characters of the
-string.
 
 
 ------------
@@ -310,11 +234,92 @@ string.
 
 ------------
 
+.. method:: rtrim()
+
+Returns a copy of the string with whitespace characters removed at the
+right end of the string.
+
+.. code:: phon
+
+    var s = "  hello  "
+
+    s = s.rtrim()
+    print("$" + s + "$") # prints "$  hello$"
+
+See also: :func:`ltrim`, :func:`trim`
+
+
+------------
+
 .. method:: split(delim)
 
 Returns a table of strings which have been split at each occurrence of
 the substring ``delim``. If ``delim`` is the empty string, it returns a
 list of the characters in the string.
+
+
+------------
+
+.. method:: starts\_with(prefix)
+
+Returns true if the string starts with ``prefix``, and ``false`` otherwise.
+
+See also: :func:`ends\_with`
+
+
+------------
+
+.. method:: to\_lower()
+
+Returns a copy of the string where each code point has been converted to
+lower case.
+
+.. code:: phon
+
+    var s1 = "C'ÉTAIT ÇA"
+    var s2 = s1.to_lower()
+
+    print(s2) # prints "c'était ça"
+
+See also: :func:`to\_upper`
+
+
+------------
+
+.. method:: to\_upper()
+
+Returns a copy of the string where each code point has been converted to
+upper case.
+
+.. code:: phon
+
+    var s1 = "c'était ça"
+    var s2 = s1.to_upper()
+
+    print(s2) # prints "C'ÉTAIT ÇA"
+
+See also: :func:`to\_lower`
+
+
+------------
+
+.. method:: trim()
+
+Returns a copy of the string with whitespace characters removed at both
+ends of the string.
+
+.. code:: phon
+
+    var s = "\t  hello  \n"
+
+    s = s.trim()
+    print("$" + s + "$") # prints "$hello$"
+
+See also: :func:`ltrim`, :func:`rtrim`
+
+
+
+
 
 
 Fields

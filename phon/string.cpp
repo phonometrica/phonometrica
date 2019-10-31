@@ -291,6 +291,17 @@ String &String::append(char32_t c)
 	return append(encode(c));
 }
 
+String &String::prepend(char32_t c)
+{
+	if (c < 128)
+	{
+		char ch = char(c);
+		return prepend({ &ch, 1 });
+	}
+
+	return prepend(encode(c));
+}
+
 Codepoint String::encode(char32_t c)
 {
 	Codepoint result;
@@ -1496,6 +1507,10 @@ Substring String::next_grapheme(intptr_t i) const
 
 double String::to_float(Substring str, bool *ok)
 {
+	if (str == "undefined") {
+		return std::nan("");
+	}
+
 	auto ch = str.begin();
 	bool numeric = true;
 	double value = std::nan("");

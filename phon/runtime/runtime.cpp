@@ -317,7 +317,7 @@ double Runtime::to_number(Variant *v)
     case PHON_TNUMBER:
         return v->as.number;
     case PHON_TSTRING:
-        return string_to_number(this, v->as.string);
+        return v->as.string.to_float();
     case PHON_TOBJECT:
         var_to_primitive(this, v, PHON_HINT_NUMBER);
         return to_number(v);
@@ -369,6 +369,12 @@ void Runtime::add_string_field(const char *name, const char *string)
 {
     push(string);
     def_field(-2, name, PHON_DONTENUM);
+}
+
+void Runtime::add_numeric_field(const char *name, double n)
+{
+	push(n);
+	def_field(-2, name, PHON_DONTENUM);
 }
 
 Variant &Runtime::get(int idx)
@@ -477,10 +483,10 @@ void Runtime::push(String &&v)
 	++top;
 }
 
-void Runtime::push(Matrix<double> m)
+void Runtime::push(Array<double> m)
 {
 	auto obj = new Object(*this, PHON_CARRAY, array_meta);
-	new (&obj->as.array) Matrix<double>(std::move(m));
+	new (&obj->as.array) Array<double>(std::move(m));
 	push(obj);
 }
 
@@ -661,7 +667,7 @@ Regex &Runtime::to_regex(int idx)
 	throw raise("Type error", "not a Regex");
 }
 
-Matrix<double> &Runtime::to_array(int idx)
+Array<double> &Runtime::to_array(int idx)
 {
 	Variant *v = stack_index(idx);
 	if (v->type == PHON_TOBJECT && v->as.object->type == PHON_CARRAY)
@@ -983,6 +989,14 @@ void Runtime::get_field(Object *obj, intptr_t pos)
 			auto &v = obj->as.list.at(pos);
 			push(v);
 		}
+		else if (obj->type == PHON_CARRAY)
+		{
+			auto &x = obj->as.array;
+			if (x.ndim() != 1) {
+				throw raise("Index error", "1 index provided, but array has %ld dimensions", x.ndim());
+			}
+			push(x.at(pos));
+		}
 		else if (obj->type == PHON_CSTRING)
 		{
 			throw raise("Index error", "Cannot index String code point");
@@ -992,7 +1006,7 @@ void Runtime::get_field(Object *obj, intptr_t pos)
 		}
 		else
 		{
-			throw raise("Error", "%s (type id: %d)", "cannot get numeric index for object which is not a list", obj->type);
+			throw raise("Error", "%s (type id: %d)", "cannot get numeric index for object which is neither a list nor an array", obj->type);
 		}
 	}
 	catch (std::runtime_error &e)
@@ -1003,17 +1017,35 @@ void Runtime::get_field(Object *obj, intptr_t pos)
 
 void Runtime::set_field(Object *obj, intptr_t idx)
 {
-	if (obj->type != PHON_CLIST)
+	if (obj->type == PHON_CLIST)
 	{
-		throw raise("Error", "%s (type id: %d)", "cannot set numeric index for object which is not a list", obj->type);
+		try
+		{
+			obj->as.list.at(idx) = *stack_index(-1);
+		}
+		catch (std::runtime_error &e)
+		{
+			throw raise("Index error", e);
+		}
 	}
-	try
+	else if (obj->type == PHON_CARRAY)
 	{
-		obj->as.list.at(idx) = *stack_index(-1);
+		try
+		{
+			auto &x = obj->as.array;
+			if (x.ndim() != 1) {
+				throw error("1 index provided but array has %ld dimensions", x.ndim());
+			}
+			x.at(idx) = stack_index(-1)->to_number();
+		}
+		catch (std::exception &e)
+		{
+			throw raise("Index error", "%s", e.what());
+		}
 	}
-	catch (std::runtime_error &e)
+	else
 	{
-		throw raise("Index error", e);
+		throw raise("Index error", "%s (type id: %d)", "cannot set numeric index for object which is neither a list nor an array", obj->type);
 	}
 }
 
@@ -1705,6 +1737,19 @@ static void jsR_run(Runtime *J, Function *F)
 				J->new_list(op.size);
 				break;
 			}
+			case OP_NEWARRAY:
+			{
+				SizeOpcode row, col;
+				memcpy(row.ins, pc, sizeof(SizeOpcode));
+				pc += OpSize;
+				memcpy(col.ins, pc, sizeof(SizeOpcode));
+				pc += OpSize;
+				if (row.size == 1)
+					J->new_array(col.size);
+				else
+					J->new_array(row.size, col.size);
+				break;
+			}
 			case OP_NEWREGEXP:
 				J->new_regex(ST[pc[0]], pc[1]);
 				pc += 2;
@@ -1849,6 +1894,23 @@ static void jsR_run(Runtime *J, Function *F)
 				js_rot3pop2(J);
 				break;
 			}
+			case OP_GETPROPX:
+			{
+				int argc = *pc++;
+				int pos = -1 - argc;
+				if (!J->is_array(pos)) {
+					throw J->raise("Index error", "Multi-dimensional indexing is only supported for numeric arrays");
+				}
+				auto &X = J->to_array(pos);
+				intptr_t i = J->to_integer(-2);
+				intptr_t j = J->to_integer(-1);
+				J->pop(argc + 1);
+				if (X.ndim() != 2) {
+					throw J->raise("Index error", "2 indexes provided, but array has %ld dimension(s)", X.ndim());
+				}
+				J->push(X.at(i,j));
+				break;
+			}
 			case OP_GETPROP_S:
 			{
 				auto &str = ST[*pc++];
@@ -1872,6 +1934,24 @@ static void jsR_run(Runtime *J, Function *F)
 					J->set_field(obj, str);
 				}
 				js_rot3pop2(J);
+				break;
+			}
+			case OP_SETPROPX:
+			{
+				int argc = *pc++;
+				int pos = -2 - argc;
+				if (!J->is_array(pos)) {
+					throw J->raise("Index error", "Multi-dimensional indexing is only supported for numeric arrays");
+				}
+				auto &X = J->to_array(pos);
+				intptr_t i = J->to_integer(-3);
+				intptr_t j = J->to_integer(-2);
+				double value = J->to_number(-1);
+				if (X.ndim() != 2) {
+					throw J->raise("Index error", "2 indexes provided, but array has %d dimension(s)", int(X.ndim()));
+				}
+				X.at(i,j) = value;
+				J->pop(argc + 1); // FIXME: stack underflow if we pop 4 arguments.
 				break;
 			}
 			case OP_SETPROP_S:
@@ -2008,19 +2088,67 @@ static void jsR_run(Runtime *J, Function *F)
 				/* Multiplicative operators */
 
 			case OP_MUL:
-				x = J->to_number(-2);
-				y = J->to_number(-1);
-				J->pop(2);
-				J->push(x * y);
+			{
+				if (J->is_array(-2))
+				{
+					auto &X = J->to_array(-2);
+					if (J->is_array(-1))
+					{
+						auto &Y = J->to_array(-1);
+						if (X.nrow() == Y.ncol() && X.ncol() == Y.nrow())
+						{
+							J->pop(2);
+							J->push(mul(X, Y));
+						}
+						else
+						{
+							J->raise("Math error", "Cannot multiply matrices with dimensions %ldx%ld and %ldx%ld",
+									X.nrow(), X.ncol(), Y.nrow(), Y.ncol());
+						}
+					}
+					else
+					{
+						y = J->to_number(-1);
+						J->pop(2);
+						J->push(mul(X,y));
+					}
+				}
+				else
+				{
+					x = J->to_number(-2);
+					if (J->is_array(-1))
+					{
+						auto &Y = J->to_array(-1);
+						J->pop(2);
+						J->push(mul(Y,x));
+					}
+					else
+					{
+						y = J->to_number(-1);
+						J->pop(2);
+						J->push(x * y);
+					}
+				}
 				break;
-
+			}
 			case OP_DIV:
-				x = J->to_number(-2);
-				y = J->to_number(-1);
-				J->pop(2);
-				J->push(x / y);
+			{
+				if (J->is_array(-2))
+				{
+					auto &X = J->to_array(-2);
+					y = J->to_number(-1);
+					J->pop(2);
+					J->push(div(X,y));
+				}
+				else
+				{
+					x = J->to_number(-2);
+					y = J->to_number(-1);
+					J->pop(2);
+					J->push(x / y);
+				}
 				break;
-
+			}
 			case OP_MOD:
 				x = J->to_number(-2);
 				y = J->to_number(-1);
@@ -2031,7 +2159,10 @@ static void jsR_run(Runtime *J, Function *F)
 				/* Additive operators */
 
 			case OP_ADD:
-				js_concat(J);
+				x = J->to_number(-2);
+				y = J->to_number(-1);
+				J->pop(2);
+				J->push(x + y);
 				break;
 
 			case OP_SUB:
@@ -2122,11 +2253,8 @@ static void jsR_run(Runtime *J, Function *F)
 
 				/* Binary bitwise operators */
 
-			case OP_BITAND:
-				ix = J->to_int32(-2);
-				iy = J->to_int32(-1);
-				J->pop(2);
-				J->push(ix & iy);
+			case OP_CONCAT:
+				js_concat(J);
 				break;
 
 			case OP_BITXOR:

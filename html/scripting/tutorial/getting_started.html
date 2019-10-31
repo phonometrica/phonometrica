@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Getting started &#8212; Phonometrica 0.6.0 documentation</title>
+    <title>Getting started &#8212; Phonometrica 0.6.2 documentation</title>
     <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="../index.html" title="Scripting"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.2 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
       </ul>
     </div>
@@ -69,6 +69,12 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#errors">Errors</a></li>
+<li><a class="reference internal" href="#operators">Operators</a><ul>
+<li><a class="reference internal" href="#mathematical-operators">Mathematical operators</a></li>
+<li><a class="reference internal" href="#boolean-operators">Boolean operators</a></li>
+<li><a class="reference internal" href="#concatenatation-operator">Concatenatation operator</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -174,6 +180,14 @@ console, as it saves some typing.</p>
 <p>Internally, strings are encoded as UTF-8, which is the most widespread Unicode encoding. Source files are also expected to be encoded in UTF-8.</p>
 <p>Strings are immutable, which means that they can never be modified. Functions which “modify” a string always return a modified copy, leaving the
 original string unchanged.</p>
+<dl class="docutils">
+<dt>You can use the concatenation operator <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> to concatenate two or more values. If they are not strings, they will automatically</dt>
+<dd>be converted to strings.</dd>
+</dl>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">pi</span> <span class="o">=</span> <span class="mf">3.14</span>
+<span class="n">print</span><span class="p">(</span><span class="s">&quot;The value of pi is &quot;</span> <span class="o">&amp;</span> <span class="n">pi</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="list">
 <h3>List<a class="headerlink" href="#list" title="Permalink to this headline">¶</a></h3>
@@ -193,25 +207,29 @@ original string unchanged.</p>
 </div>
 <div class="section" id="array">
 <h3>Array<a class="headerlink" href="#array" title="Permalink to this headline">¶</a></h3>
-<p>An <code class="docutils literal notranslate"><span class="pre">Array</span></code> is a two-dimensional numeric array (i.e. a matrix). Elements in a matrix are accessed with a set of two indices, noted <em>(i, j)</em>,
-where <em>i</em> represents the <em>i</em> th row and <em>j</em> represents the <em>j</em> th column. Indices in each dimension start at 1 and can be negative.
-(Negative indices start from the end of the dimension.)</p>
-<p>You can create a new array by passing the number of rows and columns to the constructor. For instance, here is how to create an array containing 3 rows and 4 columns:</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">Array</span></code> is a one or two dimension numeric array. Elements along each dimension start at 1 and can be negative.
+(Negative indices start from the end of the dimension.) Two-dimensional arrays are accessed with a pair of indices noted <em>(i, j)</em>,
+where <em>i</em> represents the <em>i</em> th row and <em>j</em> represents the <em>j</em> th column. To get or set an element in an array, use the index <code class="docutils literal notranslate"><span class="pre">[]</span></code> operator.</p>
+<p>You can create a new array by passing the size of each dimension to the constructor. For instance, here is how to create an array containing 3 rows and 4 columns:</p>
 <div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">array</span> <span class="o">=</span> <span class="kr">new</span> <span class="n">Array</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 
 <span class="kr">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span> <span class="kr">to</span> <span class="n">array</span><span class="p">.</span><span class="n">row_count</span> <span class="kr">do</span>
-
     <span class="kr">for</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span> <span class="kr">to</span> <span class="n">array</span><span class="p">.</span><span class="n">column_count</span> <span class="kr">do</span>
-        <span class="n">array</span><span class="p">.</span><span class="kr">set</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">array</span><span class="o">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="o">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span>
     <span class="kr">end</span>
 <span class="kr">end</span>
 <span class="n">print</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This code will produce the following output:</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="mf">2.0000000000</span><span class="p">,</span> <span class="mf">3.0000000000</span><span class="p">,</span> <span class="mf">4.0000000000</span><span class="p">,</span> <span class="mf">5.0000000000</span><span class="p">,</span> <span class="mf">6.0000000000</span>
-<span class="mf">3.0000000000</span><span class="p">,</span> <span class="mf">4.0000000000</span><span class="p">,</span> <span class="mf">5.0000000000</span><span class="p">,</span> <span class="mf">6.0000000000</span><span class="p">,</span> <span class="mf">7.0000000000</span>
-<span class="mf">4.0000000000</span><span class="p">,</span> <span class="mf">5.0000000000</span><span class="p">,</span> <span class="mf">6.0000000000</span><span class="p">,</span> <span class="mf">7.0000000000</span><span class="p">,</span> <span class="mf">8.0000000000</span>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="o">@[</span><span class="mf">2.0000000000</span><span class="p">,</span> <span class="mf">3.0000000000</span><span class="p">,</span> <span class="mf">4.0000000000</span><span class="p">,</span> <span class="mf">5.0000000000</span><span class="p">,</span> <span class="mf">6.0000000000</span>
+  <span class="mf">3.0000000000</span><span class="p">,</span> <span class="mf">4.0000000000</span><span class="p">,</span> <span class="mf">5.0000000000</span><span class="p">,</span> <span class="mf">6.0000000000</span><span class="p">,</span> <span class="mf">7.0000000000</span>
+  <span class="mf">4.0000000000</span><span class="p">,</span> <span class="mf">5.0000000000</span><span class="p">,</span> <span class="mf">6.0000000000</span><span class="p">,</span> <span class="mf">7.0000000000</span><span class="p">,</span> <span class="mf">8.0000000000</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>Another way to produce the same output would be to use an array literal, which is indicated with the <code class="docutils literal notranslate"><span class="pre">&#64;[]</span></code> operator. Inside the brackets, rows are separated by commas and
+columns are separated by semicolons. Therefore, our array could be written as follows:</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">array</span> <span class="o">=</span> <span class="o">@[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">;</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">;</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="o">]</span>
 </pre></div>
 </div>
 </div>
@@ -249,7 +267,7 @@ It expects two arguments (<code class="docutils literal notranslate"><span class
 <p>We can then <em>call</em> the function with specific values for <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>:</p>
 <div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">rect</span> <span class="o">=</span> <span class="p">{</span> <span class="n">height</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="mi">30</span> <span class="p">}</span>
 <span class="kr">var</span> <span class="n">a</span> <span class="o">=</span> <span class="n">area</span><span class="p">(</span><span class="n">rect</span><span class="p">.</span><span class="n">height</span><span class="p">,</span> <span class="n">rect</span><span class="p">.</span><span class="n">width</span><span class="p">)</span>
-<span class="n">print</span><span class="p">(</span><span class="s">&quot;The area of the rectangle is &quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+<span class="n">print</span><span class="p">(</span><span class="s">&quot;The area of the rectangle is &quot;</span> <span class="o">&amp;</span> <span class="n">a</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If a function is called with fewer arguments than it expects, missing arguments are replaced by <code class="docutils literal notranslate"><span class="pre">null</span></code>.
@@ -275,7 +293,7 @@ as follows:</p>
 <span class="kr">elsif</span> <span class="n">extension</span> <span class="o">==</span> <span class="s">&quot;.xml&quot;</span> <span class="kr">then</span>
     <span class="n">print</span><span class="p">(</span><span class="s">&quot;This is an XML file&quot;</span><span class="p">)</span>
 <span class="kr">else</span>
-    <span class="n">print</span><span class="p">(</span><span class="s">&quot;extension &#39;&quot;</span> <span class="o">+</span> <span class="n">extension</span> <span class="o">+</span> <span class="s">&quot;&#39; not recognized&quot;</span><span class="p">)</span>
+    <span class="n">print</span><span class="p">(</span><span class="s">&quot;extension &#39;&quot;</span> <span class="o">&amp;</span> <span class="n">extension</span> <span class="o">&amp;</span> <span class="s">&quot;&#39; not recognized&quot;</span><span class="p">)</span>
 <span class="kr">end</span>
 </pre></div>
 </div>
@@ -346,7 +364,7 @@ the keys of an object.</p>
 <span class="kr">var</span> <span class="n">person</span> <span class="o">=</span>  <span class="p">{</span> <span class="n">name</span> <span class="p">:</span> <span class="s">&quot;john&quot;</span><span class="p">,</span> <span class="n">surname</span> <span class="p">:</span> <span class="s">&quot;smith&quot;</span><span class="p">,</span> <span class="n">age</span> <span class="p">:</span> <span class="mi">38</span> <span class="p">}</span>
 
 <span class="kr">foreach</span> <span class="n">key</span> <span class="kr">in</span> <span class="n">person</span> <span class="kr">do</span>
-    <span class="n">print</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">&quot; -&gt; &quot;</span><span class="p">,</span> <span class="n">person</span><span class="o">[</span><span class="n">key</span><span class="o">]</span><span class="p">)</span>
+    <span class="n">print</span><span class="p">(</span><span class="n">key</span> <span class="o">&amp;</span> <span class="s">&quot; -&gt; &quot;</span> <span class="o">&amp;</span> <span class="n">person</span><span class="o">[</span><span class="n">key</span><span class="o">]</span><span class="p">)</span>
 <span class="kr">end</span>
 </pre></div>
 </div>
@@ -375,6 +393,24 @@ an optional error message. It will trigger an error with the error message if th
 </pre></div>
 </div>
 </div>
+<div class="section" id="operators">
+<h2>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="mathematical-operators">
+<h3>Mathematical operators<a class="headerlink" href="#mathematical-operators" title="Permalink to this headline">¶</a></h3>
+<p>Phonometrica supports the following mathematical operators: <code class="docutils literal notranslate"><span class="pre">+</span></code> (addition), <code class="docutils literal notranslate"><span class="pre">-</span></code> (subtraction),
+<code class="docutils literal notranslate"><span class="pre">*</span></code> (multiplication) and <code class="docutils literal notranslate"><span class="pre">/</span></code> (division). Multiplication and division take precedence over addition and
+subtraction. These operators implicitly convert the left and right expressions to <code class="docutils literal notranslate"><span class="pre">Number</span></code> if needed.</p>
+</div>
+<div class="section" id="boolean-operators">
+<h3>Boolean operators<a class="headerlink" href="#boolean-operators" title="Permalink to this headline">¶</a></h3>
+<p>Phonometrica supports the 3 standard Boolean operators <code class="docutils literal notranslate"><span class="pre">and</span></code>, <code class="docutils literal notranslate"><span class="pre">or</span></code> and <code class="docutils literal notranslate"><span class="pre">not</span></code>.</p>
+</div>
+<div class="section" id="concatenatation-operator">
+<h3>Concatenatation operator<a class="headerlink" href="#concatenatation-operator" title="Permalink to this headline">¶</a></h3>
+<p>The concatenation operator <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> allows to concatenate two or more strings. It implicitly converts values to
+<code class="docutils literal notranslate"><span class="pre">String</span></code> if needed.</p>
+</div>
+</div>
 </div>
 
 
@@ -395,7 +431,7 @@ an optional error message. It will trigger an error with the error message if th
         <li class="right" >
           <a href="../index.html" title="Scripting"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.2 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
       </ul>
     </div>

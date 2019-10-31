@@ -105,7 +105,14 @@ Internally, strings are encoded as UTF-8, which is the most widespread Unicode e
 Strings are immutable, which means that they can never be modified. Functions which "modify" a string always return a modified copy, leaving the
 original string unchanged.
 
+You can use the concatenation operator ``&`` to concatenate two or more values. If they are not strings, they will automatically 
+ be converted to strings.
 
+.. code:: phon
+
+    var pi = 3.14
+    print("The value of pi is " & pi)
+    
 
 List
 ~~~~
@@ -137,20 +144,19 @@ Indices start at 1 and can be negative: -1 represents the last element, -2 the s
 Array
 ~~~~~
 
-An ``Array`` is a two-dimensional numeric array (i.e. a matrix). Elements in a matrix are accessed with a set of two indices, noted *(i, j)*,
-where *i* represents the *i* th row and *j* represents the *j* th column. Indices in each dimension start at 1 and can be negative.
-(Negative indices start from the end of the dimension.)
+An ``Array`` is a one or two dimension numeric array. Elements along each dimension start at 1 and can be negative.
+(Negative indices start from the end of the dimension.) Two-dimensional arrays are accessed with a pair of indices noted *(i, j)*,
+where *i* represents the *i* th row and *j* represents the *j* th column. To get or set an element in an array, use the index ``[]`` operator. 
 
-You can create a new array by passing the number of rows and columns to the constructor. For instance, here is how to create an array containing 3 rows and 4 columns:
+You can create a new array by passing the size of each dimension to the constructor. For instance, here is how to create an array containing 3 rows and 4 columns:
 
 .. code:: phon
 
     var array = new Array(3, 4)
     
     for i = 1 to array.row_count do
-
         for j = 1 to array.column_count do
-            array.set(i, j, i + j)
+            array[i,j] = i + j
         end
     end
     print(array)
@@ -160,9 +166,17 @@ This code will produce the following output:
 
 .. code:: phon
 
-    2.0000000000, 3.0000000000, 4.0000000000, 5.0000000000, 6.0000000000
-    3.0000000000, 4.0000000000, 5.0000000000, 6.0000000000, 7.0000000000
-    4.0000000000, 5.0000000000, 6.0000000000, 7.0000000000, 8.0000000000
+    @[2.0000000000, 3.0000000000, 4.0000000000, 5.0000000000, 6.0000000000
+      3.0000000000, 4.0000000000, 5.0000000000, 6.0000000000, 7.0000000000
+      4.0000000000, 5.0000000000, 6.0000000000, 7.0000000000, 8.0000000000]
+
+
+Another way to produce the same output would be to use an array literal, which is indicated with the ``@[]`` operator. Inside the brackets, rows are separated by commas and 
+columns are separated by semicolons. Therefore, our array could be written as follows:
+
+.. code:: phon
+
+    var array = @[2, 3, 4, 5, 6; 3, 4, 5, 6, 7; 4, 5, 6, 7, 8]
 
 
 Object
@@ -220,7 +234,7 @@ We can then *call* the function with specific values for ``x`` and ``y``:
 
     var rect = { height: 100, width: 30 }
     var a = area(rect.height, rect.width)
-    print("The area of the rectangle is ", a)
+    print("The area of the rectangle is " & a)
 
 
 If a function is called with fewer arguments than it expects, missing arguments are replaced by ``null``. 
@@ -255,7 +269,7 @@ It is often necessary to execute a code block only if a certain condition is sat
     elsif extension == ".xml" then
         print("This is an XML file")
     else
-        print("extension '" + extension + "' not recognized")
+        print("extension '" & extension & "' not recognized")
     end
 
 
@@ -348,7 +362,7 @@ the keys of an object.
     var person =  { name : "john", surname : "smith", age : 38 }
 
     foreach key in person do
-        print(key, " -> ", person[key])
+        print(key & " -> " & person[key])
     end
 
 
@@ -380,3 +394,25 @@ an optional error message. It will trigger an error with the error message if th
         return x * y
     end
 
+
+Operators
+---------
+
+Mathematical operators
+~~~~~~~~~~~~~~~~~~~~~~
+
+Phonometrica supports the following mathematical operators: ``+`` (addition), ``-`` (subtraction), 
+``*`` (multiplication) and ``/`` (division). Multiplication and division take precedence over addition and 
+subtraction. These operators implicitly convert the left and right expressions to ``Number`` if needed.
+
+
+Boolean operators
+~~~~~~~~~~~~~~~~~
+
+Phonometrica supports the 3 standard Boolean operators ``and``, ``or`` and ``not``. 
+
+Concatenatation operator
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The concatenation operator ``&`` allows to concatenate two or more strings. It implicitly converts values to
+``String`` if needed.

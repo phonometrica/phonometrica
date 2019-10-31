@@ -33,7 +33,7 @@
 #include <numeric> // std::iota
 #include <algorithm>
 #include <SPTK.h>
-#include <phon/speech/signal_processing.hpp>
+#include <phon/analysis/signal_processing.hpp>
 #include <phon/third_party/rpolyplusplus/find_polynomial_roots_jenkins_traub.h>
 
 namespace phonometrica {

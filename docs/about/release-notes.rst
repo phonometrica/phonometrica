@@ -1,7 +1,21 @@
 Release notes
 -------------
 
-0.6.1 (??/10/2019)
+0.6.2 (31/10/2019)
+~~~~~~~~~~~~~~~~~~
+
+This release brings improvements to the scripting engine, statistical functions, and fixes a regression.
+
+- new concatenation operator ``&``
+- improved ``Array`` type
+- the multiplication and division operators can now operate on two arrays, or on an array and a scalar value.
+- mathematical functions for numbers and arrays
+- statistical functions: sum, mean, variance, standard deviation and hypothesis testing (chi-squared test, F-test, one-sample t-test, two sample independent t-test with or without equal variance)
+- ``to_string()`` method for lists, arrays and objects
+- comment/uncomment selection in script views
+- bug fixes
+
+0.6.1 (27/10/2019)
 ~~~~~~~~~~~~~~~~~~
 
 - improved LPC analysis

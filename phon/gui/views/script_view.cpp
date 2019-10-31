@@ -176,9 +176,20 @@ QToolBar *ScriptView::createToolbar()
     auto run_action = toolbar->addAction(QIcon(":/icons/start.png"), tr("Run"));
     run_action->setToolTip(tr("Run script or selection (ctrl+r)"));
     run_action->setShortcut(QKeySequence("ctrl+r"));
+    toolbar->addSeparator();
+
+    auto comment_action = toolbar->addAction(QIcon(":/icons/toggle_off.png"), tr("Comment"));
+    comment_action->setToolTip(tr("Comment selection (ctrl+/)"));
+    comment_action->setShortcut(QKeySequence("ctrl+/"));
+
+    auto uncomment_action = toolbar->addAction(QIcon(":/icons/toggle_on.png"), tr("Uncomment"));
+    uncomment_action->setToolTip(tr("Uncomment selection (ctrl+shift+/)"));
+	uncomment_action->setShortcut(QKeySequence("ctrl+shift+/"));
 
     connect(run_action, &QAction::triggered, this, &ScriptView::runScript);
     connect(save_action, &QAction::triggered, this, &ScriptView::saveScript);
+    connect(comment_action, &QAction::triggered, this, &ScriptView::commentCode);
+    connect(uncomment_action, &QAction::triggered, this, &ScriptView::uncommentCode);
 
 #if PHON_MACOS || PHON_WINDOWS
 	toolbar->setMaximumHeight(30);
@@ -234,6 +245,38 @@ bool ScriptView::finalize()
 	}
 
 	return true;
+}
+
+void ScriptView::commentCode(bool)
+{
+	auto cursor = m_editor->textCursor();
+	if (cursor.hasSelection())
+	{
+		auto lines = cursor.selection().toPlainText().split("\n");
+
+		for (auto &ln : lines)
+		{
+			ln.prepend('#');
+		}
+		cursor.clearSelection();
+		m_editor->insertPlainText(lines.join('\n'));
+	}
+}
+
+void ScriptView::uncommentCode(bool)
+{
+	auto cursor = m_editor->textCursor();
+	if (cursor.hasSelection())
+	{
+		auto lines = cursor.selection().toPlainText().split("\n");
+
+		for (auto &ln : lines)
+		{
+			if (ln.startsWith('#')) ln.remove(0, 1);
+		}
+		cursor.clearSelection();
+		m_editor->insertPlainText(lines.join('\n'));
+	}
 }
 
 } // phonometrica

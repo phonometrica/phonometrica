@@ -35,7 +35,7 @@
 #include <phon/application/settings.hpp>
 #include <phon/application/resampler.hpp>
 #include <phon/gui/spectrogram.hpp>
-#include <phon/speech/speech_utils.hpp>
+#include <phon/analysis/speech_utils.hpp>
 #include <phon/include/reset_spectrogram_settings_phon.hpp>
 #include <phon/include/reset_formants_settings_phon.hpp>
 #include <phon/utils/matrix.hpp>
@@ -384,7 +384,7 @@ void Spectrogram::estimateFormants()
 
 	int nframe = int(ceil(formant_window_length * Fs));
 	if (nframe % 2 == 1) nframe++;
-	auto win = create_window(nframe, nframe, WindowType::Hamming);
+	auto win = create_window(nframe, nframe, WindowType::Hann);
 	std::vector<double> buffer(nframe, 0.0);
 
 	// Calculate LPC at each time point.

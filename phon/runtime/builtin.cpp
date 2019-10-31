@@ -207,6 +207,7 @@ void Runtime::initialize()
     init_file();
     init_date();
     init_math();
+    init_stats();
     init_json();
     init_system();
 

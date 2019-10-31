@@ -235,29 +235,6 @@ double string_to_float(const char *s, char **ep)
     return 0;
 }
 
-/* ToNumber() on a string */
-double string_to_number(Runtime *J, const String &str)
-{
-    char *e;
-    double n;
-    auto s = str.data();
-    while (is_white(*s) || is_new_line(*s)) ++s;
-    if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X') && s[2] != 0)
-        n = strtol(s + 2, &e, 16);
-    else if (!strncmp(s, "Infinity", 8))
-        n = INFINITY, e = (char *) s + 8;
-    else if (!strncmp(s, "+Infinity", 9))
-        n = INFINITY, e = (char *) s + 9;
-    else if (!strncmp(s, "-Infinity", 9))
-        n = -INFINITY, e = (char *) s + 9;
-    else
-        n = string_to_float(s, &e);
-    while (is_white(*e) || is_new_line(*e)) ++e;
-    if (*e) return NAN;
-    return n;
-}
-
-
 /* ToString() on a number */
 String number_to_string(Runtime *J, char *buf, double f)
 {
@@ -325,7 +302,7 @@ String number_to_string(Runtime *J, char *buf, double f)
 }
 
 /* to_string() on a value */
-String var_to_string(Runtime *J, Variant *v)
+String var_to_string(Runtime *J, Variant *v, bool quote)
 {
     switch (v->type)
     {
@@ -335,7 +312,21 @@ String var_to_string(Runtime *J, Variant *v)
     case PHON_TBOOLEAN:
         return v->as.boolean ? J->true_string : J->false_string;
     case PHON_TSTRING:
-        return v->as.string;
+    {
+    	if (quote)
+	    {
+		    String s(v->as.string.size() + 3);
+		    s.append('"');
+		    s.append(v->as.string);
+		    s.append('"');
+
+		    return s;
+	    }
+	    else
+	    {
+	    	return v->as.string;
+	    }
+    }
     case PHON_TNUMBER:
     {
         char buf[32];
@@ -407,6 +398,20 @@ void Runtime::new_list(intptr_t size)
     auto obj = new Object(*this, PHON_CLIST, list_meta);
     new (&obj->as.list) Array<Variant>(size, Variant());
     push(obj);
+}
+
+void Runtime::new_array(intptr_t size)
+{
+    auto obj = new Object(*this, PHON_CARRAY, array_meta);
+    new (&obj->as.array) Array<double>(size, 0.0);
+    push(obj);
+}
+
+void Runtime::new_array(intptr_t nrow, intptr_t ncol)
+{
+	auto obj = new Object(*this, PHON_CARRAY, array_meta);
+	new (&obj->as.array) Array<double>(nrow, ncol, 0.0);
+	push(obj);
 }
 
 void Runtime::new_boolean(bool v)
@@ -550,6 +555,11 @@ int js_instanceof(Runtime *J)
 
 void js_concat(Runtime *J)
 {
+	auto str = J->to_string(-2);
+	str.append(J->to_string(-1));
+	J->pop(2);
+	J->push(std::move(str));
+#if 0
     var_to_primitive(J, -2, PHON_HINT_NONE);
     var_to_primitive(J, -1, PHON_HINT_NONE);
 
@@ -567,6 +577,7 @@ void js_concat(Runtime *J)
         J->pop(2);
         J->push(x + y);
     }
+#endif
 }
 
 int js_compare(Runtime *J, int *okay)

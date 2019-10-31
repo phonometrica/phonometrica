@@ -8,7 +8,7 @@ var slot_id = 0
 event = {}
 
 event.create = function() 
-    return "__evt_" + String(slot_id++)
+    return "__evt_" & slot_id++
 end
 
 event.connect = function(id, slot)

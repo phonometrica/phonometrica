@@ -343,8 +343,14 @@ void VFile::set_path(String path, bool mutate)
 
 void VFile::open()
 {
-	if (!m_loaded) {
-		load();
+	if (!m_loaded)
+	{
+		try {
+			load();
+		}
+		catch (std::exception &e) {
+			throw error("Cannot open file \"%\": %", this->path(), e.what());
+		}
 	}
 
 	m_loaded = true;

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>String processing &#8212; Phonometrica 0.6.0 documentation</title>
+    <title>String processing &#8212; Phonometrica 0.6.2 documentation</title>
     <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Operating System" href="system.html" />
-    <link rel="prev" title="Sounds" href="sound.html" /> 
+    <link rel="prev" title="Statistical functions" href="statistics.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -32,9 +32,9 @@
           <a href="system.html" title="Operating System"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="sound.html" title="Sounds"
+          <a href="statistics.html" title="Statistical functions"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.2 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
       </ul>
     </div>
@@ -51,8 +51,8 @@
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="sound.html"
-                        title="previous chapter">Sounds</a></p>
+  <p class="topless"><a href="statistics.html"
+                        title="previous chapter">Statistical functions</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="system.html"
                         title="next chapter">Operating System</a></p>
@@ -78,7 +78,7 @@
             
   <div class="section" id="string-processing">
 <h1>String processing<a class="headerlink" href="#string-processing" title="Permalink to this headline">¶</a></h1>
-<p>This page documents the <code class="docutils literal notranslate"><span class="pre">String</span></code> class.</p>
+<p>This page documents the <code class="docutils literal notranslate"><span class="pre">String</span></code> type.</p>
 <div class="section" id="general-concepts">
 <h2>General concepts<a class="headerlink" href="#general-concepts" title="Permalink to this headline">¶</a></h2>
 <p>A <code class="docutils literal notranslate"><span class="pre">String</span></code> is a sequence of characters enclosed between double quotes,
@@ -109,65 +109,12 @@ of “user-perceived character”.</p>
 <p>Get character at position <code class="docutils literal notranslate"><span class="pre">pos</span></code>. If <code class="docutils literal notranslate"><span class="pre">pos</span></code> is negative, counting starts from the end.</p>
 <hr class="docutils" />
 <dl class="method">
-<dt id="trim">
-<code class="descname">trim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trim" title="Permalink to this definition">¶</a></dt>
+<dt id="concat">
+<code class="descname">concat</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#concat" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns a copy of the string with whitespace characters removed at both
-ends of the string.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;\t  hello  \n&quot;</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">trim</span><span class="p">()</span>
-<span class="n">print</span><span class="p">(</span><span class="s">&quot;$&quot;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s">&quot;$&quot;</span><span class="p">)</span> <span class="c1"># prints &quot;$hello$&quot;</span>
-</pre></div>
-</div>
-<p>See also: <a class="reference internal" href="#ltrim" title="ltrim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">ltrim()</span></code></a>, <a class="reference internal" href="#rtrim" title="rtrim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">rtrim()</span></code></a></p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="ltrim">
-<code class="descname">ltrim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ltrim" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns a copy of the string with whitespace characters removed at the
-left end of the string.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;  hello  &quot;</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">ltrim</span><span class="p">()</span>
-<span class="n">print</span><span class="p">(</span><span class="s">&quot;$&quot;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s">&quot;$&quot;</span><span class="p">)</span> <span class="c1"># prints &quot;$hello  $&quot;</span>
-</pre></div>
-</div>
-<p>See also: <a class="reference internal" href="#trim" title="trim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">trim()</span></code></a>, <a class="reference internal" href="#rtrim" title="rtrim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">rtrim()</span></code></a></p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="rtrim">
-<code class="descname">rtrim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#rtrim" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns a copy of the string with whitespace characters removed at the
-right end of the string.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;  hello  &quot;</span>
-
-<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">rtrim</span><span class="p">()</span>
-<span class="n">print</span><span class="p">(</span><span class="s">&quot;$&quot;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s">&quot;$&quot;</span><span class="p">)</span> <span class="c1"># prints &quot;$  hello$&quot;</span>
-</pre></div>
-</div>
-<p>See also: <a class="reference internal" href="#ltrim" title="ltrim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">ltrim()</span></code></a>, <a class="reference internal" href="#trim" title="trim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">trim()</span></code></a></p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="starts_with">
-<code class="descname">starts_with</code><span class="sig-paren">(</span><em>prefix</em><span class="sig-paren">)</span><a class="headerlink" href="#starts_with" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns true if the string starts with <code class="docutils literal notranslate"><span class="pre">prefix</span></code>, and <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
-<p>See also: <a class="reference internal" href="#ends_with" title="ends_with"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">ends_with()</span></code></a></p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="ends_with">
-<code class="descname">ends_with</code><span class="sig-paren">(</span><em>suffix</em><span class="sig-paren">)</span><a class="headerlink" href="#ends_with" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns true if the string ends with <code class="docutils literal notranslate"><span class="pre">suffix</span></code>, and <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
-<p>See also: <a class="reference internal" href="#starts_with" title="starts_with"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">starts_with()</span></code></a></p>
+<p>Create a new string which is the concatenation of <code class="docutils literal notranslate"><span class="pre">this</span></code> and <code class="docutils literal notranslate"><span class="pre">other</span></code>.
+Another, simpler way to concatenate strings is to use the operator <code class="docutils literal notranslate"><span class="pre">+</span></code>.</p>
 <hr class="docutils" />
 <dl class="method">
 <dt id="contains">
@@ -192,84 +139,57 @@ otherwise.</p>
 <p>Note: matches don’t overlap.</p>
 <hr class="docutils" />
 <dl class="method">
-<dt id="to_upper">
-<code class="descname">to_upper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#to_upper" title="Permalink to this definition">¶</a></dt>
+<dt id="ends_with">
+<code class="descname">ends_with</code><span class="sig-paren">(</span><em>suffix</em><span class="sig-paren">)</span><a class="headerlink" href="#ends_with" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns a copy of the string where each code point has been converted to
-upper case.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s1</span> <span class="o">=</span> <span class="s">&quot;c&#39;était ça&quot;</span>
-<span class="kr">var</span> <span class="n">s2</span> <span class="o">=</span> <span class="n">s1</span><span class="p">.</span><span class="n">to_upper</span><span class="p">()</span>
+<p>Returns true if the string ends with <code class="docutils literal notranslate"><span class="pre">suffix</span></code>, and <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
+<p>See also: <a class="reference internal" href="#starts_with" title="starts_with"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">starts_with()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="insert">
+<code class="descname">insert</code><span class="sig-paren">(</span><em>pos</em>, <em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#insert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-<span class="n">print</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span> <span class="c1"># prints &quot;C&#39;ÉTAIT ÇA&quot;</span>
+<p>Returns a copy of the string with <code class="docutils literal notranslate"><span class="pre">other</span></code> inserted at position <code class="docutils literal notranslate"><span class="pre">pos</span></code></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="left">
+<code class="descname">left</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#left" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Get the substring corresponding to the <code class="docutils literal notranslate"><span class="pre">n</span></code> first characters of the
+string.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="ltrim">
+<code class="descname">ltrim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ltrim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a copy of the string with whitespace characters removed at the
+left end of the string.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;  hello  &quot;</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">ltrim</span><span class="p">()</span>
+<span class="n">print</span><span class="p">(</span><span class="s">&quot;$&quot;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s">&quot;$&quot;</span><span class="p">)</span> <span class="c1"># prints &quot;$hello  $&quot;</span>
 </pre></div>
 </div>
-<p>See also: <a class="reference internal" href="#to_lower" title="to_lower"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">to_lower()</span></code></a></p>
+<p>See also: <a class="reference internal" href="#trim" title="trim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">trim()</span></code></a>, <a class="reference internal" href="#rtrim" title="rtrim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">rtrim()</span></code></a></p>
 <hr class="docutils" />
 <dl class="method">
-<dt id="to_lower">
-<code class="descname">to_lower</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#to_lower" title="Permalink to this definition">¶</a></dt>
+<dt id="mid">
+<code class="descname">mid</code><span class="sig-paren">(</span><em>from</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#mid" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns a copy of the string where each code point has been converted to
-lower case.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s1</span> <span class="o">=</span> <span class="s">&quot;C&#39;ÉTAIT ÇA&quot;</span>
-<span class="kr">var</span> <span class="n">s2</span> <span class="o">=</span> <span class="n">s1</span><span class="p">.</span><span class="n">to_lower</span><span class="p">()</span>
+<p>Returns the substring of <code class="docutils literal notranslate"><span class="pre">str</span></code> starting at index <code class="docutils literal notranslate"><span class="pre">from</span></code> and ending
+at index <code class="docutils literal notranslate"><span class="pre">to</span></code> (inclusive). If <code class="docutils literal notranslate"><span class="pre">to</span></code> equals <code class="docutils literal notranslate"><span class="pre">-1</span></code>, returns the
+substring from <code class="docutils literal notranslate"><span class="pre">from</span></code> until the end of the string.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;c&#39;était ça&quot;</span>
 
-<span class="n">print</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span> <span class="c1"># prints &quot;c&#39;était ça&quot;</span>
+<span class="n">print</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">mid</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span> <span class="c1"># &quot;était&quot;</span>
+<span class="n">print</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">mid</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># &quot;était ça&quot;</span>
 </pre></div>
 </div>
-<p>See also: <a class="reference internal" href="#to_upper" title="to_upper"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">to_upper()</span></code></a></p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="replace">
-<code class="descname">replace</code><span class="sig-paren">(</span><em>old</em>, <em>new</em><span class="sig-paren">)</span><a class="headerlink" href="#replace" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns a copy of the string where all (non-overlapping) instances of the
-substring <code class="docutils literal notranslate"><span class="pre">old</span></code> have been replaced by <code class="docutils literal notranslate"><span class="pre">new</span></code>.</p>
-<p>See also: <a class="reference internal" href="#replace_at" title="replace_at"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_at()</span></code></a>,
-<a class="reference internal" href="#replace_first" title="replace_first"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_first()</span></code></a>,
-<a class="reference internal" href="#replace_last" title="replace_last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_last()</span></code></a></p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="replace_at">
-<code class="descname">replace_at</code><span class="sig-paren">(</span><em>at</em>, <em>count</em>, <em>new</em><span class="sig-paren">)</span><a class="headerlink" href="#replace_at" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns a copy of the string where <code class="docutils literal notranslate"><span class="pre">count</span></code> code points, starting at
-position <code class="docutils literal notranslate"><span class="pre">at</span></code>, have been replaced by <code class="docutils literal notranslate"><span class="pre">new</span></code>.</p>
-<p>See also: <a class="reference internal" href="#replace" title="replace"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace()</span></code></a>,
-<a class="reference internal" href="#replace_first" title="replace_first"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_first()</span></code></a>,
-<a class="reference internal" href="#replace_last" title="replace_last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_last()</span></code></a></p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="replace_first">
-<code class="descname">replace_first</code><span class="sig-paren">(</span><em>str</em>, <em>old</em>, <em>new</em><span class="sig-paren">)</span><a class="headerlink" href="#replace_first" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns a copy of the string where the first instance of the substring
-<code class="docutils literal notranslate"><span class="pre">old</span></code> has been replaced by <code class="docutils literal notranslate"><span class="pre">new</span></code>.</p>
-<p>See also: <a class="reference internal" href="#replace_at" title="replace_at"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_at()</span></code></a>,
-<a class="reference internal" href="#replace" title="replace"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace()</span></code></a>, <a class="reference internal" href="#replace_last" title="replace_last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_last()</span></code></a></p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="replace_last">
-<code class="descname">replace_last</code><span class="sig-paren">(</span><em>str</em>, <em>old</em>, <em>new</em><span class="sig-paren">)</span><a class="headerlink" href="#replace_last" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns a copy of the string where the last instance of the substring
-<code class="docutils literal notranslate"><span class="pre">old</span></code> has been replaced by <code class="docutils literal notranslate"><span class="pre">new</span></code>.</p>
-<p>See also: <a class="reference internal" href="#replace_at" title="replace_at"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_at()</span></code></a>,
-<a class="reference internal" href="#replace" title="replace"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace()</span></code></a>, <a class="reference internal" href="#replace_first" title="replace_first"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_first()</span></code></a></p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="concat">
-<code class="descname">concat</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#concat" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Create a new string which is the concatenation of <code class="docutils literal notranslate"><span class="pre">this</span></code> and <code class="docutils literal notranslate"><span class="pre">other</span></code>.
-Another, simpler way to concatenate strings is to use the operator <code class="docutils literal notranslate"><span class="pre">+</span></code>.</p>
 <hr class="docutils" />
 <dl class="method">
 <dt id="remove">
@@ -314,42 +234,54 @@ removed.</p>
 <a class="reference internal" href="#remove_first" title="remove_first"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">remove_first()</span></code></a></p>
 <hr class="docutils" />
 <dl class="method">
+<dt id="replace">
+<code class="descname">replace</code><span class="sig-paren">(</span><em>old</em>, <em>new</em><span class="sig-paren">)</span><a class="headerlink" href="#replace" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a copy of the string where all (non-overlapping) instances of the
+substring <code class="docutils literal notranslate"><span class="pre">old</span></code> have been replaced by <code class="docutils literal notranslate"><span class="pre">new</span></code>.</p>
+<p>See also: <a class="reference internal" href="#replace_at" title="replace_at"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_at()</span></code></a>,
+<a class="reference internal" href="#replace_first" title="replace_first"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_first()</span></code></a>,
+<a class="reference internal" href="#replace_last" title="replace_last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_last()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="replace_at">
+<code class="descname">replace_at</code><span class="sig-paren">(</span><em>at</em>, <em>count</em>, <em>new</em><span class="sig-paren">)</span><a class="headerlink" href="#replace_at" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a copy of the string where <code class="docutils literal notranslate"><span class="pre">count</span></code> code points, starting at
+position <code class="docutils literal notranslate"><span class="pre">at</span></code>, have been replaced by <code class="docutils literal notranslate"><span class="pre">new</span></code>.</p>
+<p>See also: <a class="reference internal" href="#replace" title="replace"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace()</span></code></a>,
+<a class="reference internal" href="#replace_first" title="replace_first"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_first()</span></code></a>,
+<a class="reference internal" href="#replace_last" title="replace_last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_last()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="replace_first">
+<code class="descname">replace_first</code><span class="sig-paren">(</span><em>str</em>, <em>old</em>, <em>new</em><span class="sig-paren">)</span><a class="headerlink" href="#replace_first" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a copy of the string where the first instance of the substring
+<code class="docutils literal notranslate"><span class="pre">old</span></code> has been replaced by <code class="docutils literal notranslate"><span class="pre">new</span></code>.</p>
+<p>See also: <a class="reference internal" href="#replace_at" title="replace_at"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_at()</span></code></a>,
+<a class="reference internal" href="#replace" title="replace"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace()</span></code></a>, <a class="reference internal" href="#replace_last" title="replace_last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_last()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="replace_last">
+<code class="descname">replace_last</code><span class="sig-paren">(</span><em>str</em>, <em>old</em>, <em>new</em><span class="sig-paren">)</span><a class="headerlink" href="#replace_last" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a copy of the string where the last instance of the substring
+<code class="docutils literal notranslate"><span class="pre">old</span></code> has been replaced by <code class="docutils literal notranslate"><span class="pre">new</span></code>.</p>
+<p>See also: <a class="reference internal" href="#replace_at" title="replace_at"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_at()</span></code></a>,
+<a class="reference internal" href="#replace" title="replace"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace()</span></code></a>, <a class="reference internal" href="#replace_first" title="replace_first"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">replace_first()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
 <dt id="reverse">
 <code class="descname">reverse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reverse" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new string with all the characters in the string in reversed
 order.</p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="insert">
-<code class="descname">insert</code><span class="sig-paren">(</span><em>pos</em>, <em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#insert" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns a copy of the string with <code class="docutils literal notranslate"><span class="pre">other</span></code> inserted at position <code class="docutils literal notranslate"><span class="pre">pos</span></code></p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="mid">
-<code class="descname">mid</code><span class="sig-paren">(</span><em>from</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#mid" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns the substring of <code class="docutils literal notranslate"><span class="pre">str</span></code> starting at index <code class="docutils literal notranslate"><span class="pre">from</span></code> and ending
-at index <code class="docutils literal notranslate"><span class="pre">to</span></code> (inclusive). If <code class="docutils literal notranslate"><span class="pre">to</span></code> equals <code class="docutils literal notranslate"><span class="pre">-1</span></code>, returns the
-substring from <code class="docutils literal notranslate"><span class="pre">from</span></code> until the end of the string.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;c&#39;était ça&quot;</span>
-
-<span class="n">print</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">mid</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span> <span class="c1"># &quot;était&quot;</span>
-<span class="n">print</span><span class="p">(</span><span class="n">s</span><span class="p">.</span><span class="n">mid</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># &quot;était ça&quot;</span>
-</pre></div>
-</div>
-<hr class="docutils" />
-<dl class="method">
-<dt id="left">
-<code class="descname">left</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#left" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Get the substring corresponding to the <code class="docutils literal notranslate"><span class="pre">n</span></code> first characters of the
-string.</p>
 <hr class="docutils" />
 <dl class="method">
 <dt id="right">
@@ -360,6 +292,21 @@ string.</p>
 string.</p>
 <hr class="docutils" />
 <dl class="method">
+<dt id="rtrim">
+<code class="descname">rtrim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#rtrim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a copy of the string with whitespace characters removed at the
+right end of the string.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;  hello  &quot;</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">rtrim</span><span class="p">()</span>
+<span class="n">print</span><span class="p">(</span><span class="s">&quot;$&quot;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s">&quot;$&quot;</span><span class="p">)</span> <span class="c1"># prints &quot;$  hello$&quot;</span>
+</pre></div>
+</div>
+<p>See also: <a class="reference internal" href="#ltrim" title="ltrim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">ltrim()</span></code></a>, <a class="reference internal" href="#trim" title="trim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">trim()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
 <dt id="split">
 <code class="descname">split</code><span class="sig-paren">(</span><em>delim</em><span class="sig-paren">)</span><a class="headerlink" href="#split" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -367,6 +314,59 @@ string.</p>
 <p>Returns a table of strings which have been split at each occurrence of
 the substring <code class="docutils literal notranslate"><span class="pre">delim</span></code>. If <code class="docutils literal notranslate"><span class="pre">delim</span></code> is the empty string, it returns a
 list of the characters in the string.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="starts_with">
+<code class="descname">starts_with</code><span class="sig-paren">(</span><em>prefix</em><span class="sig-paren">)</span><a class="headerlink" href="#starts_with" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns true if the string starts with <code class="docutils literal notranslate"><span class="pre">prefix</span></code>, and <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
+<p>See also: <a class="reference internal" href="#ends_with" title="ends_with"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">ends_with()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="to_lower">
+<code class="descname">to_lower</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#to_lower" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a copy of the string where each code point has been converted to
+lower case.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s1</span> <span class="o">=</span> <span class="s">&quot;C&#39;ÉTAIT ÇA&quot;</span>
+<span class="kr">var</span> <span class="n">s2</span> <span class="o">=</span> <span class="n">s1</span><span class="p">.</span><span class="n">to_lower</span><span class="p">()</span>
+
+<span class="n">print</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span> <span class="c1"># prints &quot;c&#39;était ça&quot;</span>
+</pre></div>
+</div>
+<p>See also: <a class="reference internal" href="#to_upper" title="to_upper"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">to_upper()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="to_upper">
+<code class="descname">to_upper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#to_upper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a copy of the string where each code point has been converted to
+upper case.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s1</span> <span class="o">=</span> <span class="s">&quot;c&#39;était ça&quot;</span>
+<span class="kr">var</span> <span class="n">s2</span> <span class="o">=</span> <span class="n">s1</span><span class="p">.</span><span class="n">to_upper</span><span class="p">()</span>
+
+<span class="n">print</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span> <span class="c1"># prints &quot;C&#39;ÉTAIT ÇA&quot;</span>
+</pre></div>
+</div>
+<p>See also: <a class="reference internal" href="#to_lower" title="to_lower"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">to_lower()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="trim">
+<code class="descname">trim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a copy of the string with whitespace characters removed at both
+ends of the string.</p>
+<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;\t  hello  \n&quot;</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="p">.</span><span class="n">trim</span><span class="p">()</span>
+<span class="n">print</span><span class="p">(</span><span class="s">&quot;$&quot;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s">&quot;$&quot;</span><span class="p">)</span> <span class="c1"># prints &quot;$hello$&quot;</span>
+</pre></div>
+</div>
+<p>See also: <a class="reference internal" href="#ltrim" title="ltrim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">ltrim()</span></code></a>, <a class="reference internal" href="#rtrim" title="rtrim"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">rtrim()</span></code></a></p>
 </div>
 <div class="section" id="fields">
 <h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
@@ -399,9 +399,9 @@ list of the characters in the string.</p>
           <a href="system.html" title="Operating System"
              >next</a> |</li>
         <li class="right" >
-          <a href="sound.html" title="Sounds"
+          <a href="statistics.html" title="Statistical functions"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.6.2 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
       </ul>
     </div>

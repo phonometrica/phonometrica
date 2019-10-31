@@ -45,7 +45,7 @@ Object *var_to_object(Runtime *J, int idx);
 /* variant.cpp */
 
 
-String var_to_string(Runtime *J, Variant *v);
+String var_to_string(Runtime *J, Variant *v, bool quote = false);
 
 Object *var_to_object(Runtime *J, Variant *v);
 
@@ -66,8 +66,6 @@ short number_to_int16(double n);
 unsigned short number_to_uint16(double n);
 
 String number_to_string(Runtime *J, char *buf, double number);
-
-double string_to_number(Runtime *J, const String &string);
 
 
 /* dump.cpp */

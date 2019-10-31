@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Release notes &#8212; Phonometrica 0.6.0 documentation</title>
+    <title>Release notes &#8212; Phonometrica 0.6.2 documentation</title>
     <link rel="stylesheet" href="../_static/yeen.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -30,7 +30,7 @@
         <li class="right" >
           <a href="acknowledgements.html" title="Acknowledgements"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.6.2 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -38,16 +38,17 @@
   <h3><a href="../index.html">Table of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Release notes</a><ul>
-<li><a class="reference internal" href="#id1">0.6.1 (??/10/2019)</a></li>
-<li><a class="reference internal" href="#id2">0.6.0 (25/10/2019)</a></li>
-<li><a class="reference internal" href="#id3">0.5.2 (04/10/2019)</a></li>
-<li><a class="reference internal" href="#id4">0.5.1 (29/09/2019)</a></li>
-<li><a class="reference internal" href="#id5">0.5.0 (27/09/2019)</a></li>
-<li><a class="reference internal" href="#id6">0.4.1 (21/09/2019)</a></li>
-<li><a class="reference internal" href="#id7">0.4.0 (20/09/2019)</a></li>
-<li><a class="reference internal" href="#id8">0.3.0 (30/08/2019)</a></li>
-<li><a class="reference internal" href="#id9">0.2.0 (17/03/2019)</a></li>
-<li><a class="reference internal" href="#id10">0.1.0 (26/02/2019)</a></li>
+<li><a class="reference internal" href="#id1">0.6.2 (31/10/2019)</a></li>
+<li><a class="reference internal" href="#id2">0.6.1 (27/10/2019)</a></li>
+<li><a class="reference internal" href="#id3">0.6.0 (25/10/2019)</a></li>
+<li><a class="reference internal" href="#id4">0.5.2 (04/10/2019)</a></li>
+<li><a class="reference internal" href="#id5">0.5.1 (29/09/2019)</a></li>
+<li><a class="reference internal" href="#id6">0.5.0 (27/09/2019)</a></li>
+<li><a class="reference internal" href="#id7">0.4.1 (21/09/2019)</a></li>
+<li><a class="reference internal" href="#id8">0.4.0 (20/09/2019)</a></li>
+<li><a class="reference internal" href="#id9">0.3.0 (30/08/2019)</a></li>
+<li><a class="reference internal" href="#id10">0.2.0 (17/03/2019)</a></li>
+<li><a class="reference internal" href="#id11">0.1.0 (26/02/2019)</a></li>
 </ul>
 </li>
 </ul>
@@ -78,7 +79,21 @@
   <div class="section" id="release-notes">
 <h1>Release notes<a class="headerlink" href="#release-notes" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
-<h2>0.6.1 (??/10/2019)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>0.6.2 (31/10/2019)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>This release brings improvements to the scripting engine, statistical functions, and fixes a regression.</p>
+<ul class="simple">
+<li>new concatenation operator <code class="docutils literal notranslate"><span class="pre">&amp;</span></code></li>
+<li>improved <code class="docutils literal notranslate"><span class="pre">Array</span></code> type</li>
+<li>the multiplication and division operators can now operate on two arrays, or on an array and a scalar value.</li>
+<li>mathematical functions for numbers and arrays</li>
+<li>statistical functions: sum, mean, variance, standard deviation, and hypothesis testing: (chi-squared test, F-test, one-sample t-test, two sample independent t-test with or without equal variance)</li>
+<li><code class="docutils literal notranslate"><span class="pre">to_string()</span></code> method for lists, arrays and objects</li>
+<li>comment/uncomment selection in script views</li>
+<li>bug fixes</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h2>0.6.1 (27/10/2019)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>improved LPC analysis</li>
 <li>scripting functions to convert between Hertz and bark, ERB units, mel and semitones (see <a class="reference internal" href="../scripting/api/sound.html#sound-type"><span class="std std-ref">Sounds</span></a>). These functions accept a <code class="docutils literal notranslate"><span class="pre">Number</span></code> or an <code class="docutils literal notranslate"><span class="pre">Array</span></code>.</li>
@@ -86,8 +101,8 @@
 <li>automatic indentation in script views</li>
 </ul>
 </div>
-<div class="section" id="id2">
-<h2>0.6.0 (25/10/2019)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id3">
+<h2>0.6.0 (25/10/2019)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>This release brings more sound visualization and analysis options, as well as a number of enhancements and bug fixes.</p>
 <ul class="simple">
 <li>spectrogram in sound and annotation views</li>
@@ -106,23 +121,23 @@
 <li>updated documentation</li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h2>0.5.2 (04/10/2019)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id4">
+<h2>0.5.2 (04/10/2019)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>This version is mostly a bug fix release.</p>
 <ul class="simple">
 <li>new import dialog for metadata</li>
 <li>bug fixes</li>
 </ul>
 </div>
-<div class="section" id="id4">
-<h2>0.5.1 (29/09/2019)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id5">
+<h2>0.5.1 (29/09/2019)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>new regular expression engine based on PCRE2</li>
 <li>faster loading time for TextGrid annotations (~ 23%) thanks to the new regex engine</li>
 </ul>
 </div>
-<div class="section" id="id5">
-<h2>0.5.0 (27/09/2019)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id6">
+<h2>0.5.0 (27/09/2019)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>new website at <a class="reference external" href="http://www.phonometrica-ling.org">http://www.phonometrica-ling.org</a></li>
 <li>create and edit annotations</li>
@@ -132,8 +147,8 @@
 <li>fix initialization on Windows when the user’s directory contains non-ASCII characters</li>
 </ul>
 </div>
-<div class="section" id="id6">
-<h2>0.4.1 (21/09/2019)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id7">
+<h2>0.4.1 (21/09/2019)<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <p>This version brings the following fixes and enhancements:</p>
 <ul class="simple">
 <li>fix communication with Praat on Windows when the user’s directory contains non-ASCII characters</li>
@@ -141,8 +156,8 @@
 <li>improved preferences dialog</li>
 </ul>
 </div>
-<div class="section" id="id7">
-<h2>0.4.0 (20/09/2019)<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id8">
+<h2>0.4.0 (20/09/2019)<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
 <p>This is the first functional version of Phonometrica. It brings the following features:</p>
 <ul class="simple">
 <li>project management</li>
@@ -154,14 +169,14 @@
 <li>plugins</li>
 </ul>
 </div>
-<div class="section" id="id8">
-<h2>0.3.0 (30/08/2019)<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id9">
+<h2>0.3.0 (30/08/2019)<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>initial implementation of annotation views</li>
 </ul>
 </div>
-<div class="section" id="id9">
-<h2>0.2.0 (17/03/2019)<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id10">
+<h2>0.2.0 (17/03/2019)<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>project management, with support for metadata</li>
 <li>script editor and scripting console</li>
@@ -170,8 +185,8 @@
 <li>installers for Windows, macOS and Linux (Debian/Ubuntu)</li>
 </ul>
 </div>
-<div class="section" id="id10">
-<h2>0.1.0 (26/02/2019)<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id11">
+<h2>0.1.0 (26/02/2019)<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Scripting engine based on MuJS 1.0.5.</li>
 </ul>
@@ -197,7 +212,7 @@ platform (2006/2008), a concordancer implemented in Python and specifically writ
         <li class="right" >
           <a href="acknowledgements.html" title="Acknowledgements"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.6.0 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.6.2 documentation</a> &#187;</li> 
       </ul>
     </div>
     

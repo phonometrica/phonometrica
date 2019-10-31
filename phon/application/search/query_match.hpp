@@ -107,6 +107,7 @@ using QueryMatchList = Array<AutoQueryMatch>;
 
 //----------------------------------------------------------------------------------------------------------------------
 
+// Text match in an annotation
 class Concordance : public QueryMatch
 {
 public:
@@ -129,12 +130,13 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class ProtocolConcordance final : public Concordance
+// Text match according to a coding protocol.
+class CodingConcordance final : public Concordance
 {
 public:
 
-	ProtocolConcordance(const AutoAnnotation &annot, int layer, const AutoEvent &e, const String &text, int pos,
-			String left, String right, Array<String> fields) :
+	CodingConcordance(const AutoAnnotation &annot, int layer, const AutoEvent &e, const String &text, int pos,
+	                  String left, String right, Array<String> fields) :
 		Concordance(annot, layer, e, text, pos, std::move(left), std::move(right)), m_fields(std::move(fields))
 	{ }
 
@@ -144,6 +146,36 @@ private:
 
 	// Matched text broken down into fields according to the query protocol.
 	Array<String> m_fields;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+// Base class for all acoustic measurements.
+class Measurement : public QueryMatch
+{
+public:
+
+	Measurement(const AutoAnnotation &annot, int layer, const AutoEvent &e, const String &text, int position) :
+			QueryMatch(annot, layer, e, text, position)
+	{ }
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+class FormantMeasurement final : public Measurement
+{
+public:
+
+	FormantMeasurement(const AutoAnnotation &annot, int layer, const AutoEvent &e, const String &text, int position,
+			Array<double> formants) :
+			Measurement(annot, layer, e, text, position), m_formants(std::move(formants))
+	{ }
+
+private:
+
+	// A matrix where rows represent measurement times and columns represent formants. For example, a measurement with
+	// 2 formants measured at 3 time points will be represented by a 3x2 matrix.
+	Array<double> m_formants;
 };
 
 } // namespace phonometrica

@@ -20,6 +20,12 @@ set(DEBUG_CONSOLE OFF)
 set(ENABLE_LOGGING OFF)
 set(USE_FFTW OFF)
 
+if (WIN32)
+    set(QT_DIR "C:/Qt5/5.12.5/mingw73_64/lib/cmake/Qt5")
+    set(BOOST_DIR "C:/Devel/Lib/boost_1_66_0")
+    set(LIBSNDFILE_DIR "C:/Devel/Lib/libsndfile")
+endif()
+
 ###########################
 ##  VERSION INFORMATION  ##
 ###########################
@@ -27,16 +33,16 @@ set(USE_FFTW OFF)
 # Major release: incremented when major changes are introduced
 add_definitions(-DPHON_VERSION_MAJOR=0)
 # Minor release: incremented when new features and/or bug fixes are introduced
-add_definitions(-DPHON_VERSION_MINOR=6)
+add_definitions(-DPHON_VERSION_MINOR=7)
 # Revision release: incremented when bugs are fixed are small features are added
-add_definitions(-DPHON_VERSION_MICRO=1)
+add_definitions(-DPHON_VERSION_MICRO=0)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=0)
+add_definitions(-DPHON_VERSION_NANO=1)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=10)
-add_definitions(-DPHON_RELEASE_DATE_DAY=27)
+add_definitions(-DPHON_RELEASE_DATE_DAY=31)
 
 # Operating system
 if(WIN32)
@@ -95,8 +101,6 @@ if (BUILD_GUI)
 
     # Find the QtWidgets library
     if (WIN32)
-        set(QT_DIR "C:/Qt5/5.12.5/mingw73_64/lib/cmake/Qt5")
-        #find_package(Qt5 REQUIRED PATHS C:/Qt/Qt-5.13.0/lib/cmake/Qt5/ COMPONENTS Widgets Core Gui)
         set(Qt5_DIR ${QT_DIR})
         find_package(Qt5 REQUIRED PATHS ${QT_DIR} COMPONENTS Widgets Core Gui)
     elseif (APPLE)
@@ -123,7 +127,7 @@ if(WIN32)
     add_definitions(-D_USE_MATH_DEFINES)
 	add_definitions(-DUTF8PROC_STATIC)
 	add_definitions(-DENABLE_SNDFILE_WINDOWS_PROTOTYPES=1 -DENABLE_SNDFILE_WINDOWS_PROTOTYPES=1)
-    include_directories("C:/Lib/boost_1_66_0")
+    include_directories(${BOOST_DIR})
 
     if(MSVC)
         add_definitions(-D_CRT_SECURE_NO_WARNINGS=1)
@@ -180,7 +184,7 @@ if (BUILD_GUI)
 
     file(GLOB_RECURSE APP_FILES
             phon/application/*.cpp phon/application/*.hpp
-            phon/speech/*.cpp phon/speech/*.hpp
+            phon/analysis/*.cpp phon/analysis/*.hpp
             phon/gui/*.cpp phon/gui/*.hpp
             phon/third_party/pugixml/pugixml.cpp
             phon/third_party/rtaudio/RtAudio.cpp
@@ -226,12 +230,12 @@ if (BUILD_GUI)
     if (WIN32)
         add_definitions(-D__WINDOWS_DS__=1)
         add_definitions(-D_USE_MATH_DEFINES) # for M_PI
-        include_directories("C:/Lib/libsndfile")
-        link_directories("C:/Lib/libsndfile")
+        include_directories(${LIBSNDFILE_DIR})
+        link_directories(${LIBSNDFILE_DIR})
         #add_subdirectory("${PROJECT_SOURCE_DIR}/libsndfile")
         target_link_libraries(
                 ${PROJECT_NAME} phon-runtime pcre2-8 ${FFT_LIB} ole32 winmm dsound
-				C:/Lib/libsndfile/libsndfile-1.lib
+				${LIBSNDFILE_DIR}/libsndfile-1.lib
                 Qt5::Core Qt5::Gui Qt5::Widgets
         )
     elseif (APPLE)
@@ -260,7 +264,8 @@ endif(BUILD_GUI)
 
 
 if(BUILD_UNIT_TEST)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
     file(GLOB TEST_FILES ./unit_test/*.cpp)
     add_executable(test_phon ${TEST_FILES})
-    target_link_libraries(test_phon phon-runtime pcre2-8)
+    target_link_libraries(test_phon phon-runtime pcre2-8 Qt5::Core)
 endif(BUILD_UNIT_TEST)

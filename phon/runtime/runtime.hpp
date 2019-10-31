@@ -104,7 +104,7 @@ public:
 
     void set_field(int idx, const String &name);
 
-    void def_field(int idx, const String &name, int atts);
+    void def_field(int idx, const String &name, int atts = PHON_DONTENUM);
 
     void del_field(int idx, const String &name);
 
@@ -144,7 +144,7 @@ public:
 
     void push(Variant &&v);
 
-    void push(Matrix<double> m);
+    void push(Array<double> m);
 
     std::optional<Variant> next_iterator(int idx);
 
@@ -153,6 +153,10 @@ public:
     void new_object();
 
     void new_list(intptr_t size = 0);
+
+    void new_array(intptr_t size);
+
+    void new_array(intptr_t nrow, intptr_t ncol);
 
     void push(Array<Variant> lst);
 
@@ -219,7 +223,7 @@ public:
 
 	Regex & to_regex(int idx);
 
-	Matrix<double> &to_array(int idx);
+	Array<double> &to_array(int idx);
 
     File &to_file(int idx);
 
@@ -237,6 +241,8 @@ public:
 
     void add_string_field(const char *name, const char *string);
 
+    void add_numeric_field(const char *name, double n);
+
     double to_number(int idx);
 
     intptr_t to_integer(int idx);
@@ -250,6 +256,8 @@ public:
     unsigned short to_uint16(int idx);
 
     double to_number(Variant *v);
+
+	void format_object(String &buffer, Object *obj, const char *gap, int level);
 
     int arg_count() { return top_count() - 1; }
 
@@ -344,6 +352,8 @@ private:
     void init_file();
 
     void init_math();
+
+    void init_stats();
 
     void init_json();
 

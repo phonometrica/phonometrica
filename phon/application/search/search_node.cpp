@@ -155,6 +155,8 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 	auto &events = annot->get_layer_events(layer_index);
 	QueryMatchSet matches;
 	static String sep(" ");
+	PHON_LOG("search for text matches in " << annot->path());
+	std::string_view p = annot->path();
 
 	for (intptr_t i = 1; i <= events.size(); i++)
 	{
@@ -183,8 +185,8 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 					fields.append(value_pattern.capture(c));
 				}
 
-				conc = std::make_shared<ProtocolConcordance>(annot, layer_index, event, match, ++match_index, left,
-						right, std::move(fields));
+				conc = std::make_shared<CodingConcordance>(annot, layer_index, event, match, ++match_index, left,
+				                                           right, std::move(fields));
 			}
 			else
 			{

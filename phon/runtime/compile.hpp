@@ -42,6 +42,7 @@ enum js_OpCode
     OP_CLOSURE,    /* -F- <closure> */
 
     OP_NEWLIST,
+    OP_NEWARRAY,
     OP_NEWOBJECT,
     OP_NEWREGEXP,    /* -S,opts- <regexp> */
 
@@ -68,12 +69,15 @@ enum js_OpCode
     OP_IN,        /* <name> <obj> -- <exists?> */
 
     OP_INITPROP,    /* <obj> <key> <val> -- <obj> */
+    OP_INITPROPX,
     OP_INITGETTER,    /* <obj> <key> <closure> -- <obj> */
     OP_INITSETTER,    /* <obj> <key> <closure> -- <obj> */
 
     OP_GETPROP,    /* <obj> <name> -- <value> */
+    OP_GETPROPX,   // Get index in multi-dimensional object
     OP_GETPROP_S,    /* <obj> -S- <value> */
     OP_SETPROP,    /* <obj> <name> <value> -- <value> */
+    OP_SETPROPX,    // Set index in multi-dimensional object
     OP_SETPROP_S,    /* <obj> <value> -S- <value> */
     OP_DELPROP,    /* <obj> <name> -- <success> */
     OP_DELPROP_S,    /* <obj> -S- <success> */
@@ -110,7 +114,7 @@ enum js_OpCode
     OP_EQ,
     OP_NE,
     OP_JCASE,
-    OP_BITAND,
+    OP_CONCAT,
     OP_BITXOR,
     OP_BITOR,
 

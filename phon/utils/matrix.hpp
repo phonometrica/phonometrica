@@ -30,18 +30,31 @@
 #define PHONOMETRICA_MATRIX_HPP
 
 #include <functional>
+#include <phon/array.hpp>
 #include <phon/third_party/Eigen/Dense>
 
 namespace phonometrica {
 
 template <typename T>
-using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
 template <typename T>
-using Vector = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+using Vector = Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen::ColMajor>;
 
 // Convert an input matrix element-wise using formula.
-Matrix<double> apply(const Matrix<double> &input, const std::function<double(double)> &formula);
+Array<double> apply(const Array<double> &X, const std::function<double(double)> &formula);
+
+Array<double> transpose(const Array<double> &X);
+
+Array<double> mul(const Array<double> &X, const Array<double> &Y);
+
+Array<double> mul(const Array<double> &X, double n);
+
+Array<double> div(const Array<double> &X, double n);
+
+Array<double> add(const Array<double> &X, double n);
+
+Array<double> sub(const Array<double> &X, double n);
 
 } // namespace phonometrica
 

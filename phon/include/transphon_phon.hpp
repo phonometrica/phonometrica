@@ -56,7 +56,7 @@ if result then
 				var esthetic = ""
 		
 				for k=1 to annotation_file_name_length do
-					esthetic = esthetic + "%"
+					esthetic = esthetic & "%"
 				end
 				
 				output_file.write_line(esthetic)
@@ -85,7 +85,7 @@ if result then
 				foreach var tier in tiers_list do
 					
 					var layer_title = (annotation_files[j].get_layer_label(tier))
-					output_file.write_line("%%%% Layer: " + layer_title)
+					output_file.write_line("%%%% Layer: " & layer_title)
 					output_file.write_line("")
 				
 		
@@ -98,7 +98,7 @@ if result then
 						if regex_any_text.match(text_in_interval) then
 							
 							if result.separator == 1 then
-								output_file.write(text_in_interval + " ")
+								output_file.write(text_in_interval & " ")
 							elsif result.separator == 2 then
 								output_file.write_line(text_in_interval)				
 							elsif result.separator == 3 then
@@ -122,7 +122,7 @@ if result then
 	end
 	output_file.close()
 
-	var show = ask("Annotations have been written to '" + path + "'.\nWould you like to view the file?")
+	var show = ask("Annotations have been written to '" & path & "'.\nWould you like to view the file?")
 	
 	if show then
 		view_text(path, system.get_base_name(path), 500)

@@ -18,8 +18,6 @@
 
 #include <phon/runtime/object.hpp>
 #include <phon/runtime/runtime.hpp>
-#include "object.hpp"
-
 
 namespace phonometrica {
 
@@ -71,7 +69,7 @@ Object::~Object()
         this->as.c.name.~String();
     }
     else if (this->type == PHON_CARRAY)
-    	this->as.array.~Matrix();
+    	this->as.array.~Array();
 
     // Detach object from the GC chain.
 //    if (this == runtime->gcobj) {
@@ -217,5 +215,26 @@ void Object::resize_list(Runtime &rt, int new_size)
     as.list.resize(new_size);
 }
 
+String Object::to_string(Runtime &rt)
+{
+	String s("{ ");
+
+	for (auto &field : fields)
+	{
+		s.append('"');
+		s.append(field.first);
+		s.append("\": ");
+		auto getter = field.second.getter;
+		if (getter)
+			rt.format_object(s,getter, "", 0);
+		else
+			s.append(var_to_string(&rt, &field.second.value, true));
+		s.append(", ");
+	}
+	s.remove_last(", ");
+	s.append(" }");
+
+	return s;
+}
 
 } // namespace phonometrica
