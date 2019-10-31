@@ -39,7 +39,7 @@ event = {}
 
 # Create a new event id (this function will be added by the C++ code)
 event.create = function() 
-    return "__evt_" + String(slot_id++)
+    return "__evt_" & slot_id++
 end
 
 # connect an event to a slot

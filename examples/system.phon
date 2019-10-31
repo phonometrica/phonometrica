@@ -11,7 +11,7 @@ print(system.current_directory)
 
 # Path routines
 print(system.get_full_path("~/Devel"))
-print("separator = '", system.separator, "'")
+print("separator = '" & system.separator & "'")
 print(system.join_path("/home/julien", "Documents"))
 var f = "/home/julien/test.json"
 print(system.get_base_name(f))
@@ -32,7 +32,7 @@ print(system.is_directory(home))
 
 # Split file name and extension
 var pieces = system.split_extension(f)
-print(pieces[1], " ", pieces[2])
+print(pieces[1] & " " & pieces[2])
 
 # Get file extension, converting it to lower case
 var tgd = "test.TextGrid"

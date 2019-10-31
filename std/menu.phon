@@ -170,7 +170,7 @@ function save_project_as()
 	var path = save_file_dialog("Save project as...", "Phonometrica project (*.phon-project)")
 	if path then
 		if not path.ends_with(".phon-project") then
-			path = path + ".phon-project"
+			path = path & ".phon-project"
 		end
 		phon.project.save(path)
 		update_recent_projects(path)
@@ -230,13 +230,13 @@ end
 
 function show_about()
 	var title = "About Phonometrica"
-	var msg = "<b>Phonometrica " + phon.version + "</b><br/>\n" 
-		+ "Copyright (C) 2019 Julien Eychenne & Léa Courdès-Murphy<br/>" 
-		+ "Phonometrica is distributed under the CECILL license version 2.1.<br/>"
-		+ "See \"License\" for details.<br/>"
-		+ "Website: <a href=\"http://www.phonometrica-ling.org\">http://www.phonometrica-ling.org</a><br/>"
-		+ "Icons by <a href=\"https://icons8.com\">Icons8</a>.<br/>"
-		+ "Build date: " + phon.date
+	var msg = "<b>Phonometrica " & phon.version & "</b><br/>\n" 
+		& "Copyright (C) 2019 Julien Eychenne & Léa Courdès-Murphy<br/>" 
+		& "Phonometrica is distributed under the CECILL license version 2.1.<br/>"
+		& "See \"License\" for details.<br/>"
+		& "Website: <a href=\"http://www.phonometrica-ling.org\">http://www.phonometrica-ling.org</a><br/>"
+		& "Icons by <a href=\"https://icons8.com\">Icons8</a>.<br/>"
+		& "Build date: " & phon.date
 	about(msg, title)
 end
 
@@ -248,9 +248,9 @@ end
 function sound_info()
 	var title = "Sound information"
 	var msg = "<b>Supported sound formats on this platform</b><br/>"
-		+ phon.supported_sound_formats.join(", ")
-		+ "<br/><b>libsndfile version</b><br/> " + phon.libsndfile_version
-		+ "<br/><b>RTAudio version</b><br/> " + phon.rtaudio_version
+		& phon.supported_sound_formats.join(", ")
+		& "<br/><b>libsndfile version</b><br/> " & phon.libsndfile_version
+		& "<br/><b>RTAudio version</b><br/> " & phon.rtaudio_version
     about(msg, title)
 end
 
