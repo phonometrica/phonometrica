@@ -155,6 +155,13 @@ class Measurement : public QueryMatch
 {
 public:
 
+	enum Type
+	{
+		Formants,
+		Pitch,
+		Intensity
+	};
+
 	Measurement(const AutoAnnotation &annot, int layer, const AutoEvent &e, const String &text, int position) :
 			QueryMatch(annot, layer, e, text, position)
 	{ }

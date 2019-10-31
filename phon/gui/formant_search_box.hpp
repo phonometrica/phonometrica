@@ -20,103 +20,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 14/03/2019                                                                                                 *
+ * Created: 31/10/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: Display results of a query.                                                                                *
+ * Purpose: query editor search box for formant analysis.                                                              *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_QUERY_VIEW_HPP
-#define PHONOMETRICA_QUERY_VIEW_HPP
+#ifndef PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
+#define PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
 
-#include <QTableWidget>
-#include <QCheckBox>
-#include <phon/runtime/runtime.hpp>
-#include <phon/gui/views/view.hpp>
-#include <phon/application/annotation.hpp>
-#include <phon/application/query_table.hpp>
+#include <phon/gui/search_box.hpp>
 
 namespace phonometrica {
 
-class AudioPlayer;
-
-
-class QueryView final : public View
+class FormantSearchBox final : public SearchBox
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
 
-    QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data);
+	FormantSearchBox(QWidget *parent);
 
-	bool save() override;
-
-signals:
-
-	void openAnnotation(AutoAnnotation, intptr_t, double, double);
-
-
-private slots:
-
-	void refreshTable(bool);
-
-	void onCellClicked(int i, int j);
-
-	void onCellDoubleClicked(int i, int j);
-
-	void openMatchInPraat(int i);
-
-	void exportToCsv(bool);
-
-	void provideContextMenu(const QPoint &pos);
-
-	void bookmarkMatch(int i);
-
-protected:
-
-	void keyPressEvent(QKeyEvent *event) override;
+	AutoSearchNode buildSearchTree() override;
 
 private:
 
-	void fillTable();
+	void setupUi() override;
 
-	int getQueryFlags();
-
-	void playMatch(int i);
-
-	void editEvent(int i);
-
-	void openInAnnotation(int i);
-
-	void enableQueryButtons(bool enable);
-
-	void stopPlayer();
-
-	bool isMatchCell(int jj) const;
-
-	Runtime &runtime;
-
-    std::shared_ptr<QueryTable> m_data;
-
-    QTableWidget *m_table;
-
-    QAction *property_action = nullptr;
-
-    QAction *context_action = nullptr;
-
-    QAction *info_action = nullptr;
-
-    QAction *match_action = nullptr;
-
-    QAction *play_action = nullptr;
-
-    QAction *stop_action = nullptr;
-
-    QAction *edit_action = nullptr;
-
-    std::unique_ptr<AudioPlayer> player;
 };
 
 } // namespace phonometrica
 
-#endif //PHONOMETRICA_QUERY_VIEW_HPP
+
+
+#endif // PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
