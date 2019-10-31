@@ -280,8 +280,11 @@ static void list_to_string(Runtime &rt)
 {
     int top = rt.top_count();
     rt.pop(top - 1);
-    rt.push(",");
+    rt.push(", ");
     list_join(rt);
+    auto &s = rt.get(-1).as.string;
+    s.prepend('[');
+    s.append(']');
 }
 
 static void list_find(Runtime &rt)

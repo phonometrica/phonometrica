@@ -257,6 +257,8 @@ public:
 
     double to_number(Variant *v);
 
+	void format_object(String &buffer, Object *obj, const char *gap, int level);
+
     int arg_count() { return top_count() - 1; }
 
     intptr_t to_integer(Variant *v);

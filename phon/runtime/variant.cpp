@@ -302,7 +302,7 @@ String number_to_string(Runtime *J, char *buf, double f)
 }
 
 /* to_string() on a value */
-String var_to_string(Runtime *J, Variant *v)
+String var_to_string(Runtime *J, Variant *v, bool quote)
 {
     switch (v->type)
     {
@@ -312,7 +312,21 @@ String var_to_string(Runtime *J, Variant *v)
     case PHON_TBOOLEAN:
         return v->as.boolean ? J->true_string : J->false_string;
     case PHON_TSTRING:
-        return v->as.string;
+    {
+    	if (quote)
+	    {
+		    String s(v->as.string.size() + 3);
+		    s.append('"');
+		    s.append(v->as.string);
+		    s.append('"');
+
+		    return s;
+	    }
+	    else
+	    {
+	    	return v->as.string;
+	    }
+    }
     case PHON_TNUMBER:
     {
         char buf[32];

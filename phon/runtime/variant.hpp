@@ -45,7 +45,7 @@ Object *var_to_object(Runtime *J, int idx);
 /* variant.cpp */
 
 
-String var_to_string(Runtime *J, Variant *v);
+String var_to_string(Runtime *J, Variant *v, bool quote = false);
 
 Object *var_to_object(Runtime *J, Variant *v);
 

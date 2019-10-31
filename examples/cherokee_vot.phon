@@ -14,8 +14,4 @@ print(json.stringify(f_test(vot_2001, vot_1971, "greater")))
 
 #print(json.stringify(t_test1(vot_2001, 100, "greater")))
 
-#print("\n--------------------------")
-
-#
-#print(json.stringify(f_test(red_wine, white_wine)))
 

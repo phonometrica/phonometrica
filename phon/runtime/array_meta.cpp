@@ -26,6 +26,7 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <random>
 #include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
 
@@ -77,21 +78,24 @@ static void array_dim_count(Runtime &rt)
 static void array_to_string(Runtime &rt)
 {
 	auto &array = rt.to_array(0);
-	String s;
+	String s("@[");
 	intptr_t nrow = array.nrow();
 	intptr_t ncol = array.ncol();
 
 	for (intptr_t i = 1; i <= nrow; i++)
 	{
+		if (ncol > 1 && i != 1) s.append("  ");
+
 		for (intptr_t j = 1; j <= ncol; j++)
 		{
 			s.append(String::convert(array(i,j)));
-			if (j < array.ncol() || (ncol == 1 && i < nrow)) s.append(", ");
+			if (j < array.ncol() || (i < nrow)) s.append(", ");
 		}
 
 		if (ncol > 1 && i < array.nrow()) s.append('\n');
 	}
 
+	s.append(']');
 	rt.push(std::move(s));
 }
 
@@ -131,6 +135,20 @@ static void array_div(Runtime &rt)
 	rt.push(div(X, n));
 }
 
+static void array_shuffle(Runtime &rt)
+{
+	auto &x = rt.to_array(0);
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(x.begin(), x.end(), g);
+}
+
+static void array_clone(Runtime &rt)
+{
+	Array<double> copy = rt.to_array(0);
+	rt.push(std::move(copy));
+}
+
 void Runtime::init_array()
 {
 	push(array_meta);
@@ -144,6 +162,8 @@ void Runtime::init_array()
 		add_method("Array.meta.sub", array_sub, 1);
 		add_method("Array.meta.mul", array_mul, 1);
 		add_method("Array.meta.div", array_div, 1);
+		add_method("Array.meta.shuffle", array_shuffle, 0);
+		add_method("Array.meta.clone", array_clone, 0);
 	}
 	new_native_constructor(array_ctor, array_ctor, "Array", 1);
 	def_global("Array", PHON_DONTENUM);

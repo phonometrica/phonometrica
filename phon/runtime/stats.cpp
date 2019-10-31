@@ -190,7 +190,7 @@ void Runtime::init_stats()
 {
 	add_global_function("sum", stat_sum, 1);
 	add_global_function("mean", stat_mean, 1);
-	add_global_function("variance", stat_var, 1);
+	add_global_function("vrc", stat_var, 1);
 	add_global_function("std", stat_std, 1);
 	add_global_function("chi2_test", stat_chi2, 1);
 	add_global_function("f_test", stat_ftest, 2);

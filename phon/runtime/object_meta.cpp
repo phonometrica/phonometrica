@@ -47,8 +47,8 @@ static void object_to_string(Runtime &rt)
         switch (self->type)
         {
         case PHON_COBJECT:
-        	rt.push(self->to_string());
-            break;
+	        rt.push(self->to_string(rt));
+	        break;
         case PHON_CLIST:
             rt.push("[object List]");
             break;

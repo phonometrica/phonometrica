@@ -84,25 +84,30 @@
 <code class="descname">chi2_test</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="headerlink" href="#chi2_test" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Computes Pearson’s chi-squared test on <code class="docutils literal notranslate"><span class="pre">X</span></code>, which must be a two-dimensional array. This function returns an object
-with the following fields:</p>
+<p>Computes Pearson’s chi-squared test on <code class="docutils literal notranslate"><span class="pre">X</span></code>, which must be a two-dimensional array. The <em>m</em> rows in the array represent
+the <em>m</em> levels of a categorical variable, and the <em>n</em> columns represent the <em>n</em> levels of another categorical variable.
+Each cell represents the unnormalized frequency count for the combination of the two variables. This test evaluates the
+null hypothesis that the two variables are independent.</p>
+<p>This function returns an object with the following fields:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">chi2</span></code>: the chi-squared value</li>
 <li><code class="docutils literal notranslate"><span class="pre">df</span></code>: the number of degrees of freedom</li>
 <li><code class="docutils literal notranslate"><span class="pre">p</span></code>: the p-value</li>
 </ul>
+<p>See also: <a class="reference internal" href="#report_chi2" title="report_chi2"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">report_chi2()</span></code></a></p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="f_test">
 <code class="descname">f_test</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="optional">[</span>, <em>alternative</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#f_test" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Computes the F-test on <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> which must be one-dimensional arrays. If <code class="docutils literal notranslate"><span class="pre">alternative</span></code> is specified, it must
-be one of the following strings: <code class="docutils literal notranslate"><span class="pre">&quot;two-tailed&quot;</span></code> performs a two-tailed test (default), <code class="docutils literal notranslate"><span class="pre">&quot;less&quot;</span></code> performs a lef-tailed
+<p>Computes the F-test on <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> which must be one-dimensional arrays. This test evaluates the null hypothesis that samples
+<code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> have the same variance.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">alternative</span></code> is specified, it must be one of the following strings: <code class="docutils literal notranslate"><span class="pre">&quot;two-tailed&quot;</span></code> performs a two-tailed test (default), <code class="docutils literal notranslate"><span class="pre">&quot;less&quot;</span></code> performs a lef-tailed
 test and <code class="docutils literal notranslate"><span class="pre">&quot;greater&quot;</span></code> performs a right-tailed test.
 This function returns an object with the following fields:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">f</span></code>: the <em>F</em> statistic</li>
+<li><code class="docutils literal notranslate"><span class="pre">f</span></code>: the <em>F</em> statistic, which is the ratio between the variance of <code class="docutils literal notranslate"><span class="pre">x</span></code> and the variance of <code class="docutils literal notranslate"><span class="pre">y</span></code></li>
 <li><code class="docutils literal notranslate"><span class="pre">df</span></code>: the number of degrees of freedom</li>
 <li><code class="docutils literal notranslate"><span class="pre">p</span></code>: the p-value</li>
 </ul>
@@ -112,7 +117,7 @@ This function returns an object with the following fields:</p>
 <code class="descname">mean</code><span class="sig-paren">(</span><em>x</em><span class="optional">[</span>, <em>dim</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#mean" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns the mean of the array <code class="docutils literal notranslate"><span class="pre">x</span></code>. If <code class="docutils literal notranslate"><span class="pre">dim</span></code> is specified, returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> where each element
+<p>Returns the mean of the array <code class="docutils literal notranslate"><span class="pre">x</span></code>. If <code class="docutils literal notranslate"><span class="pre">dim</span></code> is specified, returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> in which each element
 represents the mean over the given dimension in a two dimension array. If dim is equal to 1, the calculation is performed
 over rows. If it is equal to 2, it is performed over columns.</p>
 <hr class="docutils" />
@@ -123,22 +128,24 @@ over rows. If it is equal to 2, it is performed over columns.</p>
 
 <p>Computes and reports Pearson’s chi-squared test on <code class="docutils literal notranslate"><span class="pre">X</span></code>, which must be a two-dimensional array. This is a convenience wrapper
 over <code class="docutils literal notranslate"><span class="pre">chi2_test()</span></code>.</p>
+<p>See also: <a class="reference internal" href="#chi2_test" title="chi2_test"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">chi2_test()</span></code></a></p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="std">
 <code class="descname">std</code><span class="sig-paren">(</span><em>x</em><span class="optional">[</span>, <em>dim</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#std" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns the standard deviation of the array <code class="docutils literal notranslate"><span class="pre">x</span></code>. If <code class="docutils literal notranslate"><span class="pre">dim</span></code> is specified, returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> where each element
+<p>Returns the standard deviation of the array <code class="docutils literal notranslate"><span class="pre">x</span></code>. If <code class="docutils literal notranslate"><span class="pre">dim</span></code> is specified, returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> in which each element
 represents the standard deviation over the given dimension in a two dimension array. If dim is equal to 1, the calculation is performed
 over rows. If it is equal to 2, it is performed over columns.</p>
+<p>See also: <a class="reference internal" href="#vrc" title="vrc"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">vrc()</span></code></a>, <a class="reference internal" href="#mean" title="mean"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">mean()</span></code></a></p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="sum">
 <code class="descname">sum</code><span class="sig-paren">(</span><em>x</em><span class="optional">[</span>, <em>dim</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#sum" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns the sum of the elements in the array <code class="docutils literal notranslate"><span class="pre">x</span></code>. If <code class="docutils literal notranslate"><span class="pre">dim</span></code> is specified, returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> where each element
+<p>Returns the sum of the elements in the array <code class="docutils literal notranslate"><span class="pre">x</span></code>. If <code class="docutils literal notranslate"><span class="pre">dim</span></code> is specified, returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> in which each element
 represents the sum over the given dimension in a two dimension array. If dim is equal to 1, the summation is performed
 over rows. If it is equal to 2, summation is performed over columns.</p>
 <hr class="docutils" />
@@ -148,9 +155,10 @@ over rows. If it is equal to 2, summation is performed over columns.</p>
 <dd></dd></dl>
 
 <p>Computes a two-sample independent t-test for the mean between the samples <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>, which must be one-dimensional
-arrays. If <code class="docutils literal notranslate"><span class="pre">equal_variance</span></code> is true, the variance of the two samples is assumed to be equal and Student’s t-test is calculated,
-using the pooled standard error. If <code class="docutils literal notranslate"><span class="pre">equal_variance</span></code> is false (default), Welch’s t-test is used instead.
-If <code class="docutils literal notranslate"><span class="pre">alternative</span></code> is specified, it must be one of the following strings: <code class="docutils literal notranslate"><span class="pre">&quot;two-tailed&quot;</span></code> performs a two-tailed test (default),
+arrays. This test evaluates the null hypothesis that samples <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> have equal means.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">equal_variance</span></code> is true, the variance of the two samples is assumed to be equal and Student’s t-test is calculated,
+using the pooled standard error. If <code class="docutils literal notranslate"><span class="pre">equal_variance</span></code> is false (default), Welch’s t-test is used instead.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">alternative</span></code> is specified, it must be one of the following strings: <code class="docutils literal notranslate"><span class="pre">&quot;two-tailed&quot;</span></code> performs a two-tailed test (default),
 <code class="docutils literal notranslate"><span class="pre">&quot;less&quot;</span></code> performs a lef-tailed test and <code class="docutils literal notranslate"><span class="pre">&quot;greater&quot;</span></code> performs a right-tailed test.
 This function returns an object with the following fields:</p>
 <ul class="simple">
@@ -159,14 +167,17 @@ This function returns an object with the following fields:</p>
 <li><code class="docutils literal notranslate"><span class="pre">df2</span></code>: the number of degrees of freedom of <code class="docutils literal notranslate"><span class="pre">y</span></code></li>
 <li><code class="docutils literal notranslate"><span class="pre">p</span></code>: the p-value</li>
 </ul>
+<p>See also: <a class="reference internal" href="#t_test1" title="t_test1"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">t_test1()</span></code></a></p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="t_test1">
 <code class="descname">t_test1</code><span class="sig-paren">(</span><em>x</em>, <em>mu</em><span class="optional">[</span>, <em>alternative</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#t_test1" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Computes a one-sample t-test for the sample <code class="docutils literal notranslate"><span class="pre">x</span></code>, which must a one-dimensional array, and which is tested against the theoretical
-mean <code class="docutils literal notranslate"><span class="pre">mu</span></code>.</p>
+<dl class="docutils">
+<dt>Computes a one-sample t-test for the sample <code class="docutils literal notranslate"><span class="pre">x</span></code>, which must a one-dimensional array. This test evaluates the null</dt>
+<dd>hypothesis that the mean of sample <code class="docutils literal notranslate"><span class="pre">x</span></code> is equal to the theoretical mean <code class="docutils literal notranslate"><span class="pre">mu</span></code>.</dd>
+</dl>
 <p>If <code class="docutils literal notranslate"><span class="pre">alternative</span></code> is specified, it must be one of the following strings: <code class="docutils literal notranslate"><span class="pre">&quot;two-tailed&quot;</span></code> performs a two-tailed test (default),
 <code class="docutils literal notranslate"><span class="pre">&quot;less&quot;</span></code> performs a lef-tailed test and <code class="docutils literal notranslate"><span class="pre">&quot;greater&quot;</span></code> performs a right-tailed test.
 This function returns an object with the following fields:</p>
@@ -175,15 +186,17 @@ This function returns an object with the following fields:</p>
 <li><code class="docutils literal notranslate"><span class="pre">df</span></code>: the number of degrees of freedom</li>
 <li><code class="docutils literal notranslate"><span class="pre">p</span></code>: the p-value</li>
 </ul>
+<p>See also: <a class="reference internal" href="#t_test" title="t_test"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">t_test()</span></code></a></p>
 <hr class="docutils" />
 <dl class="function">
-<dt id="variance">
-<code class="descname">variance</code><span class="sig-paren">(</span><em>x</em><span class="optional">[</span>, <em>dim</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#variance" title="Permalink to this definition">¶</a></dt>
+<dt id="vrc">
+<code class="descname">vrc</code><span class="sig-paren">(</span><em>x</em><span class="optional">[</span>, <em>dim</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#vrc" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns the sample variance of the array <code class="docutils literal notranslate"><span class="pre">x</span></code>. If <code class="docutils literal notranslate"><span class="pre">dim</span></code> is specified, returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> where each element
+<p>Returns the sample variance of the array <code class="docutils literal notranslate"><span class="pre">x</span></code>. If <code class="docutils literal notranslate"><span class="pre">dim</span></code> is specified, returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> in which each element
 represents the variance over the given dimension in a two dimension array. If dim is equal to 1, the calculation is performed
 over rows. If it is equal to 2, it is performed over columns.</p>
+<p>See also: <a class="reference internal" href="#std" title="std"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">std()</span></code></a></p>
 <hr class="docutils" />
 </div>
 </div>

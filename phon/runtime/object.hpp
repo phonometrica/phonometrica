@@ -77,7 +77,7 @@ public:
 
     void resize_list(Runtime &rt, int new_size);
 
-    String to_string();
+    String to_string(Runtime &rt);
 
 public:
 

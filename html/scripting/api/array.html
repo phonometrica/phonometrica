@@ -107,32 +107,19 @@ row in the second column, whereas <em>(1, -1)</em> represents element in the fir
 <p>Constructs a vector with <code class="docutils literal notranslate"><span class="pre">m</span></code> elements  or an <code class="docutils literal notranslate"><span class="pre">m</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix. All elements are initialized to 0.</p>
 <hr class="docutils" />
 <dl class="method">
-<dt id="transpose">
-<code class="descname">transpose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transpose" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns the transpose of the matrix.</p>
-<hr class="docutils" />
-<dl class="method">
 <dt id="add">
 <code class="descname">add</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#add" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new array where <code class="docutils literal notranslate"><span class="pre">n</span></code> was added to each element in the original array.</p>
+<p>See also <a class="reference internal" href="#sub" title="sub"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sub()</span></code></a>, <a class="reference internal" href="#mul" title="mul"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">mul()</span></code></a>, <a class="reference internal" href="#div" title="div"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">div()</span></code></a></p>
 <hr class="docutils" />
 <dl class="method">
-<dt id="sub">
-<code class="descname">sub</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#sub" title="Permalink to this definition">¶</a></dt>
+<dt id="clone">
+<code class="descname">clone</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clone" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns a new array where <code class="docutils literal notranslate"><span class="pre">n</span></code> was subtracted from each element in the original array.</p>
-<hr class="docutils" />
-<dl class="method">
-<dt id="mul">
-<code class="descname">mul</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#mul" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns a new array where each element in the original array was multiplied by <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<p>Returns a deep copy of the array.</p>
 <hr class="docutils" />
 <dl class="method">
 <dt id="div">
@@ -140,9 +127,59 @@ row in the second column, whereas <em>(1, -1)</em> represents element in the fir
 <dd></dd></dl>
 
 <p>Returns a new array where each element in the original array was divided by <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<p>See also <a class="reference internal" href="#add" title="add"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">add()</span></code></a>, <a class="reference internal" href="#sub" title="sub"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sub()</span></code></a>, <a class="reference internal" href="#mul" title="mul"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">mul()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="mul">
+<code class="descname">mul</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#mul" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a new array where each element in the original array was multiplied by <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<p>See also <a class="reference internal" href="#add" title="add"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">add()</span></code></a>, <a class="reference internal" href="#sub" title="sub"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sub()</span></code></a>, <a class="reference internal" href="#div" title="div"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">div()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="shuffle">
+<code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#shuffle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Randomly shuffles the elements of the array. This method modifies the array in place.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="sub">
+<code class="descname">sub</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#sub" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a new array where <code class="docutils literal notranslate"><span class="pre">n</span></code> was subtracted from each element in the original array.</p>
+<p>See also <a class="reference internal" href="#add" title="add"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">add()</span></code></a>, <a class="reference internal" href="#mul" title="mul"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">mul()</span></code></a>, <a class="reference internal" href="#div" title="div"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">div()</span></code></a></p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="to_string">
+<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#to_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns a string representation of the array.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="transpose">
+<code class="descname">transpose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transpose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the transpose of the matrix.</p>
 </div>
 <div class="section" id="fields">
 <h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="dim_count">
+<code class="descname">dim_count</code><a class="headerlink" href="#dim_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the number of dimensions of the array.</p>
+<dl class="attribute">
+<dt id="column_count">
+<code class="descname">column_count</code><a class="headerlink" href="#column_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the number of columns in the array.</p>
 <dl class="attribute">
 <dt id="length">
 <code class="descname">length</code><a class="headerlink" href="#length" title="Permalink to this definition">¶</a></dt>
@@ -155,18 +192,6 @@ row in the second column, whereas <em>(1, -1)</em> represents element in the fir
 <dd></dd></dl>
 
 <p>Returns the number of rows in the array.</p>
-<dl class="attribute">
-<dt id="column_count">
-<code class="descname">column_count</code><a class="headerlink" href="#column_count" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns the number of columns in the array.</p>
-<dl class="attribute">
-<dt id="dim_count">
-<code class="descname">dim_count</code><a class="headerlink" href="#dim_count" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Returns the number of dimensions of the array.</p>
 </div>
 </div>
 
