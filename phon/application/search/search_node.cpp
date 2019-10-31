@@ -185,8 +185,8 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 					fields.append(value_pattern.capture(c));
 				}
 
-				conc = std::make_shared<ProtocolConcordance>(annot, layer_index, event, match, ++match_index, left,
-						right, std::move(fields));
+				conc = std::make_shared<CodingConcordance>(annot, layer_index, event, match, ++match_index, left,
+				                                           right, std::move(fields));
 			}
 			else
 			{

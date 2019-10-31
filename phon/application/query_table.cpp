@@ -74,7 +74,7 @@ String QueryTable::get_cell(intptr_t i, intptr_t j) const
 
 		if (k <= field_count)
 		{
-			auto conc = dynamic_cast<ProtocolConcordance*>(m_matches[i].get());
+			auto conc = dynamic_cast<CodingConcordance*>(m_matches[i].get());
 			return conc->get_field(k);
 		}
 

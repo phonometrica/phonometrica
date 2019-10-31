@@ -10,7 +10,7 @@ This release brings improvements to the scripting engine, statistical functions,
 - improved ``Array`` type
 - the multiplication and division operators can now operate on two arrays, or on an array and a scalar value.
 - mathematical functions for numbers and arrays
-- statistical functions: sum, mean, variance, standard deviation, and hypothesis testing: (chi-squared test, F-test, one-sample t-test, two sample independent t-test with or without equal variance)
+- statistical functions: sum, mean, variance, standard deviation and hypothesis testing (chi-squared test, F-test, one-sample t-test, two sample independent t-test with or without equal variance)
 - ``to_string()`` method for lists, arrays and objects
 - comment/uncomment selection in script views
 - bug fixes
