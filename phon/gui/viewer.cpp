@@ -141,25 +141,37 @@ void Viewer::openScriptView(AutoScript script)
     addView(view, label);
 }
 
-void Viewer::openTableView(AutoDataset table)
+void Viewer::openTableView(AutoDataset dataset)
 {
 	View *view = nullptr;
-	auto label = table->label();
+	auto label = dataset->label();
 
-	if (table->is_query_table())
+	if (dataset->is_query_table())
 	{
-		auto query_view = new TextQueryView(this, runtime, std::dynamic_pointer_cast<QueryTable>(table));
-		connect(query_view, &TextQueryView::openAnnotation, this, &Viewer::editAnnotation);
-		view = query_view;
+		auto table = std::dynamic_pointer_cast<QueryTable>(dataset);
+
+		if (table->is_text_table())
+		{
+			auto query_view = new TextQueryView(this, runtime, std::move(table));
+			connect(query_view, &TextQueryView::openAnnotation, this, &Viewer::editAnnotation);
+			view = query_view;
+		}
+		else
+		{
+			auto type = table->type();
+			auto query_view = new AcousticQueryView(this, runtime, std::move(table), type);
+			connect(query_view, &AcousticQueryView::openAnnotation, this, &Viewer::editAnnotation);
+			view = query_view;
+		}
 	}
-	else if (table->is_spreadsheet())
+	else if (dataset->is_spreadsheet())
 	{
-		auto spreadsheet_view = new SpreadsheetView(this, runtime, std::dynamic_pointer_cast<Spreadsheet>(table));
+		auto spreadsheet_view = new SpreadsheetView(this, runtime, std::dynamic_pointer_cast<Spreadsheet>(dataset));
 		view = spreadsheet_view;
 	}
 	else
 	{
-		QString msg = QString("View for %1 files is not implemented").arg(table->class_name());
+		QString msg = QString("View for %1 files is not implemented").arg(dataset->class_name());
 		QMessageBox dlg(QMessageBox::Information, tr("Cannot open view"), msg);
 		dlg.exec();
 		return;

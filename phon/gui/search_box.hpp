@@ -64,6 +64,8 @@ public:
 
 protected:
 
+	virtual Query::Type getType() const = 0;
+
 	virtual void setupUi(Runtime &rt) = 0;
 
 	int context_length;
@@ -99,6 +101,8 @@ protected slots:
 	void removeSearchConstraint(bool dummy);
 
 protected:
+
+	Query::Type getType() const override;
 
 	void setupUi(Runtime &rt) override;
 

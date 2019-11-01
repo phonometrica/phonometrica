@@ -52,6 +52,8 @@ protected:
 
 	 void setupUi(Runtime &rt) override;
 
+	Query::Type getType() const override;
+
 private:
 
 	String get_pattern();

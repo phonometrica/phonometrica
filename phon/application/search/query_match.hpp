@@ -165,6 +165,8 @@ public:
 	Measurement(const AutoAnnotation &annot, int layer, const AutoEvent &e, const String &text, int position) :
 			QueryMatch(annot, layer, e, text, position)
 	{ }
+
+	AutoBookmark to_bookmark(const String &title, const String &notes) const override;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -174,15 +176,23 @@ class FormantMeasurement final : public Measurement
 public:
 
 	FormantMeasurement(const AutoAnnotation &annot, int layer, const AutoEvent &e, const String &text, int position,
-			Array<double> formants) :
+			double max_freq, int lpc_order, Array<double> formants) :
 			Measurement(annot, layer, e, text, position), m_formants(std::move(formants))
-	{ }
+	{
+		this->max_freq = max_freq;
+		this->lpc_order = lpc_order;
+	}
 
 private:
 
 	// A matrix where rows represent measurement times and columns represent formants. For example, a measurement with
 	// 2 formants measured at 3 time points will be represented by a 3x2 matrix.
 	Array<double> m_formants;
+
+	// Keep track of these settings, because they will vary from measurement to measurement when the parametric method
+	// is used.
+	double max_freq;
+	double lpc_order;
 };
 
 } // namespace phonometrica

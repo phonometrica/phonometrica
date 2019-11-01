@@ -28,6 +28,9 @@
 
 #include <unordered_set>
 #include <phon/application/query_table.hpp>
+#include <phon/application/search/query.hpp>
+
+#define type() static_cast<Query::Type>(m_query_type)
 
 namespace phonometrica {
 
@@ -35,11 +38,11 @@ static const int BASE_COLUMN_COUNT = 7;
 static const int INFO_FILE_COUNT = 4;
 static const int CONTEXT_COUNT = 2;
 
-QueryTable::QueryTable(AutoProtocol p, QueryMatchList matches, String label) :
+QueryTable::QueryTable(AutoProtocol p, QueryMatchList matches, String label, int query_type) :
 		Dataset(nullptr), m_protocol(std::move(p)), m_matches(std::move(matches)),
 		m_categories(Property::get_categories()), m_label(std::move(label))
 {
-
+	m_query_type = query_type;
 }
 
 String QueryTable::get_cell(intptr_t i, intptr_t j) const
@@ -347,5 +350,45 @@ int QueryTable::field_count() const
 {
 	return m_protocol ? m_protocol->field_count() : 0;
 }
+
+bool QueryTable::is_acoustic_table() const
+{
+	switch (type())
+	{
+		case Query::Type::Default:
+		case Query::Type::CodingProtocol:
+			return false;
+		default:
+			return true;
+	}
+}
+
+bool QueryTable::is_text_table() const
+{
+	switch (type())
+	{
+		case Query::Type::Default:
+		case Query::Type::CodingProtocol:
+			return true;
+		default:
+			return false;
+	}
+}
+
+bool QueryTable::is_formant_table() const
+{
+	return type() == Query::Type::Formants;
+}
+
+bool QueryTable::is_pitch_table() const
+{
+	return type() == Query::Type::Pitch;
+}
+
+bool QueryTable::is_intensity_table() const
+{
+	return type() == Query::Type::Intensity;
+}
+
 
 } // namespace phonometrica

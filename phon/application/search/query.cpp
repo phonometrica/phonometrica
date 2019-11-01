@@ -49,7 +49,7 @@ Query::Query(AutoProtocol p, const String &label, AnnotationSet annotations, Arr
 AutoDataset Query::execute()
 {
 	filter_metadata();
-	return std::make_shared<QueryTable>(m_protocol, filter_data(), m_label);
+	return std::make_shared<QueryTable>(m_protocol, filter_data(), m_label, m_settings->type);
 }
 
 void Query::filter_metadata()
@@ -94,7 +94,7 @@ QueryMatchList Query::filter_data()
 		progress.setValue(i++);
 		if (progress.wasCanceled()) return QueryMatchList();
 		annot->open();
-		auto matches = search_tree->filter(annot, QueryMatchSet());
+		auto matches = search_tree->filter(m_settings.get(), annot, QueryMatchSet());
 		auto new_size = results.size() + matches.size();
 		results.reserve(new_size);
 

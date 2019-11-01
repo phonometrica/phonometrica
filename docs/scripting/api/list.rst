@@ -296,6 +296,7 @@ Sorts the elements in the list in increasing order. The elements should be of th
 
 See also: :func:`is_sorted`, :func:`reverse`
 
+------------
 
 .. method:: sorted_find(value)
 

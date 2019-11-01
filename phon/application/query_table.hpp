@@ -48,7 +48,7 @@ public:
 		ShowProperties   = 8
 	};
 
-	explicit QueryTable(AutoProtocol p, QueryMatchList matches, String label);
+	QueryTable(AutoProtocol p, QueryMatchList matches, String label, int query_type);
 
 	String get_header(intptr_t j) const override;
 
@@ -79,6 +79,18 @@ public:
 	bool has_split_fields() const;
 
 	int field_count() const;
+
+	int type() const { return m_query_type; }
+
+	bool is_acoustic_table() const;
+
+	bool is_text_table() const;
+
+	bool is_formant_table() const;
+
+	bool is_pitch_table() const;
+
+	bool is_intensity_table() const;
 
 private:
 
@@ -113,6 +125,8 @@ private:
 	String m_label;
 
 	int m_flags = 0;
+
+	int m_query_type;
 };
 
 using AutoQueryTable = std::shared_ptr<QueryTable>;

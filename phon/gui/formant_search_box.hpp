@@ -79,6 +79,10 @@ public:
 
 	AutoQuerySettings getSettings() const override;
 
+protected:
+
+	Query::Type getType() const override;
+
 private slots:
 
 	void changeMethod(int index);

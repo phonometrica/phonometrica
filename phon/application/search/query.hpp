@@ -45,21 +45,8 @@ class Query final : public QObject
 
 public:
 
-	enum class Type
-	{
-		Default,
-		CodingProtocol,
-		Formants,
-		Pitch,
-		Intensity
-	};
-
-	struct Settings
-	{
-		Settings(Type t) : type(t) { }
-		virtual ~Settings();
-		Type type;
-	};
+	using Type = SearchNode::Type;
+	using Settings = SearchNode::Settings;
 
 	Query(AutoProtocol p, const String &label, AnnotationSet annotations, Array <AutoMetaNode> metadata,
 	      AutoSearchNode tree, std::unique_ptr<Settings> settings);
@@ -75,6 +62,8 @@ public:
 	static int current_id();
 
 	String label() const { return m_label; }
+
+	Type type() const { return m_settings->type; }
 
 signals:
 

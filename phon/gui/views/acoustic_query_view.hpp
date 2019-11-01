@@ -29,6 +29,7 @@
 #ifndef PHONOMETRICA_ACOUSTIC_QUERY_VIEW_HPP
 #define PHONOMETRICA_ACOUSTIC_QUERY_VIEW_HPP
 
+#include <QTableWidget>
 #include <phon/gui/views/view.hpp>
 #include <phon/application/query_table.hpp>
 
@@ -43,15 +44,27 @@ class AcousticQueryView final : public View
 
 public:
 
-	AcousticQueryView(QWidget *parent, Runtime &rt, AutoQueryTable data, Measurement::Type type);
+	AcousticQueryView(QWidget *parent, Runtime &rt, AutoQueryTable data, int type);
+
+
+signals:
+
+	void openAnnotation(AutoAnnotation, intptr_t, double, double);
 
 private:
+
+	void setupUi();
+
+	void fillTable();
 
 	Runtime &runtime;
 
 	AutoQueryTable m_data;
 
-	Measurement::Type m_type;
+	QTableWidget *m_table;
+
+
+	Measurement::Type m_type = Measurement::Type::Formants;
 };
 
 } // namespace phonometrica

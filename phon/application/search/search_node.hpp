@@ -41,9 +41,25 @@ class SearchNode
 {
 public:
 
+	enum class Type
+	{
+		Default,
+		CodingProtocol,
+		Formants,
+		Pitch,
+		Intensity
+	};
+
+	struct Settings
+	{
+		Settings(Type t) : type(t) { }
+		virtual ~Settings();
+		Type type;
+	};
+
 	virtual ~SearchNode() = default;
 
-	virtual QueryMatchSet filter(const AutoAnnotation &annotation, const QueryMatchSet &matches) = 0;
+	virtual QueryMatchSet filter(Settings *settings, const AutoAnnotation &annotation, const QueryMatchSet &matches) = 0;
 
 	virtual String to_string() const = 0;
 
@@ -69,7 +85,7 @@ public:
 	explicit SearchOperator(Opcode op, AutoSearchNode lhs, AutoSearchNode rhs = nullptr) :
 		opcode(op), lhs(std::move(lhs)), rhs(std::move(rhs)) { }
 
-	QueryMatchSet filter(const AutoAnnotation &annot, const QueryMatchSet &matches) override;
+	QueryMatchSet filter(Settings *settings, const AutoAnnotation &annot, const QueryMatchSet &matches) override;
 
 	String to_string() const override;
 
@@ -103,20 +119,25 @@ public:
 	SearchConstraint(AutoProtocol p, int context_length, int index, int layer_index, const String &layer_name,
 			bool case_sensitive, Opcode op, Relation rel, String value);
 
-	QueryMatchSet filter(const AutoAnnotation &annotation, const QueryMatchSet &matches) override;
+	QueryMatchSet filter(Settings *settings, const AutoAnnotation &annotation, const QueryMatchSet &) override;
 
 	String to_string() const override;
 
 	Opcode opcode() const { return op; }
 
-	QueryMatchSet search(const AutoAnnotation &annot);
+	QueryMatchSet search(Settings *settings, const AutoAnnotation &annot);
 
 
 private:
 
-	QueryMatchSet find_matches(const AutoAnnotation &annot, int layer_index, std::true_type use_regex);
+	QueryMatchSet
+	find_matches(Settings *settings, const AutoAnnotation &annot, int layer_index, std::true_type use_regex);
 
-	QueryMatchSet find_matches(const AutoAnnotation &annot, int layer_index, std::false_type use_regex);
+	QueryMatchSet
+	find_matches(Settings *settings, const AutoAnnotation &annot, int layer_index, std::false_type use_regex);
+
+	Array<double> measure_formants(SearchNode::Settings *s, Annotation *annot, Event *event, double &max_freq,
+	                               int &lpc_order);
 
 	AutoProtocol m_protocol; // may be null
 

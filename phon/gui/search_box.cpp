@@ -416,7 +416,12 @@ bool DefaultSearchBox::hasNotOperator(int index)
 
 AutoQuerySettings DefaultSearchBox::getSettings() const
 {
-	return std::make_unique<Query::Settings>(Query::Type::Default);
+	return std::make_unique<Query::Settings>(getType());
+}
+
+Query::Type DefaultSearchBox::getType() const
+{
+	return Query::Type::Default;
 }
 
 } // namespace phonometrica

@@ -97,7 +97,12 @@ String ProtocolSearchBox::get_pattern()
 
 AutoQuerySettings ProtocolSearchBox::getSettings() const
 {
-	return std::make_unique<Query::Settings>(Query::Type::CodingProtocol);
+	return std::make_unique<Query::Settings>(getType());
+}
+
+Query::Type ProtocolSearchBox::getType() const
+{
+	return Query::Type::CodingProtocol;
 }
 
 } // namespace phonometrica

@@ -30,21 +30,23 @@
 #include <functional>
 #include <phon/runtime/runtime.hpp>
 #include <phon/application/search/search_node.hpp>
+#include <phon/application/search/query.hpp>
+#include <phon/gui/formant_search_box.hpp> // only for the settings
 #include <phon/regex.hpp>
 
 namespace phonometrica {
 
-QueryMatchSet SearchOperator::filter(const AutoAnnotation &annot, const QueryMatchSet &matches)
+QueryMatchSet SearchOperator::filter(Settings *settings, const AutoAnnotation &annot, const QueryMatchSet &matches)
 {
 	if (opcode == Opcode::And)
 	{
-		auto results = lhs->filter(annot, matches);
-		return rhs->filter(annot, results);
+		auto results = lhs->filter(settings, annot, matches);
+		return rhs->filter(settings, annot, results);
 	}
 	else if (opcode == Opcode::Or)
 	{
-		QueryMatchSet x = lhs->filter(annot, matches);
-		QueryMatchSet y = rhs->filter(annot, matches);
+		QueryMatchSet x = lhs->filter(settings, annot, matches);
+		QueryMatchSet y = rhs->filter(settings, annot, matches);
 		QueryMatchSet results;
 		std::set_union(x.begin(), x.end(), y.begin(), y.end(), std::inserter(results, results.begin()));
 
@@ -95,9 +97,9 @@ SearchConstraint::SearchConstraint(AutoProtocol p, int context_length, int index
 	this->context_length = context_length;
 }
 
-QueryMatchSet SearchConstraint::filter(const AutoAnnotation &annotation, const QueryMatchSet &)
+QueryMatchSet SearchConstraint::filter(Settings *settings, const AutoAnnotation &annotation, const QueryMatchSet &)
 {
-	return search(annotation);
+	return search(settings, annotation);
 }
 
 String SearchConstraint::to_string() const
@@ -111,7 +113,7 @@ String SearchConstraint::to_string() const
 //	return String(s);
 }
 
-QueryMatchSet SearchConstraint::search(const AutoAnnotation &annot)
+QueryMatchSet SearchConstraint::search(Settings *settings, const AutoAnnotation &annot)
 {
 	QueryMatchSet results;
 
@@ -124,17 +126,17 @@ QueryMatchSet SearchConstraint::search(const AutoAnnotation &annot)
 			if (layer_pattern->match(layer->label))
 			{
 				if (op == Opcode::Matches)
-					subset = find_matches(annot, layer->index, std::true_type());
+					subset = find_matches(settings, annot, layer->index, std::true_type());
 				else
-					subset = find_matches(annot, layer->index, std::false_type());
+					subset = find_matches(settings, annot, layer->index, std::false_type());
 			}
 		}
 		else if (layer_index == 0 || layer_index == layer->index)
 		{
 			if (op == Opcode::Matches)
-				subset = find_matches(annot, layer->index, std::true_type());
+				subset = find_matches(settings, annot, layer->index, std::true_type());
 			else
-				subset = find_matches(annot, layer->index, std::false_type());
+				subset = find_matches(settings, annot, layer->index, std::false_type());
 		}
 
 		for (auto it = subset.begin(); it != subset.end(); )
@@ -150,13 +152,14 @@ QueryMatchSet SearchConstraint::search(const AutoAnnotation &annot)
 	return results;
 }
 
-QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int layer_index, std::true_type)
+QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnotation &annot, int layer_index,
+                                             std::true_type use_regex)
 {
 	auto &events = annot->get_layer_events(layer_index);
 	QueryMatchSet matches;
 	static String sep(" ");
-	PHON_LOG("search for text matches in " << annot->path());
-	std::string_view p = annot->path();
+	auto type = settings->type;
+	PHON_LOG("search for text matches (regex) in " << annot->path());
 
 	for (intptr_t i = 1; i <= events.size(); i++)
 	{
@@ -167,44 +170,61 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 
 		while (value_pattern.match(label, it))
 		{
-			auto match = value_pattern.capture(0);
+			auto matched_text = value_pattern.capture(0);
 			auto start = value_pattern.capture_start_iter(0);
 			auto end = value_pattern.capture_end_iter(0);
 			it = end;
-			auto left = Annotation::left_context(events, i, start, context_length, sep);
-			auto right = Annotation::right_context(events, i, end, context_length, sep);
+			AutoQueryMatch match;
 
-			// For regular expressions only, we split the match into fields if there is a query protocol.
-			std::shared_ptr<Concordance> conc;
-			if (m_protocol)
+			switch (type)
 			{
-				auto count = value_pattern.count();
-				assert(count == m_protocol->field_count());
-				Array<String> fields(count);
-				for (intptr_t c = 1; c <= count; c++) {
-					fields.append(value_pattern.capture(c));
+				case Query::Type::CodingProtocol:
+				{
+					auto left = Annotation::left_context(events, i, start, context_length, sep);
+					auto right = Annotation::right_context(events, i, end, context_length, sep);
+					// For regular expressions only, we split the matched text into fields if there is a query protocol.
+					auto count = value_pattern.count();
+					assert(count == m_protocol->field_count());
+					Array<String> fields(count);
+					for (intptr_t c = 1; c <= count; c++) {
+						fields.append(value_pattern.capture(c));
+					}
+
+					match = std::make_shared<CodingConcordance>(annot, layer_index, event, matched_text, ++match_index, left,
+					                                            right, std::move(fields));
+					break;
 				}
-
-				conc = std::make_shared<CodingConcordance>(annot, layer_index, event, match, ++match_index, left,
-				                                           right, std::move(fields));
+				case Query::Type::Formants:
+				{
+					double max_frequency;
+					int lpc_order;
+					auto formants = measure_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
+					match = std::make_shared<FormantMeasurement>(annot, layer_index, event, matched_text, ++match_index,
+							max_frequency, lpc_order, std::move(formants));
+					break;
+				}
+				default:
+				{
+					auto left = Annotation::left_context(events, i, start, context_length, sep);
+					auto right = Annotation::right_context(events, i, end, context_length, sep);
+					match = std::make_shared<Concordance>(annot, layer_index, event, matched_text, ++match_index, left, right);
+				}
 			}
-			else
-			{
-				conc = std::make_shared<Concordance>(annot, layer_index, event, match, ++match_index, left, right);
-			}
 
-			matches.insert(std::move(conc));
+			matches.insert(std::move(match));
 		}
 	}
 
 	return matches;
 }
 
-QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int layer_index, std::false_type)
+QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnotation &annot, int layer_index, std::false_type)
 {
 	auto &events = annot->get_layer_events(layer_index);
 	QueryMatchSet matches;
 	static String sep(" ");
+	auto type = settings->type;
+	PHON_LOG("search for text matches (plain text) in " << annot->path());
 
 	for (intptr_t i = 1; i <= events.size(); i++)
 	{
@@ -214,33 +234,96 @@ QueryMatchSet SearchConstraint::find_matches(const AutoAnnotation &annot, int la
 		auto it = label.begin();
 		intptr_t grapheme_count = case_sensitive ? 0 : value.grapheme_count();
 
+
 		if (case_sensitive)
 		{
 			while((it = label.find(value, it)) != label.end())
 			{
-				String::const_iterator end = it + value.size();
-				auto left = Annotation::left_context(events, i, it, context_length, sep);
-				auto right = Annotation::right_context(events, i, end, context_length, sep);
-				matches.insert(std::make_shared<Concordance>(annot, layer_index, event, value, ++match_index, left, right));
-				it = end;
+				switch (type)
+				{
+					case Query::Type::Formants:
+					{
+						double max_frequency;
+						int lpc_order;
+						auto formants = measure_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
+						auto match = std::make_shared<FormantMeasurement>(annot, layer_index, event, label, ++match_index,
+						                                             max_frequency, lpc_order, std::move(formants));
+						matches.insert(std::move(match));
+						break;
+					}
+					default:
+					{
+						String::const_iterator end = it + value.size();
+						auto left = Annotation::left_context(events, i, it, context_length, sep);
+						auto right = Annotation::right_context(events, i, end, context_length, sep);
+						matches.insert(std::make_shared<Concordance>(annot, layer_index, event, value, ++match_index, left, right));
+						it = end;
+					}
+				}
 			}
 		}
 		else
 		{
 			while((it = label.ifind(value, it)) != label.end())
 			{
-				String::const_iterator end = it;
-				label.advance(end, grapheme_count);
-				String text(it, intptr_t(end-it));
-				auto left = Annotation::left_context(events, i, it, context_length, sep);
-				auto right = Annotation::right_context(events, i, end, context_length, sep);
-				matches.insert(std::make_shared<Concordance>(annot, layer_index, event, text, ++match_index, left, right));
-				it = end;
+				switch (type)
+				{
+					case Query::Type::Formants:
+					{
+						double max_frequency;
+						int lpc_order;
+						auto formants = measure_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
+						auto match = std::make_shared<FormantMeasurement>(annot, layer_index, event, label, ++match_index,
+						                                                  max_frequency, lpc_order, std::move(formants));
+						matches.insert(std::move(match));
+						break;
+					}
+					default:
+					{
+						String::const_iterator end = it;
+						label.advance(end, grapheme_count);
+						String text(it, intptr_t(end-it));
+						auto left = Annotation::left_context(events, i, it, context_length, sep);
+						auto right = Annotation::right_context(events, i, end, context_length, sep);
+						matches.insert(std::make_shared<Concordance>(annot, layer_index, event, text, ++match_index, left, right));
+						it = end;
+					}
+				}
 			}
 		}
 	}
 
 	return matches;
+}
+
+Array<double>
+SearchConstraint::measure_formants(SearchNode::Settings *s, Annotation *annot, Event *event, double &max_freq, int &lpc_order)
+{
+	auto sound = annot->sound();
+	if (!sound) {
+		throw error("Cannot measure formants in annotation \"%\" because it is not bound to any sound file", annot->path());
+	}
+	auto settings = dynamic_cast<FormantQuerySettings*>(s);
+	assert(settings);
+	if (settings->parametric) {
+		throw error("Parametric estimation not implemented");
+	}
+	max_freq = settings->max_freq;
+	lpc_order = settings->lpc_order;
+
+	// For now, measure at the mid point.
+	auto t = event->center_time();
+
+	Array<double> formants(1, settings->nformant, 0.0);
+	auto data = sound->get_formants(t, settings->nformant, settings->max_freq, settings->win_size, settings->lpc_order);
+
+	// Get the formants, leave the bandwidths out.
+	for (intptr_t i = 1; i <= settings->nformant; i++)
+	{
+		formants(1, i) = data(i, 1);
+	}
+
+	return formants;
 }
 
 } // namespace phonometrica

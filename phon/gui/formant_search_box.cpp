@@ -87,7 +87,7 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	box_layout->addWidget(new QLabel(tr("Measurement method:")));
 	box_layout->addWidget(parametric_button);
 	box_layout->addWidget(manual_button);
-	parametric_button->setChecked(true);
+	manual_button->setChecked(true);
 
 	// The stacked layout manages settings for the manual method and for the parametric method.
 	stack = new QStackedLayout;
@@ -149,7 +149,7 @@ void FormantSearchBox::setupUi(Runtime &rt)
 
 	stack->addWidget(parametric_widget);
 	stack->addWidget(manual_widget);
-	stack->setCurrentIndex(0);
+	stack->setCurrentIndex(1);
 	box_layout->addLayout(stack);
 
 	auto common_layout = new QHBoxLayout;
@@ -220,6 +220,11 @@ AutoQuerySettings FormantSearchBox::getSettings() const
 
 		return std::make_unique<FormantQuerySettings>(win_size, nformant, max_freq, lpc_order, erb, bark);
 	}
+}
+
+Query::Type FormantSearchBox::getType() const
+{
+	return Query::Type::Formants;
 }
 
 
