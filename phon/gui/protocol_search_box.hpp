@@ -46,6 +46,8 @@ public:
 
 	AutoSearchNode buildSearchTree() override;
 
+	AutoQuerySettings getSettings() const override;
+
 protected:
 
 	 void setupUi(Runtime &rt) override;

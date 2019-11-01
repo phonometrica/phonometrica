@@ -82,10 +82,10 @@ static void list_ctor(Runtime &rt)
 
 static void list_concat(Runtime &rt)
 {
-    int top = rt.top_count();
-    Array<Variant> result = rt.to_list(-1);
+    int argc = rt.arg_count();
+    Array<Variant> result = rt.to_list(0); // copy
 
-    for (int i = 0; i < top; ++i)
+    for (int i = 1; i <= argc; ++i)
     {
         auto &lst = rt.to_list(i);
 
@@ -165,6 +165,7 @@ static void list_shuffle(Runtime &rt)
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(lst.begin(), lst.end(), g);
+    rt.push_null();
 }
 
 static void list_sample(Runtime &rt)
@@ -184,67 +185,20 @@ static void list_pop(Runtime &rt)
     rt.push(lst.take_last());
 }
 
-static void Ap_slice(Runtime &rt)
+static void list_slice(Runtime &rt)
 {
-    int len, s, e, n;
-    double sv, ev;
-
-    rt.new_list();
-
-    len = js_getlength(&rt, 0);
-    sv = rt.to_integer(1);
-    ev = rt.is_defined(2) ? rt.to_integer(2) : len;
-
-    if (sv < 0) sv = sv + len;
-    if (ev < 0) ev = ev + len;
-
-    s = sv < 0 ? 0 : sv > len ? len : sv;
-    e = ev < 0 ? 0 : ev > len ? len : ev;
-
-    for (n = 0; s < e; ++s, ++n)
-        if (js_hasindex(&rt, 0, s))
-            js_setindex(&rt, -2, n);
-}
-
-struct sortslot
-{
-    Variant v;
-    Runtime *J;
-};
-
-static int sortcmp(const void *avoid, const void *bvoid)
-{
-    auto aslot = reinterpret_cast<const sortslot *>(avoid);
-    auto bslot = reinterpret_cast<const sortslot *>(bvoid);
-    const Variant *a = &aslot->v, *b = &bslot->v;
-    Runtime *J = aslot->J;
-    int c;
-
-    bool unx = a->is_null();
-    bool uny = b->is_null();
-    if (unx) return !uny;
-    if (uny) return -1;
-
-    if (J->is_callable(1))
-    {
-        J->copy(1); /* copy function */
-        J->push_null();
-        J->push(*a);
-        J->push(*b);
-        J->call(2);
-        c = J->to_number(-1);
-        J->pop(1);
-    }
-    else
-    {
-        J->push(*a);
-        J->push(*b);
-        auto sx = J->to_string(-2);
-        auto sy = J->to_string(-1);
-        c = sx.compare(sy);
-        J->pop(2);
-    }
-    return c;
+	auto &lst = rt.to_list(0);
+	intptr_t a = rt.to_integer(1);
+	intptr_t b = rt.arg_count() > 1 ? rt.to_integer(2) : lst.size();
+	intptr_t from = lst.to_base0(a);
+	intptr_t to = lst.to_base0(b) + 1;
+	Array<Variant> result(to - from);
+	auto start = lst.begin() + from;
+	auto end = lst.begin() + to;
+	while (start != end) {
+		result.append(*start++);
+	}
+	rt.push(std::move(result));
 }
 
 static void list_remove(Runtime &rt)
@@ -382,25 +336,6 @@ static void list_some(Runtime &rt)
     rt.push_boolean(false);
 }
 
-static void list_apply(Runtime &rt)
-{
-    auto &lst = rt.to_list(0);
-
-    if (!rt.is_callable(1))
-        throw rt.raise("Type error", "callback is not a function");
-
-    for (auto &v : lst)
-    {
-        rt.copy(1);
-        rt.push_null();
-        rt.push(v);
-        rt.call(1);
-        rt.pop(1);
-    }
-
-    rt.push_null();
-}
-
 static void list_map(Runtime &rt)
 {
     auto &lst = rt.to_list(0);
@@ -519,6 +454,7 @@ static void list_sorted_insert(Runtime &rt)
     auto i = std::lower_bound(lst.begin(), lst.end(), v);
     if (i == lst.end() || v < *i)
         lst.insert(i, v);
+    rt.push_null();
 }
 
 static void list_insert(Runtime &rt)
@@ -527,6 +463,7 @@ static void list_insert(Runtime &rt)
     auto pos = rt.to_integer(1);
     auto &v = rt.get(2);
     lst.insert(pos, v);
+    rt.push_null();
 }
 
 static void list_copy(Runtime &rt)
@@ -605,7 +542,7 @@ void Runtime::init_list()
         add_method("List.meta.is_sorted", list_is_sorted, 0);
         add_method("List.meta.shift", list_shift, 0);
         add_method("List.meta.pop", list_pop, 0);
-        add_method("List.meta.slice", Ap_slice, 2);
+	    add_method("List.meta.slice", list_slice, 1);
         add_method("List.meta.remove", list_remove, 1);
         add_method("List.meta.remove_at", list_remove_at, 1);
         add_method("List.meta.prepend", list_prepend, 1);
@@ -614,14 +551,13 @@ void Runtime::init_list()
         add_method("List.meta.contains", list_contains, 1);
         add_method("List.meta.every", list_every, 1);
         add_method("List.meta.some", list_some, 1);
-        add_method("List.meta.apply", list_apply, 1);
         add_method("List.meta.map", list_map, 1);
         add_method("List.meta.filter", list_filter, 1);
         add_method("List.meta.reduce", list_reduce, 1);
         add_method("List.meta.reduce_back", list_reduce_back, 1);
         add_method("List.meta.shuffle", list_shuffle, 0);
         add_method("List.meta.sample", list_sample, 1);
-        add_method("List.meta.copy", list_copy, 0);
+        add_method("List.meta.clone", list_copy, 0);
         add_method("List.meta.insert", list_insert, 2);
         add_method("List.meta.sorted_insert", list_sorted_insert, 1);
         add_method("List.meta.sorted_find", list_sorted_find, 1);

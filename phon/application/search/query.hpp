@@ -45,7 +45,24 @@ class Query final : public QObject
 
 public:
 
-	Query(AutoProtocol p, const String &label, AnnotationSet annotations, Array<AutoMetaNode> metadata, AutoSearchNode tree);
+	enum class Type
+	{
+		Default,
+		CodingProtocol,
+		Formants,
+		Pitch,
+		Intensity
+	};
+
+	struct Settings
+	{
+		Settings(Type t) : type(t) { }
+		virtual ~Settings();
+		Type type;
+	};
+
+	Query(AutoProtocol p, const String &label, AnnotationSet annotations, Array <AutoMetaNode> metadata,
+	      AutoSearchNode tree, std::unique_ptr<Settings> settings);
 
 	Query(const Query &) = delete;
 
@@ -75,6 +92,8 @@ private:
 
 	AutoProtocol m_protocol; // may be null
 
+	std::unique_ptr<Settings> m_settings;
+
 	String m_label;
 
 	AnnotationSet annotations;
@@ -89,6 +108,8 @@ private:
 // We shouldn't need the query to be shared, but we can't use a std::unique_ptr with Qt's signals and slots, since a
 // signal may be connected to several slots, in which case the value needs to be copied.
 using AutoQuery = std::shared_ptr<Query>;
+
+using AutoQuerySettings = std::unique_ptr<Query::Settings>;
 
 } // namespace phonometrica
 

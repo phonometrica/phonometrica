@@ -52,16 +52,7 @@ class QueryEditor final : public QDialog
 
 public:
 
-	enum class Type
-	{
-		Default,
-		CodingProtocol,
-		PitchMeasurement,
-		IntensityMeasurement,
-		FormantMeasurement
-	};
-
-	QueryEditor(Runtime &rt, AutoProtocol protocol, QWidget *parent, Type type, int context_length = 30);
+	QueryEditor(Runtime &rt, AutoProtocol protocol, QWidget *parent, Query::Type type, int context_length = 30);
 
 	void resurrect();
 
@@ -93,6 +84,8 @@ private:
 
 	AutoSearchNode getSearchTree();
 
+	AutoQuerySettings getSettings() const;
+
 	Runtime &runtime;
 
 	AutoProtocol protocol;
@@ -117,7 +110,7 @@ private:
 
 	int properties_per_row = 3;
 
-	Type type;
+	Query::Type type;
 };
 
 } // namespace phonometrica

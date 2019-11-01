@@ -55,7 +55,7 @@ enum {
 	IndexDoesntMatch
 };
 
-QueryEditor::QueryEditor(Runtime &rt, AutoProtocol protocol, QWidget *parent, Type type,  int context_length) :
+QueryEditor::QueryEditor(Runtime &rt, AutoProtocol protocol, QWidget *parent, Query::Type type,  int context_length) :
 	QDialog(parent), runtime(rt), protocol(std::move(protocol))
 {
 	this->type = type;
@@ -82,10 +82,10 @@ void QueryEditor::setupUi(int context_length)
 
 	switch (type)
 	{
-		case Type::CodingProtocol:
+		case Query::Type::CodingProtocol:
 			search_box = new ProtocolSearchBox(protocol, main_widget, context_length);
 			break;
-		case Type::FormantMeasurement:
+		case Query::Type::Formants:
 			search_box = new FormantSearchBox(main_widget);
 			break;
 		default:
@@ -270,7 +270,7 @@ AutoQuery QueryEditor::buildQuery()
 	String label = query_name_edit->text().trimmed();
 	if (label.empty()) label = "Untitled query";
 
-	return std::make_shared<Query>(protocol, label, getAnnotations(), getMetadata(), getSearchTree());
+	return std::make_shared<Query>(protocol, label, getAnnotations(), getMetadata(), getSearchTree(), getSettings());
 }
 
 Array<AutoMetaNode> QueryEditor::getMetadata()
@@ -389,5 +389,10 @@ void QueryEditor::showHelp(bool)
 	phon.show_documentation(page)
 	)__";
 	runtime.do_string(script);
+}
+
+AutoQuerySettings QueryEditor::getSettings() const
+{
+	return search_box->getSettings();
 }
 } // namespace phonometrica

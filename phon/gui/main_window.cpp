@@ -522,12 +522,12 @@ void MainWindow::setShellFunctions()
     };
 
     auto open_query_editor = [=](Runtime &rt) {
-	    this->openQueryEditor(QueryEditor::Type::Default);
+	    this->openQueryEditor(Query::Type::Default);
     	rt.push_null();
     };
 
     auto measure_formants = [=](Runtime &rt) {
-	    this->openQueryEditor(QueryEditor::Type::FormantMeasurement);
+	    this->openQueryEditor(Query::Type::Formants);
     	rt.push_null();
     };
 
@@ -974,12 +974,12 @@ void MainWindow::maximizeViewer()
     show_info->setChecked(false);
 }
 
-void MainWindow::openQueryEditor(QueryEditor::Type type)
+void MainWindow::openQueryEditor(Query::Type type)
 {
 	openQueryEditor(nullptr, type);
 }
 
-void MainWindow::openQueryEditor(AutoProtocol protocol, QueryEditor::Type type)
+void MainWindow::openQueryEditor(AutoProtocol protocol, Query::Type type)
 {
 	int context_length = (int) Settings::get_number(runtime, "match_window_length");
 	auto editor = new QueryEditor(runtime, std::move(protocol), this, type, context_length);
@@ -997,7 +997,7 @@ void MainWindow::runLastQuery()
 	}
 	else
 	{
-		openQueryEditor(nullptr, QueryEditor::Type::Default);
+		openQueryEditor(nullptr, Query::Type::Default);
 	}
 }
 
@@ -1064,7 +1064,7 @@ void MainWindow::loadPlugin(const String &path)
 		{
 			auto protocol = std::any_cast<AutoProtocol>(target);
 			connect(action, &QAction::triggered, [protocol, this](bool) {
-				openQueryEditor(protocol, QueryEditor::Type::CodingProtocol);
+				openQueryEditor(protocol, Query::Type::CodingProtocol);
 			});
 		}
 	};

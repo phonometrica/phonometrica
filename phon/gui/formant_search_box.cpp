@@ -29,11 +29,37 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QLayout>
-#include <QRadioButton>
 #include <phon/application/settings.hpp>
 #include <phon/gui/formant_search_box.hpp>
 
 namespace phonometrica {
+
+FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double max_freq, int lpc_order, bool erb,
+                                           bool bark) : Query::Settings(Query::Type::Formants)
+{
+	this->win_size = win_size;
+	this->nformant = nformant;
+	this->max_freq = max_freq;
+	this->lpc_order = lpc_order;
+	this->parametric = false;
+	this->erb = erb;
+	this->bark = bark;
+}
+
+FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double max_freq1, double max_freq2, double step,
+                                           int lpc_order1, int lpc_order2, bool erb, bool bark) : Query::Settings(Query::Type::Formants)
+{
+	this->win_size = win_size;
+	this->nformant = nformant;
+	this->max_freq1 = max_freq1;
+	this->max_freq2 = max_freq2;
+	this->step = step;
+	this->lpc_order1 = lpc_order1;
+	this->lpc_order2 = lpc_order2;
+	this->parametric = true;
+	this->erb = erb;
+	this->bark = bark;
+}
 
 FormantSearchBox::FormantSearchBox(QWidget *parent) :
 	DefaultSearchBox(parent, 0)
@@ -43,7 +69,7 @@ FormantSearchBox::FormantSearchBox(QWidget *parent) :
 
 AutoSearchNode FormantSearchBox::buildSearchTree()
 {
-	return phonometrica::AutoSearchNode();
+	return DefaultSearchBox::buildSearchTree();
 }
 
 void FormantSearchBox::setupUi(Runtime &rt)
@@ -57,7 +83,7 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	auto measurement_box = new QGroupBox;
 	auto box_layout = new QVBoxLayout;
 	auto manual_button = new QRadioButton(tr("Manual"));
-	auto parametric_button = new QRadioButton(tr("Parametric formant selection"));
+	parametric_button = new QRadioButton(tr("Parametric formant selection"));
 	box_layout->addWidget(new QLabel(tr("Measurement method:")));
 	box_layout->addWidget(parametric_button);
 	box_layout->addWidget(manual_button);
@@ -158,4 +184,43 @@ void FormantSearchBox::changeMethod(int index)
 {
 	stack->setCurrentIndex(index);
 }
+
+AutoQuerySettings FormantSearchBox::getSettings() const
+{
+	bool ok;
+	int nformant = formant_spinbox->value();
+	bool bark = bark_checkbox->isChecked();
+	bool erb = erb_checkbox->isChecked();
+	double win_size = win_edit->text().toDouble(&ok);
+
+	if (!ok) {
+		throw error("Invalid window size");
+	}
+
+	if (parametric_button->isChecked())
+	{
+		double max_freq1 = param_min_freq_edit->text().toDouble(&ok);
+		if (!ok) throw error("Invalid maximum frequency (from)");
+		double max_freq2 = param_max_freq_edit->text().toDouble(&ok);
+		if (!ok) throw error("Invalid maximum frequency (to)");
+		double step = param_step_freq_edit->text().toDouble(&ok);
+		if (!ok) throw error("Invalid frequency step");
+
+		int lpc_order1 = param_lpc_min_spinbox->value();
+		int lpc_order2 = param_lpc_max_spinbox->value();
+
+		return std::make_unique<FormantQuerySettings>(win_size, nformant, max_freq1, max_freq2, step, lpc_order1,
+				lpc_order2, erb, bark);
+	}
+	else
+	{
+		double max_freq = max_freq_edit->text().toDouble(&ok);
+		if (!ok) throw error("Invalid maximum frequency");
+		int lpc_order = lpc_spinbox->value();
+
+		return std::make_unique<FormantQuerySettings>(win_size, nformant, max_freq, lpc_order, erb, bark);
+	}
+}
+
+
 } // namespace phonometrica

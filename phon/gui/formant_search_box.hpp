@@ -31,11 +31,41 @@
 
 #include <QSpinBox>
 #include <QCheckBox>
+#include <QRadioButton>
 #include <QStackedLayout>
 #include <phon/gui/line_edit.hpp>
 #include <phon/gui/search_box.hpp>
 
 namespace phonometrica {
+
+
+struct FormantQuerySettings final : public Query::Settings
+{
+	FormantQuerySettings(double win_size, int nformant, double max_freq, int lpc_order, bool erb, bool bark);
+
+	FormantQuerySettings(double win_size, int nformant, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2,
+			bool erb, bool bark);
+
+
+	double max_freq  = 0; // manual
+	double max_freq1 = 0; // automatic
+	double max_freq2 = 0; // automatic
+	double step = 0;      // automatic
+
+	int lpc_order  = 0; // manual
+	int lpc_order1 = 0; // automatic
+	int lpc_order2 = 0; // automatic
+
+	// Shared values
+	int nformant;
+	double win_size;
+
+	bool parametric;
+	bool erb;
+	bool bark;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
 
 class FormantSearchBox final : public DefaultSearchBox
 {
@@ -47,6 +77,8 @@ public:
 
 	AutoSearchNode buildSearchTree() override;
 
+	AutoQuerySettings getSettings() const override;
+
 private slots:
 
 	void changeMethod(int index);
@@ -56,6 +88,8 @@ private:
 	void setupUi(Runtime &rt) override;
 
 	QStackedLayout *stack;
+
+	QRadioButton *parametric_button;
 
 	QSpinBox *formant_spinbox, *lpc_spinbox;
 

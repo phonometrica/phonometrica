@@ -95,4 +95,9 @@ String ProtocolSearchBox::get_pattern()
 	return values.join(protocol->field_separator());
 }
 
+AutoQuerySettings ProtocolSearchBox::getSettings() const
+{
+	return std::make_unique<Query::Settings>(Query::Type::CodingProtocol);
+}
+
 } // namespace phonometrica

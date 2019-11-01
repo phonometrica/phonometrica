@@ -840,14 +840,6 @@ public:
 		return { data(), size() };
 	}
 
-private:
-
-	const size_type *shape() const noexcept { return m_dim.dx.shape; }
-	size_type *shape() noexcept { return m_dim.dx.shape; }
-
-	const size_type *jumps() const noexcept { return m_dim.dx.jumps; }
-	size_type *jumps() noexcept { return m_dim.dx.jumps; }
-
 	// Convert index for 1-dimension arrays.
 	intptr_t to_base0(intptr_t i) const
 	{
@@ -862,6 +854,14 @@ private:
 
 		throw error("Index % out of range in array containing % items", i, len);
 	}
+
+private:
+
+	const size_type *shape() const noexcept { return m_dim.dx.shape; }
+	size_type *shape() noexcept { return m_dim.dx.shape; }
+
+	const size_type *jumps() const noexcept { return m_dim.dx.jumps; }
+	size_type *jumps() noexcept { return m_dim.dx.jumps; }
 
 	// Convert index for N-dimension arrays.
 	intptr_t to_base0(const index_sequence & indexes)

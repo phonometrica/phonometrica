@@ -35,6 +35,7 @@
 #include <QLayout>
 #include <phon/application/search/search_node.hpp>
 #include <phon/application/search/query_parser.hpp>
+#include <phon/application/search/query.hpp>
 #include <phon/utils/any.hpp>
 
 class QPushButton;
@@ -58,6 +59,8 @@ public:
 	void postInitialize(Runtime &rt);
 
 	virtual AutoSearchNode buildSearchTree() = 0;
+
+	virtual AutoQuerySettings getSettings() const = 0;
 
 protected:
 
@@ -86,6 +89,8 @@ public:
 	DefaultSearchBox(QWidget *parent, int context_length);
 
 	AutoSearchNode buildSearchTree() override;
+
+	AutoQuerySettings getSettings() const override;
 
 protected slots:
 
