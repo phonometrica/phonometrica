@@ -40,7 +40,7 @@
 #include <phon/application/praat.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/gui/toolbar.hpp>
-#include <phon/gui/views/text_query_view.hpp>
+#include <phon/gui/views/query_view.hpp>
 #include <phon/gui/bookmark_editor.hpp>
 #include <phon/gui/font.hpp>
 #include <phon/gui/popup_text_editor.hpp>
@@ -48,11 +48,12 @@
 
 namespace phonometrica {
 
-TextQueryView::TextQueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
+QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
     View(parent), runtime(rt), m_data(std::move(data))
 {
 	bool use_praat = m_data->has_textgrid();
 	auto layout = new QVBoxLayout;
+	this->type = static_cast<Query::Type>(m_data->type());
 
 	// Toolbar.
 	auto toolbar = new Toolbar;
@@ -94,7 +95,7 @@ TextQueryView::TextQueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) 
     connect(play_action, &QAction::triggered, play);
     connect(stop_action, &QAction::triggered, stop);
     connect(edit_action, &QAction::triggered, edit);
-    connect(csv_action, &QAction::triggered, this, &TextQueryView::exportToCsv);
+    connect(csv_action, &QAction::triggered, this, &QueryView::exportToCsv);
     layout->addWidget(toolbar);
 
     auto column_menu = new QMenu;
@@ -110,7 +111,9 @@ TextQueryView::TextQueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) 
 	property_action->setCheckable(true);
 	column_menu->addAction(match_action);
 	column_menu->addAction(info_action);
-	column_menu->addAction(context_action);
+	if (m_data->is_text_table()) {
+		column_menu->addAction(context_action);
+	}
 	column_menu->addAction(property_action);
 	info_action->setChecked(true);
 	context_action->setChecked(true);
@@ -147,12 +150,12 @@ TextQueryView::TextQueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) 
 	toolbar->addStretch();
 #endif
 
-	connect(info_action, &QAction::triggered, this, &TextQueryView::refreshTable);
-	connect(match_action, &QAction::triggered, this, &TextQueryView::refreshTable);
-	connect(context_action, &QAction::triggered, this, &TextQueryView::refreshTable);
-	connect(property_action, &QAction::triggered, this, &TextQueryView::refreshTable);
+	connect(info_action, &QAction::triggered, this, &QueryView::refreshTable);
+	connect(match_action, &QAction::triggered, this, &QueryView::refreshTable);
+	connect(context_action, &QAction::triggered, this, &QueryView::refreshTable);
+	connect(property_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(view_action, &QAction::triggered, this, view_event);
-	connect(bookmark_action, &QAction::triggered, this, &TextQueryView::bookmarkMatch);
+	connect(bookmark_action, &QAction::triggered, this, &QueryView::bookmarkMatch);
 
 	m_data->set_flags(getQueryFlags());
 
@@ -172,17 +175,17 @@ TextQueryView::TextQueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) 
 	m_table->setContextMenuPolicy(Qt::CustomContextMenu);
 	m_table->setFocusPolicy(Qt::StrongFocus);
 	connect(m_table, SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(provideContextMenu(const QPoint &)));
-	connect(m_table, &QTableWidget::cellClicked, this, &TextQueryView::onCellClicked);
-	connect(m_table, &QTableWidget::cellDoubleClicked, this, &TextQueryView::onCellDoubleClicked);
+	connect(m_table, &QTableWidget::cellClicked, this, &QueryView::onCellClicked);
+	connect(m_table, &QTableWidget::cellDoubleClicked, this, &QueryView::onCellDoubleClicked);
 }
 
-bool TextQueryView::save()
+bool QueryView::save()
 {
 	return true;
-	// TODO: implement TextQueryView::save()
+	// TODO: implement QueryView::save()
 }
 
-void TextQueryView::fillTable()
+void QueryView::fillTable()
 {
 	QFont font = get_monospace_font();
 	auto bold_font = font;
@@ -191,6 +194,7 @@ void TextQueryView::fillTable()
 	QStringList vheaders, hheaders;
 	vheaders.reserve(m_table->rowCount());
 	hheaders.reserve(m_table->columnCount());
+	bool is_text_query = m_data->is_text_table();
 
 	for (int j = 1; j <= m_table->columnCount(); j++)
 	{
@@ -241,7 +245,7 @@ void TextQueryView::fillTable()
 	m_table->resizeColumnsToContents();
 }
 
-int TextQueryView::getQueryFlags()
+int QueryView::getQueryFlags()
 {
 	int flags = QueryTable::ShowNothing;
 
@@ -253,11 +257,13 @@ int TextQueryView::getQueryFlags()
 		flags |= QueryTable::ShowMatchContext;
 	if (property_action->isChecked())
 		flags |= QueryTable::ShowProperties;
+	if (m_data->is_acoustic_table())
+		flags |= QueryTable::ShowAcoustics;
 
 	return flags;
 }
 
-void TextQueryView::refreshTable(bool)
+void QueryView::refreshTable(bool)
 {
 	m_table->clear();
 	m_data->set_flags(getQueryFlags());
@@ -266,13 +272,13 @@ void TextQueryView::refreshTable(bool)
 	fillTable();
 }
 
-void TextQueryView::onCellDoubleClicked(int i, int)
+void QueryView::onCellDoubleClicked(int i, int)
 {
 	enableQueryButtons(true);
 	playMatch(i);
 }
 
-void TextQueryView::playMatch(int i)
+void QueryView::playMatch(int i)
 {
 	auto &match = m_data->get_match(i+1);
 	auto sound = match->annotation()->sound();
@@ -284,12 +290,12 @@ void TextQueryView::playMatch(int i)
 	player->play(from, to);
 }
 
-void TextQueryView::onCellClicked(int i, int j)
+void QueryView::onCellClicked(int i, int j)
 {
 	enableQueryButtons(true);
 }
 
-void TextQueryView::keyPressEvent(QKeyEvent *event)
+void QueryView::keyPressEvent(QKeyEvent *event)
 {
 	auto index = m_table->currentIndex();
 
@@ -320,7 +326,7 @@ void TextQueryView::keyPressEvent(QKeyEvent *event)
 	}
 }
 
-void TextQueryView::editEvent(int i)
+void QueryView::editEvent(int i)
 {
 	auto &match = m_data->get_match(i+1);
 	auto event = match->event();
@@ -341,14 +347,14 @@ void TextQueryView::editEvent(int i)
 	}
 }
 
-void TextQueryView::enableQueryButtons(bool enable)
+void QueryView::enableQueryButtons(bool enable)
 {
 	play_action->setEnabled(enable);
 	edit_action->setEnabled(enable);
 	stop_action->setEnabled(enable);
 }
 
-void TextQueryView::openInAnnotation(int i)
+void QueryView::openInAnnotation(int i)
 {
 	auto &match = m_data->get_match(i+1);
 	auto annot = match->annotation();
@@ -368,7 +374,7 @@ void TextQueryView::openInAnnotation(int i)
 
 }
 
-void TextQueryView::openMatchInPraat(int i)
+void QueryView::openMatchInPraat(int i)
 {
 	auto &match = m_data->get_match(i+1);
 	auto &annot = match->annotation();
@@ -398,7 +404,7 @@ void TextQueryView::openMatchInPraat(int i)
 	}
 }
 
-void TextQueryView::stopPlayer()
+void QueryView::stopPlayer()
 {
 	if (player)
 	{
@@ -407,7 +413,7 @@ void TextQueryView::stopPlayer()
 	}
 }
 
-void TextQueryView::exportToCsv(bool)
+void QueryView::exportToCsv(bool)
 {
 	String name = m_data->label();
 	name.append(".csv");
@@ -429,7 +435,7 @@ void TextQueryView::exportToCsv(bool)
 	}
 }
 
-void TextQueryView::provideContextMenu(const QPoint &pos)
+void QueryView::provideContextMenu(const QPoint &pos)
 {
 	auto index = m_table->currentIndex();
 	if (!index.isValid()) return;
@@ -474,7 +480,7 @@ void TextQueryView::provideContextMenu(const QPoint &pos)
 	menu.exec(m_table->mapToGlobal(pos));
 }
 
-bool TextQueryView::isMatchCell(int jj) const
+bool QueryView::isMatchCell(int jj) const
 {
 	const int match_pos = 6;
 	if (jj < match_pos) return false;
@@ -482,7 +488,7 @@ bool TextQueryView::isMatchCell(int jj) const
 	return jj == match_pos || (m_data->has_split_fields() && jj - match_pos < m_data->field_count());
 }
 
-void TextQueryView::bookmarkMatch(int i)
+void QueryView::bookmarkMatch(int i)
 {
 	BookmarkEditor ed(this);
 

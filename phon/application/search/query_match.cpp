@@ -127,4 +127,34 @@ AutoBookmark Measurement::to_bookmark(const String &title, const String &notes) 
 
 	return b;
 }
+
+int FormantMeasurement::field_count() const
+{
+	// The fields are ordered like so, given an m by n formant matrix:
+	// - F1, F2,... Fn for row 1 (formants in Hertz)
+	// - B1, B2,... Bn for row 1 (bandwidth in Hertz, optional)
+	// - E1, E2,... En for row 1 (formants in ERB units, optional)
+	// - z1, z2,... zn for row 1 (formants in bark, optional)
+	// - ...
+	// - F1, F2,... fn for row m
+	// - B1, B2,... Bn for row m
+	// - E1, E2,... En for row m
+	// - z1, z2,... zn for row m
+
+	// TODO: take into accout erb/bark, etc.
+	return m_formants.size();
+}
+
+String FormantMeasurement::get_header(intptr_t j) const
+{
+	String label("F");
+	label.append(String::convert(j));
+
+	return label;
+}
+
+String FormantMeasurement::get_field(intptr_t j) const
+{
+	return String::format("%.6f", m_formants(1, j));
+}
 } // namespace phonometrica

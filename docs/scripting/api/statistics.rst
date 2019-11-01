@@ -24,6 +24,18 @@ See also: :func:`report_chi2`
 
 ------------
 
+.. function:: corr(x, y)
+
+Calculates Pearson's correlation coefficient between samples ``x`` and ``y``, which must be one-dimensional arrays with the same size.
+
+------------
+
+.. function:: covrc(x, y)
+
+Calculates the covariance between samples ``x`` and ``y``, which must be one-dimensional arrays with the same size.
+
+------------
+
 .. function:: f_test(x, y [, alternative])
 
 Computes the F-test on ``x`` and ``y`` which must be one-dimensional arrays. This test evaluates the null hypothesis that samples

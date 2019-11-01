@@ -41,7 +41,6 @@ ConversionDialog::ConversionDialog(int sample_rate, QWidget *parent) : QDialog(p
 	layout->addWidget(new QLabel(tr("Choose output file:")));
 	file_selector = new FileSelector(tr("Choose output file name"));
 	layout->addWidget(file_selector);
-	file_selector->setText("/home/julien/test.wav");
 	layout->addWidget(new QLabel(tr("New sampling rate (Hz):")));
 	fs_line = new QLineEdit;
 	fs_line->setText(QString::number(sample_rate));

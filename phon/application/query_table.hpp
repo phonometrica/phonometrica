@@ -45,7 +45,8 @@ public:
 		ShowFields       = 1,
 		ShowFileInfo     = 2,
 		ShowMatchContext = 4,
-		ShowProperties   = 8
+		ShowProperties   = 8,
+		ShowAcoustics    = 16
 	};
 
 	QueryTable(AutoProtocol p, QueryMatchList matches, String label, int query_type);
@@ -100,6 +101,8 @@ private:
 
 	intptr_t category_count() const;
 
+	int get_acoustic_field_count() const;
+
 	String get_annotation_name(intptr_t i) const;
 
 	String get_layer_index(intptr_t i) const;
@@ -127,6 +130,8 @@ private:
 	int m_flags = 0;
 
 	int m_query_type;
+
+	bool is_acoustic;
 };
 
 using AutoQueryTable = std::shared_ptr<QueryTable>;

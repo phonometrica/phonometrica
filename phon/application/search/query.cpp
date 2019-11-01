@@ -49,7 +49,7 @@ Query::Query(AutoProtocol p, const String &label, AnnotationSet annotations, Arr
 AutoDataset Query::execute()
 {
 	filter_metadata();
-	return std::make_shared<QueryTable>(m_protocol, filter_data(), m_label, m_settings->type);
+	return std::make_shared<QueryTable>(m_protocol, filter_data(), m_label, (int)m_settings->type);
 }
 
 void Query::filter_metadata()

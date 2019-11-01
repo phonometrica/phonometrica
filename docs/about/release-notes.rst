@@ -5,6 +5,7 @@ Release notes
 ~~~~~~~~~~~~~~~~~~
 
 - documentation for the ``List`` type
+- anchors are now only edited on the visible layers
 
 0.6.2 (31/10/2019)
 ~~~~~~~~~~~~~~~~~~

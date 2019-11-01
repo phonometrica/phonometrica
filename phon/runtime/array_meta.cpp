@@ -149,6 +149,36 @@ static void array_clone(Runtime &rt)
 	rt.push(std::move(copy));
 }
 
+static void array_get_row(Runtime &rt)
+{
+	auto &x = rt.to_array(0);
+	if (x.ndim() != 2) {
+		throw error("expected a two-dimensional array");
+	}
+	auto i = rt.to_integer(1);
+	Array<double> result(x.ncol(), 0.0);
+
+	for (intptr_t j = 1; j <= x.ncol(); j++) {
+		result[j] = x(i,j);
+	}
+	rt.push(std::move(result));
+}
+
+static void array_get_col(Runtime &rt)
+{
+	auto &x = rt.to_array(0);
+	if (x.ndim() != 2) {
+		throw error("expected a two-dimensional array");
+	}
+	auto j = rt.to_integer(1);
+	Array<double> result(x.nrow(), 0.0);
+
+	for (intptr_t i = 1; i <= x.nrow(); i++) {
+		result[i] = x(i,j);
+	}
+	rt.push(std::move(result));
+}
+
 void Runtime::init_array()
 {
 	push(array_meta);
@@ -164,6 +194,8 @@ void Runtime::init_array()
 		add_method("Array.meta.div", array_div, 1);
 		add_method("Array.meta.shuffle", array_shuffle, 0);
 		add_method("Array.meta.clone", array_clone, 0);
+		add_method("Array.meta.get_row", array_get_row, 1);
+		add_method("Array.meta.get_column", array_get_col, 1);
 	}
 	new_native_constructor(array_ctor, array_ctor, "Array", 1);
 	def_global("Array", PHON_DONTENUM);

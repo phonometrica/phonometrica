@@ -20,53 +20,106 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 31/10/2019                                                                                                 *
+ * Created: 14/03/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: display the results from an acoustic query (pitch, intensity, formants).                                   *
+ * Purpose: Display results of a query.                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_ACOUSTIC_QUERY_VIEW_HPP
-#define PHONOMETRICA_ACOUSTIC_QUERY_VIEW_HPP
+#ifndef PHONOMETRICA_QUERY_VIEW_HPP
+#define PHONOMETRICA_QUERY_VIEW_HPP
 
 #include <QTableWidget>
+#include <QCheckBox>
+#include <phon/runtime/runtime.hpp>
 #include <phon/gui/views/view.hpp>
+#include <phon/application/annotation.hpp>
+#include <phon/application/search/query.hpp>
 #include <phon/application/query_table.hpp>
 
 namespace phonometrica {
 
-class Runtime;
+class AudioPlayer;
 
 
-class AcousticQueryView final : public View
+class QueryView final : public View
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
 
-	AcousticQueryView(QWidget *parent, Runtime &rt, AutoQueryTable data, int type);
+    QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data);
 
+	bool save() override;
 
 signals:
 
 	void openAnnotation(AutoAnnotation, intptr_t, double, double);
 
-private:
 
-	void setupUi();
+private slots:
+
+	void refreshTable(bool);
+
+	void onCellClicked(int i, int j);
+
+	void onCellDoubleClicked(int i, int j);
+
+	void openMatchInPraat(int i);
+
+	void exportToCsv(bool);
+
+	void provideContextMenu(const QPoint &pos);
+
+	void bookmarkMatch(int i);
+
+protected:
+
+	void keyPressEvent(QKeyEvent *event) override;
+
+private:
 
 	void fillTable();
 
+	int getQueryFlags();
+
+	void playMatch(int i);
+
+	void editEvent(int i);
+
+	void openInAnnotation(int i);
+
+	void enableQueryButtons(bool enable);
+
+	void stopPlayer();
+
+	bool isMatchCell(int jj) const;
+
 	Runtime &runtime;
 
-	AutoQueryTable m_data;
+    std::shared_ptr<QueryTable> m_data;
 
-	QTableWidget *m_table;
+    QTableWidget *m_table;
 
+    QAction *property_action = nullptr;
 
-	Measurement::Type m_type = Measurement::Type::Formants;
+    QAction *context_action = nullptr;
+
+    QAction *info_action = nullptr;
+
+    QAction *match_action = nullptr;
+
+    QAction *play_action = nullptr;
+
+    QAction *stop_action = nullptr;
+
+    QAction *edit_action = nullptr;
+
+    std::unique_ptr<AudioPlayer> player;
+
+    Query::Type type;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_ACOUSTIC_QUERY_VIEW_HPP
+#endif //PHONOMETRICA_QUERY_VIEW_HPP

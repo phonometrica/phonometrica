@@ -148,21 +148,9 @@ void Viewer::openTableView(AutoDataset dataset)
 
 	if (dataset->is_query_table())
 	{
-		auto table = std::dynamic_pointer_cast<QueryTable>(dataset);
-
-		if (table->is_text_table())
-		{
-			auto query_view = new TextQueryView(this, runtime, std::move(table));
-			connect(query_view, &TextQueryView::openAnnotation, this, &Viewer::editAnnotation);
-			view = query_view;
-		}
-		else
-		{
-			auto type = table->type();
-			auto query_view = new AcousticQueryView(this, runtime, std::move(table), type);
-			connect(query_view, &AcousticQueryView::openAnnotation, this, &Viewer::editAnnotation);
-			view = query_view;
-		}
+		auto query_view = new QueryView(this, runtime, std::dynamic_pointer_cast<QueryTable>(dataset));
+		connect(query_view, &QueryView::openAnnotation, this, &Viewer::editAnnotation);
+		view = query_view;
 	}
 	else if (dataset->is_spreadsheet())
 	{

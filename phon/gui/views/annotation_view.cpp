@@ -522,7 +522,9 @@ void AnnotationView::notifyAnchorAdded(intptr_t layer_index, double time)
 		if (i != layer_index)
 		{
 			auto layer = layers[i];
-			if (layer->hasInstants() == instants) layer->createAnchor(time, true);
+			if (layer->isVisible() && layer->hasInstants() == instants) {
+				layer->createAnchor(time, true);
+			}
 		}
 	}
 }
@@ -536,7 +538,9 @@ void AnnotationView::notifyAnchorRemoved(intptr_t layer_index, double time)
 		if (i != layer_index)
 		{
 			auto layer = layers[i];
-			if (layer->hasInstants() == instants) layer->removeAnchor(time, true);
+			if (layer->isVisible() && layer->hasInstants() == instants) {
+				layer->removeAnchor(time, true);
+			}
 		}
 	}
 }
@@ -550,7 +554,9 @@ void AnnotationView::notifyAnchorMoved(intptr_t layer_index, double from, double
 		if (i != layer_index)
 		{
 			auto layer = layers[i];
-			if (layer->hasInstants() == instants) layer->moveAnchor(from, to);
+			if (layer->isVisible() && layer->hasInstants() == instants) {
+				layer->moveAnchor(from, to);
+			}
 		}
 	}
 }

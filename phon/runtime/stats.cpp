@@ -185,6 +185,28 @@ static void stat_ttest1(Runtime &rt)
 	rt.add_numeric_field(("p"), std::get<2>(result));
 }
 
+static void stat_cov(Runtime &rt)
+{
+	auto &x = rt.to_array(1);
+	auto &y = rt.to_array(2);
+
+	if (x.ndim() != 1 || x.ndim() != 1 || x.size() != y.size()) {
+		throw error("Cannot calculate covariance: expected two one-dimensional arrays with equal size");
+	}
+	rt.push(stats::covariance(x, y));
+}
+
+static void stat_corr(Runtime &rt)
+{
+	auto &x = rt.to_array(1);
+	auto &y = rt.to_array(2);
+
+	if (x.ndim() != 1 || x.ndim() != 1 || x.size() != y.size()) {
+		throw error("Cannot calculate correlation: expected two one-dimensional arrays with equal size");
+	}
+	rt.push(stats::pearson_correlation(x, y));
+}
+
 //TODO: check here for reports: https://valelab4.ucsf.edu/svn/3rdpartypublic/boost/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/f_eg.html
 void Runtime::init_stats()
 {
@@ -196,6 +218,8 @@ void Runtime::init_stats()
 	add_global_function("f_test", stat_ftest, 2);
 	add_global_function("t_test", stat_ttest, 2);
 	add_global_function("t_test1", stat_ttest1, 2);
+	add_global_function("covrc", stat_cov, 2);
+	add_global_function("corr", stat_corr, 2);
 }
 
 } // namespace phonometrica

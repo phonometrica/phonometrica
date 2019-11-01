@@ -32,8 +32,7 @@
 #include <QTabWidget>
 #include <phon/runtime/runtime.hpp>
 #include <phon/gui/views/script_view.hpp>
-#include <phon/gui/views/text_query_view.hpp>
-#include <phon/gui/views/acoustic_query_view.hpp>
+#include <phon/gui/views/query_view.hpp>
 
 namespace phonometrica {
 

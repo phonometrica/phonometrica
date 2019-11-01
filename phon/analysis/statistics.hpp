@@ -50,6 +50,10 @@ Array<double> mean(const Array<double> &x, int dim);
 
 double sample_variance(const Array<double> &x);
 
+double covariance(const Array<double> &x, const Array<double> &y);
+
+double pearson_correlation(const Array<double> &x, const Array<double> &y);
+
 Array<double> sample_variance(const Array<double> &x, int dim);
 
 double stdev(const Array<double> &vector);

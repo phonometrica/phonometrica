@@ -54,6 +54,22 @@ See also :func:`add`, :func:`sub`, :func:`mul`
 
 ------------
 
+.. method:: get_row(i)
+
+Returns the ``i`` th row as a new one-dimensional array. The original array must be two-dimensional.
+
+See also: :func:`get_column`
+
+------------
+
+.. method:: get_column(j)
+
+Returns the ``j`` th column as a new one-dimensional array. The original array must be two-dimensional.
+
+See also: :func:`get_row`
+
+------------
+
 .. method:: mul(n)
 
 Returns a new array where each element in the original array was multiplied by ``n``.

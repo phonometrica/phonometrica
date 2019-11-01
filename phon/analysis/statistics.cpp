@@ -172,6 +172,28 @@ Array<double> sample_variance(const Array<double> &x, int dim)
 	}
 }
 
+double covariance(const Array<double> &x, const Array<double> &y)
+{
+	assert(x.ndim() == 1);
+	assert(y.ndim() == 1);
+	assert(x.size() == y.size());
+	double cov = 0;
+	double mu1 = mean(x);
+	double mu2 = mean(y);
+
+	for (intptr_t i = 1; i <= x.size(); i++)
+	{
+		cov += (x[i] - mu1) * (y[i] - mu2);
+	}
+
+	return cov / (x.size() - 1);
+}
+
+double pearson_correlation(const Array<double> &x, const Array<double> &y)
+{
+	return covariance(x, y) / (stdev(x) * stdev(y));
+}
+
 double stdev(const Array<double> &vector)
 {
     return sqrt(sample_variance(vector));

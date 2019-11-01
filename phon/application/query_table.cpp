@@ -43,6 +43,16 @@ QueryTable::QueryTable(AutoProtocol p, QueryMatchList matches, String label, int
 		m_categories(Property::get_categories()), m_label(std::move(label))
 {
 	m_query_type = query_type;
+
+	switch (type())
+	{
+		case Query::Type::Default:
+		case Query::Type::CodingProtocol:
+			is_acoustic  = false;
+			break;
+		default:
+			is_acoustic = true;
+	}
 }
 
 String QueryTable::get_cell(intptr_t i, intptr_t j) const
@@ -69,23 +79,31 @@ String QueryTable::get_cell(intptr_t i, intptr_t j) const
 			break;
 	}
 
-	intptr_t field_count = has_split_fields() ? m_protocol->field_count() : 0;
+	intptr_t field_count = 0;
 
 	if (has_split_fields())
 	{
-		intptr_t k = j - 5; // discard previous columns
+		field_count = m_protocol->field_count();
 
+	}
+	else if (is_acoustic_table())
+	{
+		field_count = get_acoustic_field_count();
+	}
+
+	if (field_count != 0)
+	{
+		intptr_t k = j - 5; // discard previous columns
 		if (k <= field_count)
 		{
-			auto conc = dynamic_cast<CodingConcordance*>(m_matches[i].get());
-			return conc->get_field(k);
+			return m_protocol->get_field_name(k);
 		}
+
+		// Pretend there is a single match column if the match is split.
+		j -= field_count - 1;
 
 		// fall through
 	}
-
-	// Pretend there is a single match column if the match is split.
-	if (has_split_fields()) j -= field_count - 1;
 
 	if (j == 6)
 	{
@@ -116,7 +134,7 @@ intptr_t QueryTable::column_count() const
 	 * - start time (ShowFileInfo)
 	 * - end time (ShowFileInfo)
 	 * - left context (ShowMatchContext)
-	 * - match, which may be split (ShowFields)
+	 * - match, which may be split (ShowFields) or represent several pieces of acoustic information (ShowAcoustics)
 	 * - right context (ShowMatchContext)
 	 * - one additional column per property category (ShowProperties)
 	 */
@@ -131,6 +149,8 @@ intptr_t QueryTable::column_count() const
 
 	if (m_flags & ShowFields)
 		col_count += m_protocol->field_count();
+	else if (m_flags & ShowAcoustics)
+		col_count += get_acoustic_field_count();
 	else
 		col_count++; // single match
 
@@ -217,9 +237,20 @@ String QueryTable::get_header(intptr_t j) const
 			break;
 	}
 
-	intptr_t field_count = has_split_fields() ? m_protocol->field_count() : 0;
+	// If this is not zero, we have a split field (from a coding protocol) or an acoustic measurement.
+	intptr_t field_count = 0;
 
 	if (has_split_fields())
+	{
+		field_count = m_protocol->field_count();
+
+	}
+	else if (is_acoustic_table())
+	{
+		field_count = get_acoustic_field_count();
+	}
+
+	if (field_count != 0)
 	{
 		intptr_t k = j - 5; // discard previous columns
 		if (k <= field_count)
@@ -227,11 +258,11 @@ String QueryTable::get_header(intptr_t j) const
 			return m_protocol->get_field_name(k);
 		}
 
+		// Pretend there is a single match column if the match is split.
+		j -= field_count - 1;
+
 		// fall through
 	}
-
-	// Pretend there is a single match column if the match is split.
-	if (has_split_fields()) j -= field_count - 1;
 
 	if (j == 6)
 	{
@@ -256,11 +287,12 @@ bool QueryTable::empty() const
 
 intptr_t QueryTable::adjust_column(intptr_t j) const
 {
-	// Don't handle split field here. This is done when we request a header label or cell.
+	// Don't handle split fields here. This is done when we request a header label or cell.
 
 	if (!(m_flags & ShowFileInfo))
 		j += INFO_FILE_COUNT;
-	if (!(m_flags & ShowMatchContext))
+
+	if (!(m_flags & ShowMatchContext) && !(m_flags & ShowAcoustics))
 	{
 		if (j == 5) // match
 			j += 1; // account for left context
@@ -353,26 +385,12 @@ int QueryTable::field_count() const
 
 bool QueryTable::is_acoustic_table() const
 {
-	switch (type())
-	{
-		case Query::Type::Default:
-		case Query::Type::CodingProtocol:
-			return false;
-		default:
-			return true;
-	}
+	return is_acoustic;
 }
 
 bool QueryTable::is_text_table() const
 {
-	switch (type())
-	{
-		case Query::Type::Default:
-		case Query::Type::CodingProtocol:
-			return true;
-		default:
-			return false;
-	}
+	return !is_acoustic_table();
 }
 
 bool QueryTable::is_formant_table() const
@@ -388,6 +406,21 @@ bool QueryTable::is_pitch_table() const
 bool QueryTable::is_intensity_table() const
 {
 	return type() == Query::Type::Intensity;
+}
+
+int QueryTable::get_acoustic_field_count() const
+{
+	assert(!m_matches.empty());
+	auto match = dynamic_cast<Measurement*>(m_matches.first().get());
+	assert(match);
+
+	if (match->is_formants())
+	{
+		auto m = dynamic_cast<FormantMeasurement*>(match);
+		return m->field_count();
+	}
+
+	throw error("[Internal error] Unknown acoustic field count");
 }
 
 

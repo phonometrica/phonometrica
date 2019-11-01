@@ -166,6 +166,18 @@ public:
 			QueryMatch(annot, layer, e, text, position)
 	{ }
 
+	virtual bool is_pitch() const { return false; }
+
+	virtual bool is_intensity() const { return false; }
+
+	virtual bool is_formants() const { return false; }
+
+	virtual int field_count() const = 0;
+
+	virtual String get_header(intptr_t j) const = 0;
+
+	virtual String get_field(intptr_t j) const = 0;
+
 	AutoBookmark to_bookmark(const String &title, const String &notes) const override;
 };
 
@@ -182,6 +194,15 @@ public:
 		this->max_freq = max_freq;
 		this->lpc_order = lpc_order;
 	}
+
+	bool is_formants() const override { return true; }
+
+	int field_count() const override;
+
+	String get_header(intptr_t j) const override;
+
+	String get_field(intptr_t j) const override;
+
 
 private:
 
