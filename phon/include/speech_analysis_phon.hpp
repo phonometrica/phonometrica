@@ -35,8 +35,8 @@ function report_formants(time)
 
         for var i = 1 to nformant do
             var label = "F" & i
-            var fmt = result.get(i, 1)
-            var bw = result.get(i, 2)
+            var fmt = result[i, 1]
+            var bw = result[i, 2]
 
             if fmt then
                 print(label & " = " & fmt & " Hz\t bandwidth = " & bw & " Hz")

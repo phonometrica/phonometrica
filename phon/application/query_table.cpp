@@ -57,6 +57,10 @@ QueryTable::QueryTable(AutoProtocol p, QueryMatchList matches, String label, int
 
 String QueryTable::get_cell(intptr_t i, intptr_t j) const
 {
+	if (is_acoustic_table()) {
+		return get_acoustic_cell(i, j);
+	}
+
 	j = adjust_column(j);
 
 	switch (j)
@@ -79,31 +83,23 @@ String QueryTable::get_cell(intptr_t i, intptr_t j) const
 			break;
 	}
 
-	intptr_t field_count = 0;
+	intptr_t field_count = has_split_fields() ? m_protocol->field_count() : 0;
 
 	if (has_split_fields())
 	{
-		field_count = m_protocol->field_count();
-
-	}
-	else if (is_acoustic_table())
-	{
-		field_count = get_acoustic_field_count();
-	}
-
-	if (field_count != 0)
-	{
 		intptr_t k = j - 5; // discard previous columns
+
 		if (k <= field_count)
 		{
-			return m_protocol->get_field_name(k);
+			auto conc = dynamic_cast<CodingConcordance*>(m_matches[i].get());
+			return conc->get_field(k);
 		}
-
-		// Pretend there is a single match column if the match is split.
-		j -= field_count - 1;
 
 		// fall through
 	}
+
+	// Pretend there is a single match column if the match is split.
+	if (has_split_fields()) j -= field_count - 1;
 
 	if (j == 6)
 	{
@@ -119,6 +115,77 @@ String QueryTable::get_cell(intptr_t i, intptr_t j) const
 	auto &category = *it;
 	return get_property(i, category);
 }
+
+String QueryTable::get_acoustic_cell(intptr_t i, intptr_t j) const
+{
+	return String();
+}
+
+String QueryTable::get_header(intptr_t j) const
+{
+	if (is_acoustic_table()) {
+		return get_acoustic_header(j);
+	}
+
+	j = adjust_column(j);
+
+	switch (j)
+	{
+		case 1:
+			return "File";
+		case 2:
+			return "Layer";
+		case 3:
+			return "Start time";
+		case 4:
+			return "End time";
+		case 5:
+			return "Left context";
+//		case 6:
+//			return "Match";
+//		case 7:
+//			return "Right context";
+		default:
+			break;
+	}
+
+	intptr_t field_count = has_split_fields() ? m_protocol->field_count() : 0;
+
+	if (has_split_fields())
+	{
+		intptr_t k = j - 5; // discard previous columns
+		if (k <= field_count)
+		{
+			return m_protocol->get_field_name(k);
+		}
+
+		// fall through
+	}
+
+	// Pretend there is a single match column if the match is split.
+	if (has_split_fields()) j -= field_count - 1;
+
+	if (j == 6)
+	{
+		return "Match";
+	}
+	else if (j == 7)
+	{
+		return "Right context";
+	}
+
+	auto it = m_categories.begin();
+	std::advance(it, (j - BASE_COLUMN_COUNT - 1));
+	auto &category = *it;
+
+	return category;
+}
+
+String QueryTable::get_acoustic_header(intptr_t j) const
+{
+	return String();
+}
+
 
 intptr_t QueryTable::row_count() const
 {
@@ -211,73 +278,6 @@ String QueryTable::get_property(intptr_t i, const String &category) const
 String QueryTable::label() const
 {
 	return m_label;
-}
-
-String QueryTable::get_header(intptr_t j) const
-{
-	j = adjust_column(j);
-
-	switch (j)
-	{
-		case 1:
-			return "File";
-		case 2:
-			return "Layer";
-		case 3:
-			return "Start time";
-		case 4:
-			return "End time";
-		case 5:
-			return "Left context";
-//		case 6:
-//			return "Match";
-//		case 7:
-//			return "Right context";
-		default:
-			break;
-	}
-
-	// If this is not zero, we have a split field (from a coding protocol) or an acoustic measurement.
-	intptr_t field_count = 0;
-
-	if (has_split_fields())
-	{
-		field_count = m_protocol->field_count();
-
-	}
-	else if (is_acoustic_table())
-	{
-		field_count = get_acoustic_field_count();
-	}
-
-	if (field_count != 0)
-	{
-		intptr_t k = j - 5; // discard previous columns
-		if (k <= field_count)
-		{
-			return m_protocol->get_field_name(k);
-		}
-
-		// Pretend there is a single match column if the match is split.
-		j -= field_count - 1;
-
-		// fall through
-	}
-
-	if (j == 6)
-	{
-		return "Match";
-	}
-	else if (j == 7)
-	{
-		return "Right context";
-	}
-
-	auto it = m_categories.begin();
-	std::advance(it, (j - BASE_COLUMN_COUNT - 1));
-	auto &category = *it;
-
-	return category;
 }
 
 bool QueryTable::empty() const
@@ -422,6 +422,5 @@ int QueryTable::get_acoustic_field_count() const
 
 	throw error("[Internal error] Unknown acoustic field count");
 }
-
 
 } // namespace phonometrica

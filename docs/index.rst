@@ -28,30 +28,28 @@ It is particularly well suited for dealing with time-aligned data. The main feat
 Phonometrica runs on all major platforms (Windows, macOS and GNU/Linux) and is freely available under the terms of the CECILL license (version 2.1).
 The latest version can be downloaded from http://www.phonometrica-ling.org. If you encounter any problem or bug, please write to the authors.
 
-**Note: Phonometrica is currently under development: the documentation is still incomplete and some things might change before version 1.0 is released.**
-
 .. figure:: img/main_window.png
 
 
 Download
 ========
 
-Phonometrica 0.7.0
+Phonometrica 0.6.3
 ------------------
 
 -  Windows 7 and later:
-   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.7.0/setup_phonometrica.exe>`__
+   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.6.3/setup_phonometrica.exe>`__
 -  MacOS 10.12 and later:
-   `phonometrica-0.7.0.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.7.0/phonometrica-0.7.0.dmg>`__
--  Linux (Debian 10): `phonometrica-0.7.0.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.7.0/phonometrica-0.7.0.deb>`__
--  source code: `phonometrica-0.7.0.zip <https://github.com/phonometrica/phonometrica/archive/v0.7.0.zip>`__ | `phonometrica-0.7.0.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.7.0.tar.gz>`__
+   `phonometrica-0.6.3.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.6.3/phonometrica-0.6.3.dmg>`__
+-  Linux (Debian 10): `phonometrica-0.6.3.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.6.3/phonometrica-0.6.3.deb>`__
+-  source code: `phonometrica-0.6.3.zip <https://github.com/phonometrica/phonometrica/archive/v0.6.3.zip>`__ | `phonometrica-0.6.3.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.6.3.tar.gz>`__
 
 
   
 Manual
 ------
 
-Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.7.0/phonometrica_manual.pdf>`_ file.
+Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.6.3/phonometrica_manual.pdf>`_ file.
 
 
 Topics

@@ -1,11 +1,13 @@
 Release notes
 -------------
 
-0.7.0 (??/11/2019)
+0.6.3 (02/11/2019)
 ~~~~~~~~~~~~~~~~~~
 
+- fix regression in ``report_formants()`` due to the new array indexing syntax
 - documentation for the ``List`` type
 - anchors are now only edited on the visible layers
+- new statistical functions: ``covrc()`` (covariance) and ``corr()`` (Pearson's correlation coefficient)
 
 0.6.2 (31/10/2019)
 ~~~~~~~~~~~~~~~~~~

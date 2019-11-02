@@ -119,6 +119,10 @@ private:
 
 	String get_property(intptr_t i, const String &category) const;
 
+	String get_acoustic_cell(intptr_t i, intptr_t j) const;
+
+	String get_acoustic_header(intptr_t j) const;
+
 	AutoProtocol m_protocol; // may be null
 
 	QueryMatchList m_matches;

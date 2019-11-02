@@ -351,7 +351,7 @@ file_menu = [
 
 analysis_menu = [
 	["Search in annotations...", new_query, "ctrl+e"],
-	["Measure formants...", phon.measure_formants],
+	#["Measure formants...", phon.measure_formants],
 	null,
 	["Edit last query", phon.run_last_query, "ctrl+l"]
 ]
