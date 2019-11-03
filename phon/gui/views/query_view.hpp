@@ -34,7 +34,6 @@
 #include <phon/runtime/runtime.hpp>
 #include <phon/gui/views/view.hpp>
 #include <phon/application/annotation.hpp>
-#include <phon/application/search/query.hpp>
 #include <phon/application/query_table.hpp>
 
 namespace phonometrica {
@@ -116,8 +115,6 @@ private:
     QAction *edit_action = nullptr;
 
     std::unique_ptr<AudioPlayer> player;
-
-    Query::Type type;
 };
 
 } // namespace phonometrica

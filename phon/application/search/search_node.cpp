@@ -31,6 +31,7 @@
 #include <phon/runtime/runtime.hpp>
 #include <phon/application/search/search_node.hpp>
 #include <phon/application/search/query.hpp>
+#include <phon/analysis/speech_utils.hpp>
 #include <phon/gui/formant_search_box.hpp> // only for the settings
 #include <phon/regex.hpp>
 
@@ -153,7 +154,7 @@ QueryMatchSet SearchConstraint::search(Settings *settings, const AutoAnnotation 
 }
 
 QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnotation &annot, int layer_index,
-                                             std::true_type use_regex)
+                                             std::true_type)
 {
 	auto &events = annot->get_layer_events(layer_index);
 	QueryMatchSet matches;
@@ -299,6 +300,7 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 Array<double>
 SearchConstraint::measure_formants(SearchNode::Settings *s, Annotation *annot, Event *event, double &max_freq, int &lpc_order)
 {
+	using namespace speech;
 	auto sound = annot->sound();
 	if (!sound) {
 		throw error("Cannot measure formants in annotation \"%\" because it is not bound to any sound file", annot->path());
@@ -314,13 +316,41 @@ SearchConstraint::measure_formants(SearchNode::Settings *s, Annotation *annot, E
 	// For now, measure at the mid point.
 	auto t = event->center_time();
 
-	Array<double> formants(1, settings->nformant, 0.0);
-	auto data = sound->get_formants(t, settings->nformant, settings->max_freq, settings->win_size, settings->lpc_order);
+	auto nformant = settings->nformant;
+	intptr_t base = nformant;
+	Array<double> formants(1, settings->field_count(), 0.0);
+	auto data = sound->get_formants(t, nformant, settings->max_freq, settings->win_size, settings->lpc_order);
 
-	// Get the formants, leave the bandwidths out.
-	for (intptr_t i = 1; i <= settings->nformant; i++)
+	// Put formants first, and optionally add the bandwidths (e.g. F1, F2, F3, B1, B2, B3)
+	for (intptr_t i = 1; i <= nformant; i++)
 	{
 		formants(1, i) = data(i, 1);
+		if (settings->bandwidth) {
+			formants(1, base + i) = data(i, 2);
+		}
+	}
+	if (settings->bandwidth) {
+		base += nformant;
+	}
+	if (settings->erb)
+	{
+		for (intptr_t i = 1; i <= nformant; i++)
+		{
+			auto f = data(i, 1);
+			if (std::isfinite(f)) f = hertz_to_erb(f);
+			formants(1, base + i) = f;
+		}
+
+		base += nformant;
+	}
+	if (settings->bark)
+	{
+		for (intptr_t i = 1; i <= nformant; i++)
+		{
+			auto f = data(i, 1);
+			if (std::isfinite(f)) f = hertz_to_bark(f);
+			formants(1, base + i) = f;
+		}
 	}
 
 	return formants;

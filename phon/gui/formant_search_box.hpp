@@ -41,11 +41,19 @@ namespace phonometrica {
 
 struct FormantQuerySettings final : public Query::Settings
 {
-	FormantQuerySettings(double win_size, int nformant, double max_freq, int lpc_order, bool erb, bool bark);
+	FormantQuerySettings(double win_size, int nformant, double max_freq, int lpc_order, bool bw, bool erb, bool bark);
 
 	FormantQuerySettings(double win_size, int nformant, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2,
-			bool erb, bool bark);
+			bool bw, bool erb, bool bark);
 
+
+	bool is_acoustic() const override { return true; }
+
+	bool is_formants() const override { return true; }
+
+	String get_header(int j) const override;
+
+	int field_count() const;
 
 	double max_freq  = 0; // manual
 	double max_freq1 = 0; // automatic
@@ -61,6 +69,7 @@ struct FormantQuerySettings final : public Query::Settings
 	double win_size;
 
 	bool parametric;
+	bool bandwidth;
 	bool erb;
 	bool bark;
 };
@@ -97,7 +106,7 @@ private:
 
 	QSpinBox *formant_spinbox, *lpc_spinbox;
 
-	QCheckBox *bark_checkbox, *erb_checkbox;
+	QCheckBox *bark_checkbox, *erb_checkbox, *bandwidth_checkbox;
 
 	QLineEdit *max_freq_edit, *win_edit;
 

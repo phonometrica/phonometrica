@@ -54,6 +54,8 @@ public:
 
 	double end_time() const;
 
+	double duration() const { return 1000 * (end_time() - start_time()); }
+
 	bool operator<(const QueryMatch &other) const;
 
 	const AutoAnnotation &annotation() const { return m_annot; }
@@ -172,10 +174,6 @@ public:
 
 	virtual bool is_formants() const { return false; }
 
-	virtual int field_count() const = 0;
-
-	virtual String get_header(intptr_t j) const = 0;
-
 	virtual String get_field(intptr_t j) const = 0;
 
 	AutoBookmark to_bookmark(const String &title, const String &notes) const override;
@@ -196,10 +194,6 @@ public:
 	}
 
 	bool is_formants() const override { return true; }
-
-	int field_count() const override;
-
-	String get_header(intptr_t j) const override;
 
 	String get_field(intptr_t j) const override;
 

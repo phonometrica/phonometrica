@@ -53,7 +53,21 @@ public:
 	struct Settings
 	{
 		Settings(Type t) : type(t) { }
+
 		virtual ~Settings();
+
+		virtual int field_count() const { return 0; }
+
+		virtual String get_header(int j) const { return String(); }
+
+		virtual bool is_acoustic() const { return false; }
+
+		virtual bool is_formants() const { return false; }
+
+		virtual bool is_pitch() const { return false; }
+
+		virtual bool is_intensity() const { return false; }
+
 		Type type;
 	};
 

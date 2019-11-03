@@ -118,14 +118,14 @@ double sample_variance(const Array<double> &x)
     double mu = mean(x);
     intptr_t count = x.size();
     auto data = x.data();
-    double sum = 0;
+    long double sum = 0;
 
     for (intptr_t i = 0; i < count; ++i)
     {
         sum += pow((data[i] - mu), 2);
     }
 
-    return sum / (count - 1);
+    return double(sum / (count - 1));
 }
 
 Array<double> sample_variance(const Array<double> &x, int dim)

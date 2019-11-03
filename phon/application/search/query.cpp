@@ -28,6 +28,7 @@
 
 #include <QProgressDialog>
 #include <phon/application/search/query.hpp>
+#include <phon/application/query_table.hpp>
 
 namespace phonometrica {
 
@@ -39,7 +40,7 @@ Query::Settings::~Settings()
 }
 
 Query::Query(AutoProtocol p, const String &label, AnnotationSet annotations, Array <AutoMetaNode> metadata,
-             AutoSearchNode tree, std::unique_ptr<Query::Settings> settings) :
+             AutoSearchNode tree, std::shared_ptr<Query::Settings> settings) :
 		m_protocol(std::move(p)), m_label(label), annotations(std::move(annotations)), metadata(std::move(metadata)),
 		search_tree(std::move(tree)), m_settings(std::move(settings))
 {
@@ -49,7 +50,7 @@ Query::Query(AutoProtocol p, const String &label, AnnotationSet annotations, Arr
 AutoDataset Query::execute()
 {
 	filter_metadata();
-	return std::make_shared<QueryTable>(m_protocol, filter_data(), m_label, (int)m_settings->type);
+	return std::make_shared<QueryTable>(m_protocol, filter_data(), m_label, m_settings);
 }
 
 void Query::filter_metadata()

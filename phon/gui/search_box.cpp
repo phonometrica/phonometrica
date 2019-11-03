@@ -416,7 +416,7 @@ bool DefaultSearchBox::hasNotOperator(int index)
 
 AutoQuerySettings DefaultSearchBox::getSettings() const
 {
-	return std::make_unique<Query::Settings>(getType());
+	return std::make_shared<Query::Settings>(getType());
 }
 
 Query::Type DefaultSearchBox::getType() const

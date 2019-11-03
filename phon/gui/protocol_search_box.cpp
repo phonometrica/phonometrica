@@ -97,7 +97,7 @@ String ProtocolSearchBox::get_pattern()
 
 AutoQuerySettings ProtocolSearchBox::getSettings() const
 {
-	return std::make_unique<Query::Settings>(getType());
+	return std::make_shared<Query::Settings>(getType());
 }
 
 Query::Type ProtocolSearchBox::getType() const

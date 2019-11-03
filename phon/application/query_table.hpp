@@ -30,6 +30,7 @@
 #define PHONOMETRICA_QUERY_TABLE_HPP
 
 #include <phon/application/dataset.hpp>
+#include <phon/application/search/query.hpp>
 #include <phon/application/search/query_match.hpp>
 #include <phon/application/protocol.hpp>
 
@@ -49,7 +50,7 @@ public:
 		ShowAcoustics    = 16
 	};
 
-	QueryTable(AutoProtocol p, QueryMatchList matches, String label, int query_type);
+	QueryTable(AutoProtocol p, QueryMatchList matches, String label, const AutoQuerySettings &settings);
 
 	String get_header(intptr_t j) const override;
 
@@ -80,8 +81,6 @@ public:
 	bool has_split_fields() const;
 
 	int field_count() const;
-
-	int type() const { return m_query_type; }
 
 	bool is_acoustic_table() const;
 
@@ -131,11 +130,9 @@ private:
 
 	String m_label;
 
+	AutoQuerySettings m_settings;
+
 	int m_flags = 0;
-
-	int m_query_type;
-
-	bool is_acoustic;
 };
 
 using AutoQueryTable = std::shared_ptr<QueryTable>;

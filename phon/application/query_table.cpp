@@ -30,29 +30,17 @@
 #include <phon/application/query_table.hpp>
 #include <phon/application/search/query.hpp>
 
-#define type() static_cast<Query::Type>(m_query_type)
-
 namespace phonometrica {
 
 static const int BASE_COLUMN_COUNT = 7;
 static const int INFO_FILE_COUNT = 4;
 static const int CONTEXT_COUNT = 2;
 
-QueryTable::QueryTable(AutoProtocol p, QueryMatchList matches, String label, int query_type) :
+QueryTable::QueryTable(AutoProtocol p, QueryMatchList matches, String label, const AutoQuerySettings &settings) :
 		Dataset(nullptr), m_protocol(std::move(p)), m_matches(std::move(matches)),
-		m_categories(Property::get_categories()), m_label(std::move(label))
+		m_categories(Property::get_categories()), m_label(std::move(label)), m_settings(settings)
 {
-	m_query_type = query_type;
 
-	switch (type())
-	{
-		case Query::Type::Default:
-		case Query::Type::CodingProtocol:
-			is_acoustic  = false;
-			break;
-		default:
-			is_acoustic = true;
-	}
 }
 
 String QueryTable::get_cell(intptr_t i, intptr_t j) const
@@ -118,7 +106,45 @@ String QueryTable::get_cell(intptr_t i, intptr_t j) const
 
 String QueryTable::get_acoustic_cell(intptr_t i, intptr_t j) const
 {
-	return String();
+	j = adjust_column(j);
+
+	switch (j)
+	{
+		case 1:
+			return get_annotation_name(i);
+		case 2:
+			return get_layer_index(i);
+		case 3:
+			return get_start_time(i);
+		case 4:
+			return get_end_time(i);
+		case 5:
+		{
+			auto m = m_matches[i].get();
+			return String::format("%.6f", m->duration());
+		}
+		case 6:
+			return m_matches[i]->text();
+		default:
+			break;
+	}
+
+	intptr_t field_count = get_acoustic_field_count();
+
+	intptr_t k = j - 6; // discard previous columns
+	if (k <= field_count)
+	{
+		auto m = dynamic_cast<FormantMeasurement*>(m_matches[i].get());
+		return m->get_field(k);
+	}
+
+	// Pretend there is a single match column if the match is split.
+	j -= field_count - 1;
+
+	auto it = m_categories.begin();
+	std::advance(it, (j - BASE_COLUMN_COUNT - 1));
+	auto &category = *it;
+	return get_property(i, category);
 }
 
 String QueryTable::get_header(intptr_t j) const
@@ -183,7 +209,43 @@ String QueryTable::get_header(intptr_t j) const
 
 String QueryTable::get_acoustic_header(intptr_t j) const
 {
-	return String();
+	j = adjust_column(j);
+
+	switch (j)
+	{
+		case 1:
+			return "File";
+		case 2:
+			return "Layer";
+		case 3:
+			return "Start time";
+		case 4:
+			return "End time";
+		case 5:
+			return "Duration";
+		case 6:
+			return "Label";
+		default:
+			break;
+	}
+
+	intptr_t field_count = get_acoustic_field_count();
+
+
+	intptr_t k = j - 6; // discard previous columns
+	if (k <= field_count)
+	{
+		return m_settings->get_header(k);
+	}
+
+	// Pretend there is a single match column if the match is split.
+	j -= field_count - 1;
+
+	auto it = m_categories.begin();
+	std::advance(it, (j - BASE_COLUMN_COUNT - 1));
+	auto &category = *it;
+
+	return category;
 }
 
 
@@ -200,6 +262,8 @@ intptr_t QueryTable::column_count() const
 	 * - layer (ShowFileInfo)
 	 * - start time (ShowFileInfo)
 	 * - end time (ShowFileInfo)
+	 * - duration (ShowAcoustics)
+	 * - label (ShowAcoustics)
 	 * - left context (ShowMatchContext)
 	 * - match, which may be split (ShowFields) or represent several pieces of acoustic information (ShowAcoustics)
 	 * - right context (ShowMatchContext)
@@ -217,7 +281,8 @@ intptr_t QueryTable::column_count() const
 	if (m_flags & ShowFields)
 		col_count += m_protocol->field_count();
 	else if (m_flags & ShowAcoustics)
-		col_count += get_acoustic_field_count();
+		// Add 2 to account for duration and label
+		col_count += get_acoustic_field_count() + 2;
 	else
 		col_count++; // single match
 
@@ -385,7 +450,7 @@ int QueryTable::field_count() const
 
 bool QueryTable::is_acoustic_table() const
 {
-	return is_acoustic;
+	return m_settings->is_acoustic();
 }
 
 bool QueryTable::is_text_table() const
@@ -395,32 +460,35 @@ bool QueryTable::is_text_table() const
 
 bool QueryTable::is_formant_table() const
 {
-	return type() == Query::Type::Formants;
+	return m_settings->is_formants();
 }
 
 bool QueryTable::is_pitch_table() const
 {
-	return type() == Query::Type::Pitch;
+	return m_settings->is_pitch();
 }
 
 bool QueryTable::is_intensity_table() const
 {
-	return type() == Query::Type::Intensity;
+	return m_settings->is_intensity();
 }
 
 int QueryTable::get_acoustic_field_count() const
 {
-	assert(!m_matches.empty());
-	auto match = dynamic_cast<Measurement*>(m_matches.first().get());
-	assert(match);
+	// The fields are ordered like so, given an m by n formant matrix:
+	// - F1, F2,... Fn for row 1 (formants in Hertz)
+	// - B1, B2,... Bn for row 1 (bandwidth in Hertz, optional)
+	// - E1, E2,... En for row 1 (formants in ERB units, optional)
+	// - z1, z2,... zn for row 1 (formants in bark, optional)
+	// - ...
+	// - F1, F2,... fn for row m
+	// - B1, B2,... Bn for row m
+	// - E1, E2,... En for row m
+	// - z1, z2,... zn for row m
 
-	if (match->is_formants())
-	{
-		auto m = dynamic_cast<FormantMeasurement*>(match);
-		return m->field_count();
-	}
+	// TODO: take into accout erb/bark, etc.
+	return m_settings->field_count();
 
-	throw error("[Internal error] Unknown acoustic field count");
 }
 
 } // namespace phonometrica

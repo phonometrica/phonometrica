@@ -33,7 +33,7 @@
 #include <memory>
 #include <QObject>
 #include <phon/application/protocol.hpp>
-#include <phon/application/query_table.hpp>
+#include <phon/application/dataset.hpp>
 #include <phon/application/search/meta_node.hpp>
 #include <phon/application/search/search_node.hpp>
 
@@ -49,7 +49,7 @@ public:
 	using Settings = SearchNode::Settings;
 
 	Query(AutoProtocol p, const String &label, AnnotationSet annotations, Array <AutoMetaNode> metadata,
-	      AutoSearchNode tree, std::unique_ptr<Settings> settings);
+	      AutoSearchNode tree, std::shared_ptr<Settings> settings);
 
 	Query(const Query &) = delete;
 
@@ -81,7 +81,7 @@ private:
 
 	AutoProtocol m_protocol; // may be null
 
-	std::unique_ptr<Settings> m_settings;
+	std::shared_ptr<Settings> m_settings;
 
 	String m_label;
 
@@ -98,7 +98,7 @@ private:
 // signal may be connected to several slots, in which case the value needs to be copied.
 using AutoQuery = std::shared_ptr<Query>;
 
-using AutoQuerySettings = std::unique_ptr<Query::Settings>;
+using AutoQuerySettings = std::shared_ptr<Query::Settings>;
 
 } // namespace phonometrica
 

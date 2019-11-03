@@ -53,7 +53,6 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 {
 	bool use_praat = m_data->has_textgrid();
 	auto layout = new QVBoxLayout;
-	this->type = static_cast<Query::Type>(m_data->type());
 
 	// Toolbar.
 	auto toolbar = new Toolbar;
@@ -194,7 +193,6 @@ void QueryView::fillTable()
 	QStringList vheaders, hheaders;
 	vheaders.reserve(m_table->rowCount());
 	hheaders.reserve(m_table->columnCount());
-	bool is_text_query = m_data->is_text_table();
 
 	for (int j = 1; j <= m_table->columnCount(); j++)
 	{
@@ -211,24 +209,35 @@ void QueryView::fillTable()
 			auto item = new QTableWidgetItem(label);
 			item->setFlags(item->flags() ^ Qt::ItemIsEditable);
 			item->setFont(font);
-			int jj = (int) m_data->adjust_column(j);
-			if (jj == 2)
+
+			if (m_data->is_acoustic_table())
 			{
-				item->setTextAlignment(Qt::AlignCenter);
+				if (label == "undefined")
+				{
+					item->setTextColor(red);
+				}
 			}
-			if (jj == 5)
+			else
 			{
-				// FIXME: there seems to be a bug on Windows whereby the text is slightly higher than the other cells in the row
-				//  if we right-align the cell.
+				int jj = (int) m_data->adjust_column(j);
+				if (jj == 2)
+				{
+					item->setTextAlignment(Qt::AlignCenter);
+				}
+				if (jj == 5)
+				{
+					// FIXME: there seems to be a bug on Windows whereby the text is slightly higher than the other cells in the row
+					//  if we right-align the cell.
 #if !PHON_WINDOWS
-				item->setTextAlignment(Qt::AlignRight);
+					item->setTextAlignment(Qt::AlignRight);
 #endif
-			}
-			else if (isMatchCell(jj))
-			{
-				item->setTextColor(red);
-				item->setFont(bold_font);
-				item->setTextAlignment(Qt::AlignCenter);
+				}
+				else if (isMatchCell(jj))
+				{
+					item->setTextColor(red);
+					item->setFont(bold_font);
+					item->setTextAlignment(Qt::AlignCenter);
+				}
 			}
 			m_table->setItem(i-1, j-1, item);
 		}
