@@ -35,6 +35,7 @@
 #include <SPTK.h>
 #include <phon/analysis/signal_processing.hpp>
 #include <phon/third_party/rpolyplusplus/find_polynomial_roots_jenkins_traub.h>
+#include <QDebug>
 
 namespace phonometrica {
 namespace speech {
@@ -172,8 +173,18 @@ static std::vector<size_t> sort_indices(const std::vector<T> &v) {
 Vector<double> get_lpc_coefficients(const Span<double> &frame, int npole)
 {
 	Vector<double> coeff(npole+1);
-	lpc(frame.data(), frame.size(), coeff.data(), npole, 0.000001);
+	auto res = lpc(frame.data(), frame.size(), coeff.data(), npole, 0.000001);
+	switch (res)
+	{
+		case -1:
+			qDebug() << "abnormally completed";
+			break;
+		case -2:
+			qDebug() << "unstable LPC";
+		default:
+			qDebug() << "LPC ok";
 
+	}
 	return coeff;
 }
 
@@ -188,8 +199,14 @@ bool get_formants(const Vector<double> &lpc_coeffs, double Fs, std::vector<doubl
 
 	for (int i = 0; i < complex_roots.size(); i++)
 	{
-		if (complex_roots[i] >= 0) {
-			roots.emplace_back(real_roots[i], complex_roots[i]);
+		if (complex_roots[i] >= 0)
+		{
+			std::complex<double> z = { real_roots[i], complex_roots[i] };
+			// Reflect roots that lie outside the unit circle inside it.
+			if (std::abs(z) > 1) {
+				z = std::complex<double>(1.0) / std::conj(z);
+			}
+			roots.emplace_back(z);
 		}
 	}
 
