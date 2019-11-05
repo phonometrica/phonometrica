@@ -53,7 +53,7 @@ struct FormantQuerySettings final : public Query::Settings
 
 	String get_header(int j) const override;
 
-	int field_count() const;
+	int field_count() const override;
 
 	double max_freq  = 0; // manual
 	double max_freq1 = 0; // automatic
