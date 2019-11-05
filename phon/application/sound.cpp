@@ -265,7 +265,7 @@ int Sound::get_intensity_window_size() const
 	return int(std::ceil(effective_duration * m_data->sample_rate()));
 }
 
-Array<double> Sound::get_formants(double time, int nformant, double nyquist_frequency, double window_size, int lpc_order)
+Array<double> Sound::get_formants(double time, int nformant, double nyquist_frequency, double max_bandwidth, double window_size, int lpc_order)
 {
 	load();
 	Array<double> result(nformant, 2, 0.0);
@@ -330,7 +330,7 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 	for (int k = 0; k < freqs.size(); k++)
 	{
 		auto freq = freqs[k];
-		if (freq > 50 && freq < max_freq && bw[k] < 400)
+		if (freq > 50 && freq < max_freq && bw[k] < max_bandwidth)
 		{
 			result(++count, 1) = freq;
 			result(count, 2) = bw[k];
@@ -529,7 +529,7 @@ void Sound::initialize(Runtime &rt)
 		auto sound = rt.cast_user_data<AutoSound>(0);
 		auto time = rt.to_number(1);
 		String category("formants");
-		double nyquist, win_size;
+		double nyquist, win_size, max_bw;
 		int nformant, lpc_order;
 
 		if (rt.arg_count() >= 2)
@@ -543,6 +543,11 @@ void Sound::initialize(Runtime &rt)
 			nyquist = Settings::get_number(rt, category, "max_frequency");
 
 		if (rt.arg_count() >= 4)
+			max_bw = rt.to_number(4);
+		else
+			max_bw = Settings::get_number(rt, category, "max_bandwidth");
+
+		if (rt.arg_count() >= 4)
 			win_size = rt.to_number(4);
 		else
 			win_size = Settings::get_number(rt, category, "window_size");
@@ -552,7 +557,7 @@ void Sound::initialize(Runtime &rt)
 		else
 			lpc_order = Settings::get_number(rt, category, "lpc_order");
 
-		auto result = sound->get_formants(time, nformant, nyquist, win_size, lpc_order);
+		auto result = sound->get_formants(time, nformant, nyquist, max_bw, win_size, lpc_order);
 		rt.push(std::move(result));
 	};
 

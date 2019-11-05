@@ -34,11 +34,12 @@
 
 namespace phonometrica {
 
-FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double max_freq, int lpc_order, bool bw, bool erb,
+FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq, int lpc_order, bool bw, bool erb,
                                            bool bark) : Query::Settings(Query::Type::Formants)
 {
 	this->win_size = win_size;
 	this->nformant = nformant;
+	this->max_bandwidth = max_bw;
 	this->max_freq = max_freq;
 	this->lpc_order = lpc_order;
 	this->parametric = false;
@@ -47,12 +48,13 @@ FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double
 	this->bark = bark;
 }
 
-FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double max_freq1, double max_freq2, double step,
+FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq1, double max_freq2, double step,
                                            int lpc_order1, int lpc_order2, bool bw, bool erb, bool bark) :
                                            Query::Settings(Query::Type::Formants)
 {
 	this->win_size = win_size;
 	this->nformant = nformant;
+	this->max_bandwidth = max_bw;
 	this->max_freq1 = max_freq1;
 	this->max_freq2 = max_freq2;
 	this->step = step;
@@ -134,6 +136,11 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	formant_spinbox->setValue(3);
 	param_layout->addWidget(new QLabel(tr("Number of formants:")));
 	param_layout->addWidget(formant_spinbox);
+	param_layout->addWidget(new QLabel(tr("Maximum formant bandwidth (Hz):")));
+	max_bw_edit = new QLineEdit;
+	int bw = (int) Settings::get_number(rt, category, "max_bandwidth");
+	max_bw_edit->setText(QString::number(bw));
+	param_layout->addWidget(max_bw_edit);
 	param_layout->addWidget(new QLabel(tr("Window size (s):")));
 	win_edit = new QLineEdit;
 	double l = Settings::get_number(rt, category, "window_size");
@@ -257,8 +264,14 @@ AutoQuerySettings FormantSearchBox::getSettings() const
 	bool erb = erb_checkbox->isChecked();
 	double win_size = win_edit->text().toDouble(&ok);
 
-	if (!ok) {
+	if (!ok || win_size <= 0) {
 		throw error("Invalid window size");
+	}
+
+	double max_bw = max_bw_edit->text().toDouble(&ok);
+
+	if (!ok || max_bw <= 0) {
+		throw error("Invalid maximum bandwidth");
 	}
 
 	if (parametric_button->isChecked())
@@ -273,7 +286,7 @@ AutoQuerySettings FormantSearchBox::getSettings() const
 		int lpc_order1 = param_lpc_min_spinbox->value();
 		int lpc_order2 = param_lpc_max_spinbox->value();
 
-		return std::make_unique<FormantQuerySettings>(win_size, nformant, max_freq1, max_freq2, step, lpc_order1,
+		return std::make_shared<FormantQuerySettings>(win_size, nformant, max_bw, max_freq1, max_freq2, step, lpc_order1,
 				lpc_order2, bw, erb, bark);
 	}
 	else
@@ -282,7 +295,7 @@ AutoQuerySettings FormantSearchBox::getSettings() const
 		if (!ok) throw error("Invalid maximum frequency");
 		int lpc_order = lpc_spinbox->value();
 
-		return std::make_shared<FormantQuerySettings>(win_size, nformant, max_freq, lpc_order, bw, erb, bark);
+		return std::make_shared<FormantQuerySettings>(win_size, nformant, max_bw, max_freq, lpc_order, bw, erb, bark);
 	}
 }
 

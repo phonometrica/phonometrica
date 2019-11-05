@@ -319,7 +319,7 @@ SearchConstraint::measure_formants(SearchNode::Settings *s, Annotation *annot, E
 	auto nformant = settings->nformant;
 	intptr_t base = nformant;
 	Array<double> formants(1, settings->field_count(), 0.0);
-	auto data = sound->get_formants(t, nformant, settings->max_freq, settings->win_size, settings->lpc_order);
+	auto data = sound->get_formants(t, nformant, settings->max_freq, settings->max_bandwidth, settings->win_size, settings->lpc_order);
 
 	// Put formants first, and optionally add the bandwidths (e.g. F1, F2, F3, B1, B2, B3)
 	for (intptr_t i = 1; i <= nformant; i++)

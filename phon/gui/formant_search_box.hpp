@@ -41,9 +41,9 @@ namespace phonometrica {
 
 struct FormantQuerySettings final : public Query::Settings
 {
-	FormantQuerySettings(double win_size, int nformant, double max_freq, int lpc_order, bool bw, bool erb, bool bark);
+	FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq, int lpc_order, bool bw, bool erb, bool bark);
 
-	FormantQuerySettings(double win_size, int nformant, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2,
+	FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2,
 			bool bw, bool erb, bool bark);
 
 
@@ -67,6 +67,7 @@ struct FormantQuerySettings final : public Query::Settings
 	// Shared values
 	int nformant;
 	double win_size;
+	double max_bandwidth;
 
 	bool parametric;
 	bool bandwidth;
@@ -108,7 +109,7 @@ private:
 
 	QCheckBox *bark_checkbox, *erb_checkbox, *bandwidth_checkbox;
 
-	QLineEdit *max_freq_edit, *win_edit;
+	QLineEdit *max_freq_edit, *win_edit, *max_bw_edit;
 
 	QLineEdit *param_min_freq_edit, *param_max_freq_edit, *param_step_freq_edit;
 

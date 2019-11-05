@@ -428,7 +428,7 @@ void Spectrogram::estimateFormants()
 		for (int k = 0; k < freqs.size(); k++)
 		{
 			auto freq = freqs[k];
-			if (freq > 50 && freq < max_freq && bw[k] < 400)
+			if (freq > 50 && freq < max_freq && bw[k] < max_formant_bandwidth)
 			{
 				formants(i, count) = freq;
 				bandwidths(i, count++) = bw[k];
@@ -484,6 +484,7 @@ void Spectrogram::readFormantsSettings()
 	formant_window_length = Settings::get_number(rt, category, "window_size");
 	lpc_order = (int) Settings::get_number(rt, category, "lpc_order");
 	max_formant_frequency = Settings::get_number(rt, category, "max_frequency");
+	max_formant_bandwidth = Settings::get_number(rt, category, "max_bandwidth");
 }
 
 void Spectrogram::enableFormantTracking(bool value)

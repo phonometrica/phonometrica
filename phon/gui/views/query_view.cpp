@@ -468,8 +468,14 @@ void QueryView::provideContextMenu(const QPoint &pos)
 	menu.addSeparator();
 	auto event_action = menu.addAction(tr("Edit event text"));
 	menu.addSeparator();
-	auto bookmark_action = menu.addAction(tr("Bookmark match"));
-	bookmark_action->setVisible(!m_data->is_acoustic_table());
+
+	if (!m_data->is_acoustic_table()) {
+		auto bookmark_action = menu.addAction(tr("Bookmark match"));
+
+		connect(bookmark_action, &QAction::triggered, [=](bool) {
+			bookmarkMatch(row);
+		});
+	}
 
 	connect(play_action, &QAction::triggered, [=](bool) {
 		playMatch(row);
@@ -481,10 +487,6 @@ void QueryView::provideContextMenu(const QPoint &pos)
 
 	connect(event_action, &QAction::triggered, [=](bool) {
 		editEvent(row);
-	});
-
-	connect(bookmark_action, &QAction::triggered, [=](bool) {
-		bookmarkMatch(row);
 	});
 
 	menu.exec(m_table->mapToGlobal(pos));

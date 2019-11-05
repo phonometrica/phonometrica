@@ -47,13 +47,16 @@ FormantSettings::FormantSettings(Runtime &rt, QWidget *parent) :
 	nformant_edit = new QLineEdit;
 	window_edit = new QLineEdit;
 	npole_edit = new QLineEdit;
-	fs_edit = new QLineEdit;
+	max_freq_edit = new QLineEdit;
+	max_bw_edit = new QLineEdit;
 
 	auto layout = new QVBoxLayout;
 	layout->addWidget(new QLabel(tr("Number of formants:")));
 	layout->addWidget(nformant_edit);
 	layout->addWidget(new QLabel(tr("Maximum frequency (Hz):")));
-	layout->addWidget(fs_edit);
+	layout->addWidget(max_freq_edit);
+	layout->addWidget(new QLabel(tr("Maximum formant bandwidth (Hz):")));
+	layout->addWidget(max_bw_edit);
 	layout->addWidget(new QLabel(tr("Window length (ms):")));
 	layout->addWidget(window_edit);
 	layout->addWidget(new QLabel(tr("LPC order:")));
@@ -88,7 +91,10 @@ void FormantSettings::displayValues()
 	npole_edit->setText(QString::number(npole));
 
 	auto fs = (int) Settings::get_number(runtime, category, "max_frequency");
-	fs_edit->setText(QString::number(fs));
+	max_freq_edit->setText(QString::number(fs));
+
+	auto bw = (int) Settings::get_number(runtime, category, "max_bandwidth");
+	max_bw_edit->setText(QString::number(bw));
 }
 
 void FormantSettings::validate()
@@ -117,12 +123,18 @@ void FormantSettings::validate()
 	}
 	Settings::set_value(runtime, category, "lpc_order", npole);
 
-	auto fs = fs_edit->text().toInt(&ok);
+	auto fs = max_freq_edit->text().toInt(&ok);
 	if (!ok || fs <= 0) {
-		QMessageBox::critical(this, tr("Invalid setting"), tr("Invalid down-sampling frequency"));
+		QMessageBox::critical(this, tr("Invalid setting"), tr("Invalid maximum frequency"));
 		return;
 	}
 	Settings::set_value(runtime, category, "max_frequency", fs);
+
+	auto bw = max_bw_edit->text().toInt(&ok);
+	if (!ok || bw <= 0) {
+		QMessageBox::critical(this, tr("Invalid setting"), tr("Invalid maximum bandwidth"));
+		return;
+	}
 
 	accept();
 }

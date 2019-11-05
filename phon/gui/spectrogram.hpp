@@ -107,6 +107,9 @@ private:
 	// Nyquist frequency range for formant analysis.
 	double max_formant_frequency;
 
+	// Formant candidates whose bandwidth is higher than this threshold will be discarded.
+	double max_formant_bandwidth;
+
 	// Number of prediction coefficients for LPC analysis.
 	int lpc_order;
 
