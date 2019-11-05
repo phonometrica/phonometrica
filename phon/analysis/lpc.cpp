@@ -12,11 +12,18 @@
 // AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 // PERFORMANCE OF THIS SOFTWARE.
 //
-// Note: This is a C++ port of the Python implementation in librosa 0.7.1. See:
+// Note: The Burg method is a C++ port of the Python implementation in librosa 0.7.1. See:
 // https://github.com/librosa/librosa/blob/master/librosa/core/audio.py
 
+// SPTK's implementation seems to get better results.
+#define USE_SPTK 1
+
+#if USE_SPTK
+#include <SPTK.h>
 #include <numeric>
 #include <vector>
+#endif
+
 #include <phon/utils/matrix.hpp>
 
 namespace phonometrica::speech {
@@ -24,6 +31,14 @@ namespace phonometrica::speech {
 Vector<double> get_lpc_coefficients(const Span<double> &frame, int order)
 {
 	assert(order > 1);
+
+#if USE_SPTK
+	Vector<double> coeff(order + 1);
+	lpc(frame.data(), frame.size(), coeff.data(), order, 0.000001);
+
+	return coeff;
+#else
+
 	// This implementation follows the description of Burg's algorithm given in
 	// section III of Marple's paper:
 	//     Larry Marple, A New Autoregressive Spectrum Analysis Algorithm
@@ -131,6 +146,7 @@ Vector<double> get_lpc_coefficients(const Span<double> &frame, int order)
 	std::copy(ar_coeffs.begin(), ar_coeffs.end(), result.data());
 
 	return result;
+#endif
 }
 
 } // namespace phonometrica::speech

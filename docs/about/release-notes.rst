@@ -5,7 +5,6 @@ Release notes
 ~~~~~~~~~~~~~~~~~~
 
 - formant queries (``Analysis > Analyze formants...``)
-- LPC analysis now uses Burg's algorithm
 - fix formant bandwidth estimation
 - fix path compression in project files
 
