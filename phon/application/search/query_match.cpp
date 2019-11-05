@@ -133,6 +133,6 @@ String FormantMeasurement::get_field(intptr_t j) const
 	static String undef("undefined");
 	double f = m_formants(1, j);
 
-	return std::isnan(f) ? undef : String::format("%.6f", f);
+	return std::isnan(f) ? undef : String::format("%.2f", f);
 }
 } // namespace phonometrica

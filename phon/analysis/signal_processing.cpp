@@ -167,27 +167,8 @@ static std::vector<size_t> sort_indices(const std::vector<T> &v) {
 	return idx;
 }
 
-// Formant estimatation adapted from
+// Formant estimation based on
 // https://www.mathworks.com/help/signal/ug/formant-estimation-with-lpc-coefficients.html
-
-Vector<double> get_lpc_coefficients(const Span<double> &frame, int npole)
-{
-	Vector<double> coeff(npole+1);
-	auto res = lpc(frame.data(), frame.size(), coeff.data(), npole, 0.000001);
-	switch (res)
-	{
-		case -1:
-			qDebug() << "abnormally completed";
-			break;
-		case -2:
-			qDebug() << "unstable LPC";
-		default:
-			qDebug() << "LPC ok";
-
-	}
-	return coeff;
-}
-
 bool get_formants(const Vector<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw)
 {
 	int order = lpc_coeffs.size() - 1;

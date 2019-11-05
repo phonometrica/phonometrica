@@ -700,6 +700,12 @@ void interpolate(String &path, std::string_view project_dir)
 
 void compress(String &path, std::string_view project_dir)
 {
+	// Make sure we don't swallow the separator when we do the replacement.
+	if (project_dir.back() == PHON_PATH_SEPARATOR_CHAR)
+	{
+		project_dir = std::string_view(project_dir.data(), project_dir.size() - 1);
+	}
+
 	if (path.starts_with(project_dir)) {
 		path.replace(1, project_dir.size(), VAR_PROJECT);
 	}

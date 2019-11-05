@@ -121,7 +121,7 @@ String QueryTable::get_acoustic_cell(intptr_t i, intptr_t j) const
 		case 5:
 		{
 			auto m = m_matches[i].get();
-			return String::format("%.6f", m->duration());
+			return String::format("%.2f", m->duration());
 		}
 		case 6:
 			return m_matches[i]->text();
@@ -275,14 +275,14 @@ intptr_t QueryTable::column_count() const
 		col_count += INFO_FILE_COUNT;
 	if (m_flags & ShowMatchContext)
 		col_count += CONTEXT_COUNT;
-	if (m_flags & ShowProperties)
+	if (m_flags & ShowMetadata)
 		col_count += category_count();
 
 	if (m_flags & ShowFields)
 		col_count += m_protocol->field_count();
 	else if (m_flags & ShowAcoustics)
 		// Add 2 to account for duration and label
-		col_count += get_acoustic_field_count() + 2;
+		col_count += get_acoustic_field_count();
 	else
 		col_count++; // single match
 

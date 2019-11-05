@@ -106,14 +106,14 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
     match_action->setEnabled(m_data->has_protocol());
 	context_action = new QAction(tr("Show match context"), this);
 	context_action->setCheckable(true);
-	property_action = new QAction(tr("Show properties"), this);
-	property_action->setCheckable(true);
+	metadata_action = new QAction(tr("Show metadata"), this);
+	metadata_action->setCheckable(true);
 	column_menu->addAction(match_action);
 	column_menu->addAction(info_action);
 	if (m_data->is_text_table()) {
 		column_menu->addAction(context_action);
 	}
-	column_menu->addAction(property_action);
+	column_menu->addAction(metadata_action);
 	info_action->setChecked(true);
 	context_action->setChecked(true);
 
@@ -152,7 +152,7 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	connect(info_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(match_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(context_action, &QAction::triggered, this, &QueryView::refreshTable);
-	connect(property_action, &QAction::triggered, this, &QueryView::refreshTable);
+	connect(metadata_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(view_action, &QAction::triggered, this, view_event);
 	connect(bookmark_action, &QAction::triggered, this, &QueryView::bookmarkMatch);
 
@@ -264,8 +264,8 @@ int QueryView::getQueryFlags()
 		flags |= QueryTable::ShowFileInfo;
 	if (context_action->isChecked())
 		flags |= QueryTable::ShowMatchContext;
-	if (property_action->isChecked())
-		flags |= QueryTable::ShowProperties;
+	if (metadata_action->isChecked())
+		flags |= QueryTable::ShowMetadata;
 	if (m_data->is_acoustic_table())
 		flags |= QueryTable::ShowAcoustics;
 
@@ -469,6 +469,7 @@ void QueryView::provideContextMenu(const QPoint &pos)
 	auto event_action = menu.addAction(tr("Edit event text"));
 	menu.addSeparator();
 	auto bookmark_action = menu.addAction(tr("Bookmark match"));
+	bookmark_action->setVisible(!m_data->is_acoustic_table());
 
 	connect(play_action, &QAction::triggered, [=](bool) {
 		playMatch(row);

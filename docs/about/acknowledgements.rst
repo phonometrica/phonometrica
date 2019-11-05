@@ -9,6 +9,7 @@ Phonometrica uses (parts of) the following open source libraries, sometimes with
 * FFTS, by Anthony M. Blake (BSD 3-clause), see `github.com/anthonix/ffts <https://github.com/anthonix/ffts/>`_
 * FLAC, by Josh Coalson and contributors (BSD), see `flac.sourceforge.net <http://flac.sourceforge.net>`_
 * JSON for Modern C++, by Niels Lohmann (MIT), see `github.com/nlohmann/json <https://github.com/nlohmann/json>`_
+* librosa, librosa development team (ISC), see `github.com/librosa/librosa <https://github.com/librosa/librosa>`_
 * libsndfile, by Erik de Castro Lopo (LGPL), see `www.mega-nerd.com <http://www.mega-nerd.com>`_
 * MuJS, by Artifex Software (ISC), see `mujs.com <https://mujs.com/>`_
 * Noto fonts, by Google (SIL Open Font License v1.1), see `www.google.com/get/noto/ <https://www.google.com/get/noto/>`_

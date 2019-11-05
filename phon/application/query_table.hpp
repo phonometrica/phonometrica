@@ -46,7 +46,7 @@ public:
 		ShowFields       = 1,
 		ShowFileInfo     = 2,
 		ShowMatchContext = 4,
-		ShowProperties   = 8,
+		ShowMetadata     = 8,
 		ShowAcoustics    = 16
 	};
 

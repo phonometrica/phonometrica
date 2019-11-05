@@ -1,6 +1,14 @@
 Release notes
 -------------
 
+0.7.0 (05/11/2019)
+~~~~~~~~~~~~~~~~~~
+
+- formant queries (``Analysis > Analyze formants...``)
+- LPC analysis now uses Burg's algorithm
+- fix formant bandwidth estimation
+- fix path compression in project files
+
 0.6.3 (02/11/2019)
 ~~~~~~~~~~~~~~~~~~
 

@@ -120,18 +120,34 @@ AutoSearchNode FormantSearchBox::buildSearchTree()
 void FormantSearchBox::setupUi(Runtime &rt)
 {
 	String category("formants");
+
 	DefaultSearchBox::setupUi(rt);
-	add_button->hide();
-	remove_button->hide();
+//	add_button->hide();
+//	remove_button->hide();
 	main_layout->addSpacing(10);
 
-	auto measurement_box = new QGroupBox;
-	auto box_layout = new QVBoxLayout;
+	auto param_layout = new QHBoxLayout;
+	formant_spinbox = new QSpinBox;
+	formant_spinbox->setMinimum(2);
+	formant_spinbox->setMaximum(7);
+	formant_spinbox->setSingleStep(1);
+	formant_spinbox->setValue(3);
+	param_layout->addWidget(new QLabel(tr("Number of formants:")));
+	param_layout->addWidget(formant_spinbox);
+	param_layout->addWidget(new QLabel(tr("Window size (s):")));
+	win_edit = new QLineEdit;
+	double l = Settings::get_number(rt, category, "window_size");
+	win_edit->setText(QString::number(l));
+	param_layout->addWidget(win_edit);
+	param_layout->addStretch(1);
+
+	auto method_box = new QGroupBox;
+	auto method_layout = new QVBoxLayout;
 	auto manual_button = new QRadioButton(tr("Manual"));
 	parametric_button = new QRadioButton(tr("Parametric formant selection"));
-	box_layout->addWidget(new QLabel(tr("Measurement method:")));
-	box_layout->addWidget(parametric_button);
-	box_layout->addWidget(manual_button);
+	method_layout->addWidget(new QLabel(tr("Measurement method:")));
+	method_layout->addWidget(parametric_button);
+	method_layout->addWidget(manual_button);
 	manual_button->setChecked(true);
 	parametric_button->setEnabled(false);
 
@@ -196,32 +212,31 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	stack->addWidget(parametric_widget);
 	stack->addWidget(manual_widget);
 	stack->setCurrentIndex(1);
-	box_layout->addLayout(stack);
+	method_layout->addLayout(stack);
+	method_box->setLayout(method_layout);
 
-	auto common_layout = new QHBoxLayout;
-	formant_spinbox = new QSpinBox;
-	formant_spinbox->setMinimum(2);
-	formant_spinbox->setMaximum(7);
-	formant_spinbox->setSingleStep(1);
-	formant_spinbox->setValue(3);
-	common_layout->addWidget(new QLabel(tr("Number of formants:")));
-	common_layout->addWidget(formant_spinbox);
-	common_layout->addWidget(new QLabel(tr("Window size (s):")));
-	win_edit = new QLineEdit;
-	double l = Settings::get_number(rt, category, "window_size");
-	win_edit->setText(QString::number(l));
-	common_layout->addWidget(win_edit);
+	auto location_box = new QGroupBox;
+	auto location_layout = new QVBoxLayout;
+	location_layout->addWidget(new QLabel(tr("Measurement location:")));
+	auto mid_radio = new QRadioButton(tr("Mid point"));
+	mid_radio->setChecked(true);
+	location_layout->addWidget(mid_radio);
+	location_box->setLayout(location_layout);
+
+	auto option_layout = new QHBoxLayout;
 	bandwidth_checkbox = new QCheckBox(tr("Add bandwidth"));
 	bark_checkbox = new QCheckBox(tr("Add formants in bark"));
 	erb_checkbox = new QCheckBox(tr("Add formants in ERB units"));
-	common_layout->addWidget(bandwidth_checkbox);
-	common_layout->addWidget(erb_checkbox);
-	common_layout->addWidget(bark_checkbox);
+	option_layout->addWidget(bandwidth_checkbox);
+	option_layout->addWidget(erb_checkbox);
+	option_layout->addWidget(bark_checkbox);
+	option_layout->addStretch(1);
 
-	measurement_box->setLayout(box_layout);
-	main_layout->addWidget(measurement_box);
+	main_layout->addLayout(param_layout);
+	main_layout->addWidget(method_box);
+	main_layout->addWidget(location_box);
 	main_layout->addSpacing(10);
-	main_layout->addLayout(common_layout);
+	main_layout->addLayout(option_layout);
 	main_layout->addSpacing(10);
 
 	connect(parametric_button, &QRadioButton::clicked, [this](bool) { changeMethod(0); });

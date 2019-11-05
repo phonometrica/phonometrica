@@ -100,7 +100,7 @@ private:
 
     QTableWidget *m_table;
 
-    QAction *property_action = nullptr;
+    QAction *metadata_action = nullptr;
 
     QAction *context_action = nullptr;
 
