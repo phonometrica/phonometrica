@@ -6,7 +6,7 @@ Release notes
 
 - formant queries (``Analysis > Analyze formants...``)
 - fix formant bandwidth estimation
-- ``maximum formant bandwidth`` parameter in formant analysis
+- ``maximum bandwidth`` parameter in formant analysis
 - fix path compression in project files
 
 0.6.3 (02/11/2019)

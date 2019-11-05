@@ -136,7 +136,7 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	formant_spinbox->setValue(3);
 	param_layout->addWidget(new QLabel(tr("Number of formants:")));
 	param_layout->addWidget(formant_spinbox);
-	param_layout->addWidget(new QLabel(tr("Maximum formant bandwidth (Hz):")));
+	param_layout->addWidget(new QLabel(tr("Maximum bandwidth (Hz):")));
 	max_bw_edit = new QLineEdit;
 	int bw = (int) Settings::get_number(rt, category, "max_bandwidth");
 	max_bw_edit->setText(QString::number(bw));

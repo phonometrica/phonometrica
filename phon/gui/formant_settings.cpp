@@ -55,7 +55,7 @@ FormantSettings::FormantSettings(Runtime &rt, QWidget *parent) :
 	layout->addWidget(nformant_edit);
 	layout->addWidget(new QLabel(tr("Maximum frequency (Hz):")));
 	layout->addWidget(max_freq_edit);
-	layout->addWidget(new QLabel(tr("Maximum formant bandwidth (Hz):")));
+	layout->addWidget(new QLabel(tr("Maximum bandwidth (Hz):")));
 	layout->addWidget(max_bw_edit);
 	layout->addWidget(new QLabel(tr("Window length (ms):")));
 	layout->addWidget(window_edit);

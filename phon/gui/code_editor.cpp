@@ -202,6 +202,8 @@ void CodeEditor::highlightCurrentLine(const QColor &color)
 
 void CodeEditor::keyPressEvent(QKeyEvent *event)
 {
+	static QString then(" then"), do_(" do"), func("function "), else_("else"), elsif("elsif"), tab("\t");
+
 	if (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return)
 	{
 		// Add the same level of indentation as the previous line.
@@ -222,8 +224,8 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
 			QPlainTextEdit::keyPressEvent(event);
 			// Then insert the spacing.
 			textCursor().insertText(ln.left(count));
-			if (ln.endsWith(" then") || ln.endsWith(" do") || ln.trimmed().startsWith("function ")) {
-				textCursor().insertText("\t");
+			if (ln.endsWith(then) || ln.endsWith(do_) || ln.trimmed().startsWith(func) || ln.endsWith(else_) || ln.endsWith(elsif)) {
+				textCursor().insertText(tab);
 			}
 		}
 	}

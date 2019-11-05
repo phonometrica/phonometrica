@@ -74,7 +74,7 @@ toolbar) allows you adjust the formant tracking algorithm's parameters:
 * ``maximum frequency``: this is the highest frequency in the sound below which formants are expected to be found. For
   vowel analysis, a good rule of thumb is to use 5000 Hz for male voices and 5500 for female voices. We usually expect to find 5 formants
   within this frequency range.
-* ``maximum formant bandwidth``: candidate formants whose bandwidth exceeds this threshold (400 Hz by default) will be discarded. If you don't
+* ``maximum bandwidth``: candidate formants whose bandwidth exceeds this threshold (400 Hz by default) will be discarded. If you don't
  want this behavior, set this value to a high value such as ``maximum frequency``.
 * ``window length``: this is the duration (in seconds) of the analysis window that will be used to calculate prediction coefficients.
 * ``LPC order``: this represents the number of prediction coefficients that will be used to perform LPC analysis. For a male voice,
