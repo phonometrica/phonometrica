@@ -4,7 +4,7 @@
 static const char *reset_spectrogram_settings_script = R"_(phon.settings.spectrogram = {
 		window_size: 0.005,
 		frequency_range: 5500,
-		window_type: "Hann",
+		window_type: "Gaussian",
 		dynamic_range: 70,
 		preemphasis_threshold: 1000
 }

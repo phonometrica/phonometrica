@@ -2,23 +2,16 @@
  *                                                                                                                     *
  * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
  *                                                                                                                     *
- * This software is governed by the CeCILL license under French law and abiding by the rules of distribution of free   *
- * software. You can use, modify and/or redistribute the software under the terms of the CeCILL license as circulated  *
- * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".                                               *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
+ * later version.                                                                                                      *
  *                                                                                                                     *
- * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the        *
- * license, users are provided only with a limited warranty and the software's author, the holder of the economic      *
- * rights, and the successive licensors have only limited liability.                                                   *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
+ * details.                                                                                                            *
  *                                                                                                                     *
- * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or        *
- * developing or reproducing the software by the user in light of its specific status of free software, that may mean  *
- * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and          *
- * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the   *
- * software's suitability as regards their requirements in conditions enabling the security of their systems and/or    *
- * data to be ensured and, more generally, to use and operate it in the same conditions as regards security.           *
- *                                                                                                                     *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
- * accept its terms.                                                                                                   *
+ * You should have received a copy of the GNU General Public License along with this program. If not, see              *
+ * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
  * Created: 07/10/2019                                                                                                 *
  *                                                                                                                     *
@@ -57,10 +50,10 @@ SpectrogramSettings::SpectrogramSettings(Runtime &rt, QWidget *parent) :
 	window_box = new QComboBox;
 	window_box->addItem("Bartlett");
     window_box->addItem("Blackman");
+    window_box->addItem("Gaussian");
 	window_box->addItem("Hamming");
 	window_box->addItem("Hann");
 	window_box->addItem("Rectangular");
-	window_box->setCurrentIndex(3);
 
 	contrast_slider = new QSlider(Qt::Horizontal);
 	contrast_slider->setMinimum(1);
@@ -193,6 +186,23 @@ void SpectrogramSettings::displayValues()
 		enableCustomWindow();
 		custom_edit->setText(QString::number(window_size, 'g', 4));
 	}
+
+	auto window_type = Settings::get_string(runtime, category, "window_type");
+
+	if (window_type == "Bartlett")
+		window_box->setCurrentIndex(0);
+	else if (window_type == "Blackman")
+		window_box->setCurrentIndex(1);
+	else if (window_type == "Gaussian")
+		window_box->setCurrentIndex(2);
+	else if (window_type == "Hamming")
+		window_box->setCurrentIndex(3);
+	else if (window_type == "Hann")
+		window_box->setCurrentIndex(4);
+	else if (window_type == "Rectangular")
+		window_box->setCurrentIndex(5);
+	else
+		throw error("Invalid window type \"%\" in spectrogram settings");
 
 	double threshold = Settings::get_number(runtime, category, "preemphasis_threshold");
 	preemph_edit->setText(QString::number(threshold));

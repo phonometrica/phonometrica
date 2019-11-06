@@ -12,5 +12,5 @@ It is particularly well suited for dealing with time-aligned data. The main feat
 * Standard-based: Phonometrica files are encoded in XML and Unicode.
 * Interaction with Praat: Phonometrica can read and write TextGrid files and open files directly in Praat.
 
-Phonometrica runs on all major platforms (Windows, macOS and GNU/Linux) and is freely available under the terms of the CECILL license (version 2.1). 
+Phonometrica runs on all major platforms (Windows, macOS and GNU/Linux) and is freely available under the terms of the GNU General Public License. 
 

@@ -59,7 +59,7 @@ phon.settings = {
 	spectrogram: {
 		window_size: 0.005,
 		frequency_range: 5500,
-		window_type: "Hann",
+		window_type: "Gaussian",
 		dynamic_range: 70,
 		preemphasis_threshold: 1000
 	},
@@ -68,7 +68,8 @@ phon.settings = {
 		number_of_formants: 4,
 		window_size: 0.025,
 		lpc_order: 12,
-		max_frequency: 5500
+		max_frequency: 5500,
+		max_bandwidth: 400
 	}
 }
 
