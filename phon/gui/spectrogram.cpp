@@ -186,9 +186,10 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	auto nyquist_frequency = double(sample_rate) / 2;
 	auto nframe = int(sample_rate * spectrum_window_length);
 	if (nframe % 2 == 1) nframe++;
-	// FIXME: Praat uses a Gaussian-like window which is twice as long as a regular window, but using a Gaussian window
-	//  similar to MATLAB's gives poorer results than a Hann a window.
-//	nframe *= 2;
+	// FIXME: Praat uses a Gaussian-like window which is twice as long as a regular window.
+	if (window_type == WindowType::Gaussian) {
+		nframe *= 2;
+	}
 	int nfft = 256;
 	while (nfft < nframe) nfft *= 2;
 

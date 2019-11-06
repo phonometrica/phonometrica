@@ -82,14 +82,18 @@ Array<double> create_window(intptr_t N, intptr_t fftlen, WindowType type)
         break;
     case WindowType::Gaussian:
     {
-    	const double sigma = 0.45 * (N - 1.0) / 2;
-	    const double sig2 = 2 * sigma * sigma;
-
-        for (i = 0; i < N; i++)
-        {
-        	int n = i - (N-1) / 2;
-        	win[i] = exp((-n * n) / sig2);
-        }
+	    double imid = 0.5 * (N + 1), edge = exp (-12.0);
+	    for (i = 1; i <= N; i++) {
+		    win[i-1] = (exp (-48.0 * (i - imid) * (i - imid) / (N + 1) / (N + 1)) - edge) / (1.0 - edge);
+	    }
+//    	const double sigma = 0.45 * (N - 1.0) / 2;
+//	    const double sig2 = 2 * sigma * sigma;
+//
+//        for (i = 0; i < N; i++)
+//        {
+//        	int n = i - (N-1) / 2;
+//        	win[i] = exp((-n * n) / sig2);
+//        }
     }
 	    break;
     case WindowType::Hamming:

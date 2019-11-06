@@ -190,13 +190,16 @@ public:
 			Measurement(annot, layer, e, text, position), m_formants(std::move(formants))
 	{
 		this->max_freq = max_freq;
-		this->lpc_order = lpc_order;
+		this->order = lpc_order;
 	}
 
 	bool is_formants() const override { return true; }
 
 	String get_field(intptr_t j) const override;
 
+	intptr_t lpc_order() const { return order; }
+
+	double maximum_frequency() const { return max_freq; }
 
 private:
 
@@ -204,10 +207,10 @@ private:
 	// 2 formants measured at 3 time points will be represented by a 3x2 matrix.
 	Array<double> m_formants;
 
-	// Keep track of these settings, because they will vary from measurement to measurement when the parametric method
+	// Keep track of these settings, because they will vary from measurement to measurement when the automatic method
 	// is used.
 	double max_freq;
-	double lpc_order;
+	double order;
 };
 
 } // namespace phonometrica

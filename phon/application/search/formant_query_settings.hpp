@@ -20,67 +20,57 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 31/10/2019                                                                                                 *
+ * Created: 06/11/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: query editor search box for formant analysis.                                                              *
+ * Purpose: settings for formant queries. These are passed around from the search box to the query to the query view.  *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
-#define PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
+#ifndef PHONOMETRICA_FORMANT_QUERY_SETTINGS_HPP
+#define PHONOMETRICA_FORMANT_QUERY_SETTINGS_HPP
 
-#include <QSpinBox>
-#include <QCheckBox>
-#include <QRadioButton>
-#include <QStackedLayout>
-#include <phon/application/search/formant_query_settings.hpp>
-#include <phon/gui/line_edit.hpp>
-#include <phon/gui/search_box.hpp>
+#include <phon/application/search/query.hpp>
 
 namespace phonometrica {
 
-class FormantSearchBox final : public DefaultSearchBox
+struct FormantQuerySettings final : public Query::Settings
 {
-	Q_OBJECT
+	FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq, int lpc_order, bool bw, bool erb, bool bark);
 
-public:
+	FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2,
+	                     bool bw, bool erb, bool bark);
 
-	FormantSearchBox(QWidget *parent);
 
-	AutoSearchNode buildSearchTree() override;
+	bool is_acoustic() const override { return true; }
 
-	AutoQuerySettings getSettings() const override;
+	bool is_formants() const override { return true; }
 
-protected:
+	bool is_automatic() const override { return true; }
 
-	Query::Type getType() const override;
+	String get_header(int j) const override;
 
-private slots:
+	int field_count() const override;
 
-	void changeMethod(int index);
+	double max_freq  = 0; // manual
+	double max_freq1 = 0; // automatic
+	double max_freq2 = 0; // automatic
+	double step = 0;      // automatic
 
-private:
+	int lpc_order  = 0; // manual
+	int lpc_order1 = 0; // automatic
+	int lpc_order2 = 0; // automatic
 
-	void setupUi(Runtime &rt) override;
+	// Shared values
+	int nformant;
+	double win_size;
+	double max_bandwidth;
 
-	QStackedLayout *stack;
-
-	QRadioButton *parametric_button;
-
-	QSpinBox *formant_spinbox, *lpc_spinbox;
-
-	QCheckBox *bark_checkbox, *erb_checkbox, *bandwidth_checkbox;
-
-	QLineEdit *max_freq_edit, *win_edit, *max_bw_edit;
-
-	QLineEdit *param_min_freq_edit, *param_max_freq_edit, *param_step_freq_edit;
-
-	QSpinBox *param_lpc_min_spinbox, *param_lpc_max_spinbox;
-
+	bool automatic;
+	bool bandwidth;
+	bool erb;
+	bool bark;
 };
 
 } // namespace phonometrica
 
-
-
-#endif // PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
+#endif // PHONOMETRICA_FORMANT_QUERY_SETTINGS_HPP

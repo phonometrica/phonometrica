@@ -20,67 +20,90 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you   *
  * accept its terms.                                                                                                   *
  *                                                                                                                     *
- * Created: 31/10/2019                                                                                                 *
+ * Created: 06/11/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: query editor search box for formant analysis.                                                              *
+ * Purpose: Implement Weenink's method for automatic formant measurement. See:                                         *
+ * Weenink, D. J. M. (2015). "Improved formant frequency measurements of short segments". In Proceedings of the 18th   *
+ * International Congress of Phonetic Sciences Glasgow: The University of Glasgow.                                     *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
-#define PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
+#ifndef PHONOMETRICA_WEENINK_HPP
+#define PHONOMETRICA_WEENINK_HPP
 
-#include <QSpinBox>
-#include <QCheckBox>
-#include <QRadioButton>
-#include <QStackedLayout>
-#include <phon/application/search/formant_query_settings.hpp>
-#include <phon/gui/line_edit.hpp>
-#include <phon/gui/search_box.hpp>
+#include <cassert>
+#include <iostream>
+#include "third_party/Eigen/Dense"
+#include "third_party/Eigen/SVD"
+#include <phon/string.hpp>
+#include <phon/utils/file_system.hpp>
+#include <phon/utils/matrix.hpp>
 
 namespace phonometrica {
+class Sound;
+}
 
-class FormantSearchBox final : public DefaultSearchBox
+namespace phonometrica::speech {
+
+class WeeninkModel final
 {
-	Q_OBJECT
-
 public:
 
-	FormantSearchBox(QWidget *parent);
+	WeeninkModel(unsigned int formants, int p) :
+		coeff(p, formants), var(p, formants), observations(formants, 0), chi2(formants), p(p)
+	{ }
 
-	AutoSearchNode buildSearchTree() override;
+	// Predict formant value at time t based on a fitted model
+	double predict(double t, unsigned int formant) const;
 
-	AutoQuerySettings getSettings() const override;
+	// Score the fitted model
+	double score(double t = 1.2) const;
 
-protected:
+	unsigned int formant_count() const { return (unsigned int) coeff.cols(); }
 
-	Query::Type getType() const override;
+	// An MxN matrix: rows represent parameter values (one per Legendre polynomial) and columns represent measured formants.
+	Matrix<double> coeff;
 
-private slots:
+	// An MxN matrix where each cell var(i,j) contains the variance of parameter param(i,j).
+	Matrix<double> var;
 
-	void changeMethod(int index);
+	// Number of observations (excluding undefined values) for each formant.
+	std::vector<unsigned int> observations;
 
-private:
+	// A vector of goodness-of-fit values (1 per formant)
+	Vector<double> chi2;
 
-	void setupUi(Runtime &rt) override;
+	// Number of polynomials
+	int p;
 
-	QStackedLayout *stack;
-
-	QRadioButton *parametric_button;
-
-	QSpinBox *formant_spinbox, *lpc_spinbox;
-
-	QCheckBox *bark_checkbox, *erb_checkbox, *bandwidth_checkbox;
-
-	QLineEdit *max_freq_edit, *win_edit, *max_bw_edit;
-
-	QLineEdit *param_min_freq_edit, *param_max_freq_edit, *param_step_freq_edit;
-
-	QSpinBox *param_lpc_min_spinbox, *param_lpc_max_spinbox;
-
+	// Whether smoothness could be properly estimated.
+	bool success = false;
 };
 
-} // namespace phonometrica
+
+/**
+ * Evaluate Legendre polynomial of degree n (up to degree 7).
+ * @param x value to be evaluated
+ * @param n degree of the polynomial
+ * @return y value
+ */
+double legendre(double x, unsigned int n);
+
+/**
+ * Model a vocoid segment's formants using Weenink's method. Each formant track is modeled using a linear combination
+ * of Legendre polynomials.
+ * @param F an NxM matrix with M formants (typically F1, F2, F3) measured at N time points
+ * @param B an NxM matrix where each cell (i,j) contains the bandwidth corresponding to formant F(i,j)
+ * @param p the number of Legendre polynomial to be included in the model, starting at degree 0
+ * @return a model object for the segment
+ */
+WeeninkModel model_segment(const Matrix<double> &F, const Matrix<double> &B, unsigned int p = 4);
+
+// Find the best <Nyquist frequency, LPC order> pair for a vocoid given a set of parameter to search for.
+std::pair<double,double> find_lpc_parameters(Sound *sound, int nformant, double max_bandwidth, double win_size,
+		double t1, double t2, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2);
 
 
+} // namespace phonometrica::speech
 
-#endif // PHONOMETRICA_FORMANT_SEARCH_BOX_HPP
+#endif // PHONOMETRICA_WEENINK_HPP

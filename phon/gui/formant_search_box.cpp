@@ -34,80 +34,6 @@
 
 namespace phonometrica {
 
-FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq, int lpc_order, bool bw, bool erb,
-                                           bool bark) : Query::Settings(Query::Type::Formants)
-{
-	this->win_size = win_size;
-	this->nformant = nformant;
-	this->max_bandwidth = max_bw;
-	this->max_freq = max_freq;
-	this->lpc_order = lpc_order;
-	this->parametric = false;
-	this->bandwidth = bw;
-	this->erb = erb;
-	this->bark = bark;
-}
-
-FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq1, double max_freq2, double step,
-                                           int lpc_order1, int lpc_order2, bool bw, bool erb, bool bark) :
-                                           Query::Settings(Query::Type::Formants)
-{
-	this->win_size = win_size;
-	this->nformant = nformant;
-	this->max_bandwidth = max_bw;
-	this->max_freq1 = max_freq1;
-	this->max_freq2 = max_freq2;
-	this->step = step;
-	this->lpc_order1 = lpc_order1;
-	this->lpc_order2 = lpc_order2;
-	this->parametric = true;
-	this->bandwidth = bw;
-	this->erb = erb;
-	this->bark = bark;
-}
-
-String FormantQuerySettings::get_header(int j) const
-{
-	if (j <= nformant)
-	{
-		return String::format("F%d", j);
-	}
-	j -= nformant;
-
-	if (j <= nformant)
-	{
-		if (bandwidth)
-			return String::format("B%d", j);
-		else if (erb)
-			return String::format("E%d", j);
-		else if (bark)
-			return String::format("z%d", j);
-	}
-	j -= nformant;
-
-	if (j <= nformant)
-	{
-		if (erb)
-			return String::format("E%d", j);
-		else if (bark)
-			return String::format("z%d", j);
-	}
-	j -= nformant;
-
-	if (bark)
-		return String::format("z%d", j);
-
-	return String();
-}
-
-int FormantQuerySettings::field_count() const
-{
-	int coeff = 1 + int(bandwidth) + int(erb) + int(bark);
-	return nformant * coeff;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
 FormantSearchBox::FormantSearchBox(QWidget *parent) :
 	DefaultSearchBox(parent, 0)
 {
@@ -124,8 +50,6 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	String category("formants");
 
 	DefaultSearchBox::setupUi(rt);
-//	add_button->hide();
-//	remove_button->hide();
 	main_layout->addSpacing(10);
 
 	auto param_layout = new QHBoxLayout;
@@ -151,14 +75,13 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	auto method_box = new QGroupBox;
 	auto method_layout = new QVBoxLayout;
 	auto manual_button = new QRadioButton(tr("Manual"));
-	parametric_button = new QRadioButton(tr("Parametric formant selection"));
+	parametric_button = new QRadioButton(tr("Automatic formant selection"));
 	method_layout->addWidget(new QLabel(tr("Measurement method:")));
 	method_layout->addWidget(parametric_button);
 	method_layout->addWidget(manual_button);
-	manual_button->setChecked(true);
-	parametric_button->setEnabled(false);
+	parametric_button->setChecked(true);
 
-	// The stacked layout manages settings for the manual method and for the parametric method.
+	// The stacked layout manages settings for the manual method and for the automatic method.
 	stack = new QStackedLayout;
 	auto parametric_widget = new QWidget;
 	auto parametric_layout = new QVBoxLayout;
@@ -182,7 +105,7 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	param_lpc_min_spinbox = new QSpinBox;
 	param_lpc_min_spinbox->setMinimum(4);
 	param_lpc_min_spinbox->setMaximum(20);
-	param_lpc_min_spinbox->setValue(8);
+	param_lpc_min_spinbox->setValue(10);
 	param_lpc_max_spinbox = new QSpinBox;
 	param_lpc_max_spinbox->setMinimum(4);
 	param_lpc_max_spinbox->setMaximum(20);
@@ -218,7 +141,7 @@ void FormantSearchBox::setupUi(Runtime &rt)
 
 	stack->addWidget(parametric_widget);
 	stack->addWidget(manual_widget);
-	stack->setCurrentIndex(1);
+	stack->setCurrentIndex(0);
 	method_layout->addLayout(stack);
 	method_box->setLayout(method_layout);
 

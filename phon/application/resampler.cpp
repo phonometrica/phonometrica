@@ -35,6 +35,8 @@ namespace phonometrica {
 
 std::vector<double> resample(Span<double> input, double input_rate, double output_rate)
 {
+	assert(input_rate > 0);
+	assert(output_rate > 0);
 	const int BUFFER_SIZE = 1024;
 	double buffer[BUFFER_SIZE];
 	memset(buffer, 0, sizeof(double) * BUFFER_SIZE);

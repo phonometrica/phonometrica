@@ -20,6 +20,7 @@
 
 #if USE_SPTK
 #include <SPTK.h>
+#else
 #include <numeric>
 #include <vector>
 #endif

@@ -118,20 +118,46 @@ String QueryTable::get_acoustic_cell(intptr_t i, intptr_t j) const
 			return get_start_time(i);
 		case 4:
 			return get_end_time(i);
-		case 5:
-		{
-			auto m = m_matches[i].get();
-			return String::format("%.2f", m->duration());
-		}
-		case 6:
-			return m_matches[i]->text();
 		default:
 			break;
 	}
 
+	if (m_settings->is_automatic())
+	{
+		if (j == 5)
+		{
+			auto m = dynamic_cast<FormantMeasurement*>(m_matches[i].get());
+			return String::convert(intptr_t(m->maximum_frequency()));
+		}
+		else if (j == 6)
+		{
+			auto m = dynamic_cast<FormantMeasurement*>(m_matches[i].get());
+			return String::convert(m->lpc_order());
+		}
+		else if (j == 7)
+		{
+			auto m = m_matches[i].get();
+			return String::format("%.2f", m->duration());
+		}
+		else if (j == 8)
+		{
+			return m_matches[i]->text();
+		}
+	}
+	else if (j == 5)
+	{
+		auto m = m_matches[i].get();
+		return String::format("%.2f", m->duration());
+	}
+	else if (j == 6)
+	{
+		return m_matches[i]->text();
+	}
+
 	intptr_t field_count = get_acoustic_field_count();
 
-	intptr_t k = j - 6; // discard previous columns
+	auto prev = m_settings->is_automatic() ? 8 : 6;
+	intptr_t k = j - prev; // discard previous columns
 	if (k <= field_count)
 	{
 		auto m = dynamic_cast<FormantMeasurement*>(m_matches[i].get());
@@ -221,18 +247,34 @@ String QueryTable::get_acoustic_header(intptr_t j) const
 			return "Start time";
 		case 4:
 			return "End time";
-		case 5:
-			return "Duration";
-		case 6:
-			return "Label";
 		default:
 			break;
 	}
 
+	if (m_settings->is_automatic())
+	{
+		if (j == 5)
+			return "Max frequency";
+		else if (j == 6)
+			return "LPC order";
+		else if (j == 7)
+			return "Duration";
+		else if (j == 8)
+			return "Label";
+	}
+	else if (j == 5)
+	{
+		return "Duration";
+	}
+	else if (j == 6)
+	{
+		return "Label";
+	}
+
 	intptr_t field_count = get_acoustic_field_count();
 
-
-	intptr_t k = j - 6; // discard previous columns
+	auto prev = m_settings->is_automatic() ? 8 : 6;
+	intptr_t k = j - prev; // discard previous columns
 	if (k <= field_count)
 	{
 		return m_settings->get_header(k);
@@ -247,7 +289,6 @@ String QueryTable::get_acoustic_header(intptr_t j) const
 
 	return category;
 }
-
 
 intptr_t QueryTable::row_count() const
 {
@@ -486,7 +527,6 @@ int QueryTable::get_acoustic_field_count() const
 	// - E1, E2,... En for row m
 	// - z1, z2,... zn for row m
 
-	// TODO: take into accout erb/bark, etc.
 	return m_settings->field_count();
 
 }

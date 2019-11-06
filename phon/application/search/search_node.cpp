@@ -28,12 +28,14 @@
 
 #include <algorithm>
 #include <functional>
+#include <phon/regex.hpp>
 #include <phon/runtime/runtime.hpp>
 #include <phon/application/search/search_node.hpp>
 #include <phon/application/search/query.hpp>
+#include <phon/analysis/weenink.hpp>
 #include <phon/analysis/speech_utils.hpp>
 #include <phon/gui/formant_search_box.hpp> // only for the settings
-#include <phon/regex.hpp>
+
 
 namespace phonometrica {
 
@@ -199,7 +201,7 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 				{
 					double max_frequency;
 					int lpc_order;
-					auto formants = measure_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
+					auto formants = get_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
 					match = std::make_shared<FormantMeasurement>(annot, layer_index, event, matched_text, ++match_index,
 							max_frequency, lpc_order, std::move(formants));
 					break;
@@ -246,7 +248,7 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 					{
 						double max_frequency;
 						int lpc_order;
-						auto formants = measure_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
+						auto formants = get_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
 						auto match = std::make_shared<FormantMeasurement>(annot, layer_index, event, label, ++match_index,
 						                                             max_frequency, lpc_order, std::move(formants));
 						matches.insert(std::move(match));
@@ -273,7 +275,7 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 					{
 						double max_frequency;
 						int lpc_order;
-						auto formants = measure_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
+						auto formants = get_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
 						auto match = std::make_shared<FormantMeasurement>(annot, layer_index, event, label, ++match_index,
 						                                                  max_frequency, lpc_order, std::move(formants));
 						matches.insert(std::move(match));
@@ -298,28 +300,52 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 }
 
 Array<double>
-SearchConstraint::measure_formants(SearchNode::Settings *s, Annotation *annot, Event *event, double &max_freq, int &lpc_order)
+SearchConstraint::get_formants(SearchNode::Settings *s, Annotation *annot, Event *event, double &max_freq, int &lpc_order)
 {
 	using namespace speech;
+
 	auto sound = annot->sound();
 	if (!sound) {
 		throw error("Cannot measure formants in annotation \"%\" because it is not bound to any sound file", annot->path());
 	}
 	auto settings = dynamic_cast<FormantQuerySettings*>(s);
 	assert(settings);
-	if (settings->parametric) {
-		throw error("Parametric estimation not implemented");
-	}
-	max_freq = settings->max_freq;
-	lpc_order = settings->lpc_order;
 
+	if (settings->automatic)
+	{
+		std::tie(max_freq, lpc_order) = find_lpc_parameters(sound.get(), settings->nformant, settings->max_bandwidth,
+				settings->win_size, event->start_time(), event->end_time(), settings->max_freq1, settings->max_freq2,
+				settings->step, settings->lpc_order1, settings->lpc_order2);
+	}
+	else
+	{
+		max_freq = settings->max_freq;
+		lpc_order = settings->lpc_order;
+	}
+
+	return measure_formants(s, sound.get(), event, max_freq, lpc_order);
+}
+
+Array<double>
+SearchConstraint::measure_formants(SearchNode::Settings *s, Sound *sound, Event *event, double max_freq, int lpc_order)
+{
+	using namespace speech;
+	auto settings = dynamic_cast<FormantQuerySettings*>(s);
 	// For now, measure at the mid point.
 	auto t = event->center_time();
 
 	auto nformant = settings->nformant;
 	intptr_t base = nformant;
 	Array<double> formants(1, settings->field_count(), 0.0);
-	auto data = sound->get_formants(t, nformant, settings->max_freq, settings->max_bandwidth, settings->win_size, settings->lpc_order);
+
+	// Did Weenink's method fail to find suitable parameters?
+	if (max_freq == 0)
+	{
+		std::fill(formants.begin(), formants.end(), std::nan(""));
+		return formants;
+	}
+
+	auto data = sound->get_formants(t, nformant, max_freq, settings->max_bandwidth, settings->win_size, lpc_order);
 
 	// Put formants first, and optionally add the bandwidths (e.g. F1, F2, F3, B1, B2, B3)
 	for (intptr_t i = 1; i <= nformant; i++)

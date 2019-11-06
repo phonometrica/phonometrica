@@ -68,6 +68,8 @@ public:
 
 		virtual bool is_intensity() const { return false; }
 
+		virtual bool is_automatic() const { return false; }
+
 		Type type;
 	};
 
@@ -150,8 +152,9 @@ private:
 	QueryMatchSet
 	find_matches(Settings *settings, const AutoAnnotation &annot, int layer_index, std::false_type use_regex);
 
-	Array<double> measure_formants(SearchNode::Settings *s, Annotation *annot, Event *event, double &max_freq,
-	                               int &lpc_order);
+	Array<double> get_formants(SearchNode::Settings *s, Annotation *annot, Event *event, double &max_freq, int &lpc_order);
+
+	Array<double> measure_formants(SearchNode::Settings *s, Sound *sound, Event *event, double max_freq, int lpc_order);
 
 	AutoProtocol m_protocol; // may be null
 

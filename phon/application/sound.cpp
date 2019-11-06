@@ -32,6 +32,7 @@
 #include <windows.h>
 #endif
 #include <sndfile.h>
+//#include <iostream>
 #include <phon/runtime/runtime.hpp>
 #include <phon/runtime/object.hpp>
 #include <phon/application/sound.hpp>
@@ -271,6 +272,7 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 	Array<double> result(nformant, 2, 0.0);
 	using namespace speech;
 	PHON_LOG("Calculating formants");
+	//std::cerr << "get_formants at time " << time << std::endl;
 
 	double Fs = nyquist_frequency * 2;
 	int nframe_orig = int(ceil(window_size * this->sample_rate()));
