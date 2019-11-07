@@ -267,6 +267,7 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 	PHON_LOG("Calculating formants");
 	//std::cerr << "get_formants at time " << time << std::endl;
 
+	window_size *= 2; // for the Gaussian window
 	double Fs = nyquist_frequency * 2;
 	int nframe_orig = int(ceil(window_size * this->sample_rate()));
 	auto first_sample = m_data->time_to_frame(time) - nframe_orig / 2;
@@ -295,14 +296,14 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 		output = Span<double>(tmp);
 	}
 	int nframe = output.size();
-	auto win = create_window(nframe, nframe, WindowType::Hann);
-	std::vector<double> buffer(nframe, 0.0);
+	auto win = create_window(nframe, nframe, WindowType::Gaussian);
+	Array<double> buffer(nframe, 0.0);
 
 	// Apply window.
 	auto it = output.begin();
-	for (int j = 0; j < nframe; j++)
+	for (int j = 1; j <= nframe; j++)
 	{
-		buffer[j] = *it++ * win[j+1];
+		buffer[j] = *it++ * win[j];
 	}
 
 	auto coeffs = get_lpc_coefficients(buffer, lpc_order);

@@ -170,6 +170,21 @@ static std::vector<size_t> sort_indices(const std::vector<T> &v) {
 // https://www.mathworks.com/help/signal/ug/formant-estimation-with-lpc-coefficients.html
 bool get_formants(const Vector<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw)
 {
+#if 1
+	std::vector<std::complex<double>> roots(lpc_coeffs.size(), std::complex<double>());
+	int order = lpc_coeffs.size() - 1;
+	bool ok = root_pol(const_cast<double*>(lpc_coeffs.data()), order, (complex*)roots.data(), 1, 1.0e-14, 1000);
+	if (!ok) return false;
+	std::vector<double> angz;
+
+	std::vector<std::complex<double>> tmp;
+
+	for (auto z : roots)
+	{
+		if (z.imag() >= 0) tmp.push_back(z);
+	}
+	roots = std::move(tmp);
+#else
 	int order = lpc_coeffs.size() - 1;
 	Eigen::VectorXd real_roots(order), complex_roots(order);
 	bool ok = rpoly_plus_plus::FindPolynomialRootsJenkinsTraub(lpc_coeffs, &real_roots, &complex_roots);
@@ -189,6 +204,7 @@ bool get_formants(const Vector<double> &lpc_coeffs, double Fs, std::vector<doubl
 			roots.emplace_back(z);
 		}
 	}
+#endif // 0
 
 	for (auto z : roots)
 	{

@@ -70,7 +70,7 @@ void pre_emphasis(Container &data, double Fs, double threshold)
 }
 
 // Calculate LPC coefficients from a speech frame.
-Vector<double> get_lpc_coefficients(const Span<double> &frame, int npole);
+Vector<double> get_lpc_coefficients(const Array<double> &frame, int npole);
 
 // Get formant frequencies and bandwidths from a set of LPC coefficients.
 bool get_formants(const Vector<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw);

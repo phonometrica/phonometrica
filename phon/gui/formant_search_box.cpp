@@ -132,8 +132,8 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	manual_layout->addStretch(1);
 	manual_widget->setLayout(manual_layout);
 
-	stack->addWidget(parametric_widget);
 	stack->addWidget(manual_widget);
+	stack->addWidget(parametric_widget);
 	stack->setCurrentIndex(0);
 	method_layout->addLayout(stack);
 	method_box->setLayout(method_layout);
@@ -162,8 +162,8 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	main_layout->addLayout(option_layout);
 	main_layout->addSpacing(10);
 
-	connect(parametric_button, &QRadioButton::clicked, [this](bool) { changeMethod(0); });
-	connect(manual_button, &QRadioButton::clicked, [this](bool) { changeMethod(1); });
+	connect(parametric_button, &QRadioButton::clicked, [this](bool) { changeMethod(1); });
+	connect(manual_button, &QRadioButton::clicked, [this](bool) { changeMethod(0); });
 }
 
 void FormantSearchBox::changeMethod(int index)

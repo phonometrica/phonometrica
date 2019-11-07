@@ -376,10 +376,10 @@ void Spectrogram::estimateFormants()
 		output = Span<double>(tmp);
 	}
 
-	int nframe = int(ceil(formant_window_length * Fs));
+	int nframe = int(ceil(formant_window_length * Fs)) * 2; // x 2 for Gaussian window
 	if (nframe % 2 == 1) nframe++;
-	auto win = create_window(nframe, nframe, WindowType::Hann);
-	std::vector<double> buffer(nframe, 0.0);
+	auto win = create_window(nframe, nframe, WindowType::Gaussian);
+	Array<double> buffer(nframe, 0.0);
 
 	// Calculate LPC at each time point.
 	for (int i = 0; i < xpoints.size(); i++)
@@ -399,9 +399,9 @@ void Spectrogram::estimateFormants()
 
 		// Apply window.
 		auto it = output.begin() + start_frame;
-		for (int j = 0; j < nframe; j++)
+		for (int j = 1; j <= nframe; j++)
 		{
-			buffer[j] = *it++ * win[j+1];
+			buffer[j] = *it++ * win[j];
 		}
 
 		auto coeffs = get_lpc_coefficients(buffer, lpc_order);
