@@ -49,7 +49,7 @@ public:
 
 		virtual ~Settings();
 
-		virtual int field_count() const { return 0; }
+		virtual int total_field_count() const { return 0; }
 
 		virtual String get_header(int j) const { return String(); }
 
@@ -62,6 +62,11 @@ public:
 		virtual bool is_intensity() const { return false; }
 
 		virtual bool is_automatic() const { return false; }
+
+		// Number of extra labels (left and right context + additional labels)
+		virtual int extra_count() const { return 0; }
+
+		virtual bool has_surrounding_context() const { return false; }
 
 		Type type;
 	};
@@ -148,6 +153,9 @@ private:
 	Array<double> get_formants(SearchNode::Settings *s, Annotation *annot, Event *event, double &max_freq, int &lpc_order);
 
 	Array<double> measure_formants(SearchNode::Settings *s, Sound *sound, Event *event, double max_freq, int lpc_order);
+
+	Array<String> find_extra_labels(SearchNode::Settings *s, Annotation *annot, const EventList &events,
+			const AutoEvent &event, intptr_t i);
 
 	AutoProtocol m_protocol; // may be null
 

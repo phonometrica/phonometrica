@@ -234,15 +234,15 @@ public:
 
     void set_modified(bool value) { m_modified = value; }
 
-    std::shared_ptr<Event> previous_event(intptr_t layer, const std::shared_ptr<Event> &e) const;
+    AutoEvent previous_event(intptr_t layer, const AutoEvent &e) const;
 
-    std::shared_ptr<Event> next_event(intptr_t layer, const std::shared_ptr<Event> &e) const;
+    AutoEvent next_event(intptr_t layer, const AutoEvent &e) const;
 
-    bool change_start_time(std::shared_ptr<Event> &event, double new_time);
+    bool change_start_time(AutoEvent &event, double new_time);
 
-    bool change_end_time(std::shared_ptr<Event> &event, double new_time);
+    bool change_end_time(AutoEvent &event, double new_time);
 
-    void set_event_text(std::shared_ptr<Event> &event, const String &new_text);
+    void set_event_text(AutoEvent &event, const String &new_text);
 
     void to_xml(xml_node graph_node);
 
@@ -266,6 +266,8 @@ public:
 
 	void set_layer_label(intptr_t index, String value);
 
+	AutoEvent find_enclosing_event(const AutoEvent &e, intptr_t layer) const;
+
 private:
 
 	void append_event(intptr_t layer_index, Anchor *start, Anchor *end, const String &text);
@@ -279,7 +281,7 @@ private:
 	void check_free_anchor(const Array<Event *> &events, intptr_t index);
 
 	// Change end time of event, if possible.
-	bool change_time(std::shared_ptr<Event> &event, std::shared_ptr<Event> &right_boundary, double new_time);
+	bool change_time(AutoEvent &event, AutoEvent &right_boundary, double new_time);
 
 	// Erase content.
 	void clear();
@@ -325,12 +327,12 @@ struct EventLess
 
 struct EventLessEqual
 {
-    bool operator()(const std::shared_ptr<Event> &lhs, const std::shared_ptr<Event> &rhs) const
+    bool operator()(const AutoEvent &lhs, const AutoEvent &rhs) const
     {
         return lhs->end_time() <= rhs->start_time();
     }
 
-	bool operator()(double lhs, const std::shared_ptr<Event> &rhs) const
+	bool operator()(double lhs, const AutoEvent &rhs) const
 	{
 		return lhs <= rhs->start_time();
 	}

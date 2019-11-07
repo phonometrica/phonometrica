@@ -426,7 +426,7 @@ void AGraph::write_textgrid(const String &path)
 	m_modified = false;
 }
 
-std::shared_ptr<Event> AGraph::previous_event(intptr_t layer, const std::shared_ptr<Event> &e) const
+AutoEvent AGraph::previous_event(intptr_t layer, const AutoEvent &e) const
 {
     double time = e->start_time();
 
@@ -438,7 +438,7 @@ std::shared_ptr<Event> AGraph::previous_event(intptr_t layer, const std::shared_
 
         if (it == m_anchors.begin())
         {
-            return std::shared_ptr<Event>();
+            return AutoEvent();
         }
 		it--;
 
@@ -456,7 +456,7 @@ std::shared_ptr<Event> AGraph::previous_event(intptr_t layer, const std::shared_
     }
 }
 
-std::shared_ptr<Event> AGraph::next_event(intptr_t layer, const std::shared_ptr<Event> &e) const
+AutoEvent AGraph::next_event(intptr_t layer, const AutoEvent &e) const
 {
     double time = e->end_time();
     bool has_intervals = e->is_interval();
@@ -468,7 +468,7 @@ std::shared_ptr<Event> AGraph::next_event(intptr_t layer, const std::shared_ptr<
 
         if (it == m_anchors.end())
         {
-            return std::shared_ptr<Event>();
+            return AutoEvent();
         }
 
         auto anchor = it->get();
@@ -497,7 +497,7 @@ std::shared_ptr<Event> AGraph::next_event(intptr_t layer, const std::shared_ptr<
     }
 }
 
-bool AGraph::change_start_time(std::shared_ptr<Event> &event, double new_time)
+bool AGraph::change_start_time(AutoEvent &event, double new_time)
 {
     // Change end time of the previous item: this will change the start time of this event as a side effect.
 	auto previous = previous_event(event->layer_index(), event);
@@ -510,19 +510,19 @@ bool AGraph::change_start_time(std::shared_ptr<Event> &event, double new_time)
 	return false;
 }
 
-bool AGraph::change_end_time(std::shared_ptr<Event> &event, double new_time)
+bool AGraph::change_end_time(AutoEvent &event, double new_time)
 {
 	auto boundary = next_event(event->layer_index(), event);
 	return change_time(event, boundary, new_time);
 }
 
-void AGraph::set_event_text(std::shared_ptr<Event> &event, const String &new_text)
+void AGraph::set_event_text(AutoEvent &event, const String &new_text)
 {
     event->set_text(new_text);
     m_modified = true;
 }
 
-bool AGraph::change_time(std::shared_ptr<Event> &event, std::shared_ptr<Event> &right_boundary, double new_time)
+bool AGraph::change_time(AutoEvent &event, AutoEvent &right_boundary, double new_time)
 {
     if (right_boundary && new_time >= right_boundary->end_time())
     {
@@ -893,6 +893,22 @@ void AGraph::set_layer_label(intptr_t index, String value)
 {
 	m_layers.at(index)->label = std::move(value);
 	set_modified(true);
+}
+
+AutoEvent AGraph::find_enclosing_event(const AutoEvent &e, intptr_t layer_index) const
+{
+	auto &layer = m_layers.at(layer_index);
+	auto it = layer->find_event(e->center_time());
+
+	if (it != layer->events.end())
+	{
+		if ((*it)->start_time() <= e->start_time() && (*it)->end_time() >= e->end_time())
+		{
+			return *it;
+		}
+	}
+
+	return nullptr;
 }
 
 } // namespace phonometrica

@@ -26,23 +26,40 @@
 
 namespace phonometrica {
 
-struct FormantQuerySettings final : public Query::Settings
+struct AcousticQuerySettings : public Query::Settings
 {
-	FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq, int lpc_order, bool bw, bool erb, bool bark);
+	AcousticQuerySettings(Query::Type t, Array<int> label_indexes, bool surrounding);
 
-	FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2,
-	                     bool bw, bool erb, bool bark);
+	int extra_count() const override;
 
+	bool has_surrounding_context() const override { return surrounding; }
+
+	bool has_extra_labels() const { return !label_indexes.empty(); }
+
+	String get_extra_label(intptr_t i) const { return String::format("Layer %d", int(label_indexes[i])); }
+
+	Array<int> label_indexes;  // additional labels extracted, excluding the surrounding labels.
+	bool surrounding; // include surrounding labels on the matched layer?
+};
+
+
+struct FormantQuerySettings final : public AcousticQuerySettings
+{
+	FormantQuerySettings(bool add_surrounding, Array<int> label_indexes, double win_size, int nformant, double max_bw,
+			double max_freq, int lpc_order, bool bw, bool erb, bool bark);
+
+	FormantQuerySettings(bool add_surrounding, Array<int> label_indexes, double win_size, int nformant, double max_bw,
+			double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2,bool bw, bool erb, bool bark);
 
 	bool is_acoustic() const override { return true; }
 
 	bool is_formants() const override { return true; }
 
-	bool is_automatic() const override { return true; }
+	bool is_automatic() const override { return automatic; }
 
 	String get_header(int j) const override;
 
-	int field_count() const override;
+	int total_field_count() const override;
 
 	double max_freq  = 0; // manual
 	double max_freq1 = 0; // automatic

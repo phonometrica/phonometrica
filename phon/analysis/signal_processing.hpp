@@ -1,6 +1,7 @@
 /***********************************************************************************************************************
  *                                                                                                                     *
  * Copyright (C) 1997-2005  Kåre Sjölander <kare@speech.kth.se>                                                        *
+ * Copyright (C) 1992-2019 Paul Boersma                                                                                *
  * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
@@ -19,7 +20,8 @@
  * Purpose: signal processing routines.                                                                                *
  *                                                                                                                     *
  * Note: This file contains code derived from the Snack Sound Toolkit. See file BSD.txt. The latest version can be     *
- * found at http://www.speech.kth.se/snack/                                                                            *
+ * found at http://www.speech.kth.se/snack/.                                                                           *
+ * The code for the Gaussian window is derived from Praat, see http://www.praat.org.                                   *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -70,10 +72,10 @@ void pre_emphasis(Container &data, double Fs, double threshold)
 }
 
 // Calculate LPC coefficients from a speech frame.
-Vector<double> get_lpc_coefficients(const Array<double> &frame, int npole);
+Array<double> get_lpc_coefficients(const Array<double> &frame, int npole);
 
 // Get formant frequencies and bandwidths from a set of LPC coefficients.
-bool get_formants(const Vector<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw);
+bool get_formants(const Array<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw);
 
 }} // namespace phonometrica::speech
 

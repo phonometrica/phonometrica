@@ -81,14 +81,6 @@ Array<double> create_window(intptr_t N, intptr_t fftlen, WindowType type)
 	    for (i = 1; i <= N; i++) {
 		    win[i-1] = (exp (-48.0 * (i - imid) * (i - imid) / (N + 1) / (N + 1)) - edge) / (1.0 - edge);
 	    }
-//    	const double sigma = 0.45 * (N - 1.0) / 2;
-//	    const double sig2 = 2 * sigma * sigma;
-//
-//        for (i = 0; i < N; i++)
-//        {
-//        	int n = i - (N-1) / 2;
-//        	win[i] = exp((-n * n) / sig2);
-//        }
     }
 	    break;
     case WindowType::Hamming:
@@ -136,12 +128,8 @@ get_intensity(Span<double> input, int samplerate, intptr_t window_size, double t
     while (data < limit)
     {
         auto frames_left = limit - data;
-        if (frames_left < window_size)
-        {
+        if (frames_left < window_size) {
             break;
-//            window = create_window(frames_left, frames_left, type);
-//            win = window.data();
-//            window_size = frames_left;
         }
         Span<double> d(data, window_size);
         auto dB = get_intensity(d, win);
@@ -166,45 +154,36 @@ static std::vector<size_t> sort_indices(const std::vector<T> &v) {
 	return idx;
 }
 
+Array<double> get_lpc_coefficients(const Array<double> &x, int order)
+{
+	Array<double> coeff(order + 1, 0.0);
+	lpc(const_cast<double*>(x.data()), x.size(), coeff.data(), order, 0.000001);
+
+	return coeff;
+}
+
 // Formant estimation based on
 // https://www.mathworks.com/help/signal/ug/formant-estimation-with-lpc-coefficients.html
-bool get_formants(const Vector<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw)
+bool get_formants(const Array<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw)
 {
-#if 1
-	std::vector<std::complex<double>> roots(lpc_coeffs.size(), std::complex<double>());
+	std::vector<std::complex<double>> root_candidates(lpc_coeffs.size(), std::complex<double>());
 	int order = lpc_coeffs.size() - 1;
-	bool ok = root_pol(const_cast<double*>(lpc_coeffs.data()), order, (complex*)roots.data(), 1, 1.0e-14, 1000);
-	if (!ok) return false;
-	std::vector<double> angz;
-
-	std::vector<std::complex<double>> tmp;
-
-	for (auto z : roots)
-	{
-		if (z.imag() >= 0) tmp.push_back(z);
-	}
-	roots = std::move(tmp);
-#else
-	int order = lpc_coeffs.size() - 1;
-	Eigen::VectorXd real_roots(order), complex_roots(order);
-	bool ok = rpoly_plus_plus::FindPolynomialRootsJenkinsTraub(lpc_coeffs, &real_roots, &complex_roots);
+	bool ok = root_pol(const_cast<double*>(lpc_coeffs.data()), order, (complex*)root_candidates.data(), 1, 1.0e-14, 1000);
 	if (!ok) return false;
 	std::vector<double> angz;
 	std::vector<std::complex<double>> roots;
 
-	for (int i = 0; i < complex_roots.size(); i++)
+	for (auto z : root_candidates)
 	{
-		if (complex_roots[i] >= 0)
+		if (z.imag() >= 0)
 		{
-			std::complex<double> z = { real_roots[i], complex_roots[i] };
-			// Reflect roots that lie outside the unit circle inside it.
+			// Make sure all roots lie within the unit circle.
 			if (std::abs(z) > 1) {
-				z = std::complex<double>(1.0) / std::conj(z);
+				z = std::complex<double>(1.0, 0.0) / std::conj(z);
 			}
-			roots.emplace_back(z);
+			roots.push_back(z);
 		}
 	}
-#endif // 0
 
 	for (auto z : roots)
 	{

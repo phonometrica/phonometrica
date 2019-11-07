@@ -62,11 +62,13 @@ private:
 
 	QSpinBox *formant_spinbox, *lpc_spinbox;
 
-	QCheckBox *bark_checkbox, *erb_checkbox, *bandwidth_checkbox;
+	QCheckBox *bark_checkbox, *erb_checkbox, *bandwidth_checkbox, *surrounding_checkbox, *labels_checkbox;
 
 	QLineEdit *max_freq_edit, *win_edit, *max_bw_edit;
 
 	QLineEdit *param_min_freq_edit, *param_max_freq_edit, *param_step_freq_edit;
+
+	LineEdit *labels_edit;
 
 	QSpinBox *param_lpc_min_spinbox, *param_lpc_max_spinbox;
 

@@ -67,6 +67,10 @@ public:
 
 	virtual AutoBookmark to_bookmark(const String &title, const String &notes) const = 0;
 
+	virtual String left() const { return String(); }
+
+	virtual String right() const { return String(); }
+
 protected:
 
 	// Annotation in which the match was found.
@@ -111,9 +115,9 @@ public:
 		QueryMatch(annot, layer, e, text, pos), m_left(std::move(left)), m_right(std::move(right))
 	{ }
 
-	String left() const { return m_left; }
+	String left() const override { return m_left; }
 
-	String right() const { return m_right; }
+	String right() const override { return m_right; }
 
 	AutoBookmark to_bookmark(const String &title, const String &notes) const override;
 
@@ -170,6 +174,20 @@ public:
 	virtual String get_field(intptr_t j) const = 0;
 
 	AutoBookmark to_bookmark(const String &title, const String &notes) const override;
+
+	String get_label(intptr_t i) const;
+
+	void set_labels(Array<String> labels) { this->labels = std::move(labels); }
+
+	String left() const override;
+
+	String right() const override;
+
+protected:
+
+	// If [surrounding_labels] is true in the settings, the first two items are the left and right labels that surround the
+	// matched item. Other matching labels follow (e.g. syllable, word that are aligned with a vowel), if any.
+	Array<String> labels;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -200,10 +218,9 @@ private:
 	// 2 formants measured at 3 time points will be represented by a 3x2 matrix.
 	Array<double> m_formants;
 
-	// Keep track of these settings, because they will vary from measurement to measurement when the automatic method
+	// Keep track of these settings, because they vary from measurement to measurement when the automatic method
 	// is used.
-	double max_freq;
-	double order;
+	double max_freq, order;
 };
 
 } // namespace phonometrica

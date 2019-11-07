@@ -166,10 +166,12 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 
 		while (value_pattern.match(label, it))
 		{
+			auto labels = find_extra_labels(settings, annot.get(), events, event, i);
 			auto matched_text = value_pattern.capture(0);
 			auto start = value_pattern.capture_start_iter(0);
 			auto end = value_pattern.capture_end_iter(0);
 			it = end;
+
 			AutoQueryMatch match;
 
 			switch (type)
@@ -195,8 +197,10 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 					double max_frequency;
 					int lpc_order;
 					auto formants = get_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
-					match = std::make_shared<FormantMeasurement>(annot, layer_index, event, matched_text, ++match_index,
+					auto m = std::make_shared<FormantMeasurement>(annot, layer_index, event, matched_text, ++match_index,
 							max_frequency, lpc_order, std::move(formants));
+					if (!labels.empty()) m->set_labels(std::move(labels));
+					match = std::move(m);
 					break;
 				}
 				default:
@@ -230,11 +234,12 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 		auto it = label.begin();
 		intptr_t grapheme_count = case_sensitive ? 0 : value.grapheme_count();
 
-
 		if (case_sensitive)
 		{
 			while((it = label.find(value, it)) != label.end())
 			{
+				auto labels = find_extra_labels(settings, annot.get(), events, event, i);
+
 				switch (type)
 				{
 					case Query::Type::Formants:
@@ -244,6 +249,7 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 						auto formants = get_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
 						auto match = std::make_shared<FormantMeasurement>(annot, layer_index, event, label, ++match_index,
 						                                             max_frequency, lpc_order, std::move(formants));
+						if (!labels.empty()) match->set_labels(std::move(labels));
 						matches.insert(std::move(match));
 						break;
 					}
@@ -260,8 +266,10 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 		}
 		else
 		{
-			while((it = label.ifind(value, it)) != label.end())
+			while ((it = label.ifind(value, it)) != label.end())
 			{
+				auto labels = find_extra_labels(settings, annot.get(), events, event, i);
+
 				switch (type)
 				{
 					case Query::Type::Formants:
@@ -271,6 +279,7 @@ QueryMatchSet SearchConstraint::find_matches(Settings *settings, const AutoAnnot
 						auto formants = get_formants(settings, annot.get(), event.get(), max_frequency, lpc_order);
 						auto match = std::make_shared<FormantMeasurement>(annot, layer_index, event, label, ++match_index,
 						                                                  max_frequency, lpc_order, std::move(formants));
+						if (!labels.empty()) match->set_labels(std::move(labels));
 						matches.insert(std::move(match));
 						break;
 					}
@@ -329,7 +338,7 @@ SearchConstraint::measure_formants(SearchNode::Settings *s, Sound *sound, Event 
 
 	auto nformant = settings->nformant;
 	intptr_t base = nformant;
-	Array<double> formants(1, settings->field_count(), 0.0);
+	Array<double> formants(1, settings->total_field_count(), 0.0);
 
 	// Did Weenink's method fail to find suitable parameters?
 	if (max_freq == 0)
@@ -373,6 +382,37 @@ SearchConstraint::measure_formants(SearchNode::Settings *s, Sound *sound, Event 
 	}
 
 	return formants;
+}
+
+Array<String> SearchConstraint::find_extra_labels(SearchNode::Settings *settings, Annotation *annot,
+		const EventList &events, const AutoEvent &event, intptr_t i)
+{
+	Array<String> labels;
+
+	if (settings->is_acoustic())
+	{
+		auto acoustic_settings = dynamic_cast<AcousticQuerySettings*>(settings);
+
+		if (acoustic_settings->has_surrounding_context())
+		{
+			String left, right;
+			if (i > 1) left = events[i-1]->text();
+			if (i < events.size()) right = events[i+1]->text();
+			labels.append(left);
+			labels.append(right);
+		}
+
+		if (acoustic_settings->has_extra_labels())
+		{
+			for (auto idx : acoustic_settings->label_indexes)
+			{
+				auto e = annot->find_enclosing_event(event, idx);
+				if (e) labels.append(e->text());
+			}
+		}
+	}
+
+	return labels;
 }
 
 } // namespace phonometrica

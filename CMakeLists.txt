@@ -42,7 +42,7 @@ add_definitions(-DPHON_VERSION_NANO=0)
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=11)
-add_definitions(-DPHON_RELEASE_DATE_DAY=6)
+add_definitions(-DPHON_RELEASE_DATE_DAY=7)
 
 # Operating system
 if(WIN32)
@@ -195,7 +195,6 @@ if (BUILD_GUI)
             phon/third_party/qxt/qxtcheckcombobox.cpp
             phon/third_party/sptk/*.c
             phon/third_party/sptk/*.cpp
-            phon/third_party/rpolyplusplus/*.cc
             #phon/third_party/snack/*.c
             phon/third_party/swipe/*.c phon/third_party/swipe/*.cpp phon/third_party/swipe/*.h
     )

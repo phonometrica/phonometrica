@@ -550,4 +550,9 @@ void Annotation::set_layer_label(intptr_t index, String value)
 {
 	m_graph.set_layer_label(index, std::move(value));
 }
+
+AutoEvent Annotation::find_enclosing_event(const AutoEvent &e, intptr_t layer) const
+{
+	return m_graph.find_enclosing_event(e, layer);
+}
 } // namespace phonometrica

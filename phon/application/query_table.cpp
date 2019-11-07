@@ -22,6 +22,7 @@
 #include <unordered_set>
 #include <phon/application/query_table.hpp>
 #include <phon/application/search/query.hpp>
+#include <phon/application/search/formant_query_settings.hpp>
 
 namespace phonometrica {
 
@@ -117,40 +118,55 @@ String QueryTable::get_acoustic_cell(intptr_t i, intptr_t j) const
 
 	if (m_settings->is_automatic())
 	{
+		auto m = dynamic_cast<FormantMeasurement*>(m_matches[i].get());
 		if (j == 5)
 		{
-			auto m = dynamic_cast<FormantMeasurement*>(m_matches[i].get());
 			return String::convert(intptr_t(m->maximum_frequency()));
 		}
 		else if (j == 6)
 		{
-			auto m = dynamic_cast<FormantMeasurement*>(m_matches[i].get());
 			return String::convert(m->lpc_order());
 		}
-		else if (j == 7)
-		{
-			auto m = m_matches[i].get();
-			return String::format("%.2f", m->duration());
-		}
-		else if (j == 8)
-		{
-			return m_matches[i]->text();
-		}
+		j -= 2; // discard columns
 	}
-	else if (j == 5)
+	if (j == 5)
 	{
 		auto m = m_matches[i].get();
 		return String::format("%.2f", m->duration());
 	}
-	else if (j == 6)
+
+	if (m_settings->has_surrounding_context())
+	{
+		if (j == 6) return m_matches[i]->left();
+		j -= 1;
+	}
+	if (j == 6)
 	{
 		return m_matches[i]->text();
 	}
+	if (m_settings->has_surrounding_context())
+	{
+		if (j == 7) return m_matches[i]->right();
+		j -= 1;
+	}
+	auto BASE = 6;
 
-	intptr_t field_count = get_acoustic_field_count();
+	// Now take care of the extra labels
+	auto extra_count = m_settings->extra_count();
+	if (m_settings->has_surrounding_context()) extra_count -= 2;
 
-	auto prev = m_settings->is_automatic() ? 8 : 6;
-	intptr_t k = j - prev; // discard previous columns
+	if (extra_count > 0 && j <= BASE + extra_count)
+	{
+		// Add 2 if needed since the first two labels can be the left and right contexts.
+		auto offset = m_settings->has_surrounding_context() ? 2 : 0;
+		auto index = (j - BASE) + offset;
+		return dynamic_cast<FormantMeasurement*>(m_matches[i].get())->get_label(index);
+	}
+	j -= extra_count;
+
+	intptr_t field_count = get_acoustic_field_count() - m_settings->extra_count();
+	intptr_t k = j - BASE; // discard previous columns
+
 	if (k <= field_count)
 	{
 		auto m = dynamic_cast<FormantMeasurement*>(m_matches[i].get());
@@ -244,30 +260,61 @@ String QueryTable::get_acoustic_header(intptr_t j) const
 			break;
 	}
 
+	// Labels appear in this order:
+	// - Max frequency (automatic)
+	// - LPC order     (automatic)
+	// - Duration
+	// - Left          (surrounding)
+	// - Label
+	// - Right         (surrounding)
+	// - Extra labels
+
 	if (m_settings->is_automatic())
 	{
 		if (j == 5)
 			return "Max frequency";
 		else if (j == 6)
 			return "LPC order";
-		else if (j == 7)
-			return "Duration";
-		else if (j == 8)
-			return "Label";
+
+		j -= 2; // discard columns
 	}
-	else if (j == 5)
+
+	if (j == 5)
 	{
 		return "Duration";
 	}
-	else if (j == 6)
+
+	if (m_settings->has_surrounding_context())
+	{
+		if (j == 6) return "Left";
+		j -= 1;
+	}
+	if (j == 6)
 	{
 		return "Label";
 	}
+	if (m_settings->has_surrounding_context())
+	{
+		if (j == 7) return "Right";
+		j -= 1;
+	}
+	auto BASE = 6;
 
-	intptr_t field_count = get_acoustic_field_count();
+	// Now take care of the extra labels
+	auto extra_count = m_settings->extra_count();
+	if (m_settings->has_surrounding_context()) extra_count -= 2;
 
-	auto prev = m_settings->is_automatic() ? 8 : 6;
-	intptr_t k = j - prev; // discard previous columns
+	if (extra_count > 0 && j <= BASE + extra_count)
+	{
+		auto index = j - BASE;
+		return dynamic_cast<AcousticQuerySettings*>(m_settings.get())->get_extra_label(index);
+	}
+	j -= extra_count;
+
+
+	intptr_t field_count = get_acoustic_field_count() - m_settings->extra_count();
+	intptr_t k = j - BASE; // discard previous columns
+
 	if (k <= field_count)
 	{
 		return m_settings->get_header(k);
@@ -520,8 +567,7 @@ int QueryTable::get_acoustic_field_count() const
 	// - E1, E2,... En for row m
 	// - z1, z2,... zn for row m
 
-	return m_settings->field_count();
-
+	return m_settings->total_field_count();
 }
 
 } // namespace phonometrica

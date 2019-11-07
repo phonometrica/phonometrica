@@ -23,8 +23,23 @@
 
 namespace phonometrica {
 
-FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq, int lpc_order, bool bw, bool erb,
-                                           bool bark) : Query::Settings(Query::Type::Formants)
+AcousticQuerySettings::AcousticQuerySettings(Query::Type t, Array<int> label_indexes, bool surrounding) :
+		Query::Settings(t), label_indexes(std::move(label_indexes))
+{
+	this->surrounding = surrounding;
+}
+
+int AcousticQuerySettings::extra_count() const
+{
+	int n = label_indexes.size();
+	if (this->surrounding) n += 2;
+
+	return n;
+}
+
+FormantQuerySettings::FormantQuerySettings(bool add_surrounding, Array<int> label_indexes, double win_size, int nformant,
+		double max_bw, double max_freq, int lpc_order, bool bw, bool erb, bool bark) :
+		AcousticQuerySettings(Query::Type::Formants, std::move(label_indexes), add_surrounding)
 {
 	this->win_size = win_size;
 	this->nformant = nformant;
@@ -37,9 +52,9 @@ FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double
 	this->bark = bark;
 }
 
-FormantQuerySettings::FormantQuerySettings(double win_size, int nformant, double max_bw, double max_freq1, double max_freq2, double step,
-                                           int lpc_order1, int lpc_order2, bool bw, bool erb, bool bark) :
-		Query::Settings(Query::Type::Formants)
+FormantQuerySettings::FormantQuerySettings(bool add_surrounding, Array<int> label_indexes, double win_size, int nformant,
+		double max_bw, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2, bool bw, bool erb, bool bark) :
+		AcousticQuerySettings(Query::Type::Formants, std::move(label_indexes), add_surrounding)
 {
 	this->win_size = win_size;
 	this->nformant = nformant;
@@ -89,14 +104,19 @@ String FormantQuerySettings::get_header(int j) const
 	return String();
 }
 
-int FormantQuerySettings::field_count() const
+int FormantQuerySettings::total_field_count() const
 {
 	int coeff = 1 + int(bandwidth) + int(erb) + int(bark);
 	int n = nformant * coeff;
+	// Add 2 for left and right context
+	if (this->surrounding) n += 2;
 	// Add 2 for the maximum frequency and the LPC order
 	if (this->automatic) n += 2;
+	// Add additional labels
+	n += label_indexes.size();
 
 	return n;
 }
+
 
 } // namespace phonometrica

@@ -109,6 +109,8 @@ public:
 
 	void set_layer_label(intptr_t index, String value);
 
+	AutoEvent find_enclosing_event(const AutoEvent &e, intptr_t layer) const;
+
 protected:
 
 	bool content_modified() const override;

@@ -121,6 +121,21 @@ AutoBookmark Measurement::to_bookmark(const String &title, const String &notes) 
 	return b;
 }
 
+String Measurement::left() const
+{
+	return labels[1];
+}
+
+String Measurement::right() const
+{
+	return labels[2];
+}
+
+String Measurement::get_label(intptr_t i) const
+{
+	return labels[i];
+}
+
 String FormantMeasurement::get_field(intptr_t j) const
 {
 	static String undef("undefined");

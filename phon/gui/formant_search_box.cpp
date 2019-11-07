@@ -155,15 +155,27 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	option_layout->addWidget(bark_checkbox);
 	option_layout->addStretch(1);
 
+	auto option2_layout = new QHBoxLayout;
+	surrounding_checkbox = new QCheckBox(tr("Add surrounding labels"));
+	labels_checkbox = new QCheckBox(tr("Add labels from other layers:"));
+	labels_edit = new LineEdit("layer indexes separated by a space");
+	option2_layout->addWidget(surrounding_checkbox);
+	option2_layout->addWidget(labels_checkbox);
+	option2_layout->addWidget(labels_edit);
+	labels_edit->setEnabled(false);
+	//option2_layout->addStretch(1);
+
 	main_layout->addLayout(param_layout);
 	main_layout->addWidget(method_box);
 	main_layout->addWidget(location_box);
 	main_layout->addSpacing(10);
 	main_layout->addLayout(option_layout);
+	main_layout->addLayout(option2_layout);
 	main_layout->addSpacing(10);
 
 	connect(parametric_button, &QRadioButton::clicked, [this](bool) { changeMethod(1); });
 	connect(manual_button, &QRadioButton::clicked, [this](bool) { changeMethod(0); });
+	connect(labels_checkbox, &QCheckBox::clicked, [this](bool val) { labels_edit->setEnabled(val); });
 }
 
 void FormantSearchBox::changeMethod(int index)
@@ -190,6 +202,22 @@ AutoQuerySettings FormantSearchBox::getSettings() const
 		throw error("Invalid maximum bandwidth");
 	}
 
+	bool add_surrounding = surrounding_checkbox->isChecked();
+	Array<int> label_indexes;
+
+	if (labels_checkbox->isChecked())
+	{
+		auto labels = labels_edit->text().split(" ");
+		for (auto &label : labels)
+		{
+			int i = label.toInt(&ok);
+			if (!ok || i <= 0) {
+				throw error("Invalid label index: %", label.toStdString());
+			}
+			label_indexes.append(i);
+		}
+	}
+
 	if (parametric_button->isChecked())
 	{
 		double max_freq1 = param_min_freq_edit->text().toDouble(&ok);
@@ -202,8 +230,8 @@ AutoQuerySettings FormantSearchBox::getSettings() const
 		int lpc_order1 = param_lpc_min_spinbox->value();
 		int lpc_order2 = param_lpc_max_spinbox->value();
 
-		return std::make_shared<FormantQuerySettings>(win_size, nformant, max_bw, max_freq1, max_freq2, step, lpc_order1,
-				lpc_order2, bw, erb, bark);
+		return std::make_shared<FormantQuerySettings>(add_surrounding, std::move(label_indexes), win_size, nformant,
+				max_bw, max_freq1, max_freq2, step, lpc_order1, lpc_order2, bw, erb, bark);
 	}
 	else
 	{
@@ -211,7 +239,8 @@ AutoQuerySettings FormantSearchBox::getSettings() const
 		if (!ok) throw error("Invalid maximum frequency");
 		int lpc_order = lpc_spinbox->value();
 
-		return std::make_shared<FormantQuerySettings>(win_size, nformant, max_bw, max_freq, lpc_order, bw, erb, bark);
+		return std::make_shared<FormantQuerySettings>(add_surrounding, std::move(label_indexes), win_size, nformant,
+				max_bw, max_freq, lpc_order, bw, erb, bark);
 	}
 }
 

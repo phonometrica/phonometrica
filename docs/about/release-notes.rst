@@ -1,11 +1,12 @@
 Release notes
 -------------
 
-0.7.1 (??/11/2019)
+0.7.1 (07/11/2019)
 ~~~~~~~~~~~~~~~~~~
 
 - license is now GPL 3
-- Gaussian window for spectrograms
+- Gaussian window for spectrograms and LPC analysis
+- improved LPC analysis
 - experimental automatic formant selection using Weenink's method in formant queries
 
 0.7.0 (05/11/2019)

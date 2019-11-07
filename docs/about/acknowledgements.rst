@@ -19,7 +19,6 @@ Phonometrica uses (parts of) the following open source libraries, sometimes with
 * pugixml, by Arseny Kapoulkine (MIT), see `pugixml.org <https://pugixml.org>`_
 * Qt, by The Qt Company (LGPL), see `www.qt.io <https://www.qt.io/>`_
 * r8brain-free-src, by Aleksey Vaneev (MIT), see `github.com/avaneev/r8brain-free-src <https://github.com/avaneev/r8brain-free-src>`_
-* RpolyPluPlus, by Chris Sweeney (BSD), see `github.com/sweeneychris/RpolyPlusPlus <https://github.com/sweeneychris/RpolyPlusPlus>`_
 * RTAudio, by Gary P. Scavone (MIT), see `www.music.mcgill.ca/~gary/rtaudio <http://www.music.mcgill.ca/~gary/rtaudio/>`_
 * Snack, by Jonas Beskow and Kåre Sjölander (BSD), see `www.speech.kth.se/snack/ <http://www.speech.kth.se/snack/>`_
 * sendpraat, by Paul Boersma, see `www.praat.org <http://www.fon.hum.uva.nl/praat/sendpraat.html>`_
