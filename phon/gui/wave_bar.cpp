@@ -207,6 +207,7 @@ void WaveBar::makePath(QPainterPath &path)
     int x = 0;
     auto sample_count = m_data->size();
     auto raw_data = m_data->data();
+    int nchannel = m_data->channels();
 
     // Subtract 1 to width so that the last pixel is assigned the left-over frames.
     auto frames_per_pixel = sample_count / (this->width()-1);

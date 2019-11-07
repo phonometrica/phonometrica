@@ -848,6 +848,34 @@ public:
 		throw error("Index % out of range in array containing % items", i, len);
 	}
 
+	void check_dim(const Array &other) const
+	{
+		if (this->ndim() != other.ndim()) {
+			throw error("Arrays have different dimensions");
+		}
+		if (this->size() != other.size()) {
+			throw error("Arrays have different sizes");
+		}
+
+		switch (ndim())
+		{
+			case 1:
+				break;
+			case 2:
+				if (this->nrow() != other.nrow() || this->ncol() != other.ncol()) {
+					throw error("Array have different shapes");
+				}
+				break;
+			default:
+				for (intptr_t i = 0; i < ndim(); i++)
+				{
+					if (m_dim.dx.shape[i] != other.m_dim.dx.shape[i]) {
+						throw error("Array have different shapes");
+					}
+				}
+		}
+	}
+
 private:
 
 	const size_type *shape() const noexcept { return m_dim.dx.shape; }

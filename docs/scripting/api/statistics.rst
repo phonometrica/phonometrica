@@ -51,6 +51,22 @@ This function returns an object with the following fields:
 
 ------------
 
+.. function:: lm(y, X)
+
+Fits a linear regression model. ``y`` is a set of N observations, and ``X`` is an N by M matrix for a model with M regression
+coefficients, including the intercept which must be the first coefficient. (In general, it should be a column of 1's.)
+
+This function returns an object with the following fields:
+
+* ``beta``: an array of estimates for the regression coefficients. The first entry is the intercept
+* ``se``: an array representing the standard errors of the regression coefficients
+* ``t``: an array of t-values for the regression coefficients (``t[i]`` is the t-value for ``beta[i]``)
+* ``p``: an array of p-values for the null hypothesis that the corresponding regression coefficient is equal to 0 (``p[i]`` is the p-value for ``beta[i]``)
+
+Note: the model is estimated by minimizing the sum of squared errors. It is computed using Singular Value Decomposition.
+
+------------
+
 .. function:: mean(x [, dim])
 
 Returns the mean of the array ``x``. If ``dim`` is specified, returns an ``Array`` in which each element

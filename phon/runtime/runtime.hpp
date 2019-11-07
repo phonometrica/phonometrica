@@ -243,6 +243,8 @@ public:
 
     void add_numeric_field(const char *name, double n);
 
+    void add_array_field(const char *name, Array<double> a);
+
     double to_number(int idx);
 
     intptr_t to_integer(int idx);

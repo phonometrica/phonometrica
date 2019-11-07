@@ -102,4 +102,19 @@ Array<double> sub(const Array<double> &X, double n)
 	return Y;
 }
 
+Array<double> operator-(const Array<double> &x, const Array<double> &y)
+{
+	x.check_dim(y);
+	Array<double> z(x);
+	auto it1 = x.begin();
+	auto it2 = y.begin();
+	auto it3 = z.begin();
+
+	while (it1 != x.end()) {
+		*it3++ = *it1++ - *it2++;
+	}
+
+	return z;
+}
+
 } // namespace phonometrica

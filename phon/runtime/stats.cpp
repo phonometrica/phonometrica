@@ -130,7 +130,7 @@ static void stat_ftest(Runtime &rt)
 	rt.add_numeric_field("f", std::get<0>(result));
 	rt.add_numeric_field("df1", std::get<1>(result));
 	rt.add_numeric_field("df2", std::get<2>(result));
-	rt.add_numeric_field(("p"), std::get<3>(result));
+	rt.add_numeric_field("p", std::get<3>(result));
 }
 
 static void stat_ttest(Runtime &rt)
@@ -162,7 +162,7 @@ static void stat_ttest(Runtime &rt)
 	rt.add_string_field("method", method);
 	rt.add_numeric_field("t", std::get<0>(result));
 	rt.add_numeric_field("df", std::get<1>(result));
-	rt.add_numeric_field(("p"), std::get<2>(result));
+	rt.add_numeric_field("p", std::get<2>(result));
 }
 
 static void stat_ttest1(Runtime &rt)
@@ -175,7 +175,7 @@ static void stat_ttest1(Runtime &rt)
 	rt.new_object();
 	rt.add_numeric_field("t", std::get<0>(result));
 	rt.add_numeric_field("df", std::get<1>(result));
-	rt.add_numeric_field(("p"), std::get<2>(result));
+	rt.add_numeric_field("p", std::get<2>(result));
 }
 
 static void stat_cov(Runtime &rt)
@@ -200,6 +200,22 @@ static void stat_corr(Runtime &rt)
 	rt.push(stats::pearson_correlation(x, y));
 }
 
+static void stat_lm(Runtime &rt)
+{
+	auto &y = rt.to_array(1);
+	auto &X = rt.to_array(2);
+	auto res = stats::lm(y, X);
+	rt.new_object();
+	rt.add_array_field("beta", std::move(res.beta));
+	rt.add_array_field("se", std::move(res.se));
+	rt.add_array_field("t", std::move(res.t));
+	rt.add_array_field("p", std::move(res.p));
+	rt.add_array_field("predicted", std::move(res.predicted));
+	rt.add_array_field("residuals", std::move(res.residuals));
+	rt.add_numeric_field("rse", res.rse);
+	rt.add_numeric_field("df", res.df);
+}
+
 //TODO: check here for reports: https://valelab4.ucsf.edu/svn/3rdpartypublic/boost/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/f_eg.html
 void Runtime::init_stats()
 {
@@ -213,6 +229,7 @@ void Runtime::init_stats()
 	add_global_function("t_test1", stat_ttest1, 2);
 	add_global_function("covrc", stat_cov, 2);
 	add_global_function("corr", stat_corr, 2);
+	add_global_function("lm", stat_lm, 2);
 }
 
 } // namespace phonometrica

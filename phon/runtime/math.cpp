@@ -142,7 +142,7 @@ static double do_round(double x)
     return floor(x + 0.5);
 }
 
-static double do_round(double x, int n)
+static double do_round(long double x, int n)
 {
     auto p = pow(10, n);
     if (std::isnan(x)) return x;

@@ -114,7 +114,7 @@ WeeninkModel model_segment(const Matrix<double> &F, const Matrix<double> &B, uns
 		}
 
 		// Obtain the singular value decomposition of A
-		Eigen::JacobiSVD<Matrix<double>> svd(A, Eigen::ComputeThinU|Eigen::ComputeThinV);
+		Eigen::BDCSVD<Matrix<double>> svd(A, Eigen::ComputeThinU|Eigen::ComputeThinV);
 
 		// Estimate the parameters of the model
 		Vector<double> beta = svd.solve(b);

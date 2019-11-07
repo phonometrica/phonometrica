@@ -67,6 +67,41 @@ void write_csv(const String &path, const Array<Array<String>> &csv, std::string_
 	}
 }
 
+Array<double> read_matrix(const String &path, std::string_view splitter)
+{
+	auto csv = parse_csv(path, splitter);
+	auto nrow = csv.size();
+	if (nrow == 0) {
+		throw error("Empty matrix");
+	}
+	auto ncol = csv.first().size();
+	Array<double> M(nrow, ncol);
+
+	for (intptr_t i = 1; i <= nrow; i++)
+	{
+		auto &row = csv[i];
+
+		for (intptr_t j = 1; j <= ncol; j++)
+		{
+			try {
+				M(i,j) = row[j].to_float();
+			}
+			catch (std::exception) {
+				throw error("Invalid numeric value at row %, column %", i, j);
+			}
+		}
+	}
+
+	return M;
+}
+
+void write_matrix(const Array<double> &matrix, const String &path, std::string_view sep)
+{
+	File out(path, File::Write);
+	out.write(matrix_to_csv(matrix, sep));
+}
+
+
 String matrix_to_csv(const Array<double> &matrix, std::string_view sep)
 {
 	assert(matrix.ndim() == 2);

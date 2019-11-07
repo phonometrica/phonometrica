@@ -377,6 +377,12 @@ void Runtime::add_numeric_field(const char *name, double n)
 	def_field(-2, name, PHON_DONTENUM);
 }
 
+void Runtime::add_array_field(const char *name, Array<double> a)
+{
+	push(std::move(a));
+	def_field(-2, name, PHON_DONTENUM);
+}
+
 Variant &Runtime::get(int idx)
 {
     return *stack_index(idx);

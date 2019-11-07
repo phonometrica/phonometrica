@@ -33,6 +33,18 @@ enum class Alternative
 	Less
 };
 
+struct LinearModel
+{
+	Array<double> beta;      // regression coefficients
+	Array<double> se;        // standard errors
+	Array<double> t;         // t-values
+	Array<double> p;         // p-values
+	Array<double> predicted; // predicted values
+	Array<double> residuals; // residual errors
+	double rse;              // residual standard error
+	intptr_t df;             // degrees of freedom
+};
+
 double sum(const Array<double> &x);
 
 Array<double> sum(const Array<double> &x, intptr_t dim);
@@ -84,6 +96,14 @@ f_test(const Array<double> &x, const Array<double> &y, Alternative alt = Alterna
 // that assigned observation n to category k. `n` is the number of raters.
 double kappa_fleiss(const Array<double> &ratings, intptr_t n);
 
+
+//! Performs linear regression using the least-squared method.
+//! \param y a vector of N observations
+//! \param X an N by M matrix, where N is the number of observations and M the number of regression coefficients. The
+// first column contains the intercept (beta_0).
+//! \return a vector of N coefficient (the first coefficient is the intercept).
+
+LinearModel lm(const Array<double> &y, const Array<double> &X);
 
 }} // namespace phonometrica::stats
 

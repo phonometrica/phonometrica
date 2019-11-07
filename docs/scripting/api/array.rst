@@ -19,6 +19,21 @@ row in the second column, whereas *(1, -1)* represents element in the first row 
     print(X[1,4])
 
 
+
+Global functions
+----------------
+
+.. function:: read_matrix(path [, separator])
+
+Reads a two-dimensional numeric array from a CSV file, in which values are separated by ``separator`` (by default, a comma).
+
+------------
+
+.. function:: write_matrix(M, path [, separator])
+
+Writes a two-dimensional numeric array ``M`` to a CSV file, in which values are separated by ``separator`` (by default, a comma).
+
+
 Methods
 -------
 

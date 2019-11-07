@@ -49,6 +49,8 @@ Array<double> add(const Array<double> &X, double n);
 
 Array<double> sub(const Array<double> &X, double n);
 
+Array<double> operator-(const Array<double> &x, const Array<double> &y);
+
 } // namespace phonometrica
 
 #endif // PHONOMETRICA_MATRIX_HPP

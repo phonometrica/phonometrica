@@ -230,7 +230,7 @@ void Sound::convert(const String &path, int sample_rate, Sound::Format fmt)
 	auto input = this->light_data();
 	Resampler resampler(input->sample_rate(), sample_rate, BUFFER_SIZE);
 	input->seek(0);
-	auto size = input->size() / input->channels();
+	auto size = input->size();
 	double *out = nullptr;
 	intptr_t ol = double(size) * sample_rate / input->sample_rate();
 

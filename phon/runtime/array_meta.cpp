@@ -22,6 +22,7 @@
 #include <random>
 #include <phon/runtime/object.hpp>
 #include <phon/runtime/toplevel.hpp>
+#include <phon/utils/text.hpp>
 
 namespace phonometrica {
 
@@ -172,8 +173,27 @@ static void array_get_col(Runtime &rt)
 	rt.push(std::move(result));
 }
 
+static void array_read(Runtime &rt)
+{
+	auto path = rt.to_string(1);
+	auto sep = rt.arg_count() > 1 ? rt.to_string(2) : String(",");
+	rt.push(utils::read_matrix(path, sep));
+}
+
+static void array_write(Runtime &rt)
+{
+	auto &M = rt.to_array(1);
+	auto path = rt.to_string(2);
+	auto sep = rt.arg_count() > 2 ? rt.to_string(3) : String(",");
+	utils::write_matrix(M, path, sep);
+	rt.push_null();
+}
+
 void Runtime::init_array()
 {
+	add_global_function("read_matrix", array_read, 1);
+	add_global_function("write_matrix", array_write, 2);
+
 	push(array_meta);
 	{
 		add_accessor("row_count", array_nrow);

@@ -59,7 +59,7 @@ public:
 
     double sample(intptr_t i) const { return m_data[i]; }
 
-    intptr_t size() const { return m_handle.frames() / m_handle.channels(); }
+    intptr_t size() const { return m_handle.frames(); }
 
     int channels() const { return m_handle.channels(); }
 

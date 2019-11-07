@@ -41,6 +41,12 @@ SpeechView::SpeechView(Runtime &rt, const AutoSound &sound, QWidget *parent) :
 	PHON_LOG("Constructing speech annotation");
     // We can't set up the UI in the constructor because we need to call virtual methods. Instead, we do it
     // in post_initialize(), which is called by the viewer after the view is created and has its vtable set.
+
+	if (sound->nchannel() != 1) {
+		QMessageBox::information(this, tr("Unsupported number of channels"),
+		                         tr("Phonometrica doesn't yet support sound files with more than one channel.\n"
+		                            "Please convert it to mono."));
+	}
 }
 
 void SpeechView::postInitialize()
