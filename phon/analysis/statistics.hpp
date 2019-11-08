@@ -43,6 +43,8 @@ struct LinearModel
 	Array<double> residuals; // residual errors
 	double rse;              // residual standard error
 	intptr_t df;             // degrees of freedom
+	double r2;               // R squared
+	double adj_r2;           // Adjusted R squared
 };
 
 double sum(const Array<double> &x);

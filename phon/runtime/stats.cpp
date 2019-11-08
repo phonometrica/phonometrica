@@ -214,6 +214,8 @@ static void stat_lm(Runtime &rt)
 	rt.add_array_field("residuals", std::move(res.residuals));
 	rt.add_numeric_field("rse", res.rse);
 	rt.add_numeric_field("df", res.df);
+	rt.add_numeric_field("r2", res.r2);
+	rt.add_numeric_field("adj_r2", res.adj_r2);
 }
 
 //TODO: check here for reports: https://valelab4.ucsf.edu/svn/3rdpartypublic/boost/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/f_eg.html

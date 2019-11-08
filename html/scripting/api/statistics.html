@@ -84,13 +84,13 @@
 <code class="descname">chi2_test</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="headerlink" href="#chi2_test" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Computes Pearson’s chi-squared test on <code class="docutils literal notranslate"><span class="pre">X</span></code>, which must be a two-dimensional array. The <em>m</em> rows in the array represent
+<p>Computes Pearson’s chi-squared (<span class="math notranslate nohighlight">\(\chi^2\)</span>) test on <code class="docutils literal notranslate"><span class="pre">X</span></code>, which must be a two-dimensional array. The <em>m</em> rows in the array represent
 the <em>m</em> levels of a categorical variable, and the <em>n</em> columns represent the <em>n</em> levels of another categorical variable.
 Each cell represents the unnormalized frequency count for the combination of the two variables. This test evaluates the
 null hypothesis that the two variables are independent.</p>
 <p>This function returns an object with the following fields:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">chi2</span></code>: the chi-squared value</li>
+<li><code class="docutils literal notranslate"><span class="pre">chi2</span></code>: the <span class="math notranslate nohighlight">\(\chi^2\)</span> value</li>
 <li><code class="docutils literal notranslate"><span class="pre">df</span></code>: the number of degrees of freedom</li>
 <li><code class="docutils literal notranslate"><span class="pre">p</span></code>: the p-value</li>
 </ul>
@@ -139,6 +139,8 @@ coefficients, including the intercept which must be the first coefficient. (In g
 <li><code class="docutils literal notranslate"><span class="pre">se</span></code>: an array representing the standard errors of the regression coefficients</li>
 <li><code class="docutils literal notranslate"><span class="pre">t</span></code>: an array of t-values for the regression coefficients (<code class="docutils literal notranslate"><span class="pre">t[i]</span></code> is the t-value for <code class="docutils literal notranslate"><span class="pre">beta[i]</span></code>)</li>
 <li><code class="docutils literal notranslate"><span class="pre">p</span></code>: an array of p-values for the null hypothesis that the corresponding regression coefficient is equal to 0 (<code class="docutils literal notranslate"><span class="pre">p[i]</span></code> is the p-value for <code class="docutils literal notranslate"><span class="pre">beta[i]</span></code>)</li>
+<li><code class="docutils literal notranslate"><span class="pre">r2</span></code>: the <span class="math notranslate nohighlight">\(R^2\)</span> value, which is the proportion of variance explained by the model</li>
+<li><code class="docutils literal notranslate"><span class="pre">adj_r2</span></code>: the adjusted <span class="math notranslate nohighlight">\(R^2\)</span> value, which takes into account the number of predictors in the model.</li>
 </ul>
 <p>Note: the model is estimated by minimizing the sum of squared errors. It is computed using Singular Value Decomposition.</p>
 <hr class="docutils" />

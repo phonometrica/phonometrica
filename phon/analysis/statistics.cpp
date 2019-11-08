@@ -462,10 +462,24 @@ LinearModel lm(const Array<double> &y, const Array<double> &X)
 		// t-value
 		t[i] = beta[i] / se[i];
 		// p-value
-		p[i] = 2 * (1 - cdf(dist, t[i]));
+		p[i] = 2 * (1 - cdf(dist, std::abs(t[i])));
 	}
 
-	return { beta, se, t, p, yhat, resid, double(sqrt(rv)), df };
+	// R^2
+	double ybar = mean(y);
+	long double ssr = 0.0; // sum of squared residuals
+	long double sst = 0.0; // total sum of squares
+
+	for (intptr_t i = 1; i <= n; i++)
+	{
+		ssr += resid[i] * resid[i];
+		sst += (y[i] - ybar) * (y[i] - ybar);
+	}
+	auto r2 = 1 - double(ssr / sst);
+	int np = m - 1; // number of predictors
+	double adj_r2 = 1 - (1 - r2) * (double(n - 1) / (n - np - 1));
+
+	return { beta, se, t, p, yhat, resid, double(sqrt(rv)), df , r2, adj_r2 };
 }
 
 }} // namespace phonometrica::stats
