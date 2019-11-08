@@ -6,7 +6,7 @@ Phonometrica uses (parts of) the following open source libraries, sometimes with
 
 * Boost (Boost license), see `boost.org <https://www.boost.org>`_
 * Eigen, by  Benoît Jacob, Gaël Guennebaud and contributors (MPL2), see `eigen.tuxfamily.org <http://eigen.tuxfamily.org>`_
-* FFTS, by Anthony M. Blake (BSD 3-clause), see `github.com/anthonix/ffts <https://github.com/anthonix/ffts/>`_
+* FFTW, by Matteo Frigo and contributors (GPL), see `www.fftw.org <http://www.fftw.org>`_
 * FLAC, by Josh Coalson and contributors (BSD), see `flac.sourceforge.net <http://flac.sourceforge.net>`_
 * IT++, by Bogdan Cristea, Tony Ottosson, Adam Piatyszek and contributors (GPL), see `itpp.sourceforge.net <http://itpp.sourceforge.net>`_
 * JSON for Modern C++, by Niels Lohmann (MIT), see `github.com/nlohmann/json <https://github.com/nlohmann/json>`_

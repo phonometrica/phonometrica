@@ -18,7 +18,7 @@ set(EMBED_SCRIPTS ON)
 set(BUILD_UNIT_TEST OFF)
 set(DEBUG_CONSOLE OFF)
 set(ENABLE_LOGGING OFF)
-set(USE_FFTW OFF)
+set(USE_FFTW ON)
 
 if (WIN32)
     set(QT_DIR "C:/Qt5/5.12.5/mingw73_64/lib/cmake/Qt5")

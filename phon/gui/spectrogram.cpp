@@ -21,7 +21,7 @@
 
 #include <complex>
 #include <vector>
-#include <ffts.h>
+#include <fftw3.h>
 #include <QMessageBox>
 #include <QDebug>
 #include <phon/runtime/runtime.hpp>
@@ -233,9 +233,9 @@ Matrix<double> Spectrogram::computeSpectrogram()
 	double k1 = 1 / (sample_rate * weight); // at DC and Nyquist frequencies.
 	double k2 = 2 / (sample_rate * weight); // at other frequencies
 
-	ffts_plan_t *plan = ffts_init_1d(nfft, FFTS_FORWARD);
-	std::vector<std::complex<float>> input(nfft, std::complex<float>(0, 0));
-	std::vector<std::complex<float>> output(nfft, std::complex<float>(0, 0));
+	std::vector<double> input(nfft, 0.0);
+	std::vector<std::complex<double>> output(nfft, std::complex<double>(0, 0));
+	fftw_plan plan = fftw_plan_dft_r2c_1d(nfft, input.data(), (fftw_complex*)output.data(), FFTW_ESTIMATE);
 
 	auto buffer = m_data->copy(first_sample, last_sample);
 	pre_emphasis(buffer, sample_rate, preemph_threshold);
@@ -275,14 +275,14 @@ Matrix<double> Spectrogram::computeSpectrogram()
 		for (intptr_t j = 0; j < nframe; j++)
 		{
 			auto sample = float((*it++) * win[j + 1]);
-			input[j] = {sample, 0 };
+			input[j] = sample;
 		}
 		for (intptr_t j = nframe; j < nfft; j++)
 		{
-			input[j] = {0, 0};
+			input[j] = 0;
 		}
 
-		ffts_execute(plan, input.data(), output.data());
+		fftw_execute(plan);
 
 		for (size_t y = 0; y < half_nfft; y++)
 		{
@@ -320,7 +320,7 @@ Matrix<double> Spectrogram::computeSpectrogram()
 		}
 	}
 
-	ffts_free(plan);
+	fftw_free(plan);
 	cached_start = window_start;
 	cached_end = window_end;
 

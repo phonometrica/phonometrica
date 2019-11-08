@@ -6,6 +6,7 @@ Release notes
 
 - ``lm()`` function for linear regression
 - ``read_matrix()`` and ``write_matrix()`` functions to read/write a numeric array to/from a text file
+- DFT now uses double precision
 
 0.7.1 (07/11/2019)
 ~~~~~~~~~~~~~~~~~~

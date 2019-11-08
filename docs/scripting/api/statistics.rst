@@ -61,7 +61,7 @@ This function returns an object with the following fields:
 * ``beta``: an array of estimates for the regression coefficients. The first entry is the intercept
 * ``se``: an array representing the standard errors of the regression coefficients
 * ``t``: an array of t-values for the regression coefficients (``t[i]`` is the t-value for ``beta[i]``)
-* ``p``: an array of p-values for the null hypothesis that the corresponding regression coefficient is equal to 0 (``p[i]`` is the p-value for ``beta[i]``)
+* ``p``: an array of p-values for the null hypothesis that each regression coefficient is equal to 0 (``p[i]`` is the p-value for ``beta[i]``)
 * ``r2``: the :math:`R^2` value, which is the proportion of variance explained by the model
 * ``adj_r2``: the adjusted :math:`R^2` value, which takes into account the number of predictors in the model.
 
@@ -128,7 +128,7 @@ See also: :func:`t_test1`
 
 .. function:: t_test1(x, mu [, alternative])
 
-Computes a one-sample t-test for the sample ``x``, which must a one-dimensional array. This test evaluates the null
+Computes a one-sample t-test for the sample ``x``, which must be a one-dimensional array. This test evaluates the null
  hypothesis that the mean of sample ``x`` is equal to the theoretical mean ``mu``.
 
 If ``alternative`` is specified, it must be one of the following strings: ``"two-tailed"`` performs a two-tailed test (default),
