@@ -37,12 +37,12 @@ add_definitions(-DPHON_VERSION_MINOR=7)
 # Revision release: incremented when bugs are fixed are small features are added
 add_definitions(-DPHON_VERSION_MICRO=2)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=1)
+add_definitions(-DPHON_VERSION_NANO=0)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=11)
-add_definitions(-DPHON_RELEASE_DATE_DAY=7)
+add_definitions(-DPHON_RELEASE_DATE_DAY=9)
 
 # Operating system
 if(WIN32)
