@@ -24,6 +24,7 @@
 #include <QLayout>
 #include <phon/application/settings.hpp>
 #include <phon/gui/formant_search_box.hpp>
+#include <phon/include/reset_formants_settings_phon.hpp>
 
 namespace phonometrica {
 
@@ -55,7 +56,19 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	param_layout->addWidget(formant_spinbox);
 	param_layout->addWidget(new QLabel(tr("Maximum bandwidth (Hz):")));
 	max_bw_edit = new QLineEdit;
-	int bw = (int) Settings::get_number(rt, category, "max_bandwidth");
+
+	// If the user has an older version, "formants" might not be there.
+	int bw = 400;
+	try
+	{
+		bw = (int) Settings::get_number(rt, category, "max_bandwidth");
+	}
+	catch (std::exception&)
+	{
+		run_script(rt, reset_formants_settings);
+		bw = (int) Settings::get_number(rt, category, "max_bandwidth");
+	}
+
 	max_bw_edit->setText(QString::number(bw));
 	param_layout->addWidget(max_bw_edit);
 	param_layout->addWidget(new QLabel(tr("Window size (s):")));

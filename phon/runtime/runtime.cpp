@@ -365,19 +365,31 @@ void Runtime::add_math_constant(const char *name, double number)
     def_field(-2, name, PHON_READONLY | PHON_DONTENUM | PHON_DONTCONF);
 }
 
-void Runtime::add_string_field(const char *name, const char *string)
+void Runtime::add_field(const char *name, const char *string)
 {
     push(string);
     def_field(-2, name, PHON_DONTENUM);
 }
 
-void Runtime::add_numeric_field(const char *name, double n)
+void Runtime::add_field(const char *name, double n)
 {
 	push(n);
 	def_field(-2, name, PHON_DONTENUM);
 }
 
-void Runtime::add_array_field(const char *name, Array<double> a)
+void Runtime::add_field(const char *name, intptr_t n)
+{
+	push(n);
+	def_field(-2, name, PHON_DONTENUM);
+}
+
+void Runtime::add_field(const char *name, bool value)
+{
+	push(value);
+	def_field(-2, name, PHON_DONTENUM);
+}
+
+void Runtime::add_field(const char *name, Array<double> a)
 {
 	push(std::move(a));
 	def_field(-2, name, PHON_DONTENUM);

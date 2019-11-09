@@ -99,6 +99,15 @@ Randomly shuffles the elements of the array. This method modifies the array in p
 
 ------------
 
+.. method:: slice(d1_from, d1_to [, d2_from, d2_to])
+
+Returns a new array which is a slice of the original array. If the original array has one dimension, the result is
+a one-dimensional array starting from index ``d1_from`` up to and including ``d1_to``. If the array has two dimensions, the result is a
+matrix that includes rows starting from row ``d1_from`` up to and including row ``d1_to``, and columns starting from
+``d2_from`` up to and including row ``d2_to``.
+
+------------
+
 .. method:: sub(n)
 
 Returns a new array where ``n`` was subtracted from each element in the original array.

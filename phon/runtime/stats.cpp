@@ -21,6 +21,7 @@
 
 #include <phon/runtime/toplevel.hpp>
 #include <phon/analysis/statistics.hpp>
+#include <phon/analysis/regression.hpp>
 
 namespace phonometrica {
 
@@ -109,9 +110,9 @@ static void stat_chi2(Runtime &rt)
 	auto &x = rt.to_array(1);
 	auto result = stats::chi2_test(x);
 	rt.new_object();
-	rt.add_numeric_field("chi2", std::get<0>(result));
-	rt.add_numeric_field("df", std::get<1>(result));
-	rt.add_numeric_field("p", std::get<2>(result));
+	rt.add_field("chi2", std::get<0>(result));
+	rt.add_field("df", std::get<1>(result));
+	rt.add_field("p", std::get<2>(result));
 }
 
 static void stat_ftest(Runtime &rt)
@@ -127,10 +128,10 @@ static void stat_ftest(Runtime &rt)
 
 	auto result = stats::f_test(x, y, alt);
 	rt.new_object();
-	rt.add_numeric_field("f", std::get<0>(result));
-	rt.add_numeric_field("df1", std::get<1>(result));
-	rt.add_numeric_field("df2", std::get<2>(result));
-	rt.add_numeric_field("p", std::get<3>(result));
+	rt.add_field("f", std::get<0>(result));
+	rt.add_field("df1", std::get<1>(result));
+	rt.add_field("df2", std::get<2>(result));
+	rt.add_field("p", std::get<3>(result));
 }
 
 static void stat_ttest(Runtime &rt)
@@ -159,10 +160,10 @@ static void stat_ttest(Runtime &rt)
 	auto result = var_equal ? stats::student_ttest2(x, y, alt) : stats::welch_ttest2(x, y, alt);
 	rt.new_object();
 	const char *method = var_equal ? "student" : "welch";
-	rt.add_string_field("method", method);
-	rt.add_numeric_field("t", std::get<0>(result));
-	rt.add_numeric_field("df", std::get<1>(result));
-	rt.add_numeric_field("p", std::get<2>(result));
+	rt.add_field("method", method);
+	rt.add_field("t", std::get<0>(result));
+	rt.add_field("df", std::get<1>(result));
+	rt.add_field("p", std::get<2>(result));
 }
 
 static void stat_ttest1(Runtime &rt)
@@ -173,9 +174,9 @@ static void stat_ttest1(Runtime &rt)
 	stats::Alternative alt = alternative(s);
 	auto result = stats::student_ttest1(x, mu, alt);
 	rt.new_object();
-	rt.add_numeric_field("t", std::get<0>(result));
-	rt.add_numeric_field("df", std::get<1>(result));
-	rt.add_numeric_field("p", std::get<2>(result));
+	rt.add_field("t", std::get<0>(result));
+	rt.add_field("df", std::get<1>(result));
+	rt.add_field("p", std::get<2>(result));
 }
 
 static void stat_cov(Runtime &rt)
@@ -204,18 +205,33 @@ static void stat_lm(Runtime &rt)
 {
 	auto &y = rt.to_array(1);
 	auto &X = rt.to_array(2);
-	auto res = stats::lm(y, X);
+	auto model = stats::lm(y, X);
 	rt.new_object();
-	rt.add_array_field("beta", std::move(res.beta));
-	rt.add_array_field("se", std::move(res.se));
-	rt.add_array_field("t", std::move(res.t));
-	rt.add_array_field("p", std::move(res.p));
-	rt.add_array_field("predicted", std::move(res.predicted));
-	rt.add_array_field("residuals", std::move(res.residuals));
-	rt.add_numeric_field("rse", res.rse);
-	rt.add_numeric_field("df", res.df);
-	rt.add_numeric_field("r2", res.r2);
-	rt.add_numeric_field("adj_r2", res.adj_r2);
+	rt.add_field("beta", std::move(model.beta));
+	rt.add_field("se", std::move(model.se));
+	rt.add_field("t", std::move(model.t));
+	rt.add_field("p", std::move(model.p));
+	rt.add_field("predicted", std::move(model.predicted));
+	rt.add_field("residuals", std::move(model.residuals));
+	rt.add_field("rse", model.rse);
+	rt.add_field("df", model.df);
+	rt.add_field("r2", model.r2);
+	rt.add_field("adj_r2", model.adj_r2);
+}
+
+static void stat_logit(Runtime &rt)
+{
+	auto &y = rt.to_array(1);
+	auto &X = rt.to_array(2);
+	int niter = rt.arg_count() > 2 ? (int) rt.to_integer(3) : 200;
+	auto model = stats::logit(y, X, niter);
+	rt.new_object();
+	rt.add_field("beta", std::move(model.beta));
+	rt.add_field("se", std::move(model.se));
+	rt.add_field("z", std::move(model.z));
+	rt.add_field("p", std::move(model.p));
+	rt.add_field("niter", intptr_t(model.niter));
+	rt.add_field("converged", model.converged);
 }
 
 //TODO: check here for reports: https://valelab4.ucsf.edu/svn/3rdpartypublic/boost/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/f_eg.html
@@ -232,6 +248,7 @@ void Runtime::init_stats()
 	add_global_function("covrc", stat_cov, 2);
 	add_global_function("corr", stat_corr, 2);
 	add_global_function("lm", stat_lm, 2);
+	add_global_function("logit", stat_logit, 2);
 }
 
 } // namespace phonometrica

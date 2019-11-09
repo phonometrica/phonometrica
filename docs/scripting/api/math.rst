@@ -153,7 +153,13 @@ Constants
 
 .. attribute:: E
 
-Returns the value of *e*, the base of the natural logarithm (approximately 2.7182818).
+Returns the value of *e*, the base of the natural logarithm (approximately 2.718281).
+
+------------
+
+.. attribute:: PHI
+
+Returns the value of the golden ratio :math:`\phi` (approximately 1.618033).
 
 ------------
 

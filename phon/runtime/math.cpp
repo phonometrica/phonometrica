@@ -278,6 +278,7 @@ void Runtime::init_math()
         add_math_constant("E", 2.7182818284590452354);
         add_math_constant("PI", 3.1415926535897932);
         add_math_constant("SQRT2", 1.4142135623730951);
+        add_math_constant("PHI", 1.6180339887498948);
     }
     def_global("__math", PHON_DONTENUM);
 
@@ -285,6 +286,7 @@ void Runtime::init_math()
 		E = __math.E
 		PI = __math.PI
 		SQRT2 = __math.SQRT2
+        PHI = __math.PHI
     )__");
 }
 

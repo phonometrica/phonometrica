@@ -26,6 +26,18 @@
 
 namespace phonometrica {
 
+static intptr_t normalize(intptr_t i, intptr_t len, int dim)
+{
+	if (i > 0 && i <= len) {
+		return i;
+	}
+	if (i >= -len && i < 0) {
+		return len + i + 1;
+	}
+
+	throw error("[Index error] Index % out of range in dimension % containing % items", i, dim, len);
+}
+
 static void array_ctor(Runtime &rt)
 {
 	int argc = rt.arg_count();
@@ -189,6 +201,56 @@ static void array_write(Runtime &rt)
 	rt.push_null();
 }
 
+static void array_slice(Runtime &rt)
+{
+	auto &x = rt.to_array(0);
+	auto row1 = rt.to_integer(1);
+	auto row2 = rt.to_integer(2);
+
+	switch (x.ndim())
+	{
+		case 1:
+		{
+			auto len = row2 - row1 + 1;
+			row1 = normalize(row1, x.size(), 1);
+			row2 = normalize(row2, x.size(), 1);
+			Array<double> y(len, 0.0);
+
+			for (intptr_t i = row1; i <= row2; i++) {
+				y[i + 1 - row1] = x[i];
+			}
+			rt.push(std::move(y));
+			break;
+		}
+		case 2:
+		{
+			auto col1 = rt.to_integer(3);
+			auto col2 = rt.to_integer(4);
+			row1 = normalize(row1, x.nrow(), 1);
+			row2 = normalize(row2, x.nrow(), 1);
+			col1 = normalize(col1, x.ncol(), 2);
+			col2 = normalize(col2, x.ncol(), 2);
+			auto nrow = row2 - row1 + 1;
+			auto ncol = col2 - col1 + 1;
+			Array<double> y(nrow, ncol);
+
+			for (intptr_t i = row1; i <= row2; i++)
+			{
+				intptr_t ii = i + 1 - row1;
+				for (intptr_t j = col1; j <= col2; j++)
+				{
+					intptr_t jj = j + 1 - col1;
+					y(ii, jj) = x(i,j);
+				}
+			}
+			rt.push(std::move(y));
+			break;
+		}
+		default:
+			throw error("Cannot slice array with more than 2 dimensions");
+	}
+}
+
 void Runtime::init_array()
 {
 	add_global_function("read_matrix", array_read, 1);
@@ -209,6 +271,7 @@ void Runtime::init_array()
 		add_method("Array.meta.clone", array_clone, 0);
 		add_method("Array.meta.get_row", array_get_row, 1);
 		add_method("Array.meta.get_column", array_get_col, 1);
+		add_method("Array.meta.slice", array_slice, 2);
 	}
 	new_native_constructor(array_ctor, array_ctor, "Array", 1);
 	def_global("Array", PHON_DONTENUM);

@@ -53,7 +53,7 @@ This function returns an object with the following fields:
 
 .. function:: lm(y, X)
 
-Fits a linear regression model. ``y`` is a set of N observations, and ``X`` is an N by M matrix for a model with M regression
+Fits a linear regression model. ``y`` is a set of N observations for a continuous outcome, and ``X`` is an N by M matrix for a model with M regression
 coefficients, including the intercept which must be the first coefficient. (In general, it should be a column of 1's.)
 
 This function returns an object with the following fields:
@@ -61,11 +61,30 @@ This function returns an object with the following fields:
 * ``beta``: an array of estimates for the regression coefficients. The first entry is the intercept
 * ``se``: an array representing the standard errors of the regression coefficients
 * ``t``: an array of t-values for the regression coefficients (``t[i]`` is the t-value for ``beta[i]``)
-* ``p``: an array of p-values for the null hypothesis that each regression coefficient is equal to 0 (``p[i]`` is the p-value for ``beta[i]``)
+* ``p``: an array of p-values for a t-test which evaluates the null hypothesis that each regression coefficient is equal to 0 (``p[i]`` is the p-value for ``beta[i]``)
 * ``r2``: the :math:`R^2` value, which is the proportion of variance explained by the model
 * ``adj_r2``: the adjusted :math:`R^2` value, which takes into account the number of predictors in the model.
 
-Note: the model is estimated by minimizing the sum of squared errors. It is computed using Singular Value Decomposition.
+Note: the model is estimated by minimizing the sum of squared errors. It is solved analytically using Singular Value Decomposition.
+
+------------
+
+.. function:: logit(y, X [, max_iter])
+
+Fits a logistic regression model. ``y`` is a set of N binary observations (either 0 or 1), and ``X`` is an N by M matrix for a model with M regression
+coefficients, including the intercept which must be the first coefficient. (In general, it should be a column of 1's.)
+If ``max_iter`` is provided, it indicates the maximum number of iterations that the solver should perform to estimate the coefficients (200 by default).
+
+This function returns an object with the following fields:
+
+* ``beta``: an array of estimates for the regression coefficients. The first entry is the intercept
+* ``se``: an array representing the standard errors of the regression coefficients
+* ``z``: an array of z-values for the regression coefficients (``z[i]`` is the z-value for ``beta[i]``)
+* ``p``: an array of p-values for a Wald test which evaluates the null hypothesis that each regression coefficient is equal to 0 (``p[i]`` is the p-value for ``beta[i]``)
+* ``niter``: the number of iterations performed by the numerical solver
+* ``converged``: a Boolean value indicating whether the solver has converged to a solution. It is ``true`` if ``niter < max_iter``
+
+Note: the model is solved numerically using the Limited-memory Broyden–Fletcher–Goldfarb–Shanno (L-BFGS) approximation method.
 
 ------------
 

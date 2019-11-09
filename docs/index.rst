@@ -21,6 +21,7 @@ It is particularly well suited for dealing with time-aligned data. The main feat
    * Sound visualization and annotation: visualize and annotate speech sounds on multiple layers
    * Extensible metadata: annotate files with properties, which allow you to sort and organize your corpus.
    * Queries: build and save simple or complex queries; search strings or patterns across layers.
+   * Data analysis: hypothesis testing, linear and logistic regression
    * Scripting engine: Phonometrica can be configured and extended with an easy-to-use scripting language and JSON files.
    * Standard-based: Phonometrica files are encoded in XML and Unicode.
    * Interaction with Praat: Phonometrica can read and write TextGrid files and open files directly in Praat.

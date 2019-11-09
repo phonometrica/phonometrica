@@ -5,8 +5,10 @@ Release notes
 ~~~~~~~~~~~~~~~~~~
 
 - ``lm()`` function for linear regression
+- ``logit()`` function for logistic regression
 - ``read_matrix()`` and ``write_matrix()`` functions to read/write a numeric array to/from a text file
 - DFT now uses double precision
+- ``slice()`` method to obtain a slice of an ``Array``
 
 0.7.1 (07/11/2019)
 ~~~~~~~~~~~~~~~~~~

@@ -19,12 +19,11 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <math.h>
+#include <cmath>
 #include <boost/math/distributions/students_t.hpp>
 #include <boost/math/distributions/fisher_f.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
 #include <phon/analysis/statistics.hpp>
-#include <phon/utils/matrix.hpp>
 
 namespace phonometrica { namespace stats {
 
@@ -395,91 +394,6 @@ double kappa_fleiss(const Array<double> &ratings, intptr_t n)
     double kappa = (mean(agreement) - prop) / (1 - prop);
 
     return kappa;
-}
-
-LinearModel lm(const Array<double> &y, const Array<double> &X)
-{
-	using namespace Eigen;
-	if (y.ndim() != 1) {
-		throw error("y must a one-dimensional array");
-	}
-	if (X.ndim() != 2) {
-		throw error("X must be a two-dimensional array");
-	}
-	if (X.nrow() != y.size()) {
-		throw error("Inconsistent number of observations in y and X");
-	}
-	intptr_t m = X.ncol();
-	intptr_t n = X.nrow();
-
-	if (n <= m) {
-		throw error("Not enough data points to perform linear regression");
-	}
-
-	Array<double> beta(m, 0.0), se(m, 0.0), t(m, 0.0), p(m, 0.0);
-	Map<Matrix<double>> X1(const_cast<double*>(X.data()), X.nrow(), X.ncol());
-	Map<Vector<double>> y1(const_cast<double*>(y.data()), y.size());
-	Map<Vector<double>> b1(beta.data(), beta.size());
-
-	BDCSVD<Matrix<double>> svd(X1, ComputeThinU|ComputeThinV);
-	b1 = svd.solve(y1);
-
-	Array<double> yhat(n, 0.0);  // predicted values
-	Array<double> resid(n, 0.0); // residuals
-
-	for (intptr_t i = 1; i <= n; i++)
-	{
-		double val = 0.0;
-
-		for (intptr_t j = 1; j <= m; j++)
-		{
-			val += X(i,j) * beta[j];
-		}
-		yhat[i] = val;
-	}
-
-	// Estimate residual variance
-	intptr_t df = n - m;
-	long double sse = 0.0; // sum of squared errors
-
-	for (intptr_t i = 1; i <= n; i++)
-	{
-		auto e = y[i] - yhat[i];
-		resid[i] = e;
-		sse += e * e;
-	}
-	auto rv = sse / df;
-
-	// Get standard errors, t-values and p-values
-	auto var = (X1.transpose() * X1).inverse();
-
-	boost::math::students_t dist(df);
-
-	for (intptr_t i = 1; i <= m; i++)
-	{
-		// Standard error
-		se[i] = sqrt(rv * var(i-1, i-1));
-		// t-value
-		t[i] = beta[i] / se[i];
-		// p-value
-		p[i] = 2 * (1 - cdf(dist, std::abs(t[i])));
-	}
-
-	// R^2
-	double ybar = mean(y);
-	long double ssr = 0.0; // sum of squared residuals
-	long double sst = 0.0; // total sum of squares
-
-	for (intptr_t i = 1; i <= n; i++)
-	{
-		ssr += resid[i] * resid[i];
-		sst += (y[i] - ybar) * (y[i] - ybar);
-	}
-	auto r2 = 1 - double(ssr / sst);
-	int np = m - 1; // number of predictors
-	double adj_r2 = 1 - (1 - r2) * (double(n - 1) / (n - np - 1));
-
-	return { beta, se, t, p, yhat, resid, double(sqrt(rv)), df , r2, adj_r2 };
 }
 
 }} // namespace phonometrica::stats

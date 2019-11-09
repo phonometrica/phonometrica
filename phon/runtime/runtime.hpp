@@ -239,11 +239,15 @@ public:
 
     void add_math_constant(const char *name, double number);
 
-    void add_string_field(const char *name, const char *string);
+    void add_field(const char *name, const char *string);
 
-    void add_numeric_field(const char *name, double n);
+    void add_field(const char *name, double n);
 
-    void add_array_field(const char *name, Array<double> a);
+	void add_field(const char *name, intptr_t n);
+
+    void add_field(const char *name, bool value);
+
+    void add_field(const char *name, Array<double> a);
 
     double to_number(int idx);
 

@@ -131,18 +131,37 @@ This function returns an object with the following fields:</p>
 <code class="descname">lm</code><span class="sig-paren">(</span><em>y</em>, <em>X</em><span class="sig-paren">)</span><a class="headerlink" href="#lm" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Fits a linear regression model. <code class="docutils literal notranslate"><span class="pre">y</span></code> is a set of N observations, and <code class="docutils literal notranslate"><span class="pre">X</span></code> is an N by M matrix for a model with M regression
+<p>Fits a linear regression model. <code class="docutils literal notranslate"><span class="pre">y</span></code> is a set of N observations for a continuous outcome, and <code class="docutils literal notranslate"><span class="pre">X</span></code> is an N by M matrix for a model with M regression
 coefficients, including the intercept which must be the first coefficient. (In general, it should be a column of 1’s.)</p>
 <p>This function returns an object with the following fields:</p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">beta</span></code>: an array of estimates for the regression coefficients. The first entry is the intercept</li>
 <li><code class="docutils literal notranslate"><span class="pre">se</span></code>: an array representing the standard errors of the regression coefficients</li>
 <li><code class="docutils literal notranslate"><span class="pre">t</span></code>: an array of t-values for the regression coefficients (<code class="docutils literal notranslate"><span class="pre">t[i]</span></code> is the t-value for <code class="docutils literal notranslate"><span class="pre">beta[i]</span></code>)</li>
-<li><code class="docutils literal notranslate"><span class="pre">p</span></code>: an array of p-values for the null hypothesis that the corresponding regression coefficient is equal to 0 (<code class="docutils literal notranslate"><span class="pre">p[i]</span></code> is the p-value for <code class="docutils literal notranslate"><span class="pre">beta[i]</span></code>)</li>
+<li><code class="docutils literal notranslate"><span class="pre">p</span></code>: an array of p-values for a t-test which evaluates the null hypothesis that each regression coefficient is equal to 0 (<code class="docutils literal notranslate"><span class="pre">p[i]</span></code> is the p-value for <code class="docutils literal notranslate"><span class="pre">beta[i]</span></code>)</li>
 <li><code class="docutils literal notranslate"><span class="pre">r2</span></code>: the <span class="math notranslate nohighlight">\(R^2\)</span> value, which is the proportion of variance explained by the model</li>
 <li><code class="docutils literal notranslate"><span class="pre">adj_r2</span></code>: the adjusted <span class="math notranslate nohighlight">\(R^2\)</span> value, which takes into account the number of predictors in the model.</li>
 </ul>
-<p>Note: the model is estimated by minimizing the sum of squared errors. It is computed using Singular Value Decomposition.</p>
+<p>Note: the model is estimated by minimizing the sum of squared errors. It is solved analytically using Singular Value Decomposition.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="logit">
+<code class="descname">logit</code><span class="sig-paren">(</span><em>y</em>, <em>X</em><span class="optional">[</span>, <em>max_iter</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#logit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Fits a logistic regression model. <code class="docutils literal notranslate"><span class="pre">y</span></code> is a set of N binary observations (either 0 or 1), and <code class="docutils literal notranslate"><span class="pre">X</span></code> is an N by M matrix for a model with M regression
+coefficients, including the intercept which must be the first coefficient. (In general, it should be a column of 1’s.)
+If <code class="docutils literal notranslate"><span class="pre">max_iter</span></code> is provided, it indicates the maximum number of iterations that the solver should perform to estimate the coefficients (200 by default).</p>
+<p>This function returns an object with the following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">beta</span></code>: an array of estimates for the regression coefficients. The first entry is the intercept</li>
+<li><code class="docutils literal notranslate"><span class="pre">se</span></code>: an array representing the standard errors of the regression coefficients</li>
+<li><code class="docutils literal notranslate"><span class="pre">z</span></code>: an array of z-values for the regression coefficients (<code class="docutils literal notranslate"><span class="pre">z[i]</span></code> is the z-value for <code class="docutils literal notranslate"><span class="pre">beta[i]</span></code>)</li>
+<li><code class="docutils literal notranslate"><span class="pre">p</span></code>: an array of p-values for a Wald test which evaluates the null hypothesis that each regression coefficient is equal to 0 (<code class="docutils literal notranslate"><span class="pre">p[i]</span></code> is the p-value for <code class="docutils literal notranslate"><span class="pre">beta[i]</span></code>)</li>
+<li><code class="docutils literal notranslate"><span class="pre">niter</span></code>: the number of iterations performed by the numerical solver</li>
+<li><code class="docutils literal notranslate"><span class="pre">converged</span></code>: a Boolean value indicating whether the solver has converged to a solution. It is <code class="docutils literal notranslate"><span class="pre">true</span></code> if <code class="docutils literal notranslate"><span class="pre">niter</span> <span class="pre">&lt;</span> <span class="pre">max_iter</span></code></li>
+</ul>
+<p>Note: the model is solved numerically using the Limited-memory Broyden–Fletcher–Goldfarb–Shanno (L-BFGS) approximation method.</p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="mean">
@@ -207,7 +226,7 @@ This function returns an object with the following fields:</p>
 <dd></dd></dl>
 
 <dl class="docutils">
-<dt>Computes a one-sample t-test for the sample <code class="docutils literal notranslate"><span class="pre">x</span></code>, which must a one-dimensional array. This test evaluates the null</dt>
+<dt>Computes a one-sample t-test for the sample <code class="docutils literal notranslate"><span class="pre">x</span></code>, which must be a one-dimensional array. This test evaluates the null</dt>
 <dd>hypothesis that the mean of sample <code class="docutils literal notranslate"><span class="pre">x</span></code> is equal to the theoretical mean <code class="docutils literal notranslate"><span class="pre">mu</span></code>.</dd>
 </dl>
 <p>If <code class="docutils literal notranslate"><span class="pre">alternative</span></code> is specified, it must be one of the following strings: <code class="docutils literal notranslate"><span class="pre">&quot;two-tailed&quot;</span></code> performs a two-tailed test (default),
