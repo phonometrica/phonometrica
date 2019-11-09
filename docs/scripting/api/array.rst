@@ -23,9 +23,10 @@ row in the second column, whereas *(1, -1)* represents element in the first row 
 Global functions
 ----------------
 
-.. function:: read_matrix(path [, separator])
+.. function:: read_matrix(path [, separator [, drop_header]])
 
 Reads a two-dimensional numeric array from a CSV file, in which values are separated by ``separator`` (by default, a comma).
+If ``drop_header`` is ``true`` (default), the first line will be treated as a header and will be dropped.
 
 ------------
 

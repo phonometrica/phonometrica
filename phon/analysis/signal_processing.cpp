@@ -29,7 +29,6 @@
 #include <algorithm>
 #include <SPTK.h>
 #include <phon/analysis/signal_processing.hpp>
-#include <phon/third_party/rpolyplusplus/find_polynomial_roots_jenkins_traub.h>
 #include <QDebug>
 
 namespace phonometrica {

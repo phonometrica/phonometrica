@@ -24,10 +24,11 @@
 
 namespace phonometrica { namespace utils {
 
-Array<Array<String>> parse_csv(const String &path, std::string_view splitter)
+Array<Array<String>> parse_csv(const String &path, std::string_view splitter, bool has_header)
 {
 	Array<Array<String>> csv;
 	File infile(path);
+	if (has_header) infile.read_line();
 
 	while (!infile.at_end())
 	{
@@ -67,9 +68,9 @@ void write_csv(const String &path, const Array<Array<String>> &csv, std::string_
 	}
 }
 
-Array<double> read_matrix(const String &path, std::string_view splitter)
+Array<double> read_matrix(const String &path, std::string_view splitter, bool has_header)
 {
-	auto csv = parse_csv(path, splitter);
+	auto csv = parse_csv(path, splitter, has_header);
 	auto nrow = csv.size();
 	if (nrow == 0) {
 		throw error("Empty matrix");

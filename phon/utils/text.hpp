@@ -26,11 +26,11 @@
 
 namespace phonometrica { namespace utils {
 
-Array<Array<String>> parse_csv(const String &path, std::string_view splitter = ",");
+Array<Array<String>> parse_csv(const String &path, std::string_view splitter = ",", bool has_header = false);
 
 void write_csv(const String &path, const Array<Array<String>> &csv, std::string_view separator = ",");
 
-Array<double> read_matrix(const String &path, std::string_view splitter = ",");
+Array<double> read_matrix(const String &path, std::string_view splitter = ",", bool has_header = false);
 
 void write_matrix(const Array<double> &matrix, const String &path, std::string_view sep = ",");
 

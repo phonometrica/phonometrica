@@ -97,10 +97,11 @@ row in the second column, whereas <em>(1, -1)</em> represents element in the fir
 <h2>Global functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="read_matrix">
-<code class="descname">read_matrix</code><span class="sig-paren">(</span><em>path</em><span class="optional">[</span>, <em>separator</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#read_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="descname">read_matrix</code><span class="sig-paren">(</span><em>path</em><span class="optional">[</span>, <em>separator</em><span class="optional">[</span>, <em>drop_header</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#read_matrix" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Reads a two-dimensional numeric array from a CSV file, in which values are separated by <code class="docutils literal notranslate"><span class="pre">separator</span></code> (by default, a comma).</p>
+<p>Reads a two-dimensional numeric array from a CSV file, in which values are separated by <code class="docutils literal notranslate"><span class="pre">separator</span></code> (by default, a comma).
+If <code class="docutils literal notranslate"><span class="pre">drop_header</span></code> is <code class="docutils literal notranslate"><span class="pre">true</span></code> (default), the first line will be treated as a header and will be dropped.</p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="write_matrix">

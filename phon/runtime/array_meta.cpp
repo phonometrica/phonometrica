@@ -189,7 +189,8 @@ static void array_read(Runtime &rt)
 {
 	auto path = rt.to_string(1);
 	auto sep = rt.arg_count() > 1 ? rt.to_string(2) : String(",");
-	rt.push(utils::read_matrix(path, sep));
+	auto header = rt.arg_count() > 2 ? rt.to_boolean(3) : false;
+	rt.push(utils::read_matrix(path, sep, header));
 }
 
 static void array_write(Runtime &rt)
