@@ -75,7 +75,7 @@ GLModel logit(const Array<double> &y, const Array<double> &X, int max_iter = 200
 
 
 // Poisson regression
-GLModel poisson(const Array<double> &y, const Array<double> &X, int max_iter);
+GLModel poisson(const Array<double> &y, const Array<double> &X, bool robust, int max_iter = 200);
 
 } // namespace phonometrica::stats
 

@@ -1,6 +1,12 @@
 Release notes
 -------------
 
+0.7.4 (14/11/2019)
+~~~~~~~~~~~~~~~~~~
+
+- robust sandwich variance estimator for Poisson regression
+- ``covrc()`` was renamed to ``cov()``
+
 0.7.3 (10/11/2019)
 ~~~~~~~~~~~~~~~~~~
 

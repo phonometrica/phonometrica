@@ -238,8 +238,9 @@ static void stat_poisson(Runtime &rt)
 {
 	auto &y = rt.to_array(1);
 	auto &X = rt.to_array(2);
-	int niter = rt.arg_count() > 2 ? (int) rt.to_integer(3) : 200;
-	auto model = stats::poisson(y, X, niter);
+	bool robust = rt.arg_count() > 2 ? rt.to_boolean(3) : false;
+	int niter = rt.arg_count() > 3 ? (int) rt.to_integer(4) : 200;
+	auto model = stats::poisson(y, X, robust, niter);
 	rt.new_object();
 	rt.add_field("beta", std::move(model.beta));
 	rt.add_field("se", std::move(model.se));
@@ -259,7 +260,7 @@ void Runtime::init_stats()
 	add_global_function("f_test", stat_ftest, 2);
 	add_global_function("t_test", stat_ttest, 2);
 	add_global_function("t_test1", stat_ttest1, 2);
-	add_global_function("covrc", stat_cov, 2);
+	add_global_function("cov", stat_cov, 2);
 	add_global_function("corr", stat_corr, 2);
 	add_global_function("lm", stat_lm, 2);
 	add_global_function("logit", stat_logit, 2);

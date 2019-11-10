@@ -151,7 +151,7 @@ static double logit_cost(const Array<double> &response, const Vector<double> &h)
 
 static GLModel glm(const Array<double> &y, const Array<double> &X, int max_iter,
 		const std::function<double(const Vector<double> &beta, Vector<double> &grad)> &cost_func,
-		const std::function<Vector<double>(const Array<double> &X, const Vector<double> &beta)> covar_helper)
+		const std::function<Matrix<double>(const Array<double> &X, const Vector<double> &beta)> &cov_func)
 {
 	using namespace LBFGSpp;
 
@@ -188,9 +188,7 @@ static GLModel glm(const Array<double> &y, const Array<double> &X, int max_iter,
 	std::copy(weights.data(), weights.data() + m, beta.data());
 
 	// Variance-covariance matrix
-	Eigen::Map<Matrix<double>> X2(const_cast<double*>(X.data()), X.nrow(), X.ncol());
-	Vector<double> W = covar_helper(X, weights);
-	Matrix<double> cov = (X2.transpose() * W.asDiagonal() * X2).inverse();
+	Matrix<double> cov = cov_func(X, weights);
 	assert(cov.rows() == m);
 	Array<double> se(m, 0.0);
 
@@ -235,16 +233,18 @@ GLModel logit(const Array<double> &y, const Array<double> &X, int max_iter)
 		return logit_cost(y, h);
 	};
 
-	auto covar = [&](const Array<double> &X, const Vector<double> &beta) -> Vector<double>
+	auto covar = [&](const Array<double> &X, const Vector<double> &beta) -> Matrix<double>
 	{
 		intptr_t n = X.nrow();
 		Vector<double> fitted = sigmoid(X, beta);
 		Vector<double> W = Eigen::VectorXd::Zero(n);
+		Eigen::Map<Matrix<double>> X2(const_cast<double*>(X.data()), X.nrow(), X.ncol());
 		for (intptr_t i = 0; i < n; i++) {
 			W[i] = fitted[i] * (1 - fitted[i]);
 		}
 
-		return W;
+		return (X2.transpose() * W.asDiagonal() * X2).inverse();
+
 	};
 
 	return glm(y, X, max_iter, cost, covar);
@@ -266,9 +266,8 @@ static double poisson_cost(const Array<double> &response, const Vector<double> &
 	return (h.array() - (y.array() * log(h.array()))).sum();
 }
 
-GLModel poisson(const Array<double> &y, const Array<double> &X, int max_iter)
+GLModel poisson(const Array<double> &y, const Array<double> &X, bool robust, int max_iter)
 {
-
 	auto cost = [&](const Eigen::VectorXd &b, Eigen::VectorXd &grad)
 	{
 		auto h = poisson_mean(X, b);
@@ -277,7 +276,38 @@ GLModel poisson(const Array<double> &y, const Array<double> &X, int max_iter)
 		return poisson_cost(y, h);
 	};
 
-	return glm(y, X, max_iter, cost, poisson_mean);
+	if (robust)
+	{
+		auto cov = [&](const Array<double> &X, const Vector<double> &beta) -> Matrix<double> {
+			intptr_t n = X.nrow();
+			Eigen::Map<Matrix<double>> X2(const_cast<double*>(X.data()), X.nrow(), X.ncol());
+			Vector<double> W = poisson_mean(X, beta);
+			Vector<double> W2 = Eigen::VectorXd::Zero(n);
+			for (intptr_t i = 0; i < n; i++)
+			{
+				double e = y[i+1] - W[i];
+				W2[i] = e * e;
+			}
+			auto XT = X2.transpose();
+			auto Wdiag = W.asDiagonal();
+			auto exp = (XT * Wdiag * X2).inverse();
+
+			return exp * (XT * W2.asDiagonal() * X2) * exp;
+		};
+
+		return glm(y, X, max_iter, cost, cov);
+	}
+	else
+	{
+		auto cov = [&](const Array<double> &X, const Vector<double> &beta) -> Matrix<double> {
+			Eigen::Map<Matrix<double>> X2(const_cast<double*>(X.data()), X.nrow(), X.ncol());
+			Vector<double> W = poisson_mean(X, beta);
+
+			return (X2.transpose() * W.asDiagonal() * X2).inverse();
+		};
+
+		return glm(y, X, max_iter, cost, cov);
+	}
 }
 
 } // namespace phonometrica::stats

@@ -21,7 +21,7 @@ It is particularly well suited for dealing with time-aligned data. The main feat
    * Sound visualization and annotation: visualize and annotate speech sounds on multiple layers
    * Extensible metadata: annotate files with properties, which allow you to sort and organize your corpus.
    * Queries: build and save simple or complex queries; search strings or patterns across layers.
-   * Data analysis: hypothesis testing, linear and logistic regression
+   * Data analysis: hypothesis testing, linear, logistic and Poisson regression
    * Scripting engine: Phonometrica can be configured and extended with an easy-to-use scripting language and JSON files.
    * Standard-based: Phonometrica files are encoded in XML and Unicode.
    * Interaction with Praat: Phonometrica can read and write TextGrid files and open files directly in Praat.
@@ -35,22 +35,22 @@ The latest version can be downloaded from http://www.phonometrica-ling.org. If y
 Download
 ========
 
-Phonometrica 0.7.3
+Phonometrica 0.7.4
 ------------------
 
 -  Windows 7 and later:
-   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.7.3/setup_phonometrica.exe>`__
+   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.7.4/setup_phonometrica.exe>`__
 -  MacOS 10.12 and later:
-   `phonometrica-0.7.3.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.7.3/phonometrica-0.7.3.dmg>`__
--  Linux (Debian 10): `phonometrica-0.7.3.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.7.3/phonometrica-0.7.3.deb>`__
--  source code: `phonometrica-0.7.3.zip <https://github.com/phonometrica/phonometrica/archive/v0.7.3.zip>`__ | `phonometrica-0.7.3.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.7.3.tar.gz>`__
+   `phonometrica-0.7.4.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.7.4/phonometrica-0.7.4.dmg>`__
+-  Linux (Debian 10): `phonometrica-0.7.4.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.7.4/phonometrica-0.7.4.deb>`__
+-  source code: `phonometrica-0.7.4.zip <https://github.com/phonometrica/phonometrica/archive/v0.7.4.zip>`__ | `phonometrica-0.7.4.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.7.4.tar.gz>`__
 
 
   
 Manual
 ------
 
-Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.7.3/phonometrica_manual.pdf>`_ file.
+Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.7.4/phonometrica_manual.pdf>`_ file.
 
 
 Topics

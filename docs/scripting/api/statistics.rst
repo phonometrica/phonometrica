@@ -30,7 +30,7 @@ Calculates Pearson's correlation coefficient between samples ``x`` and ``y``, wh
 
 ------------
 
-.. function:: covrc(x, y)
+.. function:: cov(x, y)
 
 Calculates the covariance between samples ``x`` and ``y``, which must be one-dimensional arrays with the same size.
 
@@ -67,6 +67,8 @@ This function returns an object with the following fields:
 
 Note: the model is estimated by minimizing the sum of squared errors. It is fitted analytically using Singular Value Decomposition.
 
+See also: :func:`logit`, :func:`poisson`
+
 ------------
 
 .. function:: logit(y, X [, max_iter])
@@ -86,6 +88,8 @@ This function returns an object with the following fields:
 
 Note: the model is fitted numerically using the Limited-memory Broyden–Fletcher–Goldfarb–Shanno (L-BFGS) approximation method.
 
+See also: :func:`lm`, :func:`poisson`
+
 ------------
 
 .. function:: mean(x [, dim])
@@ -96,10 +100,11 @@ over rows. If it is equal to 2, it is performed over columns.
 
 ------------
 
-.. function:: poisson(y, X [, max_iter])
+.. function:: poisson(y, X [, robust [, max_iter]])
 
 Fits a Poisson regression model. ``y`` is a set of N observations which represent count data (i.e. non-negative integers), and ``X`` is an N by M matrix for a model with M regression
-coefficients, including the intercept which must be the first coefficient. (In general, it should be a column of 1's.)
+coefficients, including the intercept which must be the first coefficient. (In general, it should be a column of 1's.) If ``robust`` is
+``true`` (it is ``false`` by default), Phonometrica will use the so-called "robust variance sandwich estimator" to adjust the standard errors for mild violations of the assumption that the mean is equal to the variance.
 If ``max_iter`` is provided, it indicates the maximum number of iterations that the solver should perform to estimate the coefficients (200 by default).
 
 This function returns an object with the following fields:
@@ -113,6 +118,7 @@ This function returns an object with the following fields:
 
 Note: the model is fitted numerically using the Limited-memory Broyden–Fletcher–Goldfarb–Shanno (L-BFGS) approximation method.
 
+See also: :func:`lm`, :func:`logit`
 
 ------------
 
