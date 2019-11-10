@@ -1507,6 +1507,7 @@ double String::to_float(Substring str, bool *ok)
 	auto ch = str.begin();
 	bool numeric = true;
 	double value = std::nan("");
+	if (*ch == '-') ch++;
 
 	// Recognize floating point numbers in the C locale.
 	while (ch < str.end())

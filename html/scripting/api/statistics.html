@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Statistical functions &#8212; Phonometrica 0.7.2 documentation</title>
+    <title>Statistical functions &#8212; Phonometrica 0.7.3 documentation</title>
     <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -34,7 +34,7 @@
         <li class="right" >
           <a href="sound.html" title="Sounds"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.3 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
       </ul>
     </div>
@@ -142,7 +142,7 @@ coefficients, including the intercept which must be the first coefficient. (In g
 <li><code class="docutils literal notranslate"><span class="pre">r2</span></code>: the <span class="math notranslate nohighlight">\(R^2\)</span> value, which is the proportion of variance explained by the model</li>
 <li><code class="docutils literal notranslate"><span class="pre">adj_r2</span></code>: the adjusted <span class="math notranslate nohighlight">\(R^2\)</span> value, which takes into account the number of predictors in the model.</li>
 </ul>
-<p>Note: the model is estimated by minimizing the sum of squared errors. It is solved analytically using Singular Value Decomposition.</p>
+<p>Note: the model is estimated by minimizing the sum of squared errors. It is fitted analytically using Singular Value Decomposition.</p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="logit">
@@ -161,7 +161,7 @@ If <code class="docutils literal notranslate"><span class="pre">max_iter</span><
 <li><code class="docutils literal notranslate"><span class="pre">niter</span></code>: the number of iterations performed by the numerical solver</li>
 <li><code class="docutils literal notranslate"><span class="pre">converged</span></code>: a Boolean value indicating whether the solver has converged to a solution. It is <code class="docutils literal notranslate"><span class="pre">true</span></code> if <code class="docutils literal notranslate"><span class="pre">niter</span> <span class="pre">&lt;</span> <span class="pre">max_iter</span></code></li>
 </ul>
-<p>Note: the model is solved numerically using the Limited-memory Broyden–Fletcher–Goldfarb–Shanno (L-BFGS) approximation method.</p>
+<p>Note: the model is fitted numerically using the Limited-memory Broyden–Fletcher–Goldfarb–Shanno (L-BFGS) approximation method.</p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="mean">
@@ -171,6 +171,25 @@ If <code class="docutils literal notranslate"><span class="pre">max_iter</span><
 <p>Returns the mean of the array <code class="docutils literal notranslate"><span class="pre">x</span></code>. If <code class="docutils literal notranslate"><span class="pre">dim</span></code> is specified, returns an <code class="docutils literal notranslate"><span class="pre">Array</span></code> in which each element
 represents the mean over the given dimension in a two dimension array. If dim is equal to 1, the calculation is performed
 over rows. If it is equal to 2, it is performed over columns.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="poisson">
+<code class="descname">poisson</code><span class="sig-paren">(</span><em>y</em>, <em>X</em><span class="optional">[</span>, <em>max_iter</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#poisson" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Fits a Poisson regression model. <code class="docutils literal notranslate"><span class="pre">y</span></code> is a set of N observations which represent count data (i.e. non-negative integers), and <code class="docutils literal notranslate"><span class="pre">X</span></code> is an N by M matrix for a model with M regression
+coefficients, including the intercept which must be the first coefficient. (In general, it should be a column of 1’s.)
+If <code class="docutils literal notranslate"><span class="pre">max_iter</span></code> is provided, it indicates the maximum number of iterations that the solver should perform to estimate the coefficients (200 by default).</p>
+<p>This function returns an object with the following fields:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">beta</span></code>: an array of estimates for the regression coefficients. The first entry is the intercept</li>
+<li><code class="docutils literal notranslate"><span class="pre">se</span></code>: an array representing the standard errors of the regression coefficients</li>
+<li><code class="docutils literal notranslate"><span class="pre">z</span></code>: an array of z-values for the regression coefficients (<code class="docutils literal notranslate"><span class="pre">z[i]</span></code> is the z-value for <code class="docutils literal notranslate"><span class="pre">beta[i]</span></code>)</li>
+<li><code class="docutils literal notranslate"><span class="pre">p</span></code>: an array of p-values for a Wald test which evaluates the null hypothesis that each regression coefficient is equal to 0 (<code class="docutils literal notranslate"><span class="pre">p[i]</span></code> is the p-value for <code class="docutils literal notranslate"><span class="pre">beta[i]</span></code>)</li>
+<li><code class="docutils literal notranslate"><span class="pre">niter</span></code>: the number of iterations performed by the numerical solver</li>
+<li><code class="docutils literal notranslate"><span class="pre">converged</span></code>: a Boolean value indicating whether the solver has converged to a solution. It is <code class="docutils literal notranslate"><span class="pre">true</span></code> if <code class="docutils literal notranslate"><span class="pre">niter</span> <span class="pre">&lt;</span> <span class="pre">max_iter</span></code></li>
+</ul>
+<p>Note: the model is fitted numerically using the Limited-memory Broyden–Fletcher–Goldfarb–Shanno (L-BFGS) approximation method.</p>
 <hr class="docutils" />
 <dl class="function">
 <dt id="report_chi2">
@@ -270,7 +289,7 @@ over rows. If it is equal to 2, it is performed over columns.</p>
         <li class="right" >
           <a href="sound.html" title="Sounds"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.3 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
       </ul>
     </div>

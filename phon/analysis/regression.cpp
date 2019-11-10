@@ -127,7 +127,7 @@ static Vector<double> sigmoid(const Array<double> &predictors, const Vector<doub
 	return  1 / (1 + exp(-(X*b).array()));
 }
 
-static void update_gradient(const Array<double> &predictors, const Array<double> &response, const Vector<double> &h, Vector<double> &grad)
+static void gradient_update(const Array<double> &predictors, const Array<double> &response, const Vector<double> &h, Vector<double> &grad)
 {
 	intptr_t n = response.size();
 	Eigen::Map<Vector<double>> y(const_cast<double*>(response.data()), n);
@@ -149,7 +149,9 @@ static double logit_cost(const Array<double> &response, const Vector<double> &h)
 	return result(0, 0) / n;
 }
 
-LogisticModel logit(const Array<double> &y, const Array<double> &X, int max_iter)
+static GLModel glm(const Array<double> &y, const Array<double> &X, int max_iter,
+		const std::function<double(const Vector<double> &beta, Vector<double> &grad)> &cost_func,
+		const std::function<Vector<double>(const Array<double> &X, const Vector<double> &beta)> covar_helper)
 {
 	using namespace LBFGSpp;
 
@@ -170,23 +172,8 @@ LogisticModel logit(const Array<double> &y, const Array<double> &X, int max_iter
 
 	if (n <= m)
 	{
-		throw error("Not enough data points to perform logistic regression");
+		throw error("Not enough data points to perform regression");
 	}
-
-	for (auto value : y)
-	{
-		if (value != 0 && value != 1) {
-			throw error("Response array can only contain the values 0 and 1");
-		}
-	}
-
-	auto func = [&](const Eigen::VectorXd &b, Eigen::VectorXd &grad)
-	{
-		auto h = sigmoid(X, b);
-		update_gradient(X, y, h, grad);
-
-		return logit_cost(y, h);
-	};
 
 	Eigen::VectorXd weights = Eigen::VectorXd::Zero(m);
 	LBFGSParam<double> param;
@@ -194,7 +181,7 @@ LogisticModel logit(const Array<double> &y, const Array<double> &X, int max_iter
 	param.max_iterations = max_iter;
 	LBFGSSolver<double> solver(param);
 	double fx;
-	int niter = solver.minimize(func, weights, fx);
+	int niter = solver.minimize(cost_func, weights, fx);
 	bool converged = (niter < param.max_iterations);
 
 	Array<double> beta(m, 0.0);
@@ -202,14 +189,9 @@ LogisticModel logit(const Array<double> &y, const Array<double> &X, int max_iter
 
 	// Variance-covariance matrix
 	Eigen::Map<Matrix<double>> X2(const_cast<double*>(X.data()), X.nrow(), X.ncol());
-	Vector<double> fitted = sigmoid(X, weights);
-	Vector<double> W = Eigen::VectorXd::Zero(n);
-	for (intptr_t i = 0; i < n; i++) {
-		W[i] = fitted[i] * (1 - fitted[i]);
-	}
+	Vector<double> W = covar_helper(X, weights);
 	Matrix<double> cov = (X2.transpose() * W.asDiagonal() * X2).inverse();
 	assert(cov.rows() == m);
-	// TODO: scale se? with dispersion
 	Array<double> se(m, 0.0);
 
 	for (intptr_t i = 0; i < m; i++) {
@@ -234,6 +216,68 @@ LogisticModel logit(const Array<double> &y, const Array<double> &X, int max_iter
 	}
 
 	return { beta, se, z, p, niter, converged };
+}
+
+GLModel logit(const Array<double> &y, const Array<double> &X, int max_iter)
+{
+	for (auto value : y)
+	{
+		if (value != 0 && value != 1) {
+			throw error("Response array can only contain the values 0 and 1");
+		}
+	}
+
+	auto cost = [&](const Eigen::VectorXd &b, Eigen::VectorXd &grad)
+	{
+		auto h = sigmoid(X, b);
+		gradient_update(X, y, h, grad);
+
+		return logit_cost(y, h);
+	};
+
+	auto covar = [&](const Array<double> &X, const Vector<double> &beta) -> Vector<double>
+	{
+		intptr_t n = X.nrow();
+		Vector<double> fitted = sigmoid(X, beta);
+		Vector<double> W = Eigen::VectorXd::Zero(n);
+		for (intptr_t i = 0; i < n; i++) {
+			W[i] = fitted[i] * (1 - fitted[i]);
+		}
+
+		return W;
+	};
+
+	return glm(y, X, max_iter, cost, covar);
+}
+
+static Vector<double> poisson_mean(const Array<double> &predictors, const Vector<double> &b)
+{
+	Eigen::Map<Matrix<double>> X(const_cast<double*>(predictors.data()), predictors.nrow(), predictors.ncol());
+	return  exp((X*b).array());
+}
+
+static double poisson_cost(const Array<double> &response, const Vector<double> &h)
+{
+	intptr_t n = response.size();
+	Eigen::Map<Vector<double>> y(const_cast<double*>(response.data()), n);
+	auto ya = y.transpose().array();
+	auto ha = h.array();
+
+	return (h.array() - (y.array() * log(h.array()))).sum();
+}
+
+GLModel poisson(const Array<double> &y, const Array<double> &X, int max_iter)
+{
+
+	auto cost = [&](const Eigen::VectorXd &b, Eigen::VectorXd &grad)
+	{
+		auto h = poisson_mean(X, b);
+		gradient_update(X, y, h, grad);
+
+		return poisson_cost(y, h);
+	};
+
+	return glm(y, X, max_iter, cost, poisson_mean);
 }
 
 } // namespace phonometrica::stats

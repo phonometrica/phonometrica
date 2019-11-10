@@ -29,6 +29,8 @@
 #ifndef PHONOMETRICA_REGRESSION_HPP
 #define PHONOMETRICA_REGRESSION_HPP
 
+#include <functional>
+#include <phon/string.hpp>
 #include <phon/array.hpp>
 
 namespace phonometrica::stats {
@@ -47,7 +49,8 @@ struct LinearModel
 	double adj_r2;           // Adjusted R squared
 };
 
-struct LogisticModel
+// Generalized linear model
+struct GLModel
 {
 	Array<double> beta;      // regression coefficients
 	Array<double> se;        // standard errors
@@ -56,6 +59,7 @@ struct LogisticModel
 	int niter;               // number of iterations
 	bool converged;          // whether the model converged
 };
+
 
 //! Performs linear regression using the least-squared method.
 //! \param y a vector of N observations
@@ -67,7 +71,11 @@ LinearModel lm(const Array<double> &y, const Array<double> &X);
 
 
 // Logistic regression
-LogisticModel logit(const Array<double> &y, const Array<double> &X, int max_iter = 200);
+GLModel logit(const Array<double> &y, const Array<double> &X, int max_iter = 200);
+
+
+// Poisson regression
+GLModel poisson(const Array<double> &y, const Array<double> &X, int max_iter);
 
 } // namespace phonometrica::stats
 

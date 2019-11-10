@@ -1,7 +1,14 @@
 Release notes
 -------------
 
-0.7.2 (??/11/2019)
+0.7.3 (10/11/2019)
+~~~~~~~~~~~~~~~~~~
+
+- ``poisson()`` function for Poisson regression
+- negative numbers are now parsed correctly in ``String`` to ``Number`` conversion
+- fix ``split()`` method in ``String`` type
+
+0.7.2 (09/11/2019)
 ~~~~~~~~~~~~~~~~~~
 
 - ``lm()`` function for linear regression

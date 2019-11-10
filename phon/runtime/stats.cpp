@@ -234,7 +234,21 @@ static void stat_logit(Runtime &rt)
 	rt.add_field("converged", model.converged);
 }
 
-//TODO: check here for reports: https://valelab4.ucsf.edu/svn/3rdpartypublic/boost/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/f_eg.html
+static void stat_poisson(Runtime &rt)
+{
+	auto &y = rt.to_array(1);
+	auto &X = rt.to_array(2);
+	int niter = rt.arg_count() > 2 ? (int) rt.to_integer(3) : 200;
+	auto model = stats::poisson(y, X, niter);
+	rt.new_object();
+	rt.add_field("beta", std::move(model.beta));
+	rt.add_field("se", std::move(model.se));
+	rt.add_field("z", std::move(model.z));
+	rt.add_field("p", std::move(model.p));
+	rt.add_field("niter", intptr_t(model.niter));
+	rt.add_field("converged", model.converged);
+}
+
 void Runtime::init_stats()
 {
 	add_global_function("sum", stat_sum, 1);
@@ -249,6 +263,7 @@ void Runtime::init_stats()
 	add_global_function("corr", stat_corr, 2);
 	add_global_function("lm", stat_lm, 2);
 	add_global_function("logit", stat_logit, 2);
+	add_global_function("poisson", stat_poisson, 2);
 }
 
 } // namespace phonometrica

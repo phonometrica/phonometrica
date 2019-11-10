@@ -314,102 +314,17 @@ static void string_reverse(Runtime &rt)
     rt.push(self.reverse());
 }
 
-static void split_with_regex(Runtime &rt)
-{
-    throw error("split regex not implemented");
-#if 0
-    js_Regexp *re;
-    int limit, len, k;
-    const char *p, *a, *b, *c, *e;
-    Resub m;
-
-    auto &text = checkstring(&runtime, 0);
-    re = js_toregexp(&runtime, 1);
-    limit = runtime.is_defined(2) ? runtime.to_integer(2) : 1 << 30;
-
-    runtime.new_list();
-    len = 0;
-
-    e = text.end();
-
-    /* splitting the empty string */
-    if (e == text)
-    {
-        if (js_regexec((Reprog *) re->prog, text, &m, 0))
-        {
-            if (len == limit) return;
-            runtime.push_literal("");
-            js_setindex(&runtime, -2, 0);
-        }
-        return;
-    }
-
-    p = a = text;
-    while (a < e)
-    {
-        if (js_regexec((Reprog *) re->prog, a, &m, a > text ? REG_NOTBOL : 0))
-            break; /* no match */
-
-        b = m.sub[0].sp;
-        c = m.sub[0].ep;
-
-        /* empty string at end of last match */
-        if (b == p)
-        {
-            ++a;
-            continue;
-        }
-
-        if (len == limit) return;
-        runtime.push_lstring(p, b - p);
-        js_setindex(&runtime, -2, len++);
-
-        for (k = 1; k < m.nsub; ++k)
-        {
-            if (len == limit) return;
-            runtime.push_lstring(m.sub[k].sp, m.sub[k].ep - m.sub[k].sp);
-            js_setindex(&runtime, -2, len++);
-        }
-
-        a = p = c;
-    }
-
-    if (len == limit) return;
-    runtime.push_string(p);
-    js_setindex(&runtime, -2, len);
-#endif
-}
-
-static void split_with_string(Runtime &rt)
-{
-    auto str = checkstring(&rt, 0);
-    auto sep = rt.to_string(1);
-    auto pieces = str.split(sep);
-    rt.new_list();
-
-    for (int i = 1; i <= pieces.size(); i++)
-    {
-        rt.push(std::move(pieces[i]));
-        js_setindex(&rt, -2, i-1); // TODO: changes indices to base 1 in split() and everywhere
-    }
-}
-
 static void string_split(Runtime &rt)
 {
-    if (rt.is_null(1))
+    auto str = rt.to_string(0);
+    auto sep = rt.to_string(1);
+    Array<Variant> pieces;
+
+    for (auto &piece : str.split(sep))
     {
-        rt.new_list();
-        rt.copy(0);
-        js_setindex(&rt, -2, 0);
+        pieces.append(std::move(piece));
     }
-    else if (rt.is_regex(1))
-    {
-        split_with_regex(rt);
-    }
-    else
-    {
-        split_with_string(rt);
-    }
+    rt.push(std::move(pieces));
 }
 
 static void string_is_empty(Runtime &rt)
@@ -443,7 +358,7 @@ void Runtime::init_string()
         add_method("String.meta.ends_with", string_ends_with, 1);
         add_method("String.meta.contains", string_contains, 1);
         add_method("String.meta.count", string_count, 1);
-        add_method("String.meta.split", string_split, 2);
+        add_method("String.meta.split", string_split, 1);
         add_method("String.meta.to_lower", string_to_lower, 0);
         add_method("String.meta.to_upper", string_to_upper, 0);
         add_method("String.meta.trim", string_trim, 0);

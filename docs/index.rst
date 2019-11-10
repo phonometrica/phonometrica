@@ -35,22 +35,22 @@ The latest version can be downloaded from http://www.phonometrica-ling.org. If y
 Download
 ========
 
-Phonometrica 0.7.2
+Phonometrica 0.7.3
 ------------------
 
 -  Windows 7 and later:
-   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.7.2/setup_phonometrica.exe>`__
+   `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.7.3/setup_phonometrica.exe>`__
 -  MacOS 10.12 and later:
-   `phonometrica-0.7.2.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.7.2/phonometrica-0.7.2.dmg>`__
--  Linux (Debian 10): `phonometrica-0.7.2.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.7.2/phonometrica-0.7.2.deb>`__
--  source code: `phonometrica-0.7.2.zip <https://github.com/phonometrica/phonometrica/archive/v0.7.2.zip>`__ | `phonometrica-0.7.2.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.7.2.tar.gz>`__
+   `phonometrica-0.7.3.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.7.3/phonometrica-0.7.3.dmg>`__
+-  Linux (Debian 10): `phonometrica-0.7.3.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.7.3/phonometrica-0.7.3.deb>`__
+-  source code: `phonometrica-0.7.3.zip <https://github.com/phonometrica/phonometrica/archive/v0.7.3.zip>`__ | `phonometrica-0.7.3.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.7.3.tar.gz>`__
 
 
   
 Manual
 ------
 
-Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.7.2/phonometrica_manual.pdf>`_ file.
+Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.7.3/phonometrica_manual.pdf>`_ file.
 
 
 Topics
