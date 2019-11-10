@@ -42,7 +42,7 @@ add_definitions(-DPHON_VERSION_NANO=0)
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2019)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=11)
-add_definitions(-DPHON_RELEASE_DATE_DAY=9)
+add_definitions(-DPHON_RELEASE_DATE_DAY=10)
 
 # Operating system
 if(WIN32)
