@@ -69,7 +69,7 @@ static const String strictfuturewords[] = {
 static void checkfutureword(JF, Ast *exp)
 {
     if (find_word(exp->string, futurewords, nelem(futurewords)) >= 0)
-    jsC_error(J, exp, "'%s' is a future reserved word", exp->string.data());
+        jsC_error(J, exp, "'%s' is a future reserved word", exp->string.data());
 
     if (F->strict)
     {
@@ -90,7 +90,7 @@ static Function *newfun(Runtime *J, Ast *name, Ast *params, Ast *body, int scrip
     F->line = name ? name->line : params ? params->line : body ? body->line : 1;
     F->script = script;
     F->strict = default_strict;
-    F->name = name ? name->string : "";
+    F->name = name ? name->string : String();
 
     cfunbody(J, F, name, params, body);
 

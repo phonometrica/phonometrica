@@ -2348,7 +2348,6 @@ void Runtime::call(int n)
 	else if (obj->type == PHON_CSCRIPT)
 	{
 		push_trace(this, obj->as.f.function->name, obj->as.f.function->filename, obj->as.f.function->line);
-		auto s = obj->as.f.function->name.data();
 		call_script(this, n, obj->as.f.function, obj->as.f.scope);
 		--tracetop;
 	}

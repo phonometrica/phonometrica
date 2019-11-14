@@ -69,8 +69,6 @@ public:
 
 	virtual const char *class_name() const = 0;
 
-	virtual void discard_changes();
-
 	virtual void to_xml(xml_node root) = 0;
 
 	void move_to(VFolder *parent, intptr_t pos);
@@ -78,6 +76,8 @@ public:
 	VFolder *parent() const { return m_parent; }
 
 	virtual const VFolder *toplevel() const;
+
+	virtual void discard_changes();
 
 protected:
 
@@ -192,6 +192,8 @@ public:
 	void open();
 
 	void save();
+
+	void reload();
 
 	bool loaded() const;
 

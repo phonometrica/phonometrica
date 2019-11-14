@@ -137,7 +137,6 @@ void ScriptView::saveScript(bool)
 
     m_script->set_content(m_editor->toPlainText());
     m_script->save();
-
     emit saved();
 }
 
@@ -234,6 +233,10 @@ bool ScriptView::finalize()
 		else if (reply == QMessageBox::Cancel)
 		{
 			return false;
+		}
+		else
+		{
+			m_script->reload();
 		}
 	}
 

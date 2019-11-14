@@ -45,12 +45,13 @@ Phonometrica 0.7.4
 -  Linux (Debian 10): `phonometrica-0.7.4.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.7.4/phonometrica-0.7.4.deb>`__
 -  source code: `phonometrica-0.7.4.zip <https://github.com/phonometrica/phonometrica/archive/v0.7.4.zip>`__ | `phonometrica-0.7.4.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.7.4.tar.gz>`__
 
-
   
 Manual
 ------
 
 Phonometrica's documentation is available as a `PDF <https://github.com/phonometrica/phonometrica/releases/download/v0.7.4/phonometrica_manual.pdf>`_ file.
+
+**Note: Phonometrica is still under development and the documentation is not yet up-to-date.**
 
 
 Topics

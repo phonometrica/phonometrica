@@ -186,6 +186,8 @@ void MainWindow::restoreDefaultLayout(bool)
     show_project->setChecked(true);
     show_console->setChecked(true);
     show_info->setChecked(true);
+	file_manager->updateConsoleStatus(false);
+	file_manager->updateInfoStatus(false);
 
     // Restore default geometry.
     setStretchFactor(DEFAULT_FILE_MANAGER_RATIO);
@@ -343,12 +345,17 @@ void MainWindow::setToolsMenu()
 {
 	tool_separator = tools_menu->addSeparator();
 
+	auto run_action = new QAction(tr("Run script..."));
+	tools_menu->addAction(run_action);
+	tools_menu->addSeparator();
+
 	auto install_action = new QAction(tr("Install plugin..."));
 	tools_menu->addAction(install_action);
 
 	auto uninstall_action = new QAction(tr("Uninstall plugin..."));
 	tools_menu->addAction(uninstall_action);
 	tools_menu->addSeparator();
+
 
 	auto extend_action = new QAction(tr("How to extend this menu"));
 	tools_menu->addAction(extend_action);
@@ -360,6 +367,15 @@ void MainWindow::setToolsMenu()
 		var page = phon.config.get_documentation_page("scripting/plugins.html")
 		phon.show_documentation(page)
 		)__");
+	});
+
+	connect(run_action, &QAction::triggered, [&](bool) {
+		runtime.do_string(R"__(
+    	var path = open_file_dialog("Open Phonometrica script", "Script (*.phon)")
+	    if path then
+		    phon.run_script(path)
+	    end
+        )__");
 	});
 }
 
@@ -965,6 +981,8 @@ void MainWindow::maximizeViewer()
     show_project->setChecked(false);
     show_console->setChecked(false);
     show_info->setChecked(false);
+	file_manager->updateConsoleStatus(true);
+	file_manager->updateInfoStatus(true);
 }
 
 void MainWindow::openQueryEditor(Query::Type type)

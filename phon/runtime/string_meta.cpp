@@ -322,6 +322,7 @@ static void string_split(Runtime &rt)
 
     for (auto &piece : str.split(sep))
     {
+    	auto v = piece.view();
         pieces.append(std::move(piece));
     }
     rt.push(std::move(pieces));

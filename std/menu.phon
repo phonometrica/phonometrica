@@ -24,12 +24,6 @@ function view_script()
 	phon.view_script(null)
 end
 
-function run_script()
-	var path = open_file_dialog("Open Phonometrica script", "Script (*.phon)")
-	if path then
-		phon.run_script(path)
-	end
-end
 
 function enable_most_recent()
 	var value = not phon.settings.recent_projects.is_empty()
@@ -313,7 +307,6 @@ end
 
 file_menu = [
 	["New script...", view_script],
-	["Run script...", run_script],
 	null,
 	["Open project...", phon.open_project, "ctrl+o"],
 	["Add file(s) to project...", phon.add_files, "ctrl+shift+a"],

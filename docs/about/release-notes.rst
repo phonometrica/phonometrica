@@ -5,7 +5,9 @@ Release notes
 ~~~~~~~~~~~~~~~~~~
 
 - robust sandwich variance estimator for Poisson regression
+- fix project finalization when views are modified
 - ``covrc()`` was renamed to ``cov()``
+- ``Run script...`` is now in the ``Tools`` menu
 
 0.7.3 (10/11/2019)
 ~~~~~~~~~~~~~~~~~~

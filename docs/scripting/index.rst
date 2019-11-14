@@ -23,7 +23,6 @@ The following pages teach you how to use Phonometrica's scripting language.
    :maxdepth: 1
 	
    tutorial/getting_started
-   tutorial/metaobject
    tutorial/user_dialogs
    tutorial/advanced
 

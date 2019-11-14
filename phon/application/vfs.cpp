@@ -609,4 +609,10 @@ Property VFile::parse_property(xml_node prop_node, const std::type_info &type)
 	throw error("Invalid property node in annotation file");
 }
 
+void VFile::reload()
+{
+	discard_changes();
+	load();
+}
+
 } // namespace phonometrica

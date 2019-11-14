@@ -555,4 +555,5 @@ AutoEvent Annotation::find_enclosing_event(const AutoEvent &e, intptr_t layer) c
 {
 	return m_graph.find_enclosing_event(e, layer);
 }
+
 } // namespace phonometrica

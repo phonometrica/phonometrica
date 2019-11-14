@@ -322,6 +322,7 @@ EventList AGraph::get_layer_events(intptr_t index, double t1, double t2) const
 void AGraph::read_textgrid(const String &path)
 {
 	File infile(path);
+	clear(); // in case we are reloading a file
 
 	do
 	{
@@ -647,6 +648,7 @@ void AGraph::clear()
 {
 	m_anchors.clear();
 	m_layers.clear();
+	m_modified = false;
 }
 
 void AGraph::parse_anchors(xml_node anchors_node)

@@ -82,7 +82,7 @@ void Viewer::viewSaved()
 void Viewer::closeView(int index)
 {
     View *view = qobject_cast<View *>(this->widget(index));
-    if (view->save())
+    if (view->finalize())
     {
 	    removeTab(index);
 	    delete view;

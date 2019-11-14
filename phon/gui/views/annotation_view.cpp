@@ -186,6 +186,10 @@ bool AnnotationView::finalize()
 		{
 			return false;
 		}
+		else
+		{
+			annot->reload();
+		}
 	}
 
 	return true;
@@ -198,8 +202,7 @@ bool AnnotationView::save()
     if (!annot->modified()) return true;
 
 	auto reply = QMessageBox::question(this, tr("Save annotation?"),
-			tr("This annotation has been modified. Would you like to write the changes to disk?\n"
-	  "If you answer 'no', your changes will still be visible until the project is closed."),
+			tr("This annotation has been modified. Would you like to write the changes to disk?"),
 	  QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
 
 	if (reply == QMessageBox::Cancel) {
@@ -226,9 +229,8 @@ bool AnnotationView::save()
     }
 	else
 	{
-		// Ensure that we don't ask users twice (once now, once when the project is closed) whether they want
-		// to save the changes.
-		annot->discard_changes();
+		// Discard changes
+		annot->reload();
 	}
 
 	return true;
@@ -310,7 +312,7 @@ void AnnotationView::saveAnnotation(bool)
 	}
 
 	annot->save();
-	emit modified();
+	emit saved();
 
 	if (!has_path)
 	{
