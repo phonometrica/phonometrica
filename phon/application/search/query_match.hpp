@@ -177,7 +177,7 @@ public:
 
 	String get_label(intptr_t i) const;
 
-	void set_labels(Array<String> labels) { this->labels = std::move(labels); }
+	void set_labels(Array<String> &&labels) { this->labels = std::move(labels); }
 
 	String left() const override;
 

@@ -159,7 +159,7 @@ LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 
 bool AnnotationView::finalize()
 {
-	if (annot->modified())
+	if (annot->content_modified())
 	{
 		auto reply = QMessageBox::question(this, tr("Save annotation?"),
 			tr("The current annotation has been modified. Would you like to save it?"),
@@ -199,7 +199,7 @@ bool AnnotationView::save()
 {
 	SpeechView::save();
 
-    if (!annot->modified()) return true;
+    if (!annot->content_modified()) return true;
 
 	auto reply = QMessageBox::question(this, tr("Save annotation?"),
 			tr("This annotation has been modified. Would you like to write the changes to disk?"),
@@ -245,12 +245,25 @@ void AnnotationView::focusLayer(intptr_t index)
     }
 }
 
-void AnnotationView::focusEvent(intptr_t index, double time)
+void AnnotationView::focusEvent(intptr_t index, double time, bool forward)
 {
+	intptr_t idx = index;
+	intptr_t limit = forward ? layers.size() : 1;
+	int step = forward ? 1 : -1;
+
+	// Find the next visible layer.
+	while (idx != limit)
+	{
+		if (layers[idx]->isVisible()) {
+			break;
+		}
+		idx += step;
+	}
+
     for (intptr_t i = 1; i <= layers.size(); i++)
     {
         auto layer = layers[i];
-        if (i == index)
+        if (i == idx)
         {
             layer->setEventFocus(time);
         }
@@ -290,7 +303,7 @@ void AnnotationView::openSelection(intptr_t layer, double from, double to)
 {
 	setSelection(from, to);
 	auto t = from + (to - from) / 2;
-	focusEvent(layer, t);
+	focusEvent(layer, t, false);
 }
 
 void AnnotationView::saveAnnotation(bool)

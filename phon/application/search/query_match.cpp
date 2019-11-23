@@ -133,7 +133,15 @@ String Measurement::right() const
 
 String Measurement::get_label(intptr_t i) const
 {
-	return labels[i];
+	// FIXME: can't reproduce crash here, but it seems sometimes we don't extract the label
+	try
+	{
+		return labels[i];
+	}
+	catch (...)
+	{
+		return "???";
+	}
 }
 
 String FormantMeasurement::get_field(intptr_t j) const

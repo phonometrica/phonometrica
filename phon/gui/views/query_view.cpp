@@ -68,6 +68,8 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	edit_action = toolbar->addAction(QIcon(":/icons/edit_row.png"), tr("Edit event label"));
 	enableQueryButtons(false);
 
+	auto remove_action = toolbar->addAction(QIcon(":/icons/delete_row.png"), tr("Remove row"));
+
 	auto csv_action = toolbar->addAction(QIcon(":/icons/export_csv.png"), tr("Export to tab-separated value file"));
 
     auto play = [=](bool) {
@@ -87,6 +89,7 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
     connect(play_action, &QAction::triggered, play);
     connect(stop_action, &QAction::triggered, stop);
     connect(edit_action, &QAction::triggered, edit);
+    connect(remove_action, &QAction::triggered, this, &QueryView::removeRow);
     connect(csv_action, &QAction::triggered, this, &QueryView::exportToCsv);
     layout->addWidget(toolbar);
 
@@ -126,7 +129,8 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	// Match result layout
 
 	auto label = QString("<b>%1 matches").arg(m_data->row_count());
-	layout->addWidget(new QLabel(label));
+	count_label = new QLabel(label);
+	layout->addWidget(count_label);
 
 	auto view_event = [=](bool) {
 		auto index = m_table->currentIndex();
@@ -147,7 +151,7 @@ QueryView::QueryView(QWidget *parent, Runtime &rt, AutoQueryTable data) :
 	connect(context_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(metadata_action, &QAction::triggered, this, &QueryView::refreshTable);
 	connect(view_action, &QAction::triggered, this, view_event);
-	connect(bookmark_action, &QAction::triggered, this, &QueryView::bookmarkMatch);
+	connect(bookmark_action, &QAction::triggered, bookmark_match);
 
 	m_data->set_flags(getQueryFlags());
 
@@ -209,6 +213,11 @@ void QueryView::fillTable()
 				{
 					item->setTextColor(red);
 				}
+				// TODO: adjust correct column number here
+//				if (isMatchCell(m_data->adjust_column(j)))
+//				{
+					item->setFlags(item->flags() | Qt::ItemIsEditable);
+//				}
 			}
 			else
 			{
@@ -269,8 +278,10 @@ void QueryView::refreshTable(bool)
 {
 	m_table->clear();
 	m_data->set_flags(getQueryFlags());
+	int nrow = m_data->row_count();
 	int ncol = m_data->column_count();
 	m_table->setColumnCount(ncol);
+	m_table->setRowCount(nrow);
 	fillTable();
 }
 
@@ -511,6 +522,16 @@ void QueryView::bookmarkMatch(int i)
 		auto &match = m_data->get_match(i+1);
 		Project::instance()->add_bookmark(match->to_bookmark(title, notes));
 	}
+}
+
+void QueryView::removeRow(bool)
+{
+	auto index = m_table->currentIndex();
+	if (!index.isValid()) return;
+	m_data->remove_row(index.row() + 1);
+	refreshTable(false);
+	auto label = QString("<b>%1 matches").arg(m_data->row_count());
+	count_label->setText(label);
 }
 
 } // namespace phonometrica

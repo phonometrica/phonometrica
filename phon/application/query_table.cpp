@@ -570,4 +570,9 @@ int QueryTable::get_acoustic_field_count() const
 	return m_settings->total_field_count();
 }
 
+void QueryTable::remove_row(intptr_t i)
+{
+	m_matches.remove_at(i);
+}
+
 } // namespace phonometrica

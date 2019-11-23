@@ -111,9 +111,9 @@ public:
 
 	AutoEvent find_enclosing_event(const AutoEvent &e, intptr_t layer) const;
 
-protected:
-
 	bool content_modified() const override;
+
+protected:
 
 	void read_from_native();
 

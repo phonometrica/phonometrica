@@ -1,6 +1,12 @@
 Release notes
 -------------
 
+0.7.5 (??/11/2019)
+~~~~~~~~~~~~~~~~~~
+
+- ability to remove rows in query views
+- fix navigation with arrows in annotation views when some layers are hidden
+
 0.7.4 (14/11/2019)
 ~~~~~~~~~~~~~~~~~~
 

@@ -64,5 +64,6 @@
         <file>icons/mouse.png</file>
         <file>icons/toggle_on.png</file>
         <file>icons/toggle_off.png</file>
+        <file>icons/delete_row.png</file>
     </qresource>
 </RCC>

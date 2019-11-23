@@ -60,7 +60,7 @@ private slots:
 
     void focusLayer(intptr_t i);
 
-    void focusEvent(intptr_t layer, double time);
+    void focusEvent(intptr_t index, double time, bool forward);
 
     void setMovingAnchor(intptr_t layer, double time);
 

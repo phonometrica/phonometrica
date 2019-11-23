@@ -29,6 +29,8 @@
 #include <phon/application/annotation.hpp>
 #include <phon/application/query_table.hpp>
 
+class QLabel;
+
 namespace phonometrica {
 
 class AudioPlayer;
@@ -60,6 +62,8 @@ private slots:
 	void openMatchInPraat(int i);
 
 	void exportToCsv(bool);
+
+	void removeRow(bool);
 
 	void provideContextMenu(const QPoint &pos);
 
@@ -106,6 +110,8 @@ private:
     QAction *stop_action = nullptr;
 
     QAction *edit_action = nullptr;
+
+    QLabel *count_label = nullptr;
 
     std::unique_ptr<AudioPlayer> player;
 };

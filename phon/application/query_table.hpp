@@ -85,6 +85,8 @@ public:
 
 	bool is_intensity_table() const;
 
+	void remove_row(intptr_t i);
+
 private:
 
 	void load() override;

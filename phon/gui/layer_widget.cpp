@@ -559,7 +559,7 @@ void LayerWidget::keyPressEvent(QKeyEvent *e)
             auto index = layer->index;
 
             if (index > 1) {
-                emit focus_event(index - 1, selected_event->center_time(window_start, window_end));
+                emit focus_event(index - 1, selected_event->center_time(window_start, window_end), false);
             }
         }
     }
@@ -570,7 +570,7 @@ void LayerWidget::keyPressEvent(QKeyEvent *e)
             auto index = layer->index;
 
             if (index < graph.layer_count()) {
-                emit focus_event(index + 1, selected_event->center_time(window_start, window_end));
+                emit focus_event(index + 1, selected_event->center_time(window_start, window_end), true);
             }
         }
     }
