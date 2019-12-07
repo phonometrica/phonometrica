@@ -133,14 +133,15 @@ String Measurement::right() const
 
 String Measurement::get_label(intptr_t i) const
 {
-	// FIXME: can't reproduce crash here, but it seems sometimes we don't extract the label
+	// If boundaries are not properly aligned, labels might not be extracted properly. Instead of crashing or throwing
+	// an error, we simply return an empty label if that's the case.
 	try
 	{
-		return labels[i];
+		return labels.at(i);
 	}
 	catch (...)
 	{
-		return "???";
+		return String();
 	}
 }
 
