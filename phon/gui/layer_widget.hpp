@@ -90,6 +90,8 @@ signals:
 
     void event_selected(double, double);
 
+    void inform_selection(intptr_t layer, intptr_t event);
+
     void focus_event(intptr_t layer, double time, bool forward);
 
     void window_moved(double t1, double t2);

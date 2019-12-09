@@ -14,6 +14,14 @@ Return a list of all the annotations in the current project.
 
 ------------
 
+
+.. function:: get_selected_annotations()
+
+Return a list of all the selected annotations in the current project.
+
+------------
+
+
 .. function:: get_annotation(path)
 
 Return the ``Annotation`` object from the current project whose path is ``path``, or ``null`` if there is no such

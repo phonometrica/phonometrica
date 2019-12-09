@@ -100,6 +100,37 @@ ProjectCtrl::ProjectCtrl(Runtime &rt, QWidget *parent) :
     setFrameShadow(QFrame::Plain);
     refresh();
 
+    auto get_annotations = [this](Runtime &rt) {
+    	Array<Variant> result;
+
+    	for (auto &f : get_selected_files())
+	    {
+    		if (f->is_annotation())
+		    {
+			    rt.new_user_data(Annotation::meta(), "Annotation", downcast<Annotation>(f));
+			    result.append(std::move(rt.get(-1)));
+		    }
+	    }
+    	rt.push(std::move(result));
+    };
+
+    auto get_sounds = [this](Runtime &rt) {
+    	Array<Variant> result;
+
+    	for (auto &f : get_selected_files())
+	    {
+    		if (f->is_sound())
+		    {
+			    rt.new_user_data(Sound::meta(), "Sound", downcast<Sound>(f));
+			    result.append(std::move(rt.get(-1)));
+		    }
+	    }
+    	rt.push(std::move(result));
+    };
+
+	rt.add_global_function("get_selected_annotations", get_annotations, 0);
+	rt.add_global_function("get_selected_sounds", get_sounds, 0);
+
     connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(onItemDoubleClicked(QTreeWidgetItem*)));
     connect(this, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(onItemSelected(QTreeWidgetItem*)));
     connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(onRightClick(const QPoint &)));
@@ -777,6 +808,23 @@ void ProjectCtrl::convertSound(const AutoSound &sound)
 			emit project->notify_update();
 		}
 	}
+}
+
+VFileList ProjectCtrl::get_selected_files() const
+{
+	VFileList selection;
+
+	for (auto i : this->selectedItems())
+	{
+		auto item = dynamic_cast<TreeItem*>(i);
+		assert(item);
+		if (item->node->is_file())
+		{
+			selection.append(downcast<VFile>(item->node->shared_from_this()));
+		}
+	}
+
+	return selection;
 }
 
 } // phonometrica

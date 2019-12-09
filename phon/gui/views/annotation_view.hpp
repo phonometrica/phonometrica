@@ -96,6 +96,8 @@ private slots:
 
     void setTemporaryAnchor(intptr_t layer_index, double time);
 
+    void informSelectedEvent(intptr_t layer_index, intptr_t event);
+
 private:
 
 	int widgetIndex(int layer_index);

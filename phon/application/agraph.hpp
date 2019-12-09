@@ -176,6 +176,8 @@ struct Layer // ref-counted
 
     event_iterator find_event(double time);
 
+    intptr_t find_index(double time);
+
     bool validate(event_iterator it) const;
 
     std::shared_ptr<Layer> duplicate(intptr_t new_index);

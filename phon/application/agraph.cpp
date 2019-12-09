@@ -178,6 +178,13 @@ Layer::event_iterator Layer::find_event(double time)
 	return std::lower_bound(events.begin(), events.end(), time, EventLess());
 }
 
+
+intptr_t Layer::find_index(double time)
+{
+	auto it = find_event(time);
+	return (it == events.end()) ? 0 : intptr_t(it - events.begin());
+}
+
 std::shared_ptr<Layer> Layer::duplicate(intptr_t new_index)
 {
 	auto new_layer = std::make_shared<Layer>(new_index, this->label, this->has_instants);

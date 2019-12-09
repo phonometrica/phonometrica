@@ -666,6 +666,9 @@ void LayerWidget::setSelectedEvent(const AutoEvent &event)
 	assert(event->valid());
     selected_event = event;
     emit event_selected(event->start_time(), event->end_time());
+    auto index = layer->find_index(event->center_time());
+    emit inform_selection(index, layer->count());
+
     repaint();
 }
 

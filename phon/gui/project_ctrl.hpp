@@ -47,6 +47,8 @@ public:
 
     explicit ProjectCtrl(Runtime &rt, QWidget *parent = nullptr);
 
+	VFileList get_selected_files() const;
+
 signals:
 
     void script_selected(std::shared_ptr<Script>);

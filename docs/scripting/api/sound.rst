@@ -16,6 +16,12 @@ Return a list of all the sounds in the current project.
 
 ------------
 
+.. function:: get_selected_sounds()
+
+Return a list of all the selected sounds in the current project.
+
+------------
+
 .. function:: get_sound(path)
 
 Return the ``Sound`` object from the current project whose path is ``path``, or ``null`` if there is no such

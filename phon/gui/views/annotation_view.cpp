@@ -153,7 +153,7 @@ LayerWidget * AnnotationView::addAnnotationLayer(intptr_t i)
 	connect(layer, &LayerWidget::editing_shared_anchor, this, &AnnotationView::onEditAnchor);
 	connect(layer, &LayerWidget::editing_shared_anchor, this, &AnnotationView::setMovingAnchor);
 	connect(layer, &LayerWidget::temporary_anchor, this, &AnnotationView::setTemporaryAnchor);
-
+	connect(layer, &LayerWidget::inform_selection, this, &AnnotationView::informSelectedEvent);
 	return layer;
 }
 
@@ -667,6 +667,12 @@ void AnnotationView::showHideLayers(bool)
 		}
 	}
 	y_axis->refresh();
+}
+
+void AnnotationView::informSelectedEvent(intptr_t layer_index, intptr_t event)
+{
+	auto s = String::format("set_status('Selected event: %d/%d')", int(layer_index), int(event));
+	runtime.do_string(s);
 }
 
 } // namespace phonometrica

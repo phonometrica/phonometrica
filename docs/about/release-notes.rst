@@ -8,6 +8,7 @@ Release notes
 - ability to remove rows in query views
 - fix navigation with arrows in annotation views when some layers are hidden
 - return empty label instead of crashing in formant analysis when intervals are misaligned
+- ``get_selected_annotations()`` and ``get_selected_sounds()`` functions
 
 0.7.4 (14/11/2019)
 ~~~~~~~~~~~~~~~~~~
