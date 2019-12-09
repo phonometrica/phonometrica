@@ -1,11 +1,13 @@
 Release notes
 -------------
 
-0.7.5 (??/11/2019)
+0.7.5 (09/11/2019)
 ~~~~~~~~~~~~~~~~~~
 
+- n-point average in formant analysis
 - ability to remove rows in query views
 - fix navigation with arrows in annotation views when some layers are hidden
+- return empty label instead of crashing in formant analysis when intervals are misaligned
 
 0.7.4 (14/11/2019)
 ~~~~~~~~~~~~~~~~~~

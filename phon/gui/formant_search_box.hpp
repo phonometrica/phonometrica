@@ -60,6 +60,8 @@ private:
 
 	QRadioButton *parametric_button;
 
+	QRadioButton *mid_radio, *npoint_radio;
+
 	QSpinBox *formant_spinbox, *lpc_spinbox;
 
 	QCheckBox *bark_checkbox, *erb_checkbox, *bandwidth_checkbox, *surrounding_checkbox, *labels_checkbox;
@@ -69,6 +71,8 @@ private:
 	QLineEdit *param_min_freq_edit, *param_max_freq_edit, *param_step_freq_edit;
 
 	LineEdit *labels_edit;
+
+	QLineEdit *npoint_edit;
 
 	QSpinBox *param_lpc_min_spinbox, *param_lpc_max_spinbox;
 

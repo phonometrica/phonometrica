@@ -259,6 +259,35 @@ int Sound::get_intensity_window_size() const
 	return int(std::ceil(effective_duration * m_data->sample_rate()));
 }
 
+Array<double>
+Sound::get_formants(const Array<double> &times, int nformant, double nyquist_frequency, double max_bandwidth, double window_size,
+                    int lpc_order)
+{
+	Array<double> result(nformant, 2, 0.0);
+
+	for (auto t : times)
+	{
+		auto tmp = get_formants(t, nformant, nyquist_frequency, max_bandwidth, window_size, lpc_order);
+		for (intptr_t i = 1; i <= nformant; i++)
+		{
+			for (intptr_t j = 1; j <= 2; j++)
+			{
+				result(i, j) += tmp(i, j);
+			}
+		}
+	}
+
+	for (intptr_t i = 1; i <= nformant; i++)
+	{
+		for (intptr_t j = 1; j <= 2; j++)
+		{
+			result(i, j) /= times.size();
+		}
+	}
+
+	return result;
+}
+
 Array<double> Sound::get_formants(double time, int nformant, double nyquist_frequency, double max_bandwidth, double window_size, int lpc_order)
 {
 	load();
@@ -698,5 +727,6 @@ void Sound::initialize(Runtime &rt)
 	rt.new_native_constructor(new_sound, new_sound, "Sound", 1);
 	rt.def_global("Sound", PHON_DONTENUM);
 }
+
 
 } // namespace phonometrica

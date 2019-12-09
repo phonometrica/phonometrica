@@ -88,6 +88,8 @@ public:
 
 	Array<double> get_formants(double time, int nformant, double nyquist_frequency, double max_bandwidth, double window_size, int lpc_order);
 
+	Array<double> get_formants(const Array<double> &times, int nformant, double nyquist_frequency, double max_bandwidth, double window_size, int lpc_order);
+
 	static void initialize(Runtime &rt);
 
 	static Object *meta() { return metaobject; }

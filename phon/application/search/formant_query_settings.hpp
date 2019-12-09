@@ -28,7 +28,14 @@ namespace phonometrica {
 
 struct AcousticQuerySettings : public Query::Settings
 {
-	AcousticQuerySettings(Query::Type t, Array<int> label_indexes, bool surrounding);
+	enum class Method
+	{
+		Mid,
+		Average, // n-point average
+		Series   // n-point series (not implemented yet)
+	};
+
+	AcousticQuerySettings(Query::Type t, Method method, Array<float> points, Array<int> label_indexes, bool surrounding);
 
 	int extra_count() const override;
 
@@ -37,18 +44,19 @@ struct AcousticQuerySettings : public Query::Settings
 	bool has_extra_labels() const { return !label_indexes.empty(); }
 
 	String get_extra_label(intptr_t i) const { return String::format("Layer %d", int(label_indexes[i])); }
-
+	Array<float> points;       // measurement points
 	Array<int> label_indexes;  // additional labels extracted, excluding the surrounding labels.
-	bool surrounding; // include surrounding labels on the matched layer?
+	Method method;             // measurement method
+	bool surrounding;          // include surrounding labels on the matched layer?
 };
 
 
 struct FormantQuerySettings final : public AcousticQuerySettings
 {
-	FormantQuerySettings(bool add_surrounding, Array<int> label_indexes, double win_size, int nformant, double max_bw,
+	FormantQuerySettings(Method method, bool add_surrounding, Array<float> points, Array<int> label_indexes, double win_size, int nformant, double max_bw,
 			double max_freq, int lpc_order, bool bw, bool erb, bool bark);
 
-	FormantQuerySettings(bool add_surrounding, Array<int> label_indexes, double win_size, int nformant, double max_bw,
+	FormantQuerySettings(Method method, bool add_surrounding, Array<float> points, Array<int> label_indexes, double win_size, int nformant, double max_bw,
 			double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2,bool bw, bool erb, bool bark);
 
 	bool is_acoustic() const override { return true; }

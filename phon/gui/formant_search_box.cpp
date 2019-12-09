@@ -58,7 +58,7 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	max_bw_edit = new QLineEdit;
 
 	// If the user has an older version, "formants" might not be there.
-	int bw = 400;
+	int bw;
 	try
 	{
 		bw = (int) Settings::get_number(rt, category, "max_bandwidth");
@@ -154,9 +154,14 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	auto location_box = new QGroupBox;
 	auto location_layout = new QVBoxLayout;
 	location_layout->addWidget(new QLabel(tr("Measurement location:")));
-	auto mid_radio = new QRadioButton(tr("Mid point"));
+	mid_radio = new QRadioButton(tr("Mid point"));
+	npoint_radio = new QRadioButton(tr("N-point average (%)"));
 	mid_radio->setChecked(true);
+	npoint_edit = new QLineEdit;
+	npoint_edit->setEnabled(false);
 	location_layout->addWidget(mid_radio);
+	location_layout->addWidget(npoint_radio);
+	location_layout->addWidget(npoint_edit);
 	location_box->setLayout(location_layout);
 
 	auto option_layout = new QHBoxLayout;
@@ -189,6 +194,14 @@ void FormantSearchBox::setupUi(Runtime &rt)
 	connect(parametric_button, &QRadioButton::clicked, [this](bool) { changeMethod(1); });
 	connect(manual_button, &QRadioButton::clicked, [this](bool) { changeMethod(0); });
 	connect(labels_checkbox, &QCheckBox::clicked, [this](bool val) { labels_edit->setEnabled(val); });
+	connect(mid_radio, &QRadioButton::clicked, [this](bool) {
+		npoint_edit->setText(QString());
+		npoint_edit->setEnabled(false);
+	});
+	connect(npoint_radio, &QRadioButton::clicked, [this](bool) {
+		npoint_edit->setText("25 50 75");
+		npoint_edit->setEnabled(true);
+	});
 }
 
 void FormantSearchBox::changeMethod(int index)
@@ -231,6 +244,24 @@ AutoQuerySettings FormantSearchBox::getSettings() const
 		}
 	}
 
+	auto method = mid_radio->isChecked() ? AcousticQuerySettings::Method::Mid : AcousticQuerySettings::Method::Average;
+	Array<float> measurements;
+
+	if (method != AcousticQuerySettings::Method::Mid)
+	{
+		auto points = npoint_edit->text().split(' ');
+		bool ok;
+		for (auto &s : points)
+		{
+			float p = s.toFloat(&ok);
+			if (!ok || p < 0 || p > 100)
+			{
+				throw error("Invalid measurement point (must be between 0 and 100%)");
+			}
+			measurements.push_back(p);
+		}
+	}
+
 	if (parametric_button->isChecked())
 	{
 		double max_freq1 = param_min_freq_edit->text().toDouble(&ok);
@@ -243,7 +274,7 @@ AutoQuerySettings FormantSearchBox::getSettings() const
 		int lpc_order1 = param_lpc_min_spinbox->value();
 		int lpc_order2 = param_lpc_max_spinbox->value();
 
-		return std::make_shared<FormantQuerySettings>(add_surrounding, std::move(label_indexes), win_size, nformant,
+		return std::make_shared<FormantQuerySettings>(method, add_surrounding, std::move(measurements), std::move(label_indexes), win_size, nformant,
 				max_bw, max_freq1, max_freq2, step, lpc_order1, lpc_order2, bw, erb, bark);
 	}
 	else
@@ -252,7 +283,7 @@ AutoQuerySettings FormantSearchBox::getSettings() const
 		if (!ok) throw error("Invalid maximum frequency");
 		int lpc_order = lpc_spinbox->value();
 
-		return std::make_shared<FormantQuerySettings>(add_surrounding, std::move(label_indexes), win_size, nformant,
+		return std::make_shared<FormantQuerySettings>(method, add_surrounding, std::move(measurements), std::move(label_indexes), win_size, nformant,
 				max_bw, max_freq, lpc_order, bw, erb, bark);
 	}
 }

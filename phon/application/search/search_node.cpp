@@ -333,8 +333,6 @@ SearchConstraint::measure_formants(SearchNode::Settings *s, Sound *sound, Event 
 {
 	using namespace speech;
 	auto settings = dynamic_cast<FormantQuerySettings*>(s);
-	// For now, measure at the mid point.
-	auto t = event->center_time();
 
 	auto nformant = settings->nformant;
 	intptr_t base = nformant;
@@ -347,7 +345,26 @@ SearchConstraint::measure_formants(SearchNode::Settings *s, Sound *sound, Event 
 		return formants;
 	}
 
-	auto data = sound->get_formants(t, nformant, max_freq, settings->max_bandwidth, settings->win_size, lpc_order);
+	Array<double> data;
+
+	if (settings->method == AcousticQuerySettings::Method::Mid)
+	{
+		auto t = event->center_time();
+		data = sound->get_formants(t, nformant, max_freq, settings->max_bandwidth, settings->win_size, lpc_order);
+	}
+	else if (settings->method == AcousticQuerySettings::Method::Average)
+	{
+		auto start = event->start_time();
+		auto duration = event->duration();
+		Array<double> times(settings->points.size());
+		for (auto p : settings->points)
+		{
+			auto t = start + ((p / 100) * duration);
+			times.push_back(t);
+		}
+
+		data = sound->get_formants(times, nformant, max_freq, settings->max_bandwidth, settings->win_size, lpc_order);
+	}
 
 	// Put formants first, and optionally add the bandwidths (e.g. F1, F2, F3, B1, B2, B3)
 	for (intptr_t i = 1; i <= nformant; i++)

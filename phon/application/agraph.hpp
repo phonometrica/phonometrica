@@ -115,6 +115,8 @@ public:
 
     double center_time(double window_start, double window_end) const;
 
+    double duration() const { return end_time() - start_time(); }
+
 	void detach();
 
     void detach_left();

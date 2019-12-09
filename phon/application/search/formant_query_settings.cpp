@@ -23,8 +23,8 @@
 
 namespace phonometrica {
 
-AcousticQuerySettings::AcousticQuerySettings(Query::Type t, Array<int> label_indexes, bool surrounding) :
-		Query::Settings(t), label_indexes(std::move(label_indexes))
+AcousticQuerySettings::AcousticQuerySettings(Query::Type t, Method method, Array<float> points, Array<int> label_indexes, bool surrounding) :
+		Query::Settings(t), points(std::move(points)), label_indexes(std::move(label_indexes)), method(method)
 {
 	this->surrounding = surrounding;
 }
@@ -37,9 +37,9 @@ int AcousticQuerySettings::extra_count() const
 	return n;
 }
 
-FormantQuerySettings::FormantQuerySettings(bool add_surrounding, Array<int> label_indexes, double win_size, int nformant,
+FormantQuerySettings::FormantQuerySettings(Method method, bool add_surrounding, Array<float> points, Array<int> label_indexes, double win_size, int nformant,
 		double max_bw, double max_freq, int lpc_order, bool bw, bool erb, bool bark) :
-		AcousticQuerySettings(Query::Type::Formants, std::move(label_indexes), add_surrounding)
+		AcousticQuerySettings(Query::Type::Formants, method, std::move(points), std::move(label_indexes), add_surrounding)
 {
 	this->win_size = win_size;
 	this->nformant = nformant;
@@ -52,9 +52,9 @@ FormantQuerySettings::FormantQuerySettings(bool add_surrounding, Array<int> labe
 	this->bark = bark;
 }
 
-FormantQuerySettings::FormantQuerySettings(bool add_surrounding, Array<int> label_indexes, double win_size, int nformant,
+FormantQuerySettings::FormantQuerySettings(Method method, bool add_surrounding, Array<float> points, Array<int> label_indexes, double win_size, int nformant,
 		double max_bw, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2, bool bw, bool erb, bool bark) :
-		AcousticQuerySettings(Query::Type::Formants, std::move(label_indexes), add_surrounding)
+		AcousticQuerySettings(Query::Type::Formants, method, std::move(points), std::move(label_indexes), add_surrounding)
 {
 	this->win_size = win_size;
 	this->nformant = nformant;
