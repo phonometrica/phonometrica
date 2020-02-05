@@ -97,8 +97,6 @@ private:
 
 	int m_fields_per_row = 3;
 
-	int m_layer_selecting_field = -1;
-
 	int m_layer_field = 0; // if this is positive, indicates which field is used to select the tier.
 
 	bool m_case_sensitive = false;

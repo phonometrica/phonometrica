@@ -125,7 +125,7 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 
 		it = field.find("layer_pattern");
 		if (it != field.end()) {
-			if (f != m_layer_selecting_field) {
+			if (f != m_layer_field) {
 				throw error("Key \"layer_pattern\" can only be found in layer-selecting field");
 			}
 			search_field.layer_pattern = it->get<std::string>();
@@ -156,7 +156,7 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 			}
 			search_value.text = it->get<std::string>();
 
-			if (f == m_layer_selecting_field)
+			if (f == m_layer_field)
 			{
 				it = value.find("layer_name");
 				if (it == value.end()) {

@@ -118,7 +118,7 @@ FieldBox::FieldBox(const SearchField &field, QString allValues, QWidget *parent)
     vl->addLayout(hlayout);
     vl->addSpacing(10);
 
-    foreach(SearchValue v, field.values)
+    for (auto &v : field.values)
     {
         FieldValueWidget *fieldValue = new FieldValueWidget(v);
         value_list.append(fieldValue);
