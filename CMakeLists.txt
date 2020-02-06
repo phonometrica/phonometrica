@@ -21,8 +21,8 @@ set(ENABLE_LOGGING OFF)
 set(USE_FFTW ON)
 
 if (WIN32)
-    set(QT_DIR "C:/Qt5/5.12.5/mingw73_64/lib/cmake/Qt5")
-    set(BOOST_DIR "C:/Devel/Lib/boost_1_66_0")
+    set(QT_DIR "C:/Qt/5.14.1/mingw73_64/lib/cmake/Qt5")
+    set(BOOST_DIR "C:/Devel/Lib/boost_1_72_0")
     set(LIBSNDFILE_DIR "C:/Devel/Lib/libsndfile")
 endif()
 
