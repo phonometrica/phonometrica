@@ -303,10 +303,10 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 	auto last_sample = first_sample + nframe_orig;
 
 	if (first_sample < 1) {
-		throw error("Time point % is to close to the beginning of the file", time);
+		throw error("File '%': time point % is too close to the beginning of the file", path(), time);
 	}
 	if (last_sample > m_data->size()) {
-		throw error("Time point % is to close to the end of the file", time);
+		throw error("File '%': time point % is too close to the end of the file", path(), time);
 	}
 
 	auto input = m_data->copy(first_sample, last_sample);
@@ -383,10 +383,10 @@ double Sound::get_pitch(double time, double min_pitch, double max_pitch, double 
 	auto last_sample = first_sample + step * 7;
 
 	if (first_sample < 1) {
-		throw error("Time point % is to close to the beginning of the file", time);
+		throw error("File '%': time point % is too close to the beginning of the file", path(), time);
 	}
 	if (last_sample > m_data->size()) {
-		throw error("Time point % is to close to the end of the file", time);
+		throw error("File '%': time point % is too close to the end of the file", path(), time);
 	}
 
 	auto input = m_data->get(first_sample, last_sample);
@@ -411,10 +411,10 @@ double Sound::get_intensity(double time)
 	auto start = m_data->data() + first_sample - 1;
 
 	if (start < m_data->data()) {
-		throw error("Time point % is to close to the beginning of the file", time);
+		throw error("File '%': time point % is too close to the beginning of the file", path(), time);
 	}
 	if (start + window_size > m_data->data() + m_data->size()) {
-		throw error("Time point % is to close to the end of the file", time);
+		throw error("File '%': time point % is too close to the end of the file", path(), time);
 	}
 
 	Span<double> frame(start, window_size);
@@ -511,7 +511,7 @@ void Sound::initialize(Runtime &rt)
 		auto time = rt.to_number(1);
 		sound->open();
 		if (time < 0 || time > sound->duration()) {
-			throw error("Invalid time %", time);
+			throw error("File '%': invalid time %", sound->path(), time);
 		}
 		rt.push(sound->get_intensity(time));
 	};
