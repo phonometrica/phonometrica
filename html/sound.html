@@ -1,26 +1,29 @@
 
 
+<!doctype html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Sound visualization and analysis &#8212; Phonometrica 0.7.5 documentation</title>
-    <link rel="stylesheet" href="_static/yeen.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Sound visualization and analysis &#8212; Phonometrica 0.7.6 documentation</title>
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Sound annotation" href="annotation.html" />
-    <link rel="prev" title="Getting started" href="intro/start.html" /> 
+    <link rel="prev" title="Getting started" href="intro/start.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="intro/start.html" title="Getting started"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.7.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -70,17 +73,15 @@
   <p class="topless"><a href="annotation.html"
                         title="next chapter">Sound annotation</a></p>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -124,19 +125,19 @@ sound file, or <strong>fixed magnitude</strong> to set a custom magnitude. Note 
 spectrogram can be ajusted by changing the following settings, using the <code class="docutils literal notranslate"><span class="pre">Spectrogram</span> <span class="pre">settings...</span></code> command
 available from the spectrogram menu <a class="reference internal" href="_images/spectrum.png"><img alt="spectrogram" src="_images/spectrum.png" style="width: 16px; height: 16px;" /></a> in the toolbar:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">spectrogram</span> <span class="pre">type</span></code>: the type of spectrogram is determined by the duration of the analysis.
+<li><p><code class="docutils literal notranslate"><span class="pre">spectrogram</span> <span class="pre">type</span></code>: the type of spectrogram is determined by the duration of the analysis.
 A <strong>wide-band spectrogram</strong> is obtained with a short analysis window (5 ms by default): this type of spectrogram has good
 frequency resolution, which allows us to see individual glottal pulses as vertical striation lines, but it has poor frequency resolution. A <strong>narrow-band spectrogram</strong> uses a long window analysis (25 ms by default): it has poor time resolution but good frequency resolution, which allows us to see individual harmonics as thin horizontal bands. You can choose a custom window length
-(in millisecons) if the default choices don’t fit your needs.</li>
-<li><code class="docutils literal notranslate"><span class="pre">frequency</span> <span class="pre">range</span></code>: the range of frequencies that is displayed. If this value is higher than the Nyquist frequency for
-a given file (i.e. half its sampling frequency), Phonometrica will use the Nyquist frequency instead of this setting.</li>
-<li><code class="docutils literal notranslate"><span class="pre">dynamic</span> <span class="pre">range</span></code> This value determines the degree of contrast in the spectrogram. All values that are less than
-<em>max_dB - dynamic_range</em> are displayed in white, where <em>max_dB</em> is the the highest intensity in the current window.</li>
-<li><code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">type</span></code>: This parameter indicates the shape of the window that is applied to a segment of the sound file before
-calculating its Fast Fourier Transform.</li>
-<li><code class="docutils literal notranslate"><span class="pre">pre-emphasis</span> <span class="pre">threshold</span></code>: threshold of the high-pass pre-emphasis filter. The amplitude of the frequencies above this
+(in millisecons) if the default choices don’t fit your needs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">frequency</span> <span class="pre">range</span></code>: the range of frequencies that is displayed. If this value is higher than the Nyquist frequency for
+a given file (i.e. half its sampling frequency), Phonometrica will use the Nyquist frequency instead of this setting.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dynamic</span> <span class="pre">range</span></code> This value determines the degree of contrast in the spectrogram. All values that are less than
+<em>max_dB - dynamic_range</em> are displayed in white, where <em>max_dB</em> is the the highest intensity in the current window.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">type</span></code>: This parameter indicates the shape of the window that is applied to a segment of the sound file before
+calculating its Fast Fourier Transform.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pre-emphasis</span> <span class="pre">threshold</span></code>: threshold of the high-pass pre-emphasis filter. The amplitude of the frequencies above this
 threshold will be increased. This value is plugged into the following equation: <span class="math notranslate nohighlight">\(y[n] = x[n] - \exp(-2 \pi f \frac{1}{F_s}) x[n-1]\)</span>,
-where <span class="math notranslate nohighlight">\(f\)</span> is the pre-emphasis threshold and <span class="math notranslate nohighlight">\(F_s\)</span> is the sampling rate.</li>
+where <span class="math notranslate nohighlight">\(f\)</span> is the pre-emphasis threshold and <span class="math notranslate nohighlight">\(F_s\)</span> is the sampling rate.</p></li>
 </ul>
 <p>You can show or hide the spectrogram using the <code class="docutils literal notranslate"><span class="pre">Show</span> <span class="pre">spectrogram</span></code> command in the spectrogram menu.</p>
 </div>
@@ -147,27 +148,27 @@ Phonometrica shows the first 4 formants (F1, F2, F3, F4), if they are defined. P
 on Linear Predictive Coding (LPC). The <code class="docutils literal notranslate"><span class="pre">Formant</span> <span class="pre">settings...</span></code> command (available from the formants menu <a class="reference internal" href="_images/formants.png"><img alt="formants" src="_images/formants.png" style="width: 16px; height: 16px;" /></a> in the
 toolbar) allows you adjust the formant tracking algorithm’s parameters:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">number</span> <span class="pre">of</span> <span class="pre">formants</span></code>: this is the maximum number of formants that will be extracted and displayed over the spectrogram</li>
-<li><code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">frequency</span></code>: this is the highest frequency in the sound below which formants are expected to be found. For
+<li><p><code class="docutils literal notranslate"><span class="pre">number</span> <span class="pre">of</span> <span class="pre">formants</span></code>: this is the maximum number of formants that will be extracted and displayed over the spectrogram</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">frequency</span></code>: this is the highest frequency in the sound below which formants are expected to be found. For
 vowel analysis, a good rule of thumb is to use 5000 Hz for male voices and 5500 for female voices. We usually expect to find 5 formants
-within this frequency range.</li>
-<li><code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">bandwidth</span></code>: candidate formants whose bandwidth exceeds this threshold (400 Hz by default) will be discarded. If you don’t
-want this behavior, set this value to a high value such as <code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">frequency</span></code>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">length</span></code>: this is the duration (in seconds) of the analysis window that will be used to calculate prediction coefficients.</li>
-<li><code class="docutils literal notranslate"><span class="pre">LPC</span> <span class="pre">order</span></code>: this represents the number of prediction coefficients that will be used to perform LPC analysis. For a male voice,
+within this frequency range.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">bandwidth</span></code>: candidate formants whose bandwidth exceeds this threshold (400 Hz by default) will be discarded. If you don’t
+want this behavior, set this value to a high value such as <code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">frequency</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">window</span> <span class="pre">length</span></code>: this is the duration (in seconds) of the analysis window that will be used to calculate prediction coefficients.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LPC</span> <span class="pre">order</span></code>: this represents the number of prediction coefficients that will be used to perform LPC analysis. For a male voice,
 we usually expect roughly one formant per thousand Hertz. (Add 10% for female voices.) By default, Phonometrica applies the following
-formula:  <span class="math notranslate nohighlight">\(LPC order = 2n + 2\)</span>, where <em>n</em> is the expected number of formants.</li>
+formula:  <span class="math notranslate nohighlight">\(LPC order = 2n + 2\)</span>, where <em>n</em> is the expected number of formants.</p></li>
 </ul>
 </div>
 <div class="section" id="pitch-track">
 <h3>Pitch track<a class="headerlink" href="#pitch-track" title="Permalink to this headline">¶</a></h3>
-<p>The pitch track is a two-dimensional representation of the sound which shows how pitch (measured in Hertz) changes over time. Phonometrica uses the SWIPE algorithm <a class="reference internal" href="#cam2007" id="id1">[CAM2007]</a> for
+<p>The pitch track is a two-dimensional representation of the sound which shows how pitch (measured in Hertz) changes over time. Phonometrica uses the SWIPE algorithm <a class="reference internal" href="#cam2007" id="id1"><span>[CAM2007]</span></a> for
 pitch tracking. The <code class="docutils literal notranslate"><span class="pre">Pitch</span> <span class="pre">settings...</span></code> command (available from the pitch menu <a class="reference internal" href="_images/voice.png"><img alt="pitch" src="_images/voice.png" style="width: 16px; height: 16px;" /></a> in the toolbar) allows you to adjust the algorithm’s parameters:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">minimum</span> <span class="pre">pitch</span></code>: this is the lowest pitch value expected to be found in the sound.</li>
-<li><code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">pitch</span></code>: this is the highest pitch value expected to be found in the sound.</li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span> <span class="pre">step</span></code>: this determines the number of points used to estimate pitch in the current window.</li>
-<li><code class="docutils literal notranslate"><span class="pre">voicing</span> <span class="pre">threshold</span></code>: this determines the sensitivity of the algorithm to voicing detection. This parameter is a value between 0.2 and 0.5 (inclusive).</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">minimum</span> <span class="pre">pitch</span></code>: this is the lowest pitch value expected to be found in the sound.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">pitch</span></code>: this is the highest pitch value expected to be found in the sound.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span> <span class="pre">step</span></code>: this determines the number of points used to estimate pitch in the current window.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">voicing</span> <span class="pre">threshold</span></code>: this determines the sensitivity of the algorithm to voicing detection. This parameter is a value between 0.2 and 0.5 (inclusive).</p></li>
 </ul>
 <p>You can show or hide the pitch track using the <code class="docutils literal notranslate"><span class="pre">Show</span> <span class="pre">pitch</span></code> command in the pitch menu.</p>
 </div>
@@ -176,9 +177,9 @@ pitch tracking. The <code class="docutils literal notranslate"><span class="pre"
 <p>The intensity track is a two-dimensional representation of the sound which shows how intensity (measured in decibels) changes over time. The <code class="docutils literal notranslate"><span class="pre">Intensity</span> <span class="pre">settings...</span></code> command
 (available from the intensity menu <a class="reference internal" href="_images/hearing.png"><img alt="intensity" src="_images/hearing.png" style="width: 16px; height: 16px;" /></a> in the toolbar) allows you to adjust intensity settings:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">minimum</span> <span class="pre">intensity</span></code>: this is the lowest intensity value expected to be found in the sound.</li>
-<li><code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">intensity</span></code>: this is the highest intensity value expected to be found in the sound.</li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span> <span class="pre">step</span></code>: this determines the number of points used to estimate intensity in the current window.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">minimum</span> <span class="pre">intensity</span></code>: this is the lowest intensity value expected to be found in the sound.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maximum</span> <span class="pre">intensity</span></code>: this is the highest intensity value expected to be found in the sound.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span> <span class="pre">step</span></code>: this determines the number of points used to estimate intensity in the current window.</p></li>
 </ul>
 <p>You can show or hide the intensity track using the <code class="docutils literal notranslate"><span class="pre">Show</span> <span class="pre">intensity</span></code> command in the intensity menu.</p>
 </div>
@@ -212,21 +213,20 @@ plot. If you click on the left button anywhere in one of the sound plots, a <str
 button.)</p>
 <p>Once a persistent cursor is visible, you can perform acoustic measurements by using clicking on one of the dedicated commands. These commands will print their output in the console:</p>
 <ul class="simple">
-<li>The <code class="docutils literal notranslate"><span class="pre">Get</span> <span class="pre">pitch</span></code> command in the pitch menu <a class="reference internal" href="_images/voice.png"><img alt="pitch" src="_images/voice.png" style="width: 16px; height: 16px;" /></a> prints the pitch under the cursor</li>
-<li>The <code class="docutils literal notranslate"><span class="pre">Get</span> <span class="pre">intensity</span></code> command in the intensity menu <a class="reference internal" href="_images/hearing.png"><img alt="intensity" src="_images/hearing.png" style="width: 16px; height: 16px;" /></a> prints the intensity under the cursor</li>
-<li>The <code class="docutils literal notranslate"><span class="pre">Get</span> <span class="pre">formants</span></code> command in the formants menu <a class="reference internal" href="_images/formants.png"><img alt="formants" src="_images/formants.png" style="width: 16px; height: 16px;" /></a> prints the value of the visible formants, as well as their respective bandwidth, under the cursor</li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">Get</span> <span class="pre">pitch</span></code> command in the pitch menu <a class="reference internal" href="_images/voice.png"><img alt="pitch" src="_images/voice.png" style="width: 16px; height: 16px;" /></a> prints the pitch under the cursor</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">Get</span> <span class="pre">intensity</span></code> command in the intensity menu <a class="reference internal" href="_images/hearing.png"><img alt="intensity" src="_images/hearing.png" style="width: 16px; height: 16px;" /></a> prints the intensity under the cursor</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">Get</span> <span class="pre">formants</span></code> command in the formants menu <a class="reference internal" href="_images/formants.png"><img alt="formants" src="_images/formants.png" style="width: 16px; height: 16px;" /></a> prints the value of the visible formants, as well as their respective bandwidth, under the cursor</p></li>
 </ul>
 <p>Note that for these commands to work, the corresponding plot must be visible (e.g. the pitch plot must be visible if you want to measure pitch).</p>
 </div>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<table class="docutils citation" frame="void" id="cam2007" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[CAM2007]</a></td><td>Camacho, Arturo. 2007. SWIPE: A sawtooth waveform inspired pitch estimator for speech and music. PhD dissertation, University of Florida Gainesville.</td></tr>
-</tbody>
-</table>
+<dl class="citation">
+<dt class="label" id="cam2007"><span class="brackets"><a class="fn-backref" href="#id1">CAM2007</a></span></dt>
+<dd><p>Camacho, Arturo. 2007. SWIPE: A sawtooth waveform inspired pitch estimator for speech and music. PhD dissertation, University of Florida Gainesville.</p>
+</dd>
+</dl>
 </div>
 </div>
 
@@ -248,15 +248,12 @@ button.)</p>
         <li class="right" >
           <a href="intro/start.html" title="Getting started"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.7.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
       </ul>
     </div>
-    
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
     </div>
-    
-
   </body>
 </html>

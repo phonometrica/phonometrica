@@ -1,26 +1,29 @@
 
 
+<!doctype html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Queries &#8212; Phonometrica 0.7.5 documentation</title>
-    <link rel="stylesheet" href="_static/yeen.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Queries &#8212; Phonometrica 0.7.6 documentation</title>
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Scripting" href="scripting/index.html" />
-    <link rel="prev" title="Sound annotation" href="annotation.html" /> 
+    <link rel="prev" title="Sound annotation" href="annotation.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="annotation.html" title="Sound annotation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.7.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -67,17 +70,15 @@
   <p class="topless"><a href="scripting/index.html"
                         title="next chapter">Scripting</a></p>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -164,28 +165,28 @@ interrupt it by pressing <code class="docutils literal notranslate"><span class=
 <p>Right-clicking on item will display a context menu that allows you to
 perform a number of actions:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">Play</span> <span class="pre">selection</span></code>: this will play the corresponding item if the
-annotation is bound to a sound file.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">in</span> <span class="pre">annotation</span></code>: this will open the annotation in a new view,
-along with its sound file if it is bound to a sound.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">selection</span> <span class="pre">in</span> <span class="pre">Praat</span></code>: if Praat is installed and configured to
+<li><p><code class="docutils literal notranslate"><span class="pre">Play</span> <span class="pre">selection</span></code>: this will play the corresponding item if the
+annotation is bound to a sound file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">in</span> <span class="pre">annotation</span></code>: this will open the annotation in a new view,
+along with its sound file if it is bound to a sound.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Open</span> <span class="pre">selection</span> <span class="pre">in</span> <span class="pre">Praat</span></code>: if Praat is installed and configured to
 work with Phonometrica, this will open the match in Praat. Phonometrica will open
 the TextGrid (and the sound file if the annotation is bound) in Praat
 and will display the current match. (Note that you need to have Praat
-already running for this to work.)</li>
-<li><code class="docutils literal notranslate"><span class="pre">Edit</span> <span class="pre">item</span> <span class="pre">text</span></code>: this allows you to modify the text of the item
+already running for this to work.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Edit</span> <span class="pre">item</span> <span class="pre">text</span></code>: this allows you to modify the text of the item
 where the match was found. (Note that the query view is currently not
-updated to reflect this change.)</li>
-<li><code class="docutils literal notranslate"><span class="pre">Create</span> <span class="pre">table</span> <span class="pre">view</span></code>: this will convert the concordance set, along
+updated to reflect this change.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Create</span> <span class="pre">table</span> <span class="pre">view</span></code>: this will convert the concordance set, along
 with all its metadata, to a table that can be imported into a
-spreadsheet program.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Export</span> <span class="pre">results</span> <span class="pre">to</span> <span class="pre">tab-separated</span> <span class="pre">file</span> <span class="pre">(CSV)...</span></code>: this exports the
+spreadsheet program.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Export</span> <span class="pre">results</span> <span class="pre">to</span> <span class="pre">tab-separated</span> <span class="pre">file</span> <span class="pre">(CSV)...</span></code>: this exports the
 concordance set, along with all its metadata, to a CSV file that can
-be imported into a spreadsheet program.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Bookmark</span> <span class="pre">search</span> <span class="pre">result</span></code>: this allows you to bookmark a matched
+be imported into a spreadsheet program.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Bookmark</span> <span class="pre">search</span> <span class="pre">result</span></code>: this allows you to bookmark a matched
 item. Bookmarks are displayed in the bookmark panel, which can
 accessed by clicking on the star in the bottom left corner of the
-main window.</li>
+main window.</p></li>
 </ul>
 </div>
 </div>
@@ -227,10 +228,10 @@ where each word was segmented, and a part-of-speech (POS) tier (tier 2)
 which is aligned with the word tier. To extract all the nouns in the
 corpus, you could do the following:</p>
 <ul class="simple">
-<li>set <code class="docutils literal notranslate"><span class="pre">NOUN</span></code> as the search pattern for tier 1, and choose the
-<code class="docutils literal notranslate"><span class="pre">is</span> <span class="pre">aligned</span> <span class="pre">with</span></code> value of the relation selector.</li>
-<li>set <code class="docutils literal notranslate"><span class="pre">.+</span></code> as the search pattern for tier 2</li>
-<li>set the display tier to tier 2</li>
+<li><p>set <code class="docutils literal notranslate"><span class="pre">NOUN</span></code> as the search pattern for tier 1, and choose the
+<code class="docutils literal notranslate"><span class="pre">is</span> <span class="pre">aligned</span> <span class="pre">with</span></code> value of the relation selector.</p></li>
+<li><p>set <code class="docutils literal notranslate"><span class="pre">.+</span></code> as the search pattern for tier 2</p></li>
+<li><p>set the display tier to tier 2</p></li>
 </ul>
 <p>Phonometrica will first look for all items whose text contains “NOUN” on tier
 1, and will keep all those items which contain a non-empty label in an
@@ -240,10 +241,10 @@ the above criteria.</p>
 <p>As another example, suppose you now want to extract all the adverbs that
 end with <em>-ly</em>. You could do the following:</p>
 <ul class="simple">
-<li>set <code class="docutils literal notranslate"><span class="pre">ADV</span></code> as the search pattern for tier 1, and choose the
-<code class="docutils literal notranslate"><span class="pre">is</span> <span class="pre">aligned</span> <span class="pre">with</span></code> value of the relation selector.</li>
-<li>set <code class="docutils literal notranslate"><span class="pre">.+ly$</span></code> as the search pattern for tier 2</li>
-<li>set the display tier to tier 2</li>
+<li><p>set <code class="docutils literal notranslate"><span class="pre">ADV</span></code> as the search pattern for tier 1, and choose the
+<code class="docutils literal notranslate"><span class="pre">is</span> <span class="pre">aligned</span> <span class="pre">with</span></code> value of the relation selector.</p></li>
+<li><p>set <code class="docutils literal notranslate"><span class="pre">.+ly$</span></code> as the search pattern for tier 2</p></li>
+<li><p>set the display tier to tier 2</p></li>
 </ul>
 <p>Assuming that tier 2 contains exactly one word per interval, this will
 successfully extract all the adverbs on tier 2 that end with <em>-ly</em>.</p>
@@ -260,11 +261,11 @@ in the alignment examples. Instead of searching for a single word, you
 might be interested in looking for word sequences. To find all the
 <code class="docutils literal notranslate"><span class="pre">DET+NOUN</span></code> sequences, you could do the following:</p>
 <ul class="simple">
-<li>set <code class="docutils literal notranslate"><span class="pre">DET</span></code> as the search pattern for the first tier item in tier 1,
-and choose the <code class="docutils literal notranslate"><span class="pre">precedes</span></code> value of the relation selector.</li>
-<li>set <code class="docutils literal notranslate"><span class="pre">NOUN</span></code> as the search pattern for the second tier item, setting
-the tier number to 1 to ensure you are looking in the same tier</li>
-<li>set the display tier to tier 2</li>
+<li><p>set <code class="docutils literal notranslate"><span class="pre">DET</span></code> as the search pattern for the first tier item in tier 1,
+and choose the <code class="docutils literal notranslate"><span class="pre">precedes</span></code> value of the relation selector.</p></li>
+<li><p>set <code class="docutils literal notranslate"><span class="pre">NOUN</span></code> as the search pattern for the second tier item, setting
+the tier number to 1 to ensure you are looking in the same tier</p></li>
+<li><p>set the display tier to tier 2</p></li>
 </ul>
 <p>Phonometrica will first look for all <code class="docutils literal notranslate"><span class="pre">DET</span></code> items on tier one, and will keep
 only those that are followed by a <code class="docutils literal notranslate"><span class="pre">NOUN</span></code> item on the same tier. It
@@ -285,10 +286,10 @@ which denote syllables, the second one contains syllabic constituents
 segments (“p”, “a”, “t”…). In order to retrieve all syllables that end
 in a coda, you could do the following:</p>
 <ul class="simple">
-<li>set <code class="docutils literal notranslate"><span class="pre">syll</span></code> as the search pattern for tier 1, and choose the
-<code class="docutils literal notranslate"><span class="pre">dominates</span></code> value of the relation selector.</li>
-<li>set <code class="docutils literal notranslate"><span class="pre">Coda</span></code> as the search pattern for tier 2</li>
-<li>set the display tier to tier 3</li>
+<li><p>set <code class="docutils literal notranslate"><span class="pre">syll</span></code> as the search pattern for tier 1, and choose the
+<code class="docutils literal notranslate"><span class="pre">dominates</span></code> value of the relation selector.</p></li>
+<li><p>set <code class="docutils literal notranslate"><span class="pre">Coda</span></code> as the search pattern for tier 2</p></li>
+<li><p>set the display tier to tier 3</p></li>
 </ul>
 <p>This query will first get all the items that have a <code class="docutils literal notranslate"><span class="pre">syll</span></code> label on
 the first tier; then, for each of those, it will look for a label
@@ -318,15 +319,12 @@ tier 1.</p>
         <li class="right" >
           <a href="annotation.html" title="Sound annotation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.7.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
       </ul>
     </div>
-    
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
     </div>
-    
-
   </body>
 </html>

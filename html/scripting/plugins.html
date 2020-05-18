@@ -1,26 +1,29 @@
 
 
+<!doctype html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Plugins &#8212; Phonometrica 0.7.5 documentation</title>
-    <link rel="stylesheet" href="../_static/yeen.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Plugins &#8212; Phonometrica 0.7.6 documentation</title>
+    <link rel="stylesheet" href="../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="License" href="../about/license.html" />
-    <link rel="prev" title="User interaction" href="api/user_interaction.html" /> 
+    <link rel="prev" title="User interaction" href="api/user_interaction.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="api/user_interaction.html" title="User interaction"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -55,17 +58,15 @@
   <p class="topless"><a href="../about/license.html"
                         title="next chapter">License</a></p>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -87,32 +88,32 @@ file corresponding to the plugin you wish to install. It will be installed in th
 <h2>Structure of a plugin<a class="headerlink" href="#structure-of-a-plugin" title="Permalink to this headline">¶</a></h2>
 <p>To be valid, a plugin must adhere to a number of conventions. A plugin usually contains the following items:</p>
 <ul class="simple">
-<li>a description file, named <code class="docutils literal notranslate"><span class="pre">description.json</span></code> (compulsory)</li>
-<li>a script named <code class="docutils literal notranslate"><span class="pre">initialize.phon</span></code> (optional). It exists, it will be loaded after reading the description file.</li>
-<li>a script named <code class="docutils literal notranslate"><span class="pre">finalize.phon</span></code> (optional). If it exists, it will be run when the program exits.</li>
-<li>a <code class="docutils literal notranslate"><span class="pre">Scripts</span></code> sub-directory, which contains all your scripts
-(optional).</li>
-<li>a <code class="docutils literal notranslate"><span class="pre">Protocols</span></code> sub-directory, which contains coding protocols (optional)</li>
-<li>a <code class="docutils literal notranslate"><span class="pre">Resources</span></code> sub-directory, which may contain anything (optional).</li>
+<li><p>a description file, named <code class="docutils literal notranslate"><span class="pre">description.json</span></code> (compulsory)</p></li>
+<li><p>a script named <code class="docutils literal notranslate"><span class="pre">initialize.phon</span></code> (optional). It exists, it will be loaded after reading the description file.</p></li>
+<li><p>a script named <code class="docutils literal notranslate"><span class="pre">finalize.phon</span></code> (optional). If it exists, it will be run when the program exits.</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">Scripts</span></code> sub-directory, which contains all your scripts
+(optional).</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">Protocols</span></code> sub-directory, which contains coding protocols (optional)</p></li>
+<li><p>a <code class="docutils literal notranslate"><span class="pre">Resources</span></code> sub-directory, which may contain anything (optional).</p></li>
 </ul>
 <p>The description file (<code class="docutils literal notranslate"><span class="pre">description.json</span></code>) contains all the information necessary to initialize the plugin. It must <strong>at least</strong> contain a name.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;My first plugin&quot;</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;My first plugin&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>Here is a more realistic (and useful) example:</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s">&quot;name&quot;</span> <span class="p">:</span> <span class="s">&quot;PFC&quot;</span><span class="p">,</span>
-    <span class="s">&quot;version&quot;</span><span class="p">:</span> <span class="s">&quot;0.1&quot;</span><span class="p">,</span>
-    <span class="s">&quot;description&quot;</span><span class="p">:</span>  <span class="o">[</span>
-        <span class="s">&quot;Plugin for the PFC project.\n&quot;</span><span class="p">,</span>
-        <span class="s">&quot;See http://www.projet-pfc.net&quot;</span>
-    <span class="o">]</span><span class="p">,</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;PFC&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.1&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;description&quot;</span><span class="p">:</span>  <span class="p">[</span>
+        <span class="s2">&quot;Plugin for the PFC project.\n&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;See http://www.projet-pfc.net&quot;</span>
+    <span class="p">],</span>
 
-    <span class="s">&quot;actions&quot;</span> <span class="p">:</span> <span class="o">[</span>
-        <span class="p">{</span> <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Add metadata&quot;</span><span class="p">,</span> <span class="s">&quot;target&quot;</span><span class="p">:</span> <span class="s">&quot;add_metadata.phon&quot;</span> <span class="p">,</span> <span class="s">&quot;shortcut&quot;</span><span class="p">:</span> <span class="s">&quot;alt+M&quot;</span> <span class="p">}</span>
-    <span class="o">]</span>
+    <span class="nt">&quot;actions&quot;</span> <span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Add metadata&quot;</span><span class="p">,</span> <span class="nt">&quot;target&quot;</span><span class="p">:</span> <span class="s2">&quot;add_metadata.phon&quot;</span> <span class="p">,</span> <span class="nt">&quot;shortcut&quot;</span><span class="p">:</span> <span class="s2">&quot;alt+M&quot;</span> <span class="p">}</span>
+    <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -132,61 +133,61 @@ information to the user in the query editor. Phonometrica will automatically loa
 <p>A coding protocol defines a number of <strong>fields</strong> which can take on a number of values. The user is presented with a number of checkboxes for each
 field, and Phonometrica converts the query to the corresponding regular expression, as defined by the coding protocol. Coding protocols are written
 in JSON.  Here is a simple yet realistic example, drawn from the <a class="reference external" href="http://www.projet-pfc.net">PFC project</a>:</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;coding_protocol&quot;</span><span class="p">,</span>
-    <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Schwa coding&quot;</span><span class="p">,</span>
-    <span class="s">&quot;version&quot;</span><span class="p">:</span> <span class="s">&quot;0.1&quot;</span><span class="p">,</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;coding_protocol&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Schwa coding&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.1&quot;</span><span class="p">,</span>
 
-    <span class="s">&quot;field_separator&quot;</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">,</span>
-    <span class="s">&quot;layer_index&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s">&quot;fields_per_row&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="nt">&quot;field_separator&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;layer_index&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="nt">&quot;fields_per_row&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
 
-    <span class="s">&quot;fields&quot;</span><span class="p">:</span> <span class="o">[</span>
-        <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Spelling&quot;</span><span class="p">,</span> <span class="s">&quot;match_all&quot;</span><span class="p">:</span> <span class="s">&quot;.&quot;</span><span class="p">,</span>
-            <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="o">[</span>
-            <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;e&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;graphical e&quot;</span><span class="p">},</span>
-            <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;[^e]&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;no e&quot;</span><span class="p">}</span>
-            <span class="o">]</span>
+    <span class="nt">&quot;fields&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Spelling&quot;</span><span class="p">,</span> <span class="nt">&quot;match_all&quot;</span><span class="p">:</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;e&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;graphical e&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;[^e]&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;no e&quot;</span><span class="p">}</span>
+            <span class="p">]</span>
         <span class="p">},</span>
 
-        <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Schwa&quot;</span><span class="p">,</span> <span class="s">&quot;match_all&quot;</span><span class="p">:</span> <span class="s">&quot;[0-2]&quot;</span><span class="p">,</span>
-            <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="o">[</span>
-            <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;0&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;Absent&quot;</span><span class="p">},</span>
-            <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;Present&quot;</span><span class="p">},</span>
-            <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;Uncertain&quot;</span><span class="p">}</span>
-            <span class="o">]</span>
+        <span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Schwa&quot;</span><span class="p">,</span> <span class="nt">&quot;match_all&quot;</span><span class="p">:</span> <span class="s2">&quot;[0-2]&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;Absent&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;Present&quot;</span><span class="p">},</span>
+            <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;Uncertain&quot;</span><span class="p">}</span>
+            <span class="p">]</span>
         <span class="p">},</span>
 
-        <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Position&quot;</span><span class="p">,</span> <span class="s">&quot;match_all&quot;</span><span class="p">:</span> <span class="s">&quot;[1-5]&quot;</span><span class="p">,</span>
-            <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="o">[</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>      <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;monosyllable&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span>      <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;initial syllable&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;3&quot;</span><span class="p">,</span>      <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;median syllable&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;4&quot;</span><span class="p">,</span>      <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;final syllable&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;5&quot;</span><span class="p">,</span>      <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;metathesis&quot;</span><span class="p">}</span>
-            <span class="o">]</span>
+        <span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Position&quot;</span><span class="p">,</span> <span class="nt">&quot;match_all&quot;</span><span class="p">:</span> <span class="s2">&quot;[1-5]&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>      <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;monosyllable&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>      <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;initial syllable&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span>      <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;median syllable&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>      <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;final syllable&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span>      <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;metathesis&quot;</span><span class="p">}</span>
+            <span class="p">]</span>
         <span class="p">},</span>
 
 
-        <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Left context&quot;</span><span class="p">,</span> <span class="s">&quot;match_all&quot;</span><span class="p">:</span> <span class="s">&quot;[1-5]&quot;</span><span class="p">,</span>
-            <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="o">[</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span>      <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;vowel&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span>      <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;consonant&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;3&quot;</span><span class="p">,</span>      <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;start of an intonational phrase&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;4&quot;</span><span class="p">,</span>      <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;uncertain vowel&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;5&quot;</span><span class="p">,</span>      <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;simplified cluster&quot;</span><span class="p">}</span>
-            <span class="o">]</span>
+        <span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Left context&quot;</span><span class="p">,</span> <span class="nt">&quot;match_all&quot;</span><span class="p">:</span> <span class="s2">&quot;[1-5]&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>      <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;vowel&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>      <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;consonant&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span>      <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;start of an intonational phrase&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>      <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;uncertain vowel&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span>      <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;simplified cluster&quot;</span><span class="p">}</span>
+            <span class="p">]</span>
         <span class="p">},</span>
 
-        <span class="p">{</span><span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;Right context&quot;</span><span class="p">,</span> <span class="s">&quot;match_all&quot;</span><span class="p">:</span> <span class="s">&quot;[1-4]&quot;</span><span class="p">,</span>
-            <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="o">[</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;vowel&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;2&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;consonant&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;3&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;weak prosodic boundary&quot;</span><span class="p">},</span>
-                <span class="p">{</span><span class="s">&quot;match&quot;</span><span class="p">:</span> <span class="s">&quot;4&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;strong prosodic boundary&quot;</span><span class="p">}</span>
-            <span class="o">]</span>
+        <span class="p">{</span><span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Right context&quot;</span><span class="p">,</span> <span class="nt">&quot;match_all&quot;</span><span class="p">:</span> <span class="s2">&quot;[1-4]&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;vowel&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;consonant&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;weak prosodic boundary&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="nt">&quot;match&quot;</span><span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;strong prosodic boundary&quot;</span><span class="p">}</span>
+            <span class="p">]</span>
         <span class="p">}</span>
-    <span class="o">]</span>
+    <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -226,15 +227,12 @@ has the same effect as checking them all.</p>
         <li class="right" >
           <a href="api/user_interaction.html" title="User interaction"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
       </ul>
     </div>
-    
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
     </div>
-    
-
   </body>
 </html>

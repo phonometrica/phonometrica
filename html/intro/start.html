@@ -1,26 +1,29 @@
 
 
+<!doctype html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Getting started &#8212; Phonometrica 0.7.5 documentation</title>
-    <link rel="stylesheet" href="../_static/yeen.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Getting started &#8212; Phonometrica 0.7.6 documentation</title>
+    <link rel="stylesheet" href="../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Sound visualization and analysis" href="../sound.html" />
-    <link rel="prev" title="Installation" href="install.html" /> 
+    <link rel="prev" title="Installation" href="install.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="install.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -56,17 +59,15 @@
   <p class="topless"><a href="../sound.html"
                         title="next chapter">Sound visualization and analysis</a></p>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -137,8 +138,8 @@ represents a row, and values in a row are separated by a <strong>separator chara
 a file as well as the separator character. We use the semicolon by default, since this is the separator used by
 Excel when it exports a spreadsheet to CSV. The file must have the following structure:</p>
 <ul class="simple">
-<li>the first line must be a header: the first field is ignored, and the following fields correspond to property categories.</li>
-<li>the first column must contain the name of file to which we want to add metadata, and the following properties are values for the corresponding categories. Cells can be left empty for files files which doesn’t have a certain property.</li>
+<li><p>the first line must be a header: the first field is ignored, and the following fields correspond to property categories.</p></li>
+<li><p>the first column must contain the name of file to which we want to add metadata, and the following properties are values for the corresponding categories. Cells can be left empty for files files which doesn’t have a certain property.</p></li>
 </ul>
 <p>The cells in the first column represent file names, as they are normally displayed by your operating system. For instance,
 if you want to tag the file <code class="docutils literal notranslate"><span class="pre">C:\Test\loc1f26.wav</span></code>, i.e. a file named <code class="docutils literal notranslate"><span class="pre">loc1f26.wav</span></code> located in a directory named
@@ -173,15 +174,12 @@ allows you to set the description field of a file.</p>
         <li class="right" >
           <a href="install.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
       </ul>
     </div>
-    
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
     </div>
-    
-
   </body>
 </html>

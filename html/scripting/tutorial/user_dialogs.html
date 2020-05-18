@@ -1,26 +1,29 @@
 
 
+<!doctype html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>User dialogs &#8212; Phonometrica 0.7.5 documentation</title>
-    <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>User dialogs &#8212; Phonometrica 0.7.6 documentation</title>
+    <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Advanced notions" href="advanced.html" />
-    <link rel="prev" title="Getting started" href="getting_started.html" /> 
+    <link rel="prev" title="Getting started" href="getting_started.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="getting_started.html" title="Getting started"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
       </ul>
     </div>
@@ -70,17 +73,15 @@
   <p class="topless"><a href="advanced.html"
                         title="next chapter">Advanced notions</a></p>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -104,45 +105,45 @@ of <code class="docutils literal notranslate"><span class="pre">items</span></co
 which type of user interface component the object represents, and the other attributes
 depend on the type of component (see below). Here, we are simply displaying a label with a
 <code class="docutils literal notranslate"><span class="pre">text</span></code> attribute.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s">&quot;title&quot;</span><span class="p">:</span> <span class="s">&quot;My first dialog&quot;</span><span class="p">,</span>
-    <span class="s">&quot;items&quot;</span><span class="p">:</span> <span class="o">[</span>
-        <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;My first label&quot;</span> <span class="p">}</span>
-    <span class="o">]</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;My first dialog&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;items&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;My first label&quot;</span> <span class="p">}</span>
+    <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>There are several optional attributes that can be used to customize our dialog. <code class="docutils literal notranslate"><span class="pre">width</span></code>
 and <code class="docutils literal notranslate"><span class="pre">height</span></code> allow you to set the <em>minimum</em> width and height of the dialog, whereas
 <code class="docutils literal notranslate"><span class="pre">yes_no</span></code> can be set to <code class="docutils literal notranslate"><span class="pre">true</span></code> to use <code class="docutils literal notranslate"><span class="pre">Yes/No</span></code> buttons instead of the default <code class="docutils literal notranslate"><span class="pre">OK/Cancel</span></code>.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s">&quot;title&quot;</span><span class="p">:</span> <span class="s">&quot;My first dialog&quot;</span><span class="p">,</span>
-    <span class="s">&quot;width&quot;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
-    <span class="s">&quot;height&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-    <span class="s">&quot;yes_no&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
-    <span class="s">&quot;items&quot;</span><span class="p">:</span> <span class="o">[</span>
-        <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;My first label&quot;</span> <span class="p">}</span>
-    <span class="o">]</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;My first dialog&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;width&quot;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="nt">&quot;height&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+    <span class="nt">&quot;yes_no&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">&quot;items&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;My first label&quot;</span> <span class="p">}</span>
+    <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>Once we have created a JSON object describing our dialog’s user interface, we can pass it
 to the <code class="docutils literal notranslate"><span class="pre">create_dialog()</span></code> function.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="n">ui</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s">&quot;title&quot;</span><span class="p">:</span> <span class="s">&quot;My first dialog&quot;</span><span class="p">,</span>
-    <span class="s">&quot;width&quot;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
-    <span class="s">&quot;height&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-    <span class="s">&quot;yes_no&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
-    <span class="s">&quot;items&quot;</span><span class="p">:</span> <span class="o">[</span>
-        <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;My first label&quot;</span> <span class="p">}</span>
-    <span class="o">]</span>
-<span class="p">}</span>
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>var ui = {
+    &quot;title&quot;: &quot;My first dialog&quot;,
+    &quot;width&quot;: 300,
+    &quot;height&quot;: 100,
+    &quot;yes_no&quot;: true,
+    &quot;items&quot;: [
+        { &quot;type&quot;: &quot;label&quot;, &quot;text&quot;: &quot;My first label&quot; }
+    ]
+}
 
-<span class="n">create_dialog</span><span class="p">(</span><span class="n">ui</span><span class="p">)</span>
+create_dialog(ui)
 </pre></div>
 </div>
 <p>The resulting dialog will look something like that:</p>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/basic_dialog.png" src="../../_images/basic_dialog.png" />
 </div>
 <p>If the user presses <code class="docutils literal notranslate"><span class="pre">OK</span></code> (or <code class="docutils literal notranslate"><span class="pre">Yes</span></code> if <code class="docutils literal notranslate"><span class="pre">yes_no</span></code> is <code class="docutils literal notranslate"><span class="pre">true</span></code>), <code class="docutils literal notranslate"><span class="pre">create_dialog()</span></code> will return a JSON object containing the user’s input (which will be empty
@@ -157,10 +158,10 @@ accept a default value have an optional <code class="docutils literal notranslat
 <h3>Label<a class="headerlink" href="#label" title="Permalink to this headline">¶</a></h3>
 <p>A <strong>label</strong> must have its <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute set to <code class="docutils literal notranslate"><span class="pre">label</span></code>. A label has one additional required attribute, <cite>text</cite>, which corresponds to the text that
 is displayed inside the label.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">:</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;This is a label&quot;</span> <span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;This is a label&quot;</span> <span class="p">}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/label.png" src="../../_images/label.png" />
 </div>
 </div>
@@ -171,10 +172,10 @@ a <code class="docutils literal notranslate"><span class="pre">label</span></cod
 By default, unless the button is stored in a container, it will fill the whole width of the dialog. You can use the optional <code class="docutils literal notranslate"><span class="pre">position</span></code> attribute to
 make it smaller and control its position. Valid values are <code class="docutils literal notranslate"><span class="pre">left</span></code>, <code class="docutils literal notranslate"><span class="pre">center</span></code> and <code class="docutils literal notranslate"><span class="pre">right</span></code>. If the button is inside of a container, the <code class="docutils literal notranslate"><span class="pre">position</span></code> attribute
 is ignored.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;button&quot;</span><span class="p">,</span> <span class="s">&quot;label&quot;</span><span class="p">:</span> <span class="s">&quot;test&quot;</span><span class="p">,</span> <span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="s">&quot;print(&#39;button clicked!&#39;)&quot;</span><span class="p">,</span> <span class="s">&quot;position&quot;</span><span class="p">:</span> <span class="s">&quot;left&quot;</span> <span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="nt">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="nt">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;print(&#39;button clicked!&#39;)&quot;</span><span class="p">,</span> <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;left&quot;</span> <span class="p">}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/button.png" src="../../_images/button.png" />
 </div>
 </div>
@@ -186,10 +187,10 @@ be displayed in the file selection dialog that opens when the user presses the <
 <code class="docutils literal notranslate"><span class="pre">default</span></code> attribute (as a string): If no default value is provided, the file selector’s field will be empty. Additionally, you can specify a <code class="docutils literal notranslate"><span class="pre">filter</span></code> attribute
 that will be used to restrict the type of files that can be selected. For example, The filter <code class="docutils literal notranslate"><span class="pre">&quot;CSV</span> <span class="pre">(*.txt</span> <span class="pre">*.csv</span> <span class="pre">*.tsv)&quot;</span></code> would accept
 all CSV files (comma-separated value) that have <code class="docutils literal notranslate"><span class="pre">.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">.csv</span></code> or <code class="docutils literal notranslate"><span class="pre">.tsv</span></code> extension.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;file_selector&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;path&quot;</span><span class="p">,</span> <span class="s">&quot;title&quot;</span><span class="p">:</span> <span class="s">&quot;Select text file...&quot;</span><span class="p">,</span> <span class="s">&quot;default&quot;</span><span class="p">:</span> <span class="s">&quot;output.txt&quot;</span><span class="p">,</span> <span class="s">&quot;filter&quot;</span><span class="p">:</span> <span class="s">&quot;CSV (*.txt *.csv *.tsv)&quot;</span> <span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;file_selector&quot;</span><span class="p">,</span> <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;path&quot;</span><span class="p">,</span> <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Select text file...&quot;</span><span class="p">,</span> <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;output.txt&quot;</span><span class="p">,</span> <span class="nt">&quot;filter&quot;</span><span class="p">:</span> <span class="s2">&quot;CSV (*.txt *.csv *.tsv)&quot;</span> <span class="p">}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/file_selector.png" src="../../_images/file_selector.png" />
 </div>
 </div>
@@ -198,10 +199,10 @@ all CSV files (comma-separated value) that have <code class="docutils literal no
 <p>A <strong>field</strong> must have its <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute set to <code class="docutils literal notranslate"><span class="pre">field</span></code>. A field can be used to input a line of text.
 You must specify a <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute, which is the key that will be used in the result object to retrieve the field’s value. Additionally,
 you may specify a <code class="docutils literal notranslate"><span class="pre">default</span></code> value.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;field&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;field1&quot;</span><span class="p">,</span> <span class="s">&quot;default&quot;</span><span class="p">:</span> <span class="s">&quot;some default text&quot;</span> <span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;field&quot;</span><span class="p">,</span> <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;field1&quot;</span><span class="p">,</span> <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;some default text&quot;</span> <span class="p">}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/field.png" src="../../_images/field.png" />
 </div>
 </div>
@@ -211,10 +212,10 @@ you may specify a <code class="docutils literal notranslate"><span class="pre">d
 the value <code class="docutils literal notranslate"><span class="pre">true</span></code> is returned, whereas <code class="docutils literal notranslate"><span class="pre">false</span></code> is returned if the box is unchecked. You must specify a <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute, which is the key that will
 be used in the result object to retrieve the check box’s value, and a <code class="docutils literal notranslate"><span class="pre">text</span></code> attribute which is the text that will be displayed next to the check box.
 In addition, you may specify a <code class="docutils literal notranslate"><span class="pre">default</span></code> value, which must be <code class="docutils literal notranslate"><span class="pre">Boolean</span></code>.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;check_box&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;overwrite&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;Overwrite file if it exists&quot;</span><span class="p">,</span> <span class="s">&quot;default&quot;</span><span class="p">:</span> <span class="kc">true</span> <span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;check_box&quot;</span><span class="p">,</span> <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;overwrite&quot;</span><span class="p">,</span> <span class="nt">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;Overwrite file if it exists&quot;</span><span class="p">,</span> <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="kc">true</span> <span class="p">}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/check_box.png" src="../../_images/check_box.png" />
 </div>
 </div>
@@ -225,18 +226,18 @@ In addition, you may specify a <code class="docutils literal notranslate"><span 
 as a JSON array of strings: all checked values will be stored in the return value (again, as a JSON array of strings). In addition to the list of values,
 you may specify a list of <code class="docutils literal notranslate"><span class="pre">labels</span></code>: in this case, labels will be displayed instead of values and values will be shown as tool tips when the user hovers
 their mouse over the label. This feature can be used to display shorter values than those we actually want to store.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;check_list&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;annotations&quot;</span><span class="p">,</span>
-  <span class="s">&quot;labels&quot;</span><span class="p">:</span> <span class="o">[</span> <span class="s">&quot;nzdajm1vg.TextGrid&quot;</span><span class="p">,</span> <span class="s">&quot;nzdajm1cg.TextGrid&quot;</span><span class="p">,</span> <span class="s">&quot;nzdajm1fg.TextGrid&quot;</span><span class="p">,</span><span class="s">&quot;nzdajm1tg.TextGrid&quot;</span> <span class="o">]</span><span class="p">,</span>
-  <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="o">[</span>
-     <span class="s">&quot;/home/julien/PAC/JM/nzdajm1vg.TextGrid&quot;</span><span class="p">,</span>
-     <span class="s">&quot;/home/julien/PAC/JM/nzdajm1cg.TextGrid&quot;</span><span class="p">,</span>
-     <span class="s">&quot;/home/julien/PAC/JM/nzdajm1fg.TextGrid&quot;</span><span class="p">,</span>
-     <span class="s">&quot;/home/julien/PAC/JM/nzdajm1tg.TextGrid&quot;</span><span class="p">,</span>
-  <span class="o">]</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;check_list&quot;</span><span class="p">,</span> <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;annotations&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;labels&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;nzdajm1vg.TextGrid&quot;</span><span class="p">,</span> <span class="s2">&quot;nzdajm1cg.TextGrid&quot;</span><span class="p">,</span> <span class="s2">&quot;nzdajm1fg.TextGrid&quot;</span><span class="p">,</span><span class="s2">&quot;nzdajm1tg.TextGrid&quot;</span> <span class="p">],</span>
+  <span class="nt">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span>
+     <span class="s2">&quot;/home/julien/PAC/JM/nzdajm1vg.TextGrid&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;/home/julien/PAC/JM/nzdajm1cg.TextGrid&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;/home/julien/PAC/JM/nzdajm1fg.TextGrid&quot;</span><span class="p">,</span>
+     <span class="s2">&quot;/home/julien/PAC/JM/nzdajm1tg.TextGrid&quot;</span><span class="p">,</span>
+  <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/check_list.png" src="../../_images/check_list.png" />
 </div>
 </div>
@@ -246,10 +247,10 @@ their mouse over the label. This feature can be used to display shorter values t
 can be selected at a time. You must specify a <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute, which is the key that will be used in the result object to retrieve the index of the
 selected value. You must also provide a list of <code class="docutils literal notranslate"><span class="pre">values</span></code> as a JSON array of strings. The index of the default value can be specified with the <code class="docutils literal notranslate"><span class="pre">default</span></code>
 attribute, which must be an integer. Finally, you can add a <code class="docutils literal notranslate"><span class="pre">title</span></code> attribute to provide a label for the button group.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;radio_buttons&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;tough_choice&quot;</span><span class="p">,</span> <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="o">[</span> <span class="s">&quot;blue pill&quot;</span><span class="p">,</span> <span class="s">&quot;red pill&quot;</span> <span class="o">]</span><span class="p">,</span> <span class="s">&quot;title&quot;</span><span class="p">:</span> <span class="s">&quot;Tough choice&quot;</span><span class="p">,</span> <span class="s">&quot;default&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;radio_buttons&quot;</span><span class="p">,</span> <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tough_choice&quot;</span><span class="p">,</span> <span class="nt">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;blue pill&quot;</span><span class="p">,</span> <span class="s2">&quot;red pill&quot;</span> <span class="p">],</span> <span class="nt">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Tough choice&quot;</span><span class="p">,</span> <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="p">}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/radio_buttons.png" src="../../_images/radio_buttons.png" />
 </div>
 </div>
@@ -259,10 +260,10 @@ attribute, which must be an integer. Finally, you can add a <code class="docutil
 instead of a group of buttons. A combo box must have its <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute set to <code class="docutils literal notranslate"><span class="pre">combo_box</span></code>. You must specify a <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute, which is the key that will be used in the result object to retrieve the index of the
 selected value. You must also provide a list of <code class="docutils literal notranslate"><span class="pre">values</span></code> as a JSON array of strings. The index of the default value can be specified with the <code class="docutils literal notranslate"><span class="pre">default</span></code>
 attribute, which must be an integer.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;combo_box&quot;</span><span class="p">,</span> <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="o">[</span> <span class="s">&quot;blue pill&quot;</span><span class="p">,</span> <span class="s">&quot;red pill&quot;</span> <span class="o">]</span><span class="p">,</span> <span class="s">&quot;default&quot;</span><span class="p">:</span> <span class="mi">2</span> <span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;combo_box&quot;</span><span class="p">,</span> <span class="nt">&quot;values&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;blue pill&quot;</span><span class="p">,</span> <span class="s2">&quot;red pill&quot;</span> <span class="p">],</span> <span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="mi">2</span> <span class="p">}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/combo_box.png" src="../../_images/combo_box.png" />
 </div>
 </div>
@@ -271,13 +272,13 @@ attribute, which must be an integer.</p>
 <p>A <strong>container</strong> must have its <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute set to <code class="docutils literal notranslate"><span class="pre">containter</span></code>. A container is not a visible component, but is used to pack components together
 horizontally (by default) or vertically. A container must have an <code class="docutils literal notranslate"><span class="pre">items</span></code> attribute, which is an array of components. You can use the <code class="docutils literal notranslate"><span class="pre">orientation</span></code>
 attribute to control the container’s packing policy. It accepts two values: <code class="docutils literal notranslate"><span class="pre">horizontal</span></code> or <code class="docutils literal notranslate"><span class="pre">vertical</span></code>.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;container&quot;</span><span class="p">,</span> <span class="s">&quot;items&quot;</span><span class="p">:</span> <span class="o">[</span>
-    <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;button&quot;</span><span class="p">,</span> <span class="s">&quot;label&quot;</span><span class="p">:</span> <span class="s">&quot;button 1&quot;</span><span class="p">,</span> <span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="s">&quot;info(&#39;A useless button!&#39;)&quot;</span><span class="p">,</span> <span class="s">&quot;position&quot;</span><span class="p">:</span> <span class="s">&quot;left&quot;</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;button&quot;</span><span class="p">,</span> <span class="s">&quot;label&quot;</span><span class="p">:</span> <span class="s">&quot;button 2&quot;</span><span class="p">,</span> <span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="s">&quot;info(&#39;Another useless button!&#39;)&quot;</span><span class="p">,</span> <span class="s">&quot;position&quot;</span><span class="p">:</span> <span class="s">&quot;left&quot;</span> <span class="p">}</span>
-<span class="o">]</span><span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;container&quot;</span><span class="p">,</span> <span class="nt">&quot;items&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="nt">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;button 1&quot;</span><span class="p">,</span> <span class="nt">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;info(&#39;A useless button!&#39;)&quot;</span><span class="p">,</span> <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;left&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="nt">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;button 2&quot;</span><span class="p">,</span> <span class="nt">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;info(&#39;Another useless button!&#39;)&quot;</span><span class="p">,</span> <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;left&quot;</span> <span class="p">}</span>
+<span class="p">]}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/container.png" src="../../_images/container.png" />
 </div>
 </div>
@@ -285,14 +286,14 @@ attribute to control the container’s packing policy. It accepts two values: <c
 <h3>Stretch<a class="headerlink" href="#stretch" title="Permalink to this headline">¶</a></h3>
 <p>A <strong>stretch</strong> must have its <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute set to <code class="docutils literal notranslate"><span class="pre">containter</span></code>. It is a special component that can be put inside a container to fill unused space.
 It has no attribute beside its type.</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;container&quot;</span><span class="p">,</span> <span class="s">&quot;items&quot;</span><span class="p">:</span> <span class="o">[</span>
-    <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;button&quot;</span><span class="p">,</span> <span class="s">&quot;label&quot;</span><span class="p">:</span> <span class="s">&quot;button 1&quot;</span><span class="p">,</span> <span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="s">&quot;info(&#39;A useless button!&#39;)&quot;</span><span class="p">,</span> <span class="s">&quot;position&quot;</span><span class="p">:</span> <span class="s">&quot;left&quot;</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;button&quot;</span><span class="p">,</span> <span class="s">&quot;label&quot;</span><span class="p">:</span> <span class="s">&quot;button 2&quot;</span><span class="p">,</span> <span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="s">&quot;info(&#39;Another useless button!&#39;)&quot;</span><span class="p">,</span> <span class="s">&quot;position&quot;</span><span class="p">:</span> <span class="s">&quot;left&quot;</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;stretch&quot;</span> <span class="p">}</span>
-<span class="o">]</span><span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;container&quot;</span><span class="p">,</span> <span class="nt">&quot;items&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="nt">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;button 1&quot;</span><span class="p">,</span> <span class="nt">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;info(&#39;A useless button!&#39;)&quot;</span><span class="p">,</span> <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;left&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="nt">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;button 2&quot;</span><span class="p">,</span> <span class="nt">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;info(&#39;Another useless button!&#39;)&quot;</span><span class="p">,</span> <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;left&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;stretch&quot;</span> <span class="p">}</span>
+<span class="p">]}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/stretch.png" src="../../_images/stretch.png" />
 </div>
 </div>
@@ -300,15 +301,15 @@ It has no attribute beside its type.</p>
 <h3>Spacing<a class="headerlink" href="#spacing" title="Permalink to this headline">¶</a></h3>
 <p>A <strong>spacing</strong> must have its <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute set to <code class="docutils literal notranslate"><span class="pre">spacing</span></code>. It is a special component that can be put inside a container to separate components.
 You must specify its <code class="docutils literal notranslate"><span class="pre">size</span></code> attribute, which is an integer that represents the size of the spacing (in pixels).</p>
-<div class="code json highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;container&quot;</span><span class="p">,</span> <span class="s">&quot;items&quot;</span><span class="p">:</span> <span class="o">[</span>
-    <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;button&quot;</span><span class="p">,</span> <span class="s">&quot;label&quot;</span><span class="p">:</span> <span class="s">&quot;button 1&quot;</span><span class="p">,</span> <span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="s">&quot;info(&#39;A useless button!&#39;)&quot;</span><span class="p">,</span> <span class="s">&quot;position&quot;</span><span class="p">:</span> <span class="s">&quot;left&quot;</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;spacing&quot;</span><span class="p">,</span> <span class="s">&quot;size&quot;</span><span class="p">:</span> <span class="mi">20</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;button&quot;</span><span class="p">,</span> <span class="s">&quot;label&quot;</span><span class="p">:</span> <span class="s">&quot;button 2&quot;</span><span class="p">,</span> <span class="s">&quot;action&quot;</span><span class="p">:</span> <span class="s">&quot;info(&#39;Another useless button!&#39;)&quot;</span><span class="p">,</span> <span class="s">&quot;position&quot;</span><span class="p">:</span> <span class="s">&quot;left&quot;</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;stretch&quot;</span> <span class="p">}</span>
-<span class="o">]</span><span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;container&quot;</span><span class="p">,</span> <span class="nt">&quot;items&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="nt">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;button 1&quot;</span><span class="p">,</span> <span class="nt">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;info(&#39;A useless button!&#39;)&quot;</span><span class="p">,</span> <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;left&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;spacing&quot;</span><span class="p">,</span> <span class="nt">&quot;size&quot;</span><span class="p">:</span> <span class="mi">20</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="nt">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;button 2&quot;</span><span class="p">,</span> <span class="nt">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;info(&#39;Another useless button!&#39;)&quot;</span><span class="p">,</span> <span class="nt">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;left&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;stretch&quot;</span> <span class="p">}</span>
+<span class="p">]}</span>
 </pre></div>
 </div>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/spacing.png" src="../../_images/spacing.png" />
 </div>
 </div>
@@ -321,49 +322,49 @@ in the script. This has two advantages: it allows us to intersperse comments in 
 to surround keys with double quotes, since in Phonometrica, <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">&quot;key&quot;:</span> <span class="pre">&quot;value&quot;</span> <span class="pre">}</span></code> and <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">key:</span> <span class="pre">&quot;value&quot;</span> <span class="pre">}</span></code> are equivalent, as long as <code class="docutils literal notranslate"><span class="pre">key</span></code> doesn’t
 contain any space.</p>
 <p>Here is the part of the script that corresponds to the creation of the user interface:</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="c1"># Setup user interface as a JSON object.</span>
-<span class="kr">var</span> <span class="n">ui</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">title</span><span class="p">:</span> <span class="s">&quot;Transphon&quot;</span><span class="p">,</span>
-    <span class="n">width</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
-    <span class="n">items</span><span class="p">:</span> <span class="o">[</span>
-        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Choose output file:&quot;</span> <span class="p">},</span>
-        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;file_selector&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="s">&quot;path&quot;</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="s">&quot;Select text file...&quot;</span> <span class="p">},</span>
-        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Select layers separated by a comma, or leave empty to process all layers:&quot;</span> <span class="p">},</span>
-        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;field&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="s">&quot;layers&quot;</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">},</span>
-        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Choose annotations:&quot;</span><span class="p">},</span>
-        <span class="c1"># Annotations will be inserted here</span>
-        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Choose event separator:&quot;</span><span class="p">},</span>
-        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;radio_buttons&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="s">&quot;separator&quot;</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="o">[</span><span class="s">&quot;space&quot;</span><span class="p">,</span> <span class="s">&quot;new line&quot;</span><span class="p">,</span> <span class="s">&quot;none&quot;</span><span class="o">]</span> <span class="p">}</span>
-    <span class="o">]</span>
-<span class="p">}</span>
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span># Setup user interface as a JSON object.
+var ui = {
+    title: &quot;Transphon&quot;,
+    width: 300,
+    items: [
+        { type: &quot;label&quot;, text: &quot;Choose output file:&quot; },
+        { type: &quot;file_selector&quot;, name: &quot;path&quot;, title: &quot;Select text file...&quot; },
+        { type: &quot;label&quot;, text: &quot;Select layers separated by a comma, or leave empty to process all layers:&quot; },
+        { type: &quot;field&quot;, name: &quot;layers&quot;, default: &quot;1&quot;},
+        { type: &quot;label&quot;, text: &quot;Choose annotations:&quot;},
+        # Annotations will be inserted here
+        { type: &quot;label&quot;, text: &quot;Choose event separator:&quot;},
+        { type: &quot;radio_buttons&quot;, name: &quot;separator&quot;, values: [&quot;space&quot;, &quot;new line&quot;, &quot;none&quot;] }
+    ]
+}
 
-<span class="c1"># Insert check list for annotations</span>
-<span class="kr">var</span> <span class="n">labels</span> <span class="o">=</span> <span class="o">[]</span>
-<span class="kr">var</span> <span class="n">values</span> <span class="o">=</span> <span class="o">[]</span>
+# Insert check list for annotations
+var labels = []
+var values = []
 
-<span class="kr">foreach</span> <span class="kr">var</span> <span class="n">annot</span> <span class="kr">in</span> <span class="n">get_annotations</span><span class="p">()</span> <span class="kr">do</span>
-    <span class="kr">var</span> <span class="n">path</span> <span class="o">=</span> <span class="n">annot</span><span class="p">.</span><span class="n">path</span>
-    <span class="c1"># This is the real value we are interested in</span>
-    <span class="n">values</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-    <span class="c1"># This is the label that will be displayed</span>
-    <span class="n">labels</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">system</span><span class="p">.</span><span class="n">get_base_name</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
-<span class="kr">end</span>
+foreach var annot in get_annotations() do
+    var path = annot.path
+    # This is the real value we are interested in
+    values.append(path)
+    # This is the label that will be displayed
+    labels.append(system.get_base_name(path))
+end
 
-<span class="c1"># Create item and insert it at position 6 in the list of items</span>
-<span class="kr">var</span> <span class="n">item</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;check_list&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;annotations&quot;</span><span class="p">,</span> <span class="s">&quot;labels&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span> <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="n">values</span> <span class="p">}</span>
-<span class="n">ui</span><span class="p">.</span><span class="n">items</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+# Create item and insert it at position 6 in the list of items
+var item = { &quot;type&quot;: &quot;check_list&quot;, &quot;name&quot;: &quot;annotations&quot;, &quot;labels&quot;: labels, &quot;values&quot;: values }
+ui.items.insert(6, item)
 
-<span class="c1"># `result` will contain a JSON object if the user pressed &quot;OK&quot;, or null otherwise.</span>
-<span class="kr">var</span> <span class="n">result</span> <span class="o">=</span> <span class="n">create_dialog</span><span class="p">(</span><span class="n">ui</span><span class="p">)</span>
+# `result` will contain a JSON object if the user pressed &quot;OK&quot;, or null otherwise.
+var result = create_dialog(ui)
 
-<span class="kr">if</span> <span class="n">result</span> <span class="kr">then</span>
-    <span class="c1"># Process the result. Here we will simply print it.</span>
-    <span class="n">print</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">stringify</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
-<span class="kr">end</span>
+if result then
+    # Process the result. Here we will simply print it.
+    print(json.stringify(result))
+end
 </pre></div>
 </div>
 <p>And here is the dialog that appears when the script is run:</p>
-<div class="figure">
+<div class="figure align-default">
 <img alt="../../_images/transphon.png" src="../../_images/transphon.png" />
 </div>
 </div>
@@ -387,16 +388,13 @@ contain any space.</p>
         <li class="right" >
           <a href="getting_started.html" title="Getting started"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
       </ul>
     </div>
-    
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
     </div>
-    
-
   </body>
 </html>

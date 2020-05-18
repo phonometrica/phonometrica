@@ -1,9 +1,10 @@
 Release notes
 -------------
 
-0.7.6 (??/05/2020)
+0.7.6 (18/05/2020)
 ~~~~~~~~~~~~~~~~~~
-
+- properties are now displayed in a table in the information panel
+- better error reporting
 - bug fixes
 
 0.7.5 (09/11/2019)

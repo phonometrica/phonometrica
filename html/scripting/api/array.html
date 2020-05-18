@@ -1,26 +1,29 @@
 
 
+<!doctype html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Numeric arrays &#8212; Phonometrica 0.7.5 documentation</title>
-    <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Numeric arrays &#8212; Phonometrica 0.7.6 documentation</title>
+    <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Event handling" href="event.html" />
-    <link rel="prev" title="Annotations" href="annotation.html" /> 
+    <link rel="prev" title="Annotations" href="annotation.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="annotation.html" title="Annotations"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
       </ul>
     </div>
@@ -58,17 +61,15 @@
   <p class="topless"><a href="event.html"
                         title="next chapter">Event handling</a></p>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -87,100 +88,100 @@
 Two-dimensional arrays are accessed with a pair of indices noted <em>(i, j)</em>,
 where <em>i</em> represents the <em>i</em> th row and <em>j</em> represents the <em>j</em> th column. For example, index <em>(3, 2)</em> represents the item in the third
 row in the second column, whereas <em>(1, -1)</em> represents element in the first row and in the last column.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">var</span> <span class="nc">X</span> <span class="o">=</span> <span class="kr">new</span> <span class="n">Array</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-<span class="nc">X</span><span class="o">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="o">]</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">print</span><span class="p">(</span><span class="nc">X</span><span class="o">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="o">]</span><span class="p">)</span>
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>var X = new Array(3, 4)
+X[1,4] = 10
+print(X[1,4])
 </pre></div>
 </div>
 </div>
 <div class="section" id="global-functions">
 <h2>Global functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="lua function">
 <dt id="read_matrix">
-<code class="descname">read_matrix</code><span class="sig-paren">(</span><em>path</em><span class="optional">[</span>, <em>separator</em><span class="optional">[</span>, <em>drop_header</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#read_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">read_matrix</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="optional">[</span>, <em class="sig-param">separator</em><span class="optional">[</span>, <em class="sig-param">drop_header</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#read_matrix" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Reads a two-dimensional numeric array from a CSV file, in which values are separated by <code class="docutils literal notranslate"><span class="pre">separator</span></code> (by default, a comma).
 If <code class="docutils literal notranslate"><span class="pre">drop_header</span></code> is <code class="docutils literal notranslate"><span class="pre">true</span></code> (default), the first line will be treated as a header and will be dropped.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="lua function">
 <dt id="write_matrix">
-<code class="descname">write_matrix</code><span class="sig-paren">(</span><em>M</em>, <em>path</em><span class="optional">[</span>, <em>separator</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#write_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">write_matrix</code><span class="sig-paren">(</span><em class="sig-param">M</em>, <em class="sig-param">path</em><span class="optional">[</span>, <em class="sig-param">separator</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#write_matrix" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Writes a two-dimensional numeric array <code class="docutils literal notranslate"><span class="pre">M</span></code> to a CSV file, in which values are separated by <code class="docutils literal notranslate"><span class="pre">separator</span></code> (by default, a comma).</p>
 </div>
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="lua class">
 <dt id="Array">
-<em class="property">class </em><code class="descname">Array</code><a class="headerlink" href="#Array" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">Array</code><a class="headerlink" href="#Array" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="lua method">
 <dt>
-<code class="descname">Array</code><span class="sig-paren">(</span><em>m</em><span class="optional">[</span>, <em>n</em><span class="optional">]</span><span class="sig-paren">)</span></dt>
+<code class="sig-name descname">Array</code><span class="sig-paren">(</span><em class="sig-param">m</em><span class="optional">[</span>, <em class="sig-param">n</em><span class="optional">]</span><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <p>Constructs a vector with <code class="docutils literal notranslate"><span class="pre">m</span></code> elements  or an <code class="docutils literal notranslate"><span class="pre">m</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> matrix. All elements are initialized to 0.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="add">
-<code class="descname">add</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#add" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param">n</em><span class="sig-paren">)</span><a class="headerlink" href="#add" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new array where <code class="docutils literal notranslate"><span class="pre">n</span></code> was added to each element in the original array.</p>
 <p>See also <a class="reference internal" href="#sub" title="sub"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sub()</span></code></a>, <a class="reference internal" href="#mul" title="mul"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">mul()</span></code></a>, <a class="reference internal" href="#div" title="div"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">div()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="clone">
-<code class="descname">clone</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clone" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">clone</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clone" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a deep copy of the array.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="div">
-<code class="descname">div</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#div" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">div</code><span class="sig-paren">(</span><em class="sig-param">n</em><span class="sig-paren">)</span><a class="headerlink" href="#div" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new array where each element in the original array was divided by <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 <p>See also <a class="reference internal" href="#add" title="add"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">add()</span></code></a>, <a class="reference internal" href="#sub" title="sub"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sub()</span></code></a>, <a class="reference internal" href="#mul" title="mul"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">mul()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="get_row">
-<code class="descname">get_row</code><span class="sig-paren">(</span><em>i</em><span class="sig-paren">)</span><a class="headerlink" href="#get_row" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_row</code><span class="sig-paren">(</span><em class="sig-param">i</em><span class="sig-paren">)</span><a class="headerlink" href="#get_row" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the <code class="docutils literal notranslate"><span class="pre">i</span></code> th row as a new one-dimensional array. The original array must be two-dimensional.</p>
 <p>See also: <a class="reference internal" href="#get_column" title="get_column"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">get_column()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="get_column">
-<code class="descname">get_column</code><span class="sig-paren">(</span><em>j</em><span class="sig-paren">)</span><a class="headerlink" href="#get_column" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_column</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="headerlink" href="#get_column" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the <code class="docutils literal notranslate"><span class="pre">j</span></code> th column as a new one-dimensional array. The original array must be two-dimensional.</p>
 <p>See also: <a class="reference internal" href="#get_row" title="get_row"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">get_row()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="mul">
-<code class="descname">mul</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#mul" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">mul</code><span class="sig-paren">(</span><em class="sig-param">n</em><span class="sig-paren">)</span><a class="headerlink" href="#mul" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new array where each element in the original array was multiplied by <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 <p>See also <a class="reference internal" href="#add" title="add"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">add()</span></code></a>, <a class="reference internal" href="#sub" title="sub"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sub()</span></code></a>, <a class="reference internal" href="#div" title="div"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">div()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="shuffle">
-<code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#shuffle" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#shuffle" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Randomly shuffles the elements of the array. This method modifies the array in place.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="slice">
-<code class="descname">slice</code><span class="sig-paren">(</span><em>d1_from</em>, <em>d1_to</em><span class="optional">[</span>, <em>d2_from</em>, <em>d2_to</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#slice" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">slice</code><span class="sig-paren">(</span><em class="sig-param">d1_from</em>, <em class="sig-param">d1_to</em><span class="optional">[</span>, <em class="sig-param">d2_from</em>, <em class="sig-param">d2_to</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#slice" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new array which is a slice of the original array. If the original array has one dimension, the result is
@@ -188,51 +189,51 @@ a one-dimensional array starting from index <code class="docutils literal notran
 matrix that includes rows starting from row <code class="docutils literal notranslate"><span class="pre">d1_from</span></code> up to and including row <code class="docutils literal notranslate"><span class="pre">d1_to</span></code>, and columns starting from
 <code class="docutils literal notranslate"><span class="pre">d2_from</span></code> up to and including row <code class="docutils literal notranslate"><span class="pre">d2_to</span></code>.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="sub">
-<code class="descname">sub</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#sub" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sub</code><span class="sig-paren">(</span><em class="sig-param">n</em><span class="sig-paren">)</span><a class="headerlink" href="#sub" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new array where <code class="docutils literal notranslate"><span class="pre">n</span></code> was subtracted from each element in the original array.</p>
 <p>See also <a class="reference internal" href="#add" title="add"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">add()</span></code></a>, <a class="reference internal" href="#mul" title="mul"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">mul()</span></code></a>, <a class="reference internal" href="#div" title="div"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">div()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#to_string" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#to_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a string representation of the array.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="transpose">
-<code class="descname">transpose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transpose" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">transpose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transpose" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the transpose of the matrix.</p>
 </div>
 <div class="section" id="fields">
 <h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
-<dl class="attribute">
+<dl class="lua attribute">
 <dt id="dim_count">
-<code class="descname">dim_count</code><a class="headerlink" href="#dim_count" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">dim_count</code><a class="headerlink" href="#dim_count" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the number of dimensions of the array.</p>
-<dl class="attribute">
+<dl class="lua attribute">
 <dt id="column_count">
-<code class="descname">column_count</code><a class="headerlink" href="#column_count" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">column_count</code><a class="headerlink" href="#column_count" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the number of columns in the array.</p>
-<dl class="attribute">
+<dl class="lua attribute">
 <dt id="length">
-<code class="descname">length</code><a class="headerlink" href="#length" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">length</code><a class="headerlink" href="#length" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the number of elements in the array.</p>
-<dl class="attribute">
+<dl class="lua attribute">
 <dt id="row_count">
-<code class="descname">row_count</code><a class="headerlink" href="#row_count" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">row_count</code><a class="headerlink" href="#row_count" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the number of rows in the array.</p>
@@ -257,16 +258,13 @@ matrix that includes rows starting from row <code class="docutils literal notran
         <li class="right" >
           <a href="annotation.html" title="Annotations"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
       </ul>
     </div>
-    
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
     </div>
-    
-
   </body>
 </html>

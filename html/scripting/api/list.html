@@ -1,26 +1,29 @@
 
 
+<!doctype html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Lists &#8212; Phonometrica 0.7.5 documentation</title>
-    <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Lists &#8212; Phonometrica 0.7.6 documentation</title>
+    <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Mathematical functions and constants" href="math.html" />
-    <link rel="prev" title="JSON" href="json.html" /> 
+    <link rel="prev" title="JSON" href="json.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="json.html" title="JSON"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
       </ul>
     </div>
@@ -57,17 +60,15 @@
   <p class="topless"><a href="math.html"
                         title="next chapter">Mathematical functions and constants</a></p>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -86,85 +87,85 @@ new incoming elements. Indices in a list start at 1 and can be negative: -1 repr
 </div>
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="lua class">
 <dt id="List">
-<em class="property">class </em><code class="descname">List</code><a class="headerlink" href="#List" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">List</code><a class="headerlink" href="#List" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="lua method">
 <dt id="append">
-<code class="descname">append</code><span class="sig-paren">(</span><em>elem</em><span class="optional">[</span>, <em>...</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#append" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param">elem</em><span class="optional">[</span>, <em class="sig-param">...</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#append" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Appends one or more elements at the end of the list.</p>
 <p>See also: <a class="reference internal" href="#prepend" title="prepend"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">prepend()</span></code></a>, <a class="reference internal" href="string.html#insert" title="insert"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">insert()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="clear">
-<code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clear" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clear" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Empty the content of the list. After this method is called, a call to <a class="reference internal" href="#is_empty" title="is_empty"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">is_empty()</span></code></a> will return <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="clone">
-<code class="descname">clone</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clone" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">clone</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clone" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a shallow copy of the list.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="concat">
-<code class="descname">concat</code><span class="sig-paren">(</span><em>arg</em><span class="optional">[</span>, <em>...</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#concat" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">concat</code><span class="sig-paren">(</span><em class="sig-param">arg</em><span class="optional">[</span>, <em class="sig-param">...</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#concat" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new list, which is the concatenation of this list with one or more lists.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="contains">
-<code class="descname">contains</code><span class="sig-paren">(</span><em>elem</em><span class="sig-paren">)</span><a class="headerlink" href="#contains" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">contains</code><span class="sig-paren">(</span><em class="sig-param">elem</em><span class="sig-paren">)</span><a class="headerlink" href="#contains" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns <code class="docutils literal notranslate"><span class="pre">true</span></code> if elem is in the list and <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="every">
-<code class="descname">every</code><span class="sig-paren">(</span><em>callback</em><span class="sig-paren">)</span><a class="headerlink" href="#every" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">every</code><span class="sig-paren">(</span><em class="sig-param">callback</em><span class="sig-paren">)</span><a class="headerlink" href="#every" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns <code class="docutils literal notranslate"><span class="pre">true</span></code> if all the elements in the list satisfy the condition <code class="docutils literal notranslate"><span class="pre">callback</span></code>, which must be a function that takes a value as input and
 returns a <code class="docutils literal notranslate"><span class="pre">Boolean</span></code>.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">function</span> <span class="n">greater_than_10</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="kr">return</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">10</span>
-<span class="kr">end</span>
-<span class="kr">var</span> <span class="n">lst</span> <span class="o">=</span> <span class="o">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="o">]</span>
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>function greater_than_10(x)
+    return x &gt; 10
+end
+var lst = [11, 12, 13]
 
-<span class="c1"># Prints &quot;true&quot;</span>
-<span class="n">print</span><span class="p">(</span><span class="n">lst</span><span class="p">.</span><span class="n">every</span><span class="p">(</span><span class="n">greater_than_10</span><span class="p">))</span>
+# Prints &quot;true&quot;
+print(lst.every(greater_than_10))
 </pre></div>
 </div>
 <p>See also: <a class="reference internal" href="#some" title="some"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">some()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="filter">
-<code class="descname">filter</code><span class="sig-paren">(</span><em>callback</em><span class="sig-paren">)</span><a class="headerlink" href="#filter" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">filter</code><span class="sig-paren">(</span><em class="sig-param">callback</em><span class="sig-paren">)</span><a class="headerlink" href="#filter" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new list containing the elements that satisfy the condition <code class="docutils literal notranslate"><span class="pre">callback</span></code>, which must be a function that takes a value as input and
 returns a <code class="docutils literal notranslate"><span class="pre">Boolean</span></code>.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">function</span> <span class="n">is_odd</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="kr">return</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span>
-<span class="kr">end</span>
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>function is_odd(x)
+    return x % 2 == 1
+end
 
-<span class="kr">var</span> <span class="n">lst</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="o">]</span>
-<span class="n">print</span><span class="p">(</span><span class="n">lst</span><span class="p">.</span><span class="n">filter</span><span class="p">(</span><span class="n">is_odd</span><span class="p">))</span> <span class="c1"># prints [1, 3, 5]</span>
+var lst = [1, 2, 3, 4, 5, 6]
+print(lst.filter(is_odd)) # prints [1, 3, 5]
 </pre></div>
 </div>
 <p>See also: <a class="reference internal" href="#map" title="map"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">map()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="find">
-<code class="descname">find</code><span class="sig-paren">(</span><em>elem</em><span class="optional">[</span>, <em>i</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#find" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">find</code><span class="sig-paren">(</span><em class="sig-param">elem</em><span class="optional">[</span>, <em class="sig-param">i</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#find" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the index of <code class="docutils literal notranslate"><span class="pre">elem</span></code> in the list, starting the search at index <code class="docutils literal notranslate"><span class="pre">i</span></code> (1 by default). If the element is not found,
@@ -173,152 +174,152 @@ returns a <code class="docutils literal notranslate"><span class="pre">Boolean</
 that the order of the elements is known.</p>
 <p>See also: <a class="reference internal" href="#find_back" title="find_back"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">find_back()</span></code></a>, <a class="reference internal" href="#sorted_find" title="sorted_find"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sorted_find()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="find_back">
-<code class="descname">find_back</code><span class="sig-paren">(</span><em>elem</em><span class="optional">[</span>, <em>i</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#find_back" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">find_back</code><span class="sig-paren">(</span><em class="sig-param">elem</em><span class="optional">[</span>, <em class="sig-param">i</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#find_back" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the index of <code class="docutils literal notranslate"><span class="pre">elem</span></code> in the list, starting the search from the end at index <code class="docutils literal notranslate"><span class="pre">i</span></code> (-1 by default). If the element is not found,
 0 is returned.</p>
 <p>See also: <a class="reference internal" href="#find" title="find"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">find()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="includes">
-<code class="descname">includes</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#includes" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">includes</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="headerlink" href="#includes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns <code class="docutils literal notranslate"><span class="pre">true</span></code> if the elements in <code class="docutils literal notranslate"><span class="pre">other</span></code> are a subsequence this list. Both lists must be sorted, but the elements in <code class="docutils literal notranslate"><span class="pre">other</span></code> don’t need
 to be a contiguous sequence.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="insert">
-<code class="descname">insert</code><span class="sig-paren">(</span><em>i</em>, <em>elem</em><span class="sig-paren">)</span><a class="headerlink" href="#insert" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">insert</code><span class="sig-paren">(</span><em class="sig-param">i</em>, <em class="sig-param">elem</em><span class="sig-paren">)</span><a class="headerlink" href="#insert" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Inserts the element <code class="docutils literal notranslate"><span class="pre">elem</span></code> at index <code class="docutils literal notranslate"><span class="pre">i</span></code>.</p>
 <p>See also: <a class="reference internal" href="#sorted_insert" title="sorted_insert"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sorted_insert()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="intersect">
-<code class="descname">intersect</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#intersect" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">intersect</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="headerlink" href="#intersect" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new list which contains all the elements that are in this list and in <code class="docutils literal notranslate"><span class="pre">other</span></code>.</p>
 <p>See also:: <a class="reference internal" href="#unite" title="unite"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">unite()</span></code></a>, <a class="reference internal" href="#subtract" title="subtract"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">subtract()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="is_empty">
-<code class="descname">is_empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#is_empty" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#is_empty" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns <code class="docutils literal notranslate"><span class="pre">true</span></code> if the list doesn’t contain any element, and <code class="docutils literal notranslate"><span class="pre">false</span></code> if it does.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="is_sorted">
-<code class="descname">is_sorted</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#is_sorted" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_sorted</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#is_sorted" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>See also: <a class="reference internal" href="#sort" title="sort"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sort()</span></code></a>, <a class="reference internal" href="string.html#reverse" title="reverse"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">reverse()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="join">
-<code class="descname">join</code><span class="sig-paren">(</span><em>sep</em><span class="sig-paren">)</span><a class="headerlink" href="#join" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">join</code><span class="sig-paren">(</span><em class="sig-param">sep</em><span class="sig-paren">)</span><a class="headerlink" href="#join" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a string in which all elements have been joined with the <code class="docutils literal notranslate"><span class="pre">sep</span></code> separator.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="lua function">
 <dt id="map">
-<code class="descname">map</code><span class="sig-paren">(</span><em>callback</em><span class="sig-paren">)</span><a class="headerlink" href="#map" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">map</code><span class="sig-paren">(</span><em class="sig-param">callback</em><span class="sig-paren">)</span><a class="headerlink" href="#map" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new list in which <code class="docutils literal notranslate"><span class="pre">callback</span></code> has been applied to each element in the original list. <code class="docutils literal notranslate"><span class="pre">callback</span></code> must be a function that takes a value
 and returns a value.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">function</span> <span class="n">upper</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-    <span class="kr">return</span> <span class="n">s</span><span class="p">.</span><span class="n">to_upper</span><span class="p">()</span>
-<span class="kr">end</span>
-<span class="kr">var</span> <span class="n">lst</span> <span class="o">=</span> <span class="o">[</span><span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b&quot;</span><span class="p">,</span> <span class="s">&quot;c&quot;</span><span class="o">]</span>
-<span class="n">print</span><span class="p">(</span><span class="n">lst</span><span class="p">.</span><span class="n">map</span><span class="p">(</span><span class="n">upper</span><span class="p">))</span>
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>function upper(s)
+    return s.to_upper()
+end
+var lst = [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
+print(lst.map(upper))
 </pre></div>
 </div>
 <p>See also: <a class="reference internal" href="#filter" title="filter"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">filter()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="pop">
-<code class="descname">pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pop" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pop" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Removes the last element from the list and returns it.</p>
 <p>See also: <a class="reference internal" href="#shift" title="shift"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">shift()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="prepend">
-<code class="descname">prepend</code><span class="sig-paren">(</span><em>elem</em><span class="optional">[</span>, <em>...</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#prepend" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">prepend</code><span class="sig-paren">(</span><em class="sig-param">elem</em><span class="optional">[</span>, <em class="sig-param">...</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#prepend" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Inserts one or more elements at the beginning of the list.</p>
 <p>See also: <a class="reference internal" href="#append" title="append"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">append()</span></code></a>, <a class="reference internal" href="string.html#insert" title="insert"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">insert()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="reduce">
-<code class="descname">reduce</code><span class="sig-paren">(</span><em>callback</em><span class="sig-paren">)</span><a class="headerlink" href="#reduce" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">reduce</code><span class="sig-paren">(</span><em class="sig-param">callback</em><span class="sig-paren">)</span><a class="headerlink" href="#reduce" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Reduces the list to a single value, by applying <code class="docutils literal notranslate"><span class="pre">callback</span></code> to each element in the list from beginning to end. <code class="docutils literal notranslate"><span class="pre">callback</span></code> must be a function which takes two
 arguments (an accumulator and a value) and returns a single value.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">function</span> <span class="n">callback</span><span class="p">(</span><span class="n">accumulator</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-    <span class="kr">return</span> <span class="n">accumulator</span> <span class="o">+</span> <span class="n">value</span>
-<span class="kr">end</span>
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>function callback(accumulator, value)
+    return accumulator + value
+end
 
-<span class="kr">var</span> <span class="n">lst</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">]</span>
-<span class="n">print</span><span class="p">(</span><span class="n">lst</span><span class="p">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">callback</span><span class="p">))</span> <span class="c1"># prints 10</span>
+var lst = [1, 2, 3, 4]
+print(lst.reduce(callback)) # prints 10
 </pre></div>
 </div>
 <p>See also: <a class="reference internal" href="#reduce_back" title="reduce_back"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">reduce_back()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="reduce_back">
-<code class="descname">reduce_back</code><span class="sig-paren">(</span><em>callback</em><span class="sig-paren">)</span><a class="headerlink" href="#reduce_back" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">reduce_back</code><span class="sig-paren">(</span><em class="sig-param">callback</em><span class="sig-paren">)</span><a class="headerlink" href="#reduce_back" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Reduces the list to a single value, by applying <code class="docutils literal notranslate"><span class="pre">callback</span></code> to each element in the list from end to beginning. <code class="docutils literal notranslate"><span class="pre">callback</span></code> must be a function which takes two
 arguments (an accumulator and a value) and returns a single value.</p>
 <p>See also: <a class="reference internal" href="#reduce" title="reduce"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">reduce()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="remove">
-<code class="descname">remove</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#remove" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#remove" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Removes all the elements in the list that are equal to <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
-<p>See also: <a class="reference internal" href="string.html#remove_at" title="remove_at"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">remove_at()</span></code></a></p>
+<p>See also: <code class="xref lua lua-func docutils literal notranslate"><span class="pre">remove_at()</span></code></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt>
-<code class="descname">remove</code><span class="sig-paren">(</span><em>i</em><span class="sig-paren">)</span></dt>
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">i</em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <p>Remove the element at index <code class="docutils literal notranslate"><span class="pre">i</span></code>.</p>
 <p>See also: <a class="reference internal" href="string.html#remove" title="remove"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">remove()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="reverse">
-<code class="descname">reverse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reverse" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">reverse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reverse" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Reverses the order of the elements in the list. If the elements are not sorted, the result is undefined. (Use <a class="reference internal" href="#sort" title="sort"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sort()</span></code></a> to sort the elements.)</p>
 <p>See also: <a class="reference internal" href="#is_sorted" title="is_sorted"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">is_sorted()</span></code></a>, <a class="reference internal" href="#sort" title="sort"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">sort()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#sample" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param">n</em><span class="sig-paren">)</span><a class="headerlink" href="#sample" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a list containing <code class="docutils literal notranslate"><span class="pre">n</span></code> elements from the list drawn at random.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="shift">
-<code class="descname">shift</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#shift" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">shift</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#shift" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Removes the first element from the list and returns it.</p>
@@ -327,74 +328,74 @@ arguments (an accumulator and a value) and returns a single value.</p>
 <p>..method:: shuffle()</p>
 <p>Randomizes the order of elements in the list.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="slice">
-<code class="descname">slice</code><span class="sig-paren">(</span><em>from</em>, <em>to</em><span class="sig-paren">)</span><a class="headerlink" href="#slice" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">slice</code><span class="sig-paren">(</span><em class="sig-param">from</em>, <em class="sig-param">to</em><span class="sig-paren">)</span><a class="headerlink" href="#slice" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new list which contains the elements of the original list starting at index <code class="docutils literal notranslate"><span class="pre">from</span></code> and ending at index <code class="docutils literal notranslate"><span class="pre">to</span></code> (inclusive).</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="some">
-<code class="descname">some</code><span class="sig-paren">(</span><em>callback</em><span class="sig-paren">)</span><a class="headerlink" href="#some" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">some</code><span class="sig-paren">(</span><em class="sig-param">callback</em><span class="sig-paren">)</span><a class="headerlink" href="#some" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns <code class="docutils literal notranslate"><span class="pre">true</span></code> if at least one element in the list satisfies the condition <code class="docutils literal notranslate"><span class="pre">callback</span></code>, which must be a function that takes a value as input and
 returns a <code class="docutils literal notranslate"><span class="pre">Boolean</span></code>.</p>
-<div class="code phon highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">function</span> <span class="n">less_than_10</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="kr">return</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">10</span>
-<span class="kr">end</span>
-<span class="kr">var</span> <span class="n">lst</span> <span class="o">=</span> <span class="o">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="o">]</span>
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>function less_than_10(x)
+    return x &lt; 10
+end
+var lst = [9, 11, 12, 13]
 
-<span class="c1"># Prints &quot;true&quot;</span>
-<span class="n">print</span><span class="p">(</span><span class="n">lst</span><span class="p">.</span><span class="n">every</span><span class="p">(</span><span class="n">greater_than_10</span><span class="p">))</span>
+# Prints &quot;true&quot;
+print(lst.every(greater_than_10))
 </pre></div>
 </div>
 <p>See also: <a class="reference internal" href="#every" title="every"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">every()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="sort">
-<code class="descname">sort</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sort" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sort</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#sort" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Sorts the elements in the list in increasing order. The elements should be of the same type.</p>
 <p>See also: <a class="reference internal" href="#is_sorted" title="is_sorted"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">is_sorted()</span></code></a>, <a class="reference internal" href="string.html#reverse" title="reverse"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">reverse()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="sorted_find">
-<code class="descname">sorted_find</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#sorted_find" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sorted_find</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#sorted_find" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Finds the index of <code class="docutils literal notranslate"><span class="pre">value</span></code> in a sorted list. If <code class="docutils literal notranslate"><span class="pre">value</span></code> is not in the list, 0 is returned. Note that if the list is not sorted, the result of this operation is undefined.</p>
 <p>This method is faster than <a class="reference internal" href="#find" title="find"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">find()</span></code></a> on average for sorted lists.</p>
 <p>See also: <a class="reference internal" href="#find" title="find"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">find()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="sorted_insert">
-<code class="descname">sorted_insert</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#sorted_insert" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sorted_insert</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#sorted_insert" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Inserts <code class="docutils literal notranslate"><span class="pre">value</span></code> after the first element that is not less than elem. If the list is not sorted, the result of this operation is undefined.</p>
 <p>See also: <a class="reference internal" href="string.html#insert" title="insert"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">insert()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="subtract">
-<code class="descname">subtract</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#subtract" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">subtract</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="headerlink" href="#subtract" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new list which contains all the elements that are in this list but not in <code class="docutils literal notranslate"><span class="pre">other</span></code>.</p>
 <p>See also:: <a class="reference internal" href="#intersect" title="intersect"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">intersect()</span></code></a>, <a class="reference internal" href="#unite" title="unite"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">unite()</span></code></a></p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="to_string">
-<code class="descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#to_string" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">to_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#to_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a string representation of the list.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="unite">
-<code class="descname">unite</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#unite" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">unite</code><span class="sig-paren">(</span><em class="sig-param">other</em><span class="sig-paren">)</span><a class="headerlink" href="#unite" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns a new list which contains all the elements that are either in this list or in <code class="docutils literal notranslate"><span class="pre">other</span></code> (or in both).</p>
@@ -402,9 +403,9 @@ returns a <code class="docutils literal notranslate"><span class="pre">Boolean</
 </div>
 <div class="section" id="fields">
 <h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
-<dl class="attribute">
+<dl class="lua attribute">
 <dt id="length">
-<code class="descname">length</code><a class="headerlink" href="#length" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">length</code><a class="headerlink" href="#length" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the number of elements in the list.</p>
@@ -429,16 +430,13 @@ returns a <code class="docutils literal notranslate"><span class="pre">Boolean</
         <li class="right" >
           <a href="json.html" title="JSON"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
       </ul>
     </div>
-    
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
     </div>
-    
-
   </body>
 </html>

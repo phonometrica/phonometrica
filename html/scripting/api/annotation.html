@@ -1,26 +1,29 @@
 
 
+<!doctype html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Annotations &#8212; Phonometrica 0.7.5 documentation</title>
-    <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
+    <meta charset="utf-8" />
+    <title>Annotations &#8212; Phonometrica 0.7.6 documentation</title>
+    <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Numeric arrays" href="array.html" />
-    <link rel="prev" title="Advanced notions" href="../tutorial/advanced.html" /> 
+    <link rel="prev" title="Advanced notions" href="../tutorial/advanced.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -34,7 +37,7 @@
         <li class="right" >
           <a href="../tutorial/advanced.html" title="Advanced notions"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
       </ul>
     </div>
@@ -57,17 +60,15 @@
   <p class="topless"><a href="array.html"
                         title="next chapter">Numeric arrays</a></p>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
 
@@ -81,144 +82,144 @@
 <p>This page documents the <code class="docutils literal notranslate"><span class="pre">Annotation</span></code> type, which corresponds to a time-aligned annotation of a sound file, on one or more layers.</p>
 <div class="section" id="global-functions">
 <h2>Global functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="lua function">
 <dt id="get_annotations">
-<code class="descname">get_annotations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_annotations" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_annotations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_annotations" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Return a list of all the annotations in the current project.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="lua function">
 <dt id="get_selected_annotations">
-<code class="descname">get_selected_annotations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_selected_annotations" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_selected_annotations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_selected_annotations" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Return a list of all the selected annotations in the current project.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="lua function">
 <dt id="get_annotation">
-<code class="descname">get_annotation</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#get_annotation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_annotation</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#get_annotation" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Return the <code class="docutils literal notranslate"><span class="pre">Annotation</span></code> object from the current project whose path is <code class="docutils literal notranslate"><span class="pre">path</span></code>, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if there is no such
 annotation. If the object exists but is not an annotation, an error is thrown.</p>
 <hr class="docutils" />
-<dl class="function">
+<dl class="lua function">
 <dt id="get_current_annotation">
-<code class="descname">get_current_annotation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_current_annotation" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_current_annotation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_current_annotation" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Return the <code class="docutils literal notranslate"><span class="pre">Annotation</span></code> object loaded in the current view, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if the current view is not an annotation view.</p>
 </div>
 <div class="section" id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="lua class">
 <dt id="Annotation">
-<em class="property">class </em><code class="descname">Annotation</code><a class="headerlink" href="#Annotation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">Annotation</code><a class="headerlink" href="#Annotation" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="add_property">
-<code class="descname">add_property</code><span class="sig-paren">(</span><em>category</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#add_property" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_property</code><span class="sig-paren">(</span><em class="sig-param">category</em>, <em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#add_property" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Adds a property to the annotation. <code class="docutils literal notranslate"><span class="pre">category</span></code> must be a string and <code class="docutils literal notranslate"><span class="pre">value</span></code> can be a string, a number or a Boolean.
 If the file already has a property with the same category, the value will be replaced with the new one.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="remove_property">
-<code class="descname">remove_property</code><span class="sig-paren">(</span><em>category</em><span class="sig-paren">)</span><a class="headerlink" href="#remove_property" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">remove_property</code><span class="sig-paren">(</span><em class="sig-param">category</em><span class="sig-paren">)</span><a class="headerlink" href="#remove_property" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Removes the property whose category is <code class="docutils literal notranslate"><span class="pre">category</span></code> from the annotation. If there is no such category, this method
 does nothing.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt>
-<code class="descname">remove_property</code><span class="sig-paren">(</span><em>category</em><span class="sig-paren">)</span></dt>
+<code class="sig-name descname">remove_property</code><span class="sig-paren">(</span><em class="sig-param">category</em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <p>Gets the property whose category is <code class="docutils literal notranslate"><span class="pre">category</span></code> from the annotation, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if there is no such category.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="bind_to_sound">
-<code class="descname">bind_to_sound</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#bind_to_sound" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">bind_to_sound</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#bind_to_sound" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Binds the annotation to the sound file whose path is <code class="docutils literal notranslate"><span class="pre">path</span></code>. If the sound file is not in the current project,
 it will be automatically imported.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="get_event_start">
-<code class="descname">get_event_start</code><span class="sig-paren">(</span><em>layer_index</em>, <em>event_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_start" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_event_start</code><span class="sig-paren">(</span><em class="sig-param">layer_index</em>, <em class="sig-param">event_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Gets the start time of an event on a given layer. Note that if the event is an instant, its start time is equal to
 its end time.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="get_event_end">
-<code class="descname">get_event_end</code><span class="sig-paren">(</span><em>layer_index</em>, <em>event_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_end" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_event_end</code><span class="sig-paren">(</span><em class="sig-param">layer_index</em>, <em class="sig-param">event_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_end" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Gets the end time of an event on a given layer. Note that if the event is an instant, its end time is equal to
 its start time.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="get_event_text">
-<code class="descname">get_event_text</code><span class="sig-paren">(</span><em>layer_index</em>, <em>event_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_text" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_event_text</code><span class="sig-paren">(</span><em class="sig-param">layer_index</em>, <em class="sig-param">event_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_text" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Gets the text of an event on a given layer.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="set_event_text">
-<code class="descname">set_event_text</code><span class="sig-paren">(</span><em>layer_index</em>, <em>event_index</em>, <em>new_text</em><span class="sig-paren">)</span><a class="headerlink" href="#set_event_text" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_event_text</code><span class="sig-paren">(</span><em class="sig-param">layer_index</em>, <em class="sig-param">event_index</em>, <em class="sig-param">new_text</em><span class="sig-paren">)</span><a class="headerlink" href="#set_event_text" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Sets the text of an event on a given layer.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="get_event_count">
-<code class="descname">get_event_count</code><span class="sig-paren">(</span><em>layer_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_count" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_event_count</code><span class="sig-paren">(</span><em class="sig-param">layer_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_event_count" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the number of events on a given layer.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="get_layer_label">
-<code class="descname">get_layer_label</code><span class="sig-paren">(</span><em>layer_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_layer_label" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_layer_label</code><span class="sig-paren">(</span><em class="sig-param">layer_index</em><span class="sig-paren">)</span><a class="headerlink" href="#get_layer_label" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Gets the layer’s label.</p>
 <hr class="docutils" />
-<dl class="method">
+<dl class="lua method">
 <dt id="set_layer_label">
-<code class="descname">set_layer_label</code><span class="sig-paren">(</span><em>layer_index</em>, <em>new_label</em><span class="sig-paren">)</span><a class="headerlink" href="#set_layer_label" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_layer_label</code><span class="sig-paren">(</span><em class="sig-param">layer_index</em>, <em class="sig-param">new_label</em><span class="sig-paren">)</span><a class="headerlink" href="#set_layer_label" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Sets the layer’s label.</p>
 </div>
 <div class="section" id="fields">
 <h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
-<dl class="attribute">
+<dl class="lua attribute">
 <dt id="path">
-<code class="descname">path</code><a class="headerlink" href="#path" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">path</code><a class="headerlink" href="#path" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the path of the sound file.</p>
 <hr class="docutils" />
-<dl class="attribute">
+<dl class="lua attribute">
 <dt id="sound">
-<code class="descname">sound</code><a class="headerlink" href="#sound" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sound</code><a class="headerlink" href="#sound" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the <code class="docutils literal notranslate"><span class="pre">Sound</span></code> object to which the annotation is bound, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if it is not bound to any sound.</p>
 <hr class="docutils" />
-<dl class="attribute">
+<dl class="lua attribute">
 <dt id="layer_count">
-<code class="descname">layer_count</code><a class="headerlink" href="#layer_count" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">layer_count</code><a class="headerlink" href="#layer_count" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the number of layers in the annotation.</p>
@@ -243,16 +244,13 @@ its start time.</p>
         <li class="right" >
           <a href="../tutorial/advanced.html" title="Advanced notions"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.5 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
       </ul>
     </div>
-    
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
     </div>
-    
-
   </body>
 </html>
