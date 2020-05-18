@@ -2430,4 +2430,9 @@ void Runtime::clear_stack()
 //    top = --bot;
 }
 
+intptr_t Runtime::stack_size() const
+{
+    return ((intptr_t)top - (intptr_t)stack) / sizeof(Variant);
+}
+
 } // namespace phonometrica

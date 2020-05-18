@@ -306,6 +306,8 @@ public:
 
     void check_stack(int n);
 
+    intptr_t stack_size() const;
+
     // TODO: make stack_index() private (use get() instead)
     Variant *stack_index(int idx);
 

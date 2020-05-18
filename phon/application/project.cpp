@@ -1116,13 +1116,17 @@ bool Project::is_root(const std::shared_ptr<VFolder> &folder) const
 
 void Project::trigger(const String &event, const char *tag, std::any value)
 {
+//    auto old_size = rt.stack_size();
     rt.get_global(event_module_name);
     rt.get_field(-1, emit_name);
     rt.push_null();
     rt.push(event);
     rt.new_user_data(Annotation::meta(), tag, std::move(value));
     rt.call(2);
-    rt.pop();
+    auto s2 = rt.stack_size();
+    rt.pop(2);
+//    auto new_size = rt.stack_size();
+//    assert (old_size == new_size);
 }
 
 void Project::trigger(const String &event)
