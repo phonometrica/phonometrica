@@ -45,7 +45,7 @@ Phonometrica 0.7.5
    `setup\_phonometrica.exe <https://github.com/phonometrica/phonometrica/releases/download/v0.7.5/setup_phonometrica.exe>`__
 -  MacOS 10.12 and later:
    `phonometrica-0.7.5.dmg <https://github.com/phonometrica/phonometrica/releases/download/v0.7.5/phonometrica-0.7.5.dmg>`__
--  Linux (Debian 10): `phonometrica-0.7.5.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.7.5/phonometrica-0.7.5.deb>`__
+-  Linux (Debian 10/Ubuntu 20.04): `phonometrica-0.7.5.deb <https://github.com/phonometrica/phonometrica/releases/download/v0.7.5/phonometrica-0.7.5.deb>`__
 -  source code: `phonometrica-0.7.5.zip <https://github.com/phonometrica/phonometrica/archive/v0.7.5.zip>`__ | `phonometrica-0.7.5.tar.gz <https://github.com/phonometrica/phonometrica/archive/v0.7.5.tar.gz>`__
 
   

@@ -27,6 +27,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QTextEdit>
+#include <QTableWidget>
 #include <phon/application/vfs.hpp>
 #include <phon/runtime/runtime.hpp>
 
@@ -88,13 +89,14 @@ private:
 
     VFileList m_files;
 
-    QLabel *main_label, *file_label, *soundRef_label, *properties_label, *start_label, *end_label;
+    QLabel *main_label, *file_label, *soundRef_label, *start_label, *end_label;
     QLabel *samplerate_label, *channels_label, *duration_label;
     QPushButton *properties_btn, *import_btn, *save_desc_btn;
     QPushButton *bind_btn = nullptr;
     QTabWidget *tabs;
     QWidget *info_tab;
     QTextEdit *desc_edit;
+    QTableWidget *property_table;
 
     bool description_is_editable; // prevent a VFile's description from being modified when it is set in the widget
 

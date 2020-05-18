@@ -83,7 +83,8 @@ void InfoPanel::clearWidgets()
     {
         delete child;
     }
-    main_label = file_label = soundRef_label = properties_label = start_label = end_label = nullptr;
+    main_label = file_label = soundRef_label = start_label = end_label = nullptr;
+    property_table = nullptr;
     samplerate_label = channels_label = duration_label = nullptr;
     bind_btn = nullptr;
 }
@@ -157,8 +158,29 @@ void InfoPanel::showSingleSelection(const std::shared_ptr<VFile> &file)
 
     if (file->has_properties())
     {
-        auto properties = QString("<b>Properties:</b><br/>") + String::join(file->property_list(), "<br/>");
-        properties_label->setText(properties);
+        auto &properties = file->properties();
+        property_table->setColumnCount(2);
+        property_table->setRowCount((int)properties.size());
+        property_table->setHorizontalHeaderLabels(QStringList({ "category", "value" }));
+        property_table->verticalHeader()->setVisible(false);
+        // Roughly estimate the size of the widget. Add one for the header, and 1 for padding.
+        int height = property_table->horizontalHeader()->size().height() * (properties.size() + 2);
+        property_table->setMaximumHeight(height);
+        property_table->setFocusPolicy(Qt::NoFocus);
+        QHeaderView* header = property_table->horizontalHeader();
+        header->setSectionResizeMode(QHeaderView::Stretch);
+        int i = 0;
+        for (auto &prop : properties)
+        {
+            QTableWidgetItem *item;
+            item = new QTableWidgetItem(prop.category());
+            item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+            property_table->setItem(i, 0, item);
+            item = new QTableWidgetItem(prop.value());
+            item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+            property_table->setItem(i++, 1, item);
+        }
+        property_table->resizeRowsToContents();
     }
 
     desc_edit->setText(file->description());
@@ -179,7 +201,7 @@ void InfoPanel::setWidgets(bool showTimes)
     auto vl = new QVBoxLayout;
 
     file_label  = new QLabel;
-    properties_label  = new QLabel;
+    property_table = new QTableWidget;
     soundRef_label = new QLabel;
     properties_btn = new QPushButton(tr("Edit properties..."));
     import_btn = new QPushButton(tr("Import metadata..."));
@@ -203,9 +225,8 @@ void InfoPanel::setWidgets(bool showTimes)
     vl->addWidget(duration_label);
     vl->addWidget(samplerate_label);
     vl->addWidget(channels_label);
-
-    vl->addWidget(properties_label);
-    properties_label->setWordWrap(true);
+    vl->addWidget(new QLabel("<b>Properties:</b>"));
+    vl->addWidget(property_table);
 
     connect(properties_btn, SIGNAL(clicked()), this, SLOT(editProperties()));
     connect(import_btn, SIGNAL(clicked()), this, SLOT(importMetadata()));
