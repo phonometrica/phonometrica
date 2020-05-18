@@ -28,6 +28,7 @@
 #include <QLabel>
 #include <QTextEdit>
 #include <QTableWidget>
+#include <phon/gui/property_table.hpp>
 #include <phon/application/vfs.hpp>
 #include <phon/runtime/runtime.hpp>
 
@@ -96,7 +97,7 @@ private:
     QTabWidget *tabs;
     QWidget *info_tab;
     QTextEdit *desc_edit;
-    QTableWidget *property_table;
+    PropertyTable *property_table;
 
     bool description_is_editable; // prevent a VFile's description from being modified when it is set in the widget
 

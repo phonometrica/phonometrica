@@ -36,6 +36,19 @@ nor a sound view.
 
 ------------
 
+.. function:: get_window_duration()
+
+
+Return the duration of the visible window in the current annotation or sound view.
+
+------------
+
+.. function:: get_selection_duration()
+
+Return the duration of the selection in the current annotation or sound view, or 0 if there is no selection.
+
+------------
+
 .. function:: report_intensity(time)
 
 This is a convenience function that displays the intensity at the given time in the current view.

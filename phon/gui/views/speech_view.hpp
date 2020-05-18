@@ -58,6 +58,10 @@ public:
 
 	AutoSound sound() const { return m_sound; }
 
+	double getWindowDuration() const;
+
+	double getSelectionDuration() const;
+
 protected slots:
 
 	void zoomToSelection(bool);

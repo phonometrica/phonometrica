@@ -290,4 +290,16 @@ bool Viewer::finalize()
 	return true;
 }
 
+double Viewer::getWindowDuration() const
+{
+	auto view = qobject_cast<SpeechView*>(this->widget(currentIndex()));
+    return view ? view->getWindowDuration() : 0;
+}
+
+double Viewer::getSelectionDuration() const
+{
+	auto view = qobject_cast<SpeechView*>(this->widget(currentIndex()));
+    return view ? view->getSelectionDuration() : 0;
+}
+
 } // phonometrica

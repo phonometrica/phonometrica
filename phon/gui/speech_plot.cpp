@@ -319,6 +319,7 @@ void SpeechPlot::updateSelectionEnd(double t)
     }
 
     emit timeSelection(sel_start, sel_end);
+    emit statusMessage(QString("Duration of selection: %1 s").arg(selectionDuration()));
     repaint();
 }
 

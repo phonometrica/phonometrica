@@ -70,6 +70,10 @@ public:
 
 	bool hasPersistentCursor() const { return m_persistent_cursor >= 0; }
 
+	double selectionDuration() const { return sel_end - sel_start; }
+
+	double windowDuration() const { return window_end - window_start; }
+
 signals:
 
     void timeSelection(double, double);
@@ -139,8 +143,6 @@ protected:
     void clearSelection();
 
     void drawSelection();
-
-    double selectionDuration() const { return sel_end - sel_start; }
 
     bool hasTick() const { return tick >= 0; }
 

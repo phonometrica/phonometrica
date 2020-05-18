@@ -108,7 +108,7 @@ MainWindow::MainWindow(Runtime &rt, QWidget *parent)
 
 void MainWindow::updateStatus(const String &msg)
 {
-	statusBar()->showMessage(msg, 2000);
+	statusBar()->showMessage(msg, 5000);
 }
 
 void MainWindow::adjustProject()
@@ -747,6 +747,16 @@ void MainWindow::setShellFunctions()
 		}
 	};
 
+	auto get_window_duration = [this](Runtime &rt) {
+		auto viewer = main_area->viewer();
+		rt.push(viewer->getWindowDuration());
+	};
+
+	auto get_selection_duration = [this](Runtime &rt) {
+		auto viewer = main_area->viewer();
+		rt.push(viewer->getSelectionDuration());
+	};
+
 	runtime.add_global_function("view_text", view_text, 2);
 	runtime.add_global_function("warning", warning, 1);
 	runtime.add_global_function("alert", alert, 1);
@@ -763,6 +773,8 @@ void MainWindow::setShellFunctions()
 	runtime.add_global_function("set_status", set_status, 1);
 	runtime.add_global_function("get_current_sound", get_current_sound, 0);
 	runtime.add_global_function("get_current_annotation", get_current_annot, 0);
+	runtime.add_global_function("get_window_duration", get_window_duration,  0);
+	runtime.add_global_function("get_selection_duration", get_selection_duration, 0);
 
     runtime.get_global("phon");
     {

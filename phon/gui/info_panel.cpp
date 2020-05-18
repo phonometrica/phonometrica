@@ -159,28 +159,12 @@ void InfoPanel::showSingleSelection(const std::shared_ptr<VFile> &file)
     if (file->has_properties())
     {
         auto &properties = file->properties();
-        property_table->setColumnCount(2);
-        property_table->setRowCount((int)properties.size());
-        property_table->setHorizontalHeaderLabels(QStringList({ "category", "value" }));
-        property_table->verticalHeader()->setVisible(false);
+        property_table->resetProperties(properties);
         // Roughly estimate the size of the widget. Add one for the header, and 1 for padding.
         int height = property_table->horizontalHeader()->size().height() * (properties.size() + 2);
         property_table->setMaximumHeight(height);
-        property_table->setFocusPolicy(Qt::NoFocus);
         QHeaderView* header = property_table->horizontalHeader();
         header->setSectionResizeMode(QHeaderView::Stretch);
-        int i = 0;
-        for (auto &prop : properties)
-        {
-            QTableWidgetItem *item;
-            item = new QTableWidgetItem(prop.category());
-            item->setFlags(item->flags() ^ Qt::ItemIsEditable);
-            property_table->setItem(i, 0, item);
-            item = new QTableWidgetItem(prop.value());
-            item->setFlags(item->flags() ^ Qt::ItemIsEditable);
-            property_table->setItem(i++, 1, item);
-        }
-        property_table->resizeRowsToContents();
     }
 
     desc_edit->setText(file->description());
@@ -201,7 +185,7 @@ void InfoPanel::setWidgets(bool showTimes)
     auto vl = new QVBoxLayout;
 
     file_label  = new QLabel;
-    property_table = new QTableWidget;
+    property_table = new PropertyTable(std::set<Property>());
     soundRef_label = new QLabel;
     properties_btn = new QPushButton(tr("Edit properties..."));
     import_btn = new QPushButton(tr("Import metadata..."));

@@ -664,4 +664,14 @@ void SpeechView::getFormants(bool)
 	emit sendCommand(cmd);
 }
 
+double SpeechView::getWindowDuration() const
+{
+	return waveform->windowDuration();
+}
+
+double SpeechView::getSelectionDuration() const
+{
+	return waveform->selectionDuration();
+}
+
 } // namespace phonometrica

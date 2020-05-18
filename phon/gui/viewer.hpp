@@ -45,6 +45,10 @@ public:
 
     AutoAnnotation getCurrentAnnotation() const;
 
+    double getWindowDuration() const;
+
+    double getSelectionDuration() const;
+
     bool finalize();
 
 signals:
