@@ -48,6 +48,7 @@ void AnnotationView::addAnnotationMenu(Toolbar *toolbar)
 	PHON_LOG("Adding annotation actions to toolbar");
 
 	auto save_action = new QAction(QIcon(":/icons/save.png"), "Save annotation");
+	save_action->setShortcut(QKeySequence("ctrl+s"));
 	toolbar->addAction(save_action);
 	toolbar->addSeparator();
 

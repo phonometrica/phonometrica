@@ -1,8 +1,15 @@
 Release notes
 -------------
 
+
+0.7.7 (??/05/2020)
+~~~~~~~~~~~~~~~~~~
+
+- save annotation in annotation view with ``ctrl+s``
+
 0.7.6 (18/05/2020)
 ~~~~~~~~~~~~~~~~~~
+
 - properties are now displayed in a table in the information panel
 - better error reporting
 - bug fixes
