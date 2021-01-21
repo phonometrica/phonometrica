@@ -60,10 +60,12 @@ void Settings::initialize(Runtime *rt)
 
 String Settings::settings_directory()
 {
-#if PHON_LINUX
-	auto name = "phonometrica";
-#else
+#if PHON_WINDOWS
 	auto name = "Phonometrica";
+#elif PHON_MACOS
+	auto name = ".phonometrica";
+#else
+	auto name = "phonometrica";
 #endif
 
 	return filesystem::join(filesystem::application_directory(), name);
@@ -239,7 +241,7 @@ void Settings::reset_sound_settings()
 
 void Settings::read()
 {
-	// `read_settings_script` must always be embedded because we need to resources directory
+	// `read_settings_script` must always be embedded because we need the resources directory
 	// to be set before we can load a script from disk.
 	String content;
 	auto path = config_path();

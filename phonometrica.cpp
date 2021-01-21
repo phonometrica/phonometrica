@@ -9,6 +9,12 @@
 #include <phon/include/initialize_phon.hpp>
 #endif
 
+#if PHON_MACOS
+#include <phon/utils/file_system.hpp>
+#include <phon/application/settings.hpp>
+#include <cstdlib>
+#endif
+
 using namespace phonometrica;
 
 static void show_usage()
@@ -25,6 +31,17 @@ static void initialize(Runtime &rt)
 	rt["phon"] = make_handle<Module>(&rt, "phon");
 
 #ifdef PHON_GUI
+	// On macOS, move old settings from ~/Applications/Phonometrica to ~/.phonometrica if the user had a version of
+	// Phonometrica prior to 0.8.
+#if PHON_MACOS
+	using namespace filesystem;
+	auto old_settings = join(user_directory(), "Applications", "Phonometrica");
+	if (!exists(Settings::settings_directory()) && exists(old_settings))
+	{
+		std::system("mv ~/Applications/Phonometrica ~/.phonometrica");
+	}
+#endif
+
 	Settings::initialize(&rt);
 	Settings::read();
 	run_script(rt, initialize);

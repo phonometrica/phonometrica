@@ -194,7 +194,7 @@ String application_directory()
 	return filesystem::join(user_directory(), "AppData", "Roaming");
 
 #elif PHON_MACOS
-	return filesystem::join(user_directory(), "Applications");
+	return user_directory();
 
 #else
 	return filesystem::join(user_directory(), ".config");;
