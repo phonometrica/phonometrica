@@ -33,7 +33,7 @@ If you need to store an id for subsequent use, store it in a variable.
 
 .. code:: phon
 
-    var my_event = event.create()
+    my_event = event.create()
     # Do something with my_event...
 
 
@@ -45,7 +45,7 @@ Connect event ``id`` to function ``callback``. The callback can take one argumen
 
 .. code:: phon
 
-    var e = event.create()
+    e = event.create()
 
     function f(name)
         print("Hold the door, " .. name)
@@ -68,7 +68,7 @@ are not connected, this function does nothing.
 
 .. code:: phon
 
-    var e = event.create()
+    e = event.create()
 
     function f(name)
         print("Hold the door, " .. name)
@@ -102,7 +102,7 @@ callback doesn't explicitly return a value, its return value is ``null``.)
 
 .. code:: phon
 
-    var e = event.create()
+    e = event.create()
 
     function f1(arg1)
         print("f1 received a " .. typeof arg1)
@@ -116,7 +116,7 @@ callback doesn't explicitly return a value, its return value is ``null``.)
     event.connect(e, f2)
 
     # Print "f1 received a number" and "f2 received a number and a string"
-    var args = [3.14, "pi"]
+    args = [3.14, "pi"]
     event.emit(e, args)
 
 Note: the order in which callbacks are called is unspecified. In general, it

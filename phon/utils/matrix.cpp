@@ -25,13 +25,26 @@ namespace phonometrica {
 
 Array<double> apply(const Array<double> &X, const std::function<double(double)> &formula)
 {
-	Array<double> Y(X.nrow(), X.ncol());
+	if (X.ndim() == 1)
+	{
+		Array<double> Y(X.size(), 0.0);
 
-	for (intptr_t i = 1; i <= X.size(); i++) {
-		Y[i] = formula(X[i]);
+		for (intptr_t i = 1; i <= X.size(); i++) {
+			Y[i] = formula(X[i]);
+		}
+
+		return Y;
 	}
+	else
+	{
+		Array<double> Y(X.nrow(), X.ncol());
 
-	return Y;
+		for (intptr_t i = 1; i <= X.size(); i++) {
+			Y[i] = formula(X[i]);
+		}
+
+		return Y;
+	}
 }
 
 Array<double> transpose(const Array<double> &X)

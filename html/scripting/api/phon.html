@@ -1,0 +1,177 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Interaction with the application &#8212; Phonometrica 0.5.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/yeen.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Regular expressions" href="regex.html" />
+    <link rel="prev" title="File manipulation" href="file.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="regex.html" title="Regular expressions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="file.html" title="File manipulation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.5.2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Interaction with the application</a><ul>
+<li><a class="reference internal" href="#general-concepts">General concepts</a></li>
+<li><a class="reference internal" href="#module-phon">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="file.html"
+                        title="previous chapter">File manipulation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="regex.html"
+                        title="next chapter">Regular expressions</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="interaction-with-the-application">
+<h1>Interaction with the application<a class="headerlink" href="#interaction-with-the-application" title="Permalink to this headline">¶</a></h1>
+<p>This page documents the <code class="docutils literal notranslate"><span class="pre">phon</span></code> module.</p>
+<div class="section" id="general-concepts">
+<h2>General concepts<a class="headerlink" href="#general-concepts" title="Permalink to this headline">¶</a></h2>
+<p>This module contains all functions that let users interact with Phonometrica.</p>
+</div>
+<div class="section" id="module-phon">
+<span id="functions"></span><h2>Functions<a class="headerlink" href="#module-phon" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="phon.warning">
+<code class="descclassname">phon.</code><code class="descname">warning</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#phon.warning" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays a warning dialog.</p>
+<p>See also: <a class="reference internal" href="#phon.alert" title="phon.alert"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">alert()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="phon.alert">
+<code class="descclassname">phon.</code><code class="descname">alert</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#phon.alert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays an error dialog. This can be used for critical errors.</p>
+<p>See also: <a class="reference internal" href="#phon.warning" title="phon.warning"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">warning()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="phon.info">
+<code class="descclassname">phon.</code><code class="descname">info</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#phon.info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays an information dialog.</p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="phon.open_file_dialog">
+<code class="descclassname">phon.</code><code class="descname">open_file_dialog</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#phon.open_file_dialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays a dialog that lets the user select a file.</p>
+<p>See also: <a class="reference internal" href="#phon.save_file_dialog" title="phon.save_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">save_file_dialog()</span></code></a>,
+<a class="reference internal" href="#phon.open_directory_dialog" title="phon.open_directory_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_directory_dialog()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="phon.save_file_dialog">
+<code class="descclassname">phon.</code><code class="descname">save_file_dialog</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#phon.save_file_dialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays a dialog that lets the user choose a path to save a file.</p>
+<p>See also: <a class="reference internal" href="#phon.open_file_dialog" title="phon.open_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_file_dialog()</span></code></a>,
+<a class="reference internal" href="#phon.open_directory_dialog" title="phon.open_directory_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_directory_dialog()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="phon.open_directory_dialog">
+<code class="descclassname">phon.</code><code class="descname">open_directory_dialog</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="headerlink" href="#phon.open_directory_dialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays a dialog that lets the user select a directory.</p>
+<p>See also: <a class="reference internal" href="#phon.save_file_dialog" title="phon.save_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">save_file_dialog()</span></code></a>,
+<a class="reference internal" href="#phon.open_file_dialog" title="phon.open_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_file_dialog()</span></code></a></p>
+<hr class="docutils" />
+<dl class="function">
+<dt id="phon.status">
+<code class="descclassname">phon.</code><code class="descname">status</code><span class="sig-paren">(</span><em>message</em>, <em>timeout</em><span class="sig-paren">)</span><a class="headerlink" href="#phon.status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Displays <code class="docutils literal notranslate"><span class="pre">message</span></code> in the status bar for <code class="docutils literal notranslate"><span class="pre">timeout</span></code> seconds. If
+<code class="docutils literal notranslate"><span class="pre">timeout</span></code> is <code class="docutils literal notranslate"><span class="pre">0</span></code>, the message is displayed until the next one
+appears.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="regex.html" title="Regular expressions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="file.html" title="File manipulation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.5.2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
+      </ul>
+    </div>
+    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+    
+
+  </body>
+</html>

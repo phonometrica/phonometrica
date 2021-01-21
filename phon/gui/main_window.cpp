@@ -1,9 +1,8 @@
 /***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
  * later version.                                                                                                      *
  *                                                                                                                     *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
@@ -13,867 +12,683 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 13/01/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <QStatusBar>
-#include <QMenuBar>
-#include <QMessageBox>
-#include <QLabel>
-#include <QLayout>
-#include <QTimer>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QInputDialog>
-#include <QDir>
-#include <phon/runtime/variant.hpp>
+#include <wx/log.h>
+#include <wx/aboutdlg.h>
+#include <wx/filedlg.h>
+#include <wx/msgdlg.h>
+#include <wx/choicdlg.h>
+#include <phon/gui/macros.hpp>
 #include <phon/gui/main_window.hpp>
-#include <phon/gui/preference_editor.hpp>
-#include <phon/gui/csv_import_dialog.hpp>
-#include <phon/gui/user_dialog.hpp>
-#include <phon/gui/text_viewer.hpp>
-#include <phon/runtime/object.hpp>
+#include <phon/gui/pref/preferences_editor.hpp>
 #include <phon/application/settings.hpp>
-#include <phon/application/project.hpp>
-#include <phon/include/speech_analysis_phon.hpp>
-#include <phon/include/statistical_analysis_phon.hpp>
-#include <phon/include/transphon_phon.hpp>
 #include <phon/utils/file_system.hpp>
-#include <phon/utils/any.hpp>
+#include <phon/utils/helpers.hpp>
 #include <phon/utils/zip.hpp>
-
-#ifdef PHON_EMBED_SCRIPTS
-#include <phon/include/initialize_phon.hpp>
-#include <phon/include/event_phon.hpp>
-#include <phon/include/menu_phon.hpp>
-#endif
 
 namespace phonometrica {
 
-MainWindow::MainWindow(Runtime &rt, QWidget *parent)
-    : QMainWindow(parent), runtime(rt)
+// File menu
+static const int ID_FILE_NEW_SCRIPT = wxNewId();
+static const int ID_FILE_OPEN_PROJECT = wxNewId();
+static const int ID_FILE_ADD_FILES = wxNewId();
+static const int ID_FILE_ADD_FOLDER = wxNewId();
+static const int ID_FILE_RECENT_SUBMENU = wxNewId();
+static const int ID_FILE_CLEAR_RECENT = wxNewId();
+static const int ID_FILE_OPEN_LAST = wxNewId();
+static const int ID_FILE_CLOSE_PROJECT = wxNewId();
+static const int ID_FILE_SAVE = wxNewId();
+static const int ID_FILE_SAVE_AS = wxNewId();
+static const int ID_FILE_PREFERENCES = wxID_PREFERENCES;
+static const int ID_FILE_IMPORT_METADATA = wxNewId();
+static const int ID_FILE_EXPORT_ANNOTATIONS = wxNewId();
+static const int ID_FILE_EXPORT_METADATA = wxNewId();
+static const int ID_FILE_CLOSE_VIEW = wxNewId();
+static const int ID_FILE_EXIT = wxID_EXIT;
+
+// Analysis menu
+static const int ID_ANALYSIS_FIND = wxNewId();
+static const int ID_ANALYSIS_FORMANTS = wxNewId();
+
+// Tools menu
+static const int ID_TOOLS_RUN = wxNewId();
+static const int ID_TOOLS_INSTALL = wxNewId();
+static const int ID_TOOLS_UNINSTALL = wxNewId();
+static const int ID_TOOLS_EXTEND = wxNewId();
+
+// Window menu
+static const int ID_WINDOW_MAXIMIZE_VIEWER = wxNewId();
+static const int ID_WINDOW_HIDE_PROJECT = wxNewId();
+static const int ID_WINDOW_HIDE_CONSOLE = wxNewId();
+static const int ID_WINDOW_HIDE_INFO = wxNewId();
+static const int ID_WINDOW_DEFAULT_LAYOUT = wxNewId();
+
+// Help menu
+static const int ID_HELP_ABOUT = wxID_ABOUT;
+static const int ID_HELP_WEBSITE = wxNewId();
+static const int ID_HELP_CITE = wxNewId();
+static const int ID_HELP_LICENSE = wxNewId();
+static const int ID_HELP_DOC = wxID_HELP;
+static const int ID_HELP_SCRIPTING = wxNewId();
+static const int ID_HELP_ACKNOWLEDGEMENTS = wxNewId();
+static const int ID_HELP_SOUND_INFO = wxNewId();
+
+MainWindow::MainWindow(Runtime &rt, const wxString &title) :
+		wxFrame(nullptr, wxNewId(), title), runtime(rt)
 {
-    preInitialize();
-    setShellFunctions();
-    initialize();
-
-    auto panel = new QWidget;
-    auto layout = new QVBoxLayout;
-    splitter = new Splitter(Qt::Horizontal);
-    file_manager = new FileManager(rt);
-    main_area = new MainArea(rt);
-
-    splitter->addWidget(file_manager);
-    splitter->addWidget(main_area);
-
-    layout->addWidget(splitter);
-    layout->setContentsMargins(0, 0, 0, 0);
-    panel->setLayout(layout);
-    setCentralWidget(panel);
-
-    auto status_bar = this->statusBar();
-    status_bar->setMaximumHeight(25);
-    file_manager->initStatusBar(status_bar);
-    status_bar->show();
-    status_bar->setContentsMargins(0, 0, 0, 0);
-
-    makeMenu(panel);
-    // This will not be layed out properly, but we set a timer at the end of the constructor to refresh the splitters.
-    adjustSplitters();
-
-    auto viewer = main_area->viewer();
-    connect(main_area->console(), &Console::shown, this, &MainWindow::showConsole);
-	connect(main_area->console(), &Console::shown, [this](bool value) { show_console->setChecked(!value); });
-    connect(main_area->infoPanel(), &InfoPanel::shown, file_manager, &FileManager::updateInfoStatus);
-    connect(file_manager, &FileManager::toggleConsole, main_area, &MainArea::toggleConsole);
-    connect(file_manager, &FileManager::toggleInfo, main_area, &MainArea::toggleInfo);
-    connect(Project::instance(), &Project::notify_update, file_manager, &FileManager::refreshProject);
-	connect(Project::instance(), &Project::notify_closed, viewer, &Viewer::closeAll);
-    connect(Project::instance(), &Project::metadata_updated, file_manager, &FileManager::refreshLabel);
-    connect(Project::instance(), &Project::metadata_updated, main_area->infoPanel(), &InfoPanel::reset);
-    connect(Project::instance(), &Project::initialized, this, &MainWindow::setDatabaseConnection);
-    connect(file_manager->tree(), &ProjectCtrl::script_selected, viewer, &Viewer::openScriptView);
-    connect(file_manager->tree(), &ProjectCtrl::files_selected, main_area->infoPanel(), &InfoPanel::showSelection);
-    connect(file_manager->tree(), &ProjectCtrl::no_selection, main_area->infoPanel(), &InfoPanel::showEmptySelection);
-    connect(Project::instance(), &Project::request_save, viewer, &Viewer::saveViews);
-    connect(file_manager->tree(), &ProjectCtrl::view_file, viewer, &Viewer::view);
-    connect(file_manager->tree(), &ProjectCtrl::view_annotation, viewer, &Viewer::editAnnotation);
-    connect(main_area->viewer(), &Viewer::statusMessage, this, &MainWindow::updateStatus);
-
-    setDatabaseConnection();
+	wxSize size(1200, 800);
+	SetMinSize(size);
+	SetSize(size);
+	MakeMenus();
+	SetupUi();
+//	CreateStatusBar(1);
+	RestoreGeometry();
+	SetBindings();
+	SetAccelerators();
+	SetStartView();
+//	SetStatusText(_("Empty project"));
 }
 
-void MainWindow::updateStatus(const String &msg)
+void MainWindow::MakeMenus()
 {
-	statusBar()->showMessage(msg, 5000);
-}
-
-void MainWindow::adjustProject()
-{
-    auto project_ratio = Settings::get_number(runtime, "project_ratio");
-    setStretchFactor(project_ratio);
-}
-
-MainWindow::~MainWindow()
-{
-    auto sizes = splitter->sizes();
-    auto project_ratio = double(sizes[0]) / (sizes[0] + sizes[1]);
-    double info_ratio, console_ratio;
-    std::tie(info_ratio, console_ratio) = main_area->ratios();
-
-    // Don't update ratio if a widget is hidden, otherwise when we try to unhide them,
-    // they won't be shown because their ratio is 0.
-    if (!Settings::get_boolean(runtime, "hide_info"))
-        Settings::set_value(runtime, "info_ratio", info_ratio);
-    if (!Settings::get_boolean(runtime, "hide_console"))
-        Settings::set_value(runtime, "console_ratio", console_ratio);
-    if (!Settings::get_boolean(runtime, "hide_project"))
-        Settings::set_value(runtime, "project_ratio", project_ratio);
-
-    auto geom = this->geometry();
-    double x = geom.x();
-    double y = geom.y();
-    double w = geom.width();
-    double h = geom.height();
-    Settings::set_value(runtime, "geometry", {x, y, w, h });
-    Settings::set_value(runtime, "full_screen", this->isMaximized());
-
-    if (query_editor) delete query_editor;
-
-    try
-    {
-        Settings::write(runtime);
-    }
-    catch (std::runtime_error &e)
-    {
-        QMessageBox dlg(QMessageBox::Critical, tr("Finalization failed"), e.what());
-        dlg.exec();
-    }
-}
-
-void MainWindow::showConsole(bool value)
-{
-    file_manager->consoleClicked(!value);
-}
-
-void MainWindow::showInfo(bool value)
-{
-    file_manager->infoClicked(!value);
-}
-
-void MainWindow::showProject(bool)
-{
-    bool new_state = !file_manager->isVisible();
-    file_manager->setVisible(new_state);
-    Settings::set_value(runtime, "hide_project", !new_state);
-}
-
-void MainWindow::restoreDefaultLayout(bool)
-{
-    if (file_manager->isHidden()) {
-        file_manager->show();
-    }
-    if (main_area->console()->isHidden()) {
-        main_area->console()->show();
-    }
-    if (main_area->infoPanel()->isHidden()) {
-        main_area->infoPanel()->show();
-    }
-
-    show_project->setChecked(true);
-    show_console->setChecked(true);
-    show_info->setChecked(true);
-	file_manager->updateConsoleStatus(false);
-	file_manager->updateInfoStatus(false);
-
-    // Restore default geometry.
-    setStretchFactor(DEFAULT_FILE_MANAGER_RATIO);
-    main_area->setDefaultLayout();
-
-    Settings::set_value(runtime, "hide_project", false);
-    Settings::set_value(runtime, "hide_info", false);
-    Settings::set_value(runtime, "hide_console", false);
-    Settings::set_value(runtime, "hide_console", false);
-    Settings::set_value(runtime, "console_ratio", DEFAULT_CONSOLE_RATIO);
-    Settings::set_value(runtime, "project_ratio", DEFAULT_FILE_MANAGER_RATIO);
-    Settings::set_value(runtime, "info_ratio", DEFAULT_INFO_RATIO);
-}
-
-void MainWindow::makeMenu(QWidget *panel)
-{
-    auto menubar = new QMenuBar(panel);
-
-    auto add_menu = [=](Runtime &rt) {
-        QString name = rt.to_string(-1);
-        auto menu = new QMenu(name);
-        menu->setToolTipsVisible(true);
-        menubar->addMenu(menu);
-        rt.push_null(); // prototype
-        rt.new_user_data("Menu", menu);
-    };
-
-    auto add_submenu = [](Runtime &rt) {
-        auto menu = rt.cast_user_data<QMenu*>(1);
-        QString name = rt.to_string(2);
-        auto submenu = menu->addMenu(name);
-        submenu->setToolTipsVisible(true);
-        rt.push_null(); // prototype
-        rt.new_user_data("Menu", submenu);
-    };
-
-    auto clear_menu = [](Runtime &rt) {
-        auto menu = rt.cast_user_data<QMenu*>(1);
-        menu->clear();
-        rt.push_null();
-    };
-
-    auto enable_menu = [](Runtime &rt) {
-        auto menu = rt.cast_user_data<QMenu*>(1);
-        auto value = rt.to_boolean(2);
-        menu->setEnabled(value);
-        rt.push_null();
-    };
-
-    auto enable_action = [](Runtime &rt) {
-        auto action = rt.cast_user_data<QAction*>(1);
-        auto value = rt.to_boolean(2);
-        action->setEnabled(value);
-        rt.push_null();
-    };
-
-    auto add_action = [](Runtime &rt) {
-        auto menu = rt.cast_user_data<QMenu*>(1);
-        auto label = rt.to_string(2);
-        auto action = menu->addAction(label);
-        rt.push_null(); // prototype
-        rt.new_user_data("Action", action);
-    };
-
-    auto add_separator = [](Runtime &rt) {
-        auto menu = rt.cast_user_data<QMenu*>(1);
-        menu->addSeparator();
-        rt.push_null();
-    };
-
-    auto set_checkable = [](Runtime &rt) {
-        auto action = rt.cast_user_data<QAction*>(1);
-        auto value = rt.to_boolean(2);
-        action->setCheckable(value);
-        rt.push_null();
-    };
-
-    auto check_action = [](Runtime &rt) {
-        auto action = rt.cast_user_data<QAction*>(1);
-        auto value = rt.to_boolean(2);
-        action->setChecked(value);
-        rt.push_null();
-    };
-
-    auto set_action_tooltip = [](Runtime &rt) {
-        auto action = rt.cast_user_data<QAction*>(1);
-        auto value = rt.to_string(2);
-        action->setToolTip(value);
-        rt.push_null();
-    };
-
-    auto set_action_shortcut = [](Runtime &rt) {
-        auto action = rt.cast_user_data<QAction*>(1);
-        auto label = rt.to_string(2);
-        action->setShortcut(QKeySequence(label));
-        rt.push_null();
-    };
-
-    auto bind_action = [](Runtime &rt) {
-        auto action = rt.cast_user_data<QAction*>(1);
-        if (!rt.is_callable(2)) {
-            throw rt.raise("Type error", "expected a callable object");
-        }
-        Value val(rt, 2); // capture function to protect from the GC, and move it to the callback.
-
-        connect(action, &QAction::triggered, [&rt, val{std::move(val)}](bool triggered) {
-            rt.push(*val);
-            rt.push_null();
-            rt.push_boolean(triggered);
-            rt.call(1);
-        });
-    };
-
-    auto create_window_menu = [=](Runtime &rt) {
-        this->addWindowMenu(menubar);
-    };
-
-    auto create_tool_menu = [=](Runtime &rt) {
-		this->addToolsMenu(menubar);
-    };
-
-    runtime.get_global("phon");
-    {
-        runtime.add_method("add_menu", add_menu, 1);
-        runtime.add_method("add_submenu", add_submenu, 2);
-        runtime.add_method("clear_menu", clear_menu, 1);
-        runtime.add_method("enable_menu", enable_menu, 2);
-        runtime.add_method("enable_action", enable_action, 2);
-        runtime.add_method("add_action", add_action, 2);
-        runtime.add_method("add_separator", add_separator, 0);
-        runtime.add_method("set_checkable", set_checkable, 2);
-        runtime.add_method("check_action", check_action, 2);
-        runtime.add_method("set_action_shortcut", set_action_shortcut, 2);
-        runtime.add_method("set_action_tooltip", set_action_tooltip, 2);
-        runtime.add_method("bind_action", bind_action, 2);
-        runtime.add_method("create_window_menu", create_window_menu, 0);
-        runtime.add_method("create_tool_menu", create_tool_menu, 0);
-    }
-    runtime.pop();
-
-    try
-    {
-        run_script(runtime, menu);
-    }
-    catch (std::exception &e)
-    {
-        QMessageBox dlg(QMessageBox::Critical, tr("Menu creation failed"), e.what());
-        dlg.exec();
-    }
-
-    setMenuBar(menubar);
-}
-
-void MainWindow::setToolsMenu()
-{
-	tool_separator = tools_menu->addSeparator();
-
-	auto run_action = new QAction(tr("Run script..."));
-	tools_menu->addAction(run_action);
-	tools_menu->addSeparator();
-
-	auto install_action = new QAction(tr("Install plugin..."));
-	tools_menu->addAction(install_action);
-
-	auto uninstall_action = new QAction(tr("Uninstall plugin..."));
-	tools_menu->addAction(uninstall_action);
-	tools_menu->addSeparator();
-
-
-	auto extend_action = new QAction(tr("How to extend this menu"));
-	tools_menu->addAction(extend_action);
-
-	connect(install_action, &QAction::triggered, this, &MainWindow::installPlugin);
-	connect(uninstall_action, &QAction::triggered, this, &MainWindow::uninstallPlugin);
-	connect(extend_action, &QAction::triggered, [&](bool) {
-		runtime.do_string(R"__(
-		var page = phon.config.get_documentation_page("scripting/plugins.html")
-		phon.show_documentation(page)
-		)__");
-	});
-
-	connect(run_action, &QAction::triggered, [&](bool) {
-		runtime.do_string(R"__(
-    	var path = open_file_dialog("Open Phonometrica script", "Script (*.phon)")
-	    if path then
-		    phon.run_script(path)
-	    end
-        )__");
-	});
-}
-
-void MainWindow::addToolsMenu(QMenuBar *menubar)
-{
-	tools_menu = new QMenu(tr("Tools"));
-	setToolsMenu();
-	menubar->addMenu(tools_menu);
-}
-
-void MainWindow::addWindowMenu(QMenuBar *menubar)
-{
-    auto menu = new QMenu(tr("&Window"));
-    show_project = menu->addAction(tr("Show project"));
-    show_console = menu->addAction(tr("Show console"));
-    show_info = menu->addAction(tr("Show metadata"));
-    menu->addSeparator();
-    auto maximize = menu->addAction(tr("Maximize viewer"));
-    menu->addSeparator();
-    restore_layout = menu->addAction(tr("Restore default layout"));
-
-    show_project->setCheckable(true);
-    show_project->setChecked(true);
-    show_console->setCheckable(true);
-    show_console->setChecked(true);
-    show_info->setCheckable(true);
-    show_info->setChecked(true);
-    show_project->setShortcut(QKeySequence("ctrl+alt+p"));
-    show_console->setShortcut(QKeySequence("ctrl+alt+c"));
-    show_info->setShortcut(QKeySequence("ctrl+alt+m"));
-    maximize->setShortcut(QKeySequence("ctrl+alt+v"));
-    restore_layout->setShortcut(QKeySequence("ctrl+alt+d"));
-
-
-    connect(show_project, &QAction::triggered, this, &MainWindow::showProject);
-    connect(show_console, &QAction::triggered, this, &MainWindow::showConsole);
-    connect(show_info, &QAction::triggered, this, &MainWindow::showInfo);
-    connect(restore_layout, &QAction::triggered, this, &MainWindow::restoreDefaultLayout);
-    connect(file_manager->console_button, &QPushButton::clicked, this, &MainWindow::updateConsoleAction);
-    connect(file_manager->info_button, &QPushButton::clicked, this, &MainWindow::updateInfoAction);
-    connect(maximize, &QAction::triggered, this, &MainWindow::maximizeViewer);
-
-    menubar->addMenu(menu);
-}
-
-void MainWindow::setShellFunctions()
-{
-    auto warning = [](Runtime &rt) {
-        auto msg = rt.to_string(1);
-        String title = rt.arg_count() > 1 ? rt.to_string(2) : String("Warning");
-        QMessageBox dlg(QMessageBox::Warning, title, msg);
-        dlg.exec();
-        rt.push_null();
-    };
-
-    auto alert = [](Runtime &rt) {
-        auto msg = rt.to_string(1);
-	    String title = rt.arg_count() > 1 ? rt.to_string(2) : String("Error");
-	    QMessageBox dlg(QMessageBox::Critical, title, msg);
-        dlg.exec();
-        rt.push_null();
-    };
-
-    auto info = [](Runtime &rt) {
-        auto msg = rt.to_string(1);
-	    String title = rt.arg_count() > 1 ? rt.to_string(2) : String("Information");
-	    QMessageBox dlg(QMessageBox::Information, title, msg);
-        dlg.exec();
-        rt.push_null();
-    };
-
-    auto ask = [this](Runtime &rt) {
-    	auto msg = rt.to_string(1);
-    	String title = rt.arg_count() > 1 ? rt.to_string(2) : String("Question");
-	    auto reply = QMessageBox::question(this, title, msg, QMessageBox::Yes|QMessageBox::No);
-	    rt.push_boolean(reply == QMessageBox::Yes);
-    };
-
-    auto about = [=](Runtime &rt) {
-        auto msg = rt.to_string(1);
-        auto title = rt.to_string(2);
-        QMessageBox::about(this, title, msg);
-        rt.push_null();
-    };
-
-    auto open_file_dialog = [=](Runtime &rt) {
-        auto msg = rt.to_string(1);
-        auto dir = Settings::get_last_directory(rt);
-        String filter = rt.arg_count() > 1 ? rt.to_string(2) : String();
-        auto path = QFileDialog::getOpenFileName(this, msg, dir, filter);
-        if (path.isNull())
-        {
-            rt.push_null();
-        }
-        else
-        {
-            Settings::set_last_directory(rt, path);
-            rt.push(path);
-        }
-    };
-
-    auto open_files_dialog = [=](Runtime &rt) {
-        auto msg = rt.to_string(1);
-        auto dir = Settings::get_last_directory(rt);
-        String filter = rt.arg_count() > 1 ? rt.to_string(2) : String();
-        auto paths = QFileDialog::getOpenFileNames(this, msg, dir, filter);
-        Array<Variant> result;
-        bool done = false;
-
-        for (auto &path : paths)
-        {
-            result.append(String(path));
-            if (!done)
-            {
-                Settings::set_last_directory(rt, path);
-                done = true;
-            }
-        }
-
-        std::sort(result.begin(), result.end());
-        rt.push(std::move(result));
-    };
-
-    auto open_directory_dialog = [=](Runtime &rt) {
-        auto s = rt.to_string(-1);
-        auto dir = Settings::get_last_directory(rt);
-        auto path = QFileDialog::getExistingDirectory(this, s, dir);
-        if (path.isNull())
-        {
-            rt.push_null();
-        }
-        else
-        {
-            Settings::set_last_directory(rt, path);
-            rt.push(path);
-        }
-    };
-
-    auto save_file_dialog = [=](Runtime &rt) {
-        auto s = rt.to_string(1);
-        auto dir = Settings::get_last_directory(rt);
-        QString filter = rt.arg_count() > 1 ? QString(rt.to_string(2)) : QString();
-        auto path = QFileDialog::getSaveFileName(this, s, dir, filter, &filter);
-        if (path.isNull())
-        {
-            rt.push_null();
-        }
-        else
-        {
-            Settings::set_last_directory(rt, path);
-            rt.push(path);
-        }
-    };
-
-    auto open_query_editor = [=](Runtime &rt) {
-	    this->openQueryEditor(Query::Type::Default);
-    	rt.push_null();
-    };
-
-    auto measure_formants = [=](Runtime &rt) {
-	    this->openQueryEditor(Query::Type::Formants);
-    	rt.push_null();
-    };
-
-    auto run_last_query = [=](Runtime &rt) {
-    	this->runLastQuery();
-    	rt.push_null();
-    };
-
-    auto input = [=](Runtime &rt) {
-        auto label = rt.to_string(1);
-        auto title = rt.to_string(2);
-        auto text = rt.to_string(3);
-        auto result = QInputDialog::getText(this, title, label, QLineEdit::Normal, text);
-        rt.push(result);
-    };
-
-    auto show_doc = [=](Runtime &rt) {
-        auto path = rt.to_string(1);
-        main_area->viewer()->showDocumentation(path);
-        rt.push_null();
-    };
-
-    auto get_version = [](Runtime &rt) {
-        rt.push(utils::get_version());
-    };
-
-    auto get_date = [](Runtime &rt) {
-        rt.push(utils::get_date());
-    };
-
-    auto get_supported_sound_formats = [](Runtime &rt) {
-        Array<Variant> sounds;
-        for (auto &s : Sound::supported_sound_format_names()) {
-            sounds.append(s);
-        }
-        rt.push(std::move(sounds));
-    };
-
-    auto get_rtaudio_version = [](Runtime &rt) {
-        rt.push(Sound::rtaudio_version());
-    };
-
-    auto get_libsndfile_version = [](Runtime &rt) {
-        rt.push(Sound::libsndfile_version());
-    };
-
-    auto quit = [=](Runtime &rt) {
-        if (this->finalize()) {
-            QApplication::quit();
-        }
-    };
-
-    auto edit_settings = [=](Runtime &rt) {
-        PreferenceEditor dlg(this, rt);
-        dlg.exec();
-        rt.push_null();
-    };
-
-    auto view_script = [=](Runtime &rt) {
-        auto viewer = main_area->viewer();
-        if (rt.is_null(1)) {
-            viewer->newScript();
-        }
-        else
-        {
-            auto path = rt.to_string(1);
-            Project::instance()->import_file(path);
-            viewer->openScript(path);
-        }
-
-        rt.push_null();
-    };
-
-    auto run_script = [=](Runtime &rt) {
-        auto path = rt.to_string(1);
-        try
-        {
-            rt.do_file(path);
-        }
-        catch (std::runtime_error &e)
-        {
-            QMessageBox dlg(QMessageBox::Critical, tr("Execution failed"), e.what());
-            dlg.exec();
-        }
-    };
-
-    auto get_plugin_version = [this](Runtime &rt) {
-    	auto name = rt.to_string(1);
-        auto plugin = findPlugin(name);
-        if (plugin) {
-        	rt.push(plugin->version());
-        }
-        else {
-        	rt.push_null();
-        }
-    };
-
-    auto get_plugin_resource = [this](Runtime &rt) {
-    	auto plugin = rt.to_string(1);
-    	auto name = rt.to_string(2);
-    	auto resource = filesystem::join(Settings::plugin_directory(), plugin, "Resources", name);
-		rt.push(std::move(resource));
-    };
-
-    auto close_current_view = [this](Runtime &rt) {
-    	main_area->viewer()->closeCurrentView();
-    };
-
-    auto view_annotation = [this](Runtime &rt) {
-	    auto annot = rt.cast_user_data<AutoAnnotation>(1);
-	    intptr_t layer = 1;
-	    double from = 0.0;
-	    double to = 10.0;
-	    if (rt.arg_count() >= 2)
-	    {
-	    	layer = rt.to_integer(2);
-	    }
-	    if (rt.arg_count() == 4)
-	    {
-	    	from = rt.to_number(3);
-	    	to = rt.to_number(4);
-	    }
-	    main_area->viewer()->editAnnotation(std::move(annot), layer, from, to);
-	    rt.push_null();
-    };
-
-	auto import_metadata = [this](Runtime &rt) {
-		importMetadata();
-		rt.push_null();
-	};
-
-	auto export_metadata = [](Runtime &rt) {
-		auto path = rt.to_string(1);
-		Project::instance()->export_metadata(path);
-		rt.push_null();
-	};
-
-	auto create_dialog = [this](Runtime &rt) {
-		auto s = rt.to_string(1);
-		UserDialog dlg(rt, s, this);
-		if (dlg.exec() == QDialog::Accepted)
-		{
-			rt.push(dlg.get());
-		}
-		else
-		{
-			rt.push_null();
-		}
-	};
-
-	auto set_status = [this](Runtime &rt) {
-		auto msg = rt.to_string(1);
-		auto time = rt.arg_count() == 1 ? 2000 : rt.to_integer(2);
-		statusBar()->showMessage(msg, time);
-		rt.push_null();
-	};
-
-	auto transphon = [=](Runtime &rt) {
-		run_script(rt, transphon);
-		rt.push_null();
-	};
-
-	auto get_plugin_list = [this](Runtime &rt) {
-		Array<Variant> names;
-		for (auto &plugin : plugins) {
-			names.append(plugin->label());
-		}
-		rt.push(std::move(names));
-	};
-
-	auto view_text = [this](Runtime &rt) {
-		auto path = rt.to_string(1);
-		auto title = rt.to_string(2);
-		TextViewer viewer(path, title, this);
-		if (rt.arg_count() >= 3)
-		{
-			int w = rt.to_integer(3);
-			viewer.setMinimumWidth(w);
-		}
-		if (rt.arg_count() == 4)
-		{
-			int h = rt.to_integer(4);
-			viewer.setMinimumHeight(h);
-		}
-		viewer.exec();
-		rt.push_null();
-	};
-
-	auto get_current_sound = [this](Runtime &rt) {
-		auto viewer = main_area->viewer();
-		auto sound = viewer->getCurrentSound();
-		if (sound) {
-			rt.new_user_data(Sound::meta(), "Sound", sound);
-		}
-		else {
-			rt.push_null();
-		}
-	};
-
-	auto get_current_annot = [this](Runtime &rt) {
-		auto viewer = main_area->viewer();
-		auto annot = viewer->getCurrentAnnotation();
-		if (annot) {
-			rt.new_user_data(Annotation::meta(), "Annotation", annot);
-		}
-		else {
-			rt.push_null();
-		}
-	};
-
-	auto get_window_duration = [this](Runtime &rt) {
-		auto viewer = main_area->viewer();
-		rt.push(viewer->getWindowDuration());
-	};
-
-	auto get_selection_duration = [this](Runtime &rt) {
-		auto viewer = main_area->viewer();
-		rt.push(viewer->getSelectionDuration());
-	};
-
-	runtime.add_global_function("view_text", view_text, 2);
-	runtime.add_global_function("warning", warning, 1);
-	runtime.add_global_function("alert", alert, 1);
-	runtime.add_global_function("info", info, 1);
-	runtime.add_global_function("ask", ask, 1);
-	runtime.add_global_function("about", about, 2);
-	runtime.add_global_function("open_file_dialog", open_file_dialog, 1);
-	runtime.add_global_function("open_files_dialog", open_files_dialog, 1);
-	runtime.add_global_function("open_directory_dialog", open_directory_dialog, 1);
-	runtime.add_global_function("save_file_dialog", save_file_dialog, 1);
-	runtime.add_global_function("get_input", input, 3);
-	runtime.add_global_function("get_plugin_version", get_plugin_version, 1);
-	runtime.add_global_function("get_plugin_resource", get_plugin_resource, 2);
-	runtime.add_global_function("set_status", set_status, 1);
-	runtime.add_global_function("get_current_sound", get_current_sound, 0);
-	runtime.add_global_function("get_current_annotation", get_current_annot, 0);
-	runtime.add_global_function("get_window_duration", get_window_duration,  0);
-	runtime.add_global_function("get_selection_duration", get_selection_duration, 0);
-
-    runtime.get_global("phon");
-    {
-        runtime.add_method("show_documentation", show_doc, 1);
-        runtime.add_accessor("version", get_version);
-        runtime.add_accessor("date", get_date);
-        runtime.add_accessor("supported_sound_formats", get_supported_sound_formats);
-        runtime.add_accessor("rtaudio_version", get_rtaudio_version);
-        runtime.add_accessor("libsndfile_version", get_libsndfile_version);
-        runtime.add_method("quit", quit, 0);
-        runtime.add_method("edit_settings", edit_settings, 0);
-        runtime.add_method("view_script", view_script, 1);
-        runtime.add_method("run_script", run_script, 1);
-        runtime.add_method("open_query_editor", open_query_editor, 0);
-        runtime.add_method("measure_formants", measure_formants, 0);
-        runtime.add_method("run_last_query", run_last_query, 0);
-        runtime.add_method("close_current_view", close_current_view, 0);
-        runtime.add_method("view_annotation", view_annotation, 4);
-        runtime.add_method("import_metadata", import_metadata, 0);
-	    runtime.add_method("export_metadata", export_metadata, 1);
-	    runtime.add_method("__create_dialog", create_dialog, 1);
-	    runtime.add_method("get_plugin_list", get_plugin_list, 0);
-	    runtime.add_method("transphon", transphon, 0);
-
-	    // Define 'phon.config'
-        Settings::initialize(runtime);
-    }
-    runtime.pop();
-	runtime.add_global_function("test_global", info, 1);
-
-	// Accept either an object or a string as input, and return an object
-	runtime.do_string(R"_(
-		function create_dialog(data)
-			if typeof(data) == "Object" then
-				data = json.stringify(data)
-		    end
-			data = phon.__create_dialog(data)
-
-			return json.parse(data)
-		end
-)_");
-}
-
-void MainWindow::initialize()
-{
-    try
-    {
-        run_script(runtime, initialize);
-        run_script(runtime, event);
-        Project::create(runtime);
-        Project::initialize(runtime);
-    }
-    catch (std::runtime_error &e)
-    {
-        QMessageBox dlg(QMessageBox::Critical, tr("Initialization failed"), e.what());
-        dlg.exec();
-    }
-}
-
-void MainWindow::setStretchFactor(double ratio)
-{
-    file_manager->setMinimumWidth(100);
-    auto width = splitter->width();
-    auto project_width = int(width * ratio);
-    splitter->setSizes({project_width, width-project_width});
-}
-
-void MainWindow::preInitialize()
-{
-    try
-    {
-        runtime.do_string("phon = {}");
-        Settings::read(runtime);
-    }
-    catch (std::runtime_error &e)
-    {
-        QMessageBox dlg(QMessageBox::Critical, tr("Pre-initialization failed"), e.what());
-        dlg.exec();
-    }
-}
-
-void MainWindow::postInitialize()
-{
-	run_script(runtime, speech_analysis);
-	run_script(runtime, statistical_analysis);
-
-	// Load system plugins and scripts, and then the user's plugins and scripts.
-	String resources_dir = Settings::get_string(runtime, "resources_directory");
-	String user_dir = Settings::settings_directory();
-	loadPluginsAndScripts(resources_dir);
-	loadPluginsAndScripts(user_dir);
-
-#if PHON_WINDOWS
-	QFontDatabase::addApplicationFont(":/fonts/NotoSansMono-Regular.ttf");
-	QFontDatabase::addApplicationFont(":/fonts/NotoSansMono-Bold.ttf");
+	// FIXME: There seems to be a bug in the way macOS's Window menu is handled by wxWidgets.
+	//  In order to get the menu in the right place, to get special menu items in the application menu,
+	//  and to be able to populate the Window menu, we first create it where it belongs (before Help),
+	//  and we populate the menu at the end. This seems to be the only way to get it to work on my machine
+	//  (macOS 10.13.6).
+
+	m_menubar = new wxMenuBar;
+	m_menubar->Append(MakeFileMenu(), _("&File"));
+	m_menubar->Append(MakeAnalysisMenu(), _("&Analysis"));
+	m_menubar->Append(MakeToolsMenu(), _("&Tools"));
+#ifdef __WXMAC__
+	m_menubar->Append(new wxMenu, _("&Window"));
+#else
+	m_menubar->Append(MakeWindowMenu(), _("&Window"));
+#endif
+	m_menubar->Append(MakeHelpMenu(), _("&Help"));
+	SetMenuBar(m_menubar);
+
+#ifdef __WXMAC__
+	wxMenuBar::MacSetCommonMenuBar(m_menubar);
+
+	auto i = m_menubar->FindMenu("Window");
+	auto menu = m_menubar->GetMenu(i);
+	menu->AppendSeparator();
+	PopulateWindowMenu(menu);
 #endif
 }
 
-void MainWindow::loadPluginsAndScripts(const String &root)
+wxMenu *MainWindow::MakeFileMenu()
+{
+	auto menu = new wxMenu;
+
+	menu->Append(ID_FILE_NEW_SCRIPT, _("New script...\tctrl+n"));
+	menu->AppendSeparator();
+
+	menu->Append(ID_FILE_OPEN_PROJECT, _("Open project...\tCtrl+o"));
+	menu->Append(ID_FILE_ADD_FILES, _("Add files to project...\tCtrl+Shift+a"),
+	             _("Add one or more file(s) to the current project"));
+	menu->Append(ID_FILE_ADD_FOLDER, _("Add content of folder to project..."),
+	             _("Recursively import the content of a folder"));
+	menu->Append(ID_FILE_CLOSE_PROJECT, _("Close current project"), _("Close the current project"));
+	menu->AppendSeparator();
+
+	m_recent_submenu = new wxMenu();
+	m_recent_item = menu->AppendSubMenu(m_recent_submenu, _("Recent projects"));
+	m_last_item = menu->Append(ID_FILE_OPEN_LAST, _("Open most recent project\tCtrl+Shift+o"),
+	                           _("Open the last project that was used in the previous session"));
+	menu->AppendSeparator();
+
+	m_save_item = menu->Append(ID_FILE_SAVE, _("Save project\tCtrl+Shift+s"));
+	m_save_as_item = menu->Append(ID_FILE_SAVE_AS, _("Save project as..."));
+	menu->AppendSeparator();
+
+	menu->Append(ID_FILE_PREFERENCES, _("Preferences..."));
+	menu->AppendSeparator();
+
+	auto import_menu = new wxMenu();
+	import_menu->Append(ID_FILE_IMPORT_METADATA, _("Import metadata from CSV file..."));
+	menu->AppendSubMenu(import_menu, _("Import"));
+	auto export_menu = new wxMenu();
+	export_menu->Append(ID_FILE_EXPORT_ANNOTATIONS, _("Export annotation(s) to plain text..."));
+	export_menu->Append(ID_FILE_EXPORT_METADATA, _("Export project metadata to CSV file..."));
+	menu->AppendSubMenu(export_menu, _("Export"));
+	menu->AppendSeparator();
+
+	menu->Append(ID_FILE_CLOSE_VIEW, _("Close current view\tCtrl+w"));
+	menu->AppendSeparator();
+
+	menu->Append(ID_FILE_EXIT, _("Quit\tCtrl+q"));
+
+	EnableRecentProjects(false);
+	EnableSaveFile(false);
+
+//	SetRecentProjects();
+
+	return menu;
+}
+
+wxMenu *MainWindow::MakeAnalysisMenu()
+{
+	auto menu = new wxMenu;
+	menu->Append(ID_ANALYSIS_FIND, _("Find in annotations...\tctrl+shift+f"));
+	menu->Append(ID_ANALYSIS_FORMANTS, _("Measure formants"));
+
+	return menu;
+}
+
+wxMenu *MainWindow::MakeWindowMenu()
+{
+	auto menu = new wxMenu;
+	PopulateWindowMenu(menu);
+
+	return menu;
+}
+
+void MainWindow::PopulateWindowMenu(wxMenu *menu)
+{
+	m_project_item = menu->AppendCheckItem(ID_WINDOW_HIDE_PROJECT, _("Hide project panel\tctrl+Left"));
+	m_info_item = menu->AppendCheckItem(ID_WINDOW_HIDE_INFO, _("Hide information panel\tctrl+Right"));
+	m_console_item = menu->AppendCheckItem(ID_WINDOW_HIDE_CONSOLE, _("Hide console\tctrl+Down"));
+	menu->AppendSeparator();
+	menu->Append(ID_WINDOW_MAXIMIZE_VIEWER, _("Maximize viewer\tctrl+Up"));
+	menu->AppendSeparator();
+	menu->Append(ID_WINDOW_DEFAULT_LAYOUT, _("Restore default layout\tctrl+shift+Up"));
+}
+
+wxMenu *MainWindow::MakeToolsMenu()
+{
+	auto menu = new wxMenu;
+
+	menu->Append(ID_TOOLS_RUN, _("Run script..."));
+	menu->AppendSeparator();
+	menu->Append(ID_TOOLS_INSTALL, _("Install plugin..."));
+	menu->Append(ID_TOOLS_UNINSTALL, _("Uninstall plugin..."));
+	menu->AppendSeparator();
+	menu->Append(ID_TOOLS_EXTEND, _("How to extend this menu"));
+	m_tools_menu = menu;
+
+	return menu;
+}
+
+wxMenu *MainWindow::MakeHelpMenu()
+{
+	auto menu = new wxMenu;
+
+	menu->Append(ID_HELP_DOC, _("Documentation"));
+	menu->Append(ID_HELP_SCRIPTING, _("Scripting"));
+	menu->AppendSeparator();
+	menu->Append(ID_HELP_WEBSITE, _("Go to website"));
+	menu->Append(ID_HELP_ACKNOWLEDGEMENTS, _("Acknowledgements"));
+	menu->AppendSeparator();
+	menu->Append(ID_HELP_ABOUT, _("About Phonometrica"));
+
+	return menu;
+}
+
+void MainWindow::SetBindings()
+{
+	// File menu
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnNewScript, this, ID_FILE_NEW_SCRIPT);
+//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenProject, this, ID_FILE_OPEN_PROJECT);
+//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenLastProject, this, ID_FILE_OPEN_LAST);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExit, this, ID_FILE_EXIT);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAddFilesToProject, this, ID_FILE_ADD_FILES);
+//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAddFolderToProject, this, ID_FILE_ADD_FOLDER);
+//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSaveProject, this, ID_FILE_SAVE);
+//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSaveProjectAs, this, ID_FILE_SAVE_AS);
+//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseProject, this, ID_FILE_CLOSE_PROJECT);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnEditPreferences, this, ID_FILE_PREFERENCES);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseCurrentView, this, ID_FILE_CLOSE_VIEW);
+
+	// Tools menu
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnRunScript, this, ID_TOOLS_RUN);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnInstallPlugin, this, ID_TOOLS_INSTALL);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnUninstallPlugin, this, ID_TOOLS_UNINSTALL);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExtendTools, this, ID_TOOLS_EXTEND);
+
+
+	// Window menu
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnRestoreDefaultLayout, this, ID_WINDOW_DEFAULT_LAYOUT);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnHideProject, this, ID_WINDOW_HIDE_PROJECT);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnHideInfo, this, ID_WINDOW_HIDE_INFO);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnHideConsole, this, ID_WINDOW_HIDE_CONSOLE);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnMaximizeViewer, this, ID_WINDOW_MAXIMIZE_VIEWER);
+
+	// Help menu.
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenDocumentation, this, ID_HELP_DOC);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnHelpScripting, this, ID_HELP_SCRIPTING);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnGoToWebsite, this, ID_HELP_WEBSITE);
+//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCitation, this, ID_HELP_CITE);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenLicense, this, ID_HELP_LICENSE);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenAcknowledgements, this, ID_HELP_ACKNOWLEDGEMENTS);
+//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSoundInfo, this, ID_HELP_SOUND_INFO);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAbout, this, ID_HELP_ABOUT);
+
+	// Sashes
+	m_project_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnFileManagerSashMoved, this);
+	m_viewer_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnViewerSashMoved, this);
+	m_info_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnInfoSashMoved, this);
+
+	Bind(wxEVT_CLOSE_WINDOW, &MainWindow::OnCloseRequest, this);
+}
+
+void MainWindow::OnExit(wxCommandEvent &)
+{
+	Finalize();
+}
+
+void MainWindow::OnCloseRequest(wxCloseEvent &)
+{
+	Finalize();
+}
+
+void MainWindow::Finalize()
+{
+	SaveGeometry();
+	Destroy();
+}
+
+void MainWindow::EnableSaveFile(bool value)
+{
+	m_save_item->Enable(value);
+	m_save_as_item->Enable(value);
+}
+
+void MainWindow::EnableRecentProjects(bool value)
+{
+	m_recent_item->Enable(value);
+}
+
+void MainWindow::OnNewScript(wxCommandEvent &)
+{
+	m_viewer->NewScript();
+}
+
+void MainWindow::SetupUi()
+{
+	long sash_flags = wxSP_THIN_SASH|wxSP_LIVE_UPDATE;
+	SetIcon(wxIcon(Settings::get_icon_path("sound_wave_small.png"), wxBITMAP_TYPE_PNG));
+	// Split project manager on the left and the main area.
+	m_project_splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
+	m_project_manager = new ProjectManager(runtime, m_project_splitter);
+	m_main_area = new wxPanel(m_project_splitter, -1, wxDefaultPosition, wxDefaultSize);
+
+	// The main area contains the console at the bottom, the info panel on the right, and the viewer in the center.
+	m_info_splitter = new wxSplitterWindow(m_main_area, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
+	m_central_panel = new wxPanel(m_info_splitter);
+	m_info_panel = new InfoPanel(runtime, m_info_splitter);
+
+	// Split viewer and info panel.
+	m_viewer_splitter = new wxSplitterWindow(m_central_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
+	m_viewer = new Viewer(runtime, m_viewer_splitter, this);
+	m_console = new Console(runtime, m_viewer_splitter);
+
+	// Set sizers.
+	auto sizer1 = new wxBoxSizer(wxVERTICAL);
+	sizer1->Add(m_project_splitter, 1, wxEXPAND, 0);
+	this->SetSizer(sizer1);
+
+	auto sizer2 = new wxBoxSizer(wxVERTICAL);
+	sizer2->Add(m_info_splitter, 1, wxEXPAND);
+	m_main_area->SetSizer(sizer2);
+
+	auto sizer3 = new wxBoxSizer(wxVERTICAL);
+	sizer3->Add(m_viewer_splitter, 1, wxEXPAND, 0);
+	m_central_panel->SetSizer(sizer3);
+}
+
+void MainWindow::PostInitialize()
+{
+	ShowAllPanels();
+
+	// Load system plugins and scripts, and then the user's plugins and scripts.
+	String resources_dir = Settings::get_string("resources_directory");
+	String user_dir = Settings::settings_directory();
+	LoadPluginsAndScripts(resources_dir);
+	LoadPluginsAndScripts(user_dir);
+}
+
+void MainWindow::ShowAllPanels()
+{
+	m_project_splitter->SplitVertically(m_project_manager, m_main_area);
+	m_info_splitter->SplitVertically(m_central_panel, m_info_panel);
+	m_viewer_splitter->SplitHorizontally(m_viewer, m_console);
+	UpdateLayout();
+}
+
+void MainWindow::OnGoToWebsite(wxCommandEvent &)
+{
+	wxLaunchDefaultBrowser("http://www.phonometrica-ling.org");
+}
+
+void MainWindow::OnOpenLicense(wxCommandEvent &)
+{
+	OpenDocumentation("about/license");
+}
+
+void MainWindow::OnOpenAcknowledgements(wxCommandEvent &)
+{
+	OpenDocumentation("about/acknowledgements.html");
+}
+
+void MainWindow::OnOpenDocumentation(wxCommandEvent &)
+{
+	OpenDocumentation(String());
+}
+
+void MainWindow::OpenDocumentation(String page)
+{
+	String url("file://");
+	filesystem::nativize(page);
+	auto path = filesystem::join(Settings::get_string("resources_directory"), "html", page);
+	if (!path.ends_with(".html")) {
+		filesystem::append(path, "index.html");
+	}
+	// TODO: set proper path using settings for documentation
+	url.append(path);
+	wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
+
+//	if (!result || !filesystem::exists(path)) {
+//		auto msg = utils::format("Could not open file \"%\"", path);
+//		wxMessageBox(msg, "Error", wxICON_ERROR);
+//	}
+}
+
+void MainWindow::SetStartView()
+{
+	m_viewer->SetStartView();
+}
+
+void MainWindow::UpdateLayout()
+{
+	UpdateProjectLayout();
+	UpdateInfoLayout();
+	UpdateViewerLayout();
+}
+
+void MainWindow::UpdateProjectLayout()
+{
+	auto ratio = Settings::get_number("project_ratio");
+
+	if (ratio == 0.0)
+	{
+		if (m_project_splitter->IsSplit()) {
+			m_project_splitter->Unsplit(m_project_manager);
+		}
+		if (!m_project_item->IsChecked()) {
+			m_project_item->Check();
+		}
+	}
+	else
+	{
+		if (!m_project_splitter->IsSplit()) {
+			m_project_splitter->SplitVertically(m_project_manager, m_main_area);
+		}
+		int pos = (int) ((double) GetSize().GetWidth() * ratio);
+		m_project_splitter->SetSashGravity(ratio);
+		m_project_splitter->SetSashPosition(pos);
+	}
+}
+
+void MainWindow::UpdateViewerLayout()
+{
+	auto ratio = Settings::get_number("console_ratio");
+
+	if (ratio == 0.0)
+	{
+		if (m_viewer_splitter->IsSplit()) {
+			m_viewer_splitter->Unsplit(m_console);
+		}
+		if (!m_console_item->IsChecked()) {
+			m_console_item->Check();
+		}
+	}
+	else
+	{
+		if (!m_viewer_splitter->IsSplit()) {
+			m_viewer_splitter->SplitHorizontally(m_viewer, m_console);
+		}
+		int height = GetMainAreaHeight();
+		auto pos = int(height * ratio);
+		m_viewer_splitter->SetSashGravity(ratio);
+		m_viewer_splitter->SetSashPosition(pos);
+	}
+}
+
+void MainWindow::UpdateInfoLayout()
+{
+	auto ratio = Settings::get_number("info_ratio");
+
+	if (ratio == 0.0)
+	{
+		if (m_info_splitter->IsSplit()) {
+			m_info_splitter->Unsplit(m_info_panel);
+		}
+		if (!m_info_item->IsChecked()) {
+			m_info_item->Check();
+		}
+	}
+	else
+	{
+		if (!m_info_splitter->IsSplit()) {
+			m_info_splitter->SplitVertically(m_central_panel, m_info_panel);
+		}
+		int width = GetMainAreaWidth();
+		auto pos = int(width * ratio);
+		m_info_splitter->SetSashPosition(pos);
+		m_info_splitter->SetSashGravity(ratio);
+	}
+}
+
+void MainWindow::OnResize(wxSizeEvent &e)
+{
+	UpdateLayout();
+	e.Skip();
+}
+
+int MainWindow::GetMainAreaHeight() const
+{
+	return (m_main_area->GetSize().GetHeight());
+}
+
+int MainWindow::GetMainAreaWidth() const
+{
+	return m_main_area->GetSize().GetWidth();
+}
+
+void MainWindow::OnFileManagerSashMoved(wxSplitterEvent &e)
+{
+	int pos = e.GetSashPosition();
+	int width = GetClientSize().GetWidth();
+	double ratio = double(pos) / width;
+	m_project_splitter->SetSashGravity(ratio);
+	Settings::set_value("project_ratio", ratio);
+}
+
+void MainWindow::OnInfoSashMoved(wxSplitterEvent &e)
+{
+	int pos = e.GetSashPosition();
+	int width = GetMainAreaWidth();
+	double ratio = double(pos) / width;
+	m_viewer_splitter->SetSashGravity(ratio);
+	Settings::set_value("info_ratio", ratio);
+}
+
+void MainWindow::OnViewerSashMoved(wxSplitterEvent &e)
+{
+	int pos = e.GetSashPosition();
+	int height = GetMainAreaHeight();
+	double ratio = double(pos) / height;
+	m_viewer_splitter->SetSashGravity(ratio);
+	Settings::set_value("console_ratio", ratio);
+}
+
+void MainWindow::SaveGeometry()
+{
+	int x, y, w, h;
+	GetPosition(&x, &y);
+	GetSize(&w, &h);
+
+	Settings::set_value("geometry", { double(x), double(y), double(w), double(h) });
+	Settings::set_value("full_screen", this->IsMaximized());
+}
+
+void MainWindow::RestoreGeometry()
+{
+	if (Settings::get_boolean("full_screen"))
+	{
+		Maximize();
+	}
+	else
+	{
+		auto &lst = Settings::get_list("geometry");
+		auto x = int(lst.at(1).get_number());
+		auto y = int(lst.at(2).get_number());
+		auto w = int(lst.at(3).get_number());
+		auto h = int(lst.at(4).get_number());
+		SetPosition(wxPoint(x, y));
+		SetSize(w, h);
+	}
+}
+
+void MainWindow::OnRestoreDefaultLayout(wxCommandEvent &)
+{
+	Settings::set_value("project_ratio", DEFAULT_PROJECT_RATIO);
+	Settings::set_value("info_ratio", DEFAULT_INFO_RATIO);
+	Settings::set_value("console_ratio", DEFAULT_CONSOLE_RATIO);
+	UpdateLayout();
+	m_console_item->Check(false);
+	m_info_item->Check(false);
+	m_project_item->Check(false);
+
+	// TODO: update status bar buttons when restoring default layout
+}
+
+void MainWindow::OnHideProject(wxCommandEvent &)
+{
+	Settings::set_value("project_ratio", GetProjectRatio());
+	UpdateProjectLayout();
+}
+
+void MainWindow::OnHideInfo(wxCommandEvent &)
+{
+	Settings::set_value("info_ratio", GetInfoRatio());
+	UpdateInfoLayout();
+}
+
+void MainWindow::OnHideConsole(wxCommandEvent &)
+{
+	Settings::set_value("console_ratio", GetConsoleRatio());
+	UpdateViewerLayout();
+}
+
+void MainWindow::OnMaximizeViewer(wxCommandEvent &)
+{
+	m_console_item->Check(true);
+	m_info_item->Check(true);
+	m_project_item->Check(true);
+	Settings::set_value("console_ratio", 0.0);
+	UpdateViewerLayout();
+	Settings::set_value("info_ratio", 0.0);
+	UpdateInfoLayout();
+	Settings::set_value("project_ratio", 0.0);
+	UpdateProjectLayout();
+}
+
+double MainWindow::GetProjectRatio() const
+{
+	return m_project_item->IsChecked() ? 0.0 : DEFAULT_PROJECT_RATIO;
+}
+
+double MainWindow::GetInfoRatio() const
+{
+	return m_info_item->IsChecked() ? 0.0 : DEFAULT_INFO_RATIO;
+}
+
+double MainWindow::GetConsoleRatio() const
+{
+	return m_console_item->IsChecked() ? 0.0 : DEFAULT_CONSOLE_RATIO;
+}
+
+void MainWindow::OnAbout(wxCommandEvent &)
+{
+	wxAboutDialogInfo dlg;
+	dlg.SetName("Phonometrica");
+	dlg.SetIcon(wxIcon(Settings::get_icon_path("sound_wave_small.png"), wxBITMAP_TYPE_PNG));
+	dlg.SetVersion(utils::get_version());
+	dlg.SetDescription(_("A program for speech annotation and analysis"));
+	dlg.SetCopyright("(C) 2019-2021");
+	dlg.SetWebSite("http://www.phonometrica-ling.org");
+	dlg.AddDeveloper("Julien Eychenne");
+	dlg.AddDeveloper(wxString::FromUTF8("Léa Courdès-Murphy"));
+	wxAboutBox(dlg, this);
+}
+
+void MainWindow::OnAddFilesToProject(wxCommandEvent &)
+{
+	wxFileDialog dlg(this, _("Add files to project..."), "", "", "Phonometrica scripts (*.phon)|*.phon", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+	if (dlg.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	m_viewer->NewScript(dlg.GetPath());
+}
+
+void MainWindow::OnHelpScripting(wxCommandEvent &)
+{
+	OpenDocumentation("scripting");
+}
+
+void MainWindow::OnCloseCurrentView(wxCommandEvent &)
+{
+	m_viewer->CloseCurrentView();
+}
+
+void MainWindow::OnOpenProject(wxCommandEvent &)
+{
+
+}
+
+void MainWindow::OnEditPreferences(wxCommandEvent &)
+{
+	PreferencesEditor dlg(this);
+	dlg.ShowModal();
+}
+
+void MainWindow::SetAccelerators()
+{
+	wxAcceleratorEntry entries[4];
+	auto id_run = wxNewId();
+	auto id_save = wxNewId();
+	entries[0].Set(wxACCEL_CTRL, (int) 'R', id_run);
+	entries[1].Set(wxACCEL_CTRL, (int) 'S', id_save);
+//	entries[2].Set(wxACCEL_SHIFT, (int) 'A', ID_ABOUT);
+//	entries[3].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_CUT);
+	wxAcceleratorTable accel(2, entries);
+	SetAcceleratorTable(accel);
+	Bind(wxEVT_MENU, &MainWindow::OnRun, this, id_run);
+	Bind(wxEVT_MENU, &MainWindow::OnSave, this, id_save);
+}
+
+void MainWindow::OnRun(wxCommandEvent &)
+{
+	auto view = m_viewer->GetCurrentView();
+	view->Run();
+}
+
+void MainWindow::OnSave(wxCommandEvent &)
+{
+	auto view = m_viewer->GetCurrentView();
+	view->Save();
+}
+
+void MainWindow::LoadPluginsAndScripts(const String &root)
 {
 	String plugin_dir = filesystem::join(root, "Plugins");
 
@@ -889,12 +704,11 @@ void MainWindow::loadPluginsAndScripts(const String &root)
 			{
 				try
 				{
-					loadPlugin(path);
+					LoadPlugin(path);
 				}
 				catch (std::exception &e)
 				{
-					QMessageBox dlg(QMessageBox::Critical, tr("Plugin initialization failed"), e.what());
-					dlg.exec();
+					wxMessageBox(e.what(), _("Plugin initialization failed"), wxICON_ERROR);
 				}
 			}
 		}
@@ -920,175 +734,54 @@ void MainWindow::loadPluginsAndScripts(const String &root)
 				catch (std::exception &e)
 				{
 					auto msg = utils::format("Error in script %: %", path, e.what());
-					QMessageBox dlg(QMessageBox::Critical, tr("Post-initialization error"), QString::fromStdString(msg));
-					dlg.exec();
+					wxMessageBox(msg, _("Post-initialization error"), wxICON_ERROR);
 				}
 			}
 		}
 	}
 }
 
-void MainWindow::updateConsoleAction(bool)
+void MainWindow::LoadPlugin(const String &path)
 {
-    show_console->trigger();
-}
-
-void MainWindow::updateInfoAction(bool)
-{
-    show_info->trigger();
-}
-
-bool MainWindow::finalize()
-{
-	if (!main_area->viewer()->finalize()) {
-		return false;
-	}
-    auto project = Project::instance();
-
-    if (project->modified())
-    {
-        auto autosave = Settings::get_boolean(runtime, "autosave");
-
-        if (!autosave)
-        {
-            auto reply = QMessageBox::question(this, "Save project?", "Your project has unsaved changes. Do you want to save them?",
-                    QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
-
-            if (reply == QMessageBox::No)
-            {
-                return true;
-            }
-            else if (reply == QMessageBox::Cancel)
-            {
-                return false;
-            }
-            // If reply == Yes, fall through and save project.
-        }
-
-        runtime.do_string("phon.save_project()");
-    }
-
-    return true;
-}
-
-void MainWindow::closeEvent(QCloseEvent *event)
-{
-    if (this->finalize())
-        event->accept();
-    else
-        event->ignore();
-}
-
-void MainWindow::adjustSplitters()
-{
-    this->adjustProject();
-    main_area->adjustSplitters();
-}
-
-void MainWindow::maximizeViewer()
-{
-    file_manager->hide();
-    main_area->console()->hide();
-    main_area->infoPanel()->hide();
-    show_project->setChecked(false);
-    show_console->setChecked(false);
-    show_info->setChecked(false);
-	file_manager->updateConsoleStatus(true);
-	file_manager->updateInfoStatus(true);
-}
-
-void MainWindow::openQueryEditor(Query::Type type)
-{
-	openQueryEditor(nullptr, type);
-}
-
-void MainWindow::openQueryEditor(AutoProtocol protocol, Query::Type type)
-{
-	int context_length = (int) Settings::get_number(runtime, "match_window_length");
-	auto editor = new QueryEditor(runtime, std::move(protocol), this, type, context_length);
-	connect(editor, &QueryEditor::queryReady, this, &MainWindow::executeQuery);
-	editor->resize(1100, 800);
-	editor->show();
-	cacheQueryEditor(editor);
-}
-
-void MainWindow::runLastQuery()
-{
-	if (query_editor)
-	{
-		query_editor->resurrect();
-	}
-	else
-	{
-		openQueryEditor(nullptr, Query::Type::Default);
-	}
-}
-
-void MainWindow::cacheQueryEditor(QueryEditor *ed)
-{
-	if (query_editor && query_editor != ed) {
-		delete query_editor;
-	}
-
-	query_editor = ed;
-}
-
-void MainWindow::executeQuery(AutoQuery query)
-{
-	auto console = main_area->console();
-	connect(query.get(), &Query::debug, console, &Console::warn);
-	connect(query.get(), &Query::done, console, &Console::setPrompt);
-	auto dataset = query->execute();
-
-	if (dataset->empty())
-	{
-		QMessageBox dlg(QMessageBox::Information, tr("Information"), tr("No match found!"));
-		dlg.exec();
-	}
-	else
-	{
-		main_area->viewer()->openTableView(std::move(dataset));
-	}
-}
-
-void MainWindow::setDatabaseConnection()
-{
-	auto &db = Project::instance()->database();
-	connect(&db, &MetaDatabase::saving_metadata, this, &MainWindow::updateStatus);
-}
-
-void MainWindow::loadPlugin(const String &path)
-{
-	String msg("Loading plugin ");
-	msg.append(path);
-	updateStatus(msg);
-
-	auto menu = new QMenu;
+	auto menu = new wxMenu;
 
 	// Create callback to add a separator, a script or a protocol to the plugin's menu.
-	auto script_callback = [=](String name, Plugin::MenuEntry target, String shortcut) {
+	auto script_callback = [=](String name, Plugin::MenuEntry target) {
 		if (name.empty())
 		{
-			menu->addSeparator();
+			m_tool_separator = menu->AppendSeparator();
 			return;
 		}
-		auto action = new QAction(name);
-		if (!shortcut.empty()) action->setShortcut(QKeySequence(shortcut));
-		menu->addAction(action);
+		auto id = wxNewId();
+		auto action = new wxMenuItem(menu, id, name);
+		menu->Append(action);
 
 		if (target.type() == typeid(String))
 		{
 			auto script = std::any_cast<String>(target);
-			connect(action, &QAction::triggered, [script, this](bool) {
-				runtime.do_file(script);
-			});
+
+			if (script.ends_with(".html")) // Launch help page
+			{
+				this->Bind(wxEVT_COMMAND_MENU_SELECTED, [script](wxCommandEvent &) {
+					String url("file://");
+					url.append(script);
+					wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
+				}, id);
+			}
+			else // Or run a script
+			{
+				this->Bind(wxEVT_COMMAND_MENU_SELECTED, [script, this](wxCommandEvent &) {
+					m_console->RunScript(script);
+				}, id);
+			}
 		}
 		else
 		{
 			auto protocol = std::any_cast<AutoProtocol>(target);
-			connect(action, &QAction::triggered, [protocol, this](bool) {
-				openQueryEditor(protocol, Query::Type::CodingProtocol);
-			});
+			this->Bind(wxEVT_COMMAND_MENU_SELECTED, [protocol, this](wxCommandEvent &) {
+				//openQueryEditor(protocol, Query::Type::CodingProtocol);
+				// TODO: display query protocol
+			}, id);
 		}
 	};
 
@@ -1099,30 +792,35 @@ void MainWindow::loadPlugin(const String &path)
 		if (plugin->has_entries())
 		{
 			String label = plugin->label();
-			menu->setTitle(label);
+			menu->SetTitle(label);
 			auto desc = plugin->description();
 
 			if (!desc.empty())
 			{
-				menu->addSeparator();
+				menu->AppendSeparator();
 				String title("About ");
 				title.append(label);
-				auto about_action = new QAction(title);
-				menu->addAction(about_action);
+				auto action_id = wxNewId();
+				menu->Append(action_id, title);
 
-				connect(about_action, &QAction::triggered, [=](bool) {
-					QMessageBox::about(this, title, desc);
-				});
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) {
+					wxMessageBox(desc, title, wxICON_INFORMATION);
+				}, action_id);
 			}
 
-			auto action = tools_menu->insertMenu(tool_separator, menu);
-			plugin->setAction(action);
+			auto pos = (size_t) m_plugins.size();
+			auto id = wxNewId();
+			m_tools_menu->Insert(pos, id, plugin->label(), menu);
+			plugin->set_menu_id(id);
+			if (pos == 0) {
+				m_tool_separator = m_tools_menu->InsertSeparator(1);
+			}
 		}
 		else
 		{
 			delete menu;
 		}
-		plugins.append(std::move(plugin));
+		m_plugins.append(std::move(plugin));
 	}
 	catch (...)
 	{
@@ -1131,151 +829,117 @@ void MainWindow::loadPlugin(const String &path)
 	}
 }
 
-void MainWindow::installPlugin(bool)
+void MainWindow::OnRunScript(wxCommandEvent &)
 {
-	String dir = Settings::get_last_directory(runtime);
-	auto path = QFileDialog::getOpenFileName(this, tr("Select plugin..."), dir, "ZIP (*.zip)");
-	if (path.isNull()) return;
-	String archive = path;
-
-	// Compare list of plugins before and after the installation to find the one that was installed.
-	auto plugin_dir = Settings::plugin_directory();
-	auto plugins1 = filesystem::list_directory(plugin_dir);
-
-	utils::unzip(archive, plugin_dir);
-
-	auto plugins2 = filesystem::list_directory(plugin_dir);
-	std::sort(plugins1.begin(), plugins1.end());
-	std::sort(plugins2.begin(), plugins2.end());
-	std::vector<String> diff;
-	std::set_difference(plugins2.begin(), plugins2.end(), plugins1.begin(), plugins1.end(),
-			std::inserter(diff, diff.begin()));
-
-	if (diff.size() == 1)
-	{
-		String path = filesystem::join(plugin_dir, diff.front());
-		loadPlugin(path);
-		String label = plugins.last()->label();
-		auto msg = utils::format("The \"%\" plugin has been installed!", label);
-
-		QMessageBox dlg(QMessageBox::Information, tr("Success"), QString::fromStdString(msg));
-		dlg.exec();
-	}
-	else
-	{
-		QMessageBox msg(QMessageBox::Critical, tr("Error"),
-				tr("Plugin installation failed.\nIf you tried to reinstall an existing plugin, "
-	   "you can safely ignore this message, but you should restart the program."));
-		msg.exec();
-	}
-}
-
-void MainWindow::uninstallPlugin(bool)
-{
-	if (plugins.empty())
-	{
-		QMessageBox::information(this, tr("No plugin found"), tr("You don't have any plugin installed!"));
+	wxFileDialog dlg(this, _("Run script..."), "", "", "Phonometrica scripts (*.phon)|*.phon", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+	if (dlg.ShowModal() == wxID_CANCEL) {
 		return;
 	}
 
-	QStringList names;
-	for (auto &p : plugins) names << p->label();
-	bool ok;
-	String name = QInputDialog::getItem(this, tr("Uninstall plugin"), tr("Choose plugin to uninstall"), names, 0,
-			false, &ok);
-
-	for (int i = 1; i <= plugins.size(); i++)
-	{
-		auto &p = plugins[i];
-		if (p->label() == name)
-		{
-			tools_menu->removeAction(p->action());
-			filesystem::remove(p->path());
-			String label = p->label();
-			plugins.remove_at(i);
-			auto msg = utils::format("The \"%\" plugin has been uninstalled!", label);
-			QMessageBox::information(this, tr("Success"), QString::fromStdString(msg));
-			return;
-		}
-	}
+	m_console->RunScript(dlg.GetPath());
 }
 
-Plugin *MainWindow::findPlugin(const String &name)
+void MainWindow::OnExtendTools(wxCommandEvent &)
 {
-	for (auto &plugin : plugins)
-	{
-		if (plugin->label() == name) {
-			return plugin.get();
-		}
-	}
-
-	return nullptr;
+	OpenDocumentation("scripting/plugins.html");
 }
 
-void MainWindow::importMetadata()
+void MainWindow::OnInstallPlugin(wxCommandEvent &)
 {
-	CsvImportDialog dlg(this, runtime);
-
-	if (dlg.exec() == QDialog::Accepted)
-	{
-		auto path = dlg.path();
-		auto sep = dlg.separator();
-		Project::instance()->import_metadata(path, sep);
+	String dir = Settings::get_last_directory();
+	wxFileDialog dlg(this, _("Select plugin..."), "", "", "Zip file (*.zip)|*.zip", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+	if (dlg.ShowModal() == wxID_CANCEL) {
+		return;
 	}
+	String archive = dlg.GetPath();
+
+	// Temporary installation to retrieve the plugin's name.
+	auto temp_dir = filesystem::join(filesystem::temp_directory(), "PHON_TEMP_PLUGIN");
+	filesystem::create_directory(temp_dir);
+	utils::unzip(archive, temp_dir);
+	auto content = filesystem::list_directory(temp_dir);
+
+	// Sanity checks
+	if (content.size() != 1) {
+		wxMessageBox(_("The plugin must contain a single directory"), _("Invalid plugin"), wxICON_ERROR);
+		return;
+	}
+	auto basename = content[1];
+	auto temp_plugin = filesystem::join(temp_dir, basename);
+	if (!filesystem::is_directory(temp_plugin)) {
+		wxMessageBox(_("The plugin must contain  a directory"), _("Invalid plugin"), wxICON_ERROR);
+		return;
+	}
+	filesystem::remove_directory(temp_dir);
+
+	// Check whether the plugin already exists
+	auto plugin_dir = Settings::plugin_directory();
+	auto plugin_path = filesystem::join(plugin_dir, basename);
+
+	if (filesystem::exists(plugin_path))
+	{
+		wxMessageDialog dlg(this, _("I found a previous version of this plugin. Would you like me to replace it with "
+							  "the newer version?"), _("Update plugin?"), wxYES|wxNO|wxYES_DEFAULT);
+		if (dlg.ShowModal() != wxID_YES) return;
+		bool found = false;
+		for (intptr_t i = 1; i <= m_plugins.size(); i++)
+		{
+			auto &p = m_plugins[i];
+
+			if (p->path() == plugin_path)
+			{
+				UninstallPlugin((int) i, false);
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			wxMessageBox(_("The plugin could not be uninstalled. I won't try to install the new plugin.\nThis error should not happen, please report it!"),
+				_("Failure"), wxICON_ERROR);
+		}
+	}
+
+	// Proceed to installation
+	utils::unzip(archive, plugin_dir);
+	LoadPlugin(plugin_path);
+	String label = m_plugins.last()->label();
+	auto msg = utils::format("The plugin \"%\" has been installed!", label);
+	wxMessageBox(msg, _("Success"), wxICON_INFORMATION);
 }
 
-void MainWindow::display()
+void MainWindow::OnUninstallPlugin(wxCommandEvent &)
 {
-	if (Settings::get_boolean(runtime, "full_screen"))
+	if (m_plugins.empty())
 	{
-		showMaximized();
+		wxMessageBox(_("You don't have any plugin installed!"), _("No plugin found"), wxICON_INFORMATION);
+		return;
 	}
-	else
-	{
-		try
-		{
-			auto &lst = Settings::get_list(runtime, "geometry");
-			auto x = int(lst.at(1).to_number());
-			auto y = int(lst.at(2).to_number());
-			auto w = int(lst.at(3).to_number());
-			auto h = int(lst.at(4).to_number());
-			setGeometry(x, y, w, h);
-			show();
-		}
-		catch (...)
-		{
-			showMaximized();
-		}
+	wxArrayString names;
+	for (auto &p : m_plugins) {
+		names.Add(p->label());
 	}
-
-	if (Settings::get_boolean(runtime, "hide_console"))
-		file_manager->console_button->click();
-	if (Settings::get_boolean(runtime, "hide_info"))
-		file_manager->info_button->click();
-	if (Settings::get_boolean(runtime, "hide_project"))
-	{
-		show_project->setChecked(false);
-		showProject(false);
-	}
-
-	if (Settings::get_boolean(runtime, "autoload"))
-	{
-		runtime.do_string(R"__(
-	var recent = phon.settings.recent_projects
-	if not recent.is_empty() then
-		phon.project.open(recent[1])
-	end)__");
-	}
-
-	main_area->focusConsole();
-	postInitialize();
-
-	// FIXME: We need to delay splitter adjustment, otherwise they won't show up in the right place.
-	//  See: https://stackoverflow.com/questions/28795329/qsplitter-sizes-indicates-wrong-sizes
-	QTimer::singleShot(50, this, SLOT(adjustSplitters()));
-
-	updateStatus("Ready");
+	int index = wxGetSingleChoiceIndex(_("Which plugin do you want to uninstall?"), _("Uninstall plugin"), names);
+	UninstallPlugin(index + 1, true); // to base 1
 }
 
-} // phonometrica
+void MainWindow::UninstallPlugin(int index, bool verbose)
+{
+	auto p = m_plugins[index];
+	filesystem::remove(p->path());
+	String label = p->label();
+	m_plugins.remove_at(index);
+	auto item = m_tools_menu->Remove(p->menu_id());
+	delete item;
 
+	if (m_plugins.empty())
+	{
+		m_tools_menu->Remove(m_tool_separator); // Remove separator
+		m_tool_separator = nullptr;
+	}
+	if (verbose) {
+		auto msg = utils::format("The plugin \"%\" has been uninstalled!", label);
+		wxMessageBox(_(msg), _("Success"), wxICON_INFORMATION);
+	}
+}
+
+} // namespace phonometrica

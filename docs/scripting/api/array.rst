@@ -1,7 +1,7 @@
 Numeric arrays
 ==============
 
-The ``Array`` type represents a numeric array with one or two dimensions.
+The ``Array`` type represents a numeric array with one or two dimensions. Array is :ref:`clonable <clonability>`.
 
 Array indexing
 --------------
@@ -14,7 +14,7 @@ row in the second column, whereas *(1, -1)* represents element in the first row 
 
 .. code:: phon
 
-    var X = new Array(3, 4)
+    X = new Array(3, 4)
     X[1,4] = 10
     print(X[1,4])
 

@@ -1,34 +1,26 @@
-/***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
- *                                                                                                                     *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
- * later version.                                                                                                      *
- *                                                                                                                     *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
- * details.                                                                                                            *
- *                                                                                                                     *
- * You should have received a copy of the GNU General Public License along with this program. If not, see              *
- * <http://www.gnu.org/licenses/>.                                                                                     *
- *                                                                                                                     *
- * Created: 20/02/2019                                                                                                 *
- *                                                                                                                     *
- * Purpose: see header.                                                                                                *
- *                                                                                                                     *
- ***********************************************************************************************************************/
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Copyright (C) 2019-2021 Julien Eychenne <jeychenne@gmail.com>                                                      *
+ *                                                                                                                    *
+ * The contents of this file are subject to the Mozilla Public License Version 2.0 (the "License"); you may not use   *
+ * this file except in compliance with the License. You may obtain a copy of the License at                           *
+ * http://www.mozilla.org/MPL/.                                                                                       *
+ *                                                                                                                    *
+ * Created: 20/02/2019                                                                                                *
+ *                                                                                                                    *
+ * Purpose: see header.                                                                                               *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
 
 #include <ctime>
 #include <sstream>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <phon/string.hpp>
 
 #if PHON_WINDOWS
 #	include <wchar.h>
+#	include <windows.h>
 #else
+#	include <unistd.h>
 #	include <cstring>
 #endif
 
@@ -86,44 +78,67 @@ bool is_big_endian()
 #endif // check endianness
 
 
-std::string new_uuid()
+String new_uuid(size_t len)
 {
-    auto uuid = boost::uuids::random_generator()();
-    std::ostringstream os;
-    os << uuid;
+	// Credits: https://stackoverflow.com/a/440240
+	static const char chars[] = "0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	String s(len+1, true);
 
-    return os.str();
+	for (size_t i = 0; i < len; ++i) {
+		char c = chars[rand() % (sizeof(chars) - 1)];
+		s.append(c);
+	}
+
+	return s;
 }
 
 std::string get_version()
 {
-    std::ostringstream os;
-    os << PHON_VERSION_MAJOR << "." << PHON_VERSION_MINOR << "." << PHON_VERSION_MICRO;
+	std::ostringstream os;
+	os << PHON_VERSION_MAJOR << "." << PHON_VERSION_MINOR << "." << PHON_VERSION_MICRO;
 
-    if (PHON_VERSION_NANO > 0)
-    {
-    	os << " (devel " << PHON_VERSION_NANO << ")";
-    }
+	if (PHON_VERSION_NANO > 0)
+	{
+		os << " (devel " << PHON_VERSION_NANO << ")";
+	}
 
-    return os.str();
+	return os.str();
 }
 
 std::string get_date()
 {
-    std::ostringstream os;
+	std::ostringstream os;
 
-    if (PHON_RELEASE_DATE_DAY < 10) {
-        os << "0";
-    }
-    os << PHON_RELEASE_DATE_DAY << "/";
+	if (PHON_RELEASE_DATE_DAY < 10) {
+		os << "0";
+	}
+	os << PHON_RELEASE_DATE_DAY << "/";
 
-    if (PHON_RELEASE_DATE_MONTH < 10) {
-        os << "0";
-    }
-    os << PHON_RELEASE_DATE_MONTH << "/";
-    os << PHON_RELEASE_DATE_YEAR;
+	if (PHON_RELEASE_DATE_MONTH < 10) {
+		os << "0";
+	}
+	os << PHON_RELEASE_DATE_MONTH << "/";
+	os << PHON_RELEASE_DATE_YEAR;
 
-    return os.str();
+	return os.str();
 }
+
+size_t get_system_memory()
+{
+	// See: https://stackoverflow.com/a/2513561
+#if PHON_WINDOWS
+	MEMORYSTATUSEX status;
+    status.dwLength = sizeof(status);
+    GlobalMemoryStatusEx(&status);
+
+    return (size_t) status.ullTotalPhys;
+#else
+	size_t pages = sysconf(_SC_PHYS_PAGES);
+	size_t page_size = sysconf(_SC_PAGE_SIZE);
+
+	return pages * page_size;
+#endif
+}
+
 
 }} // namespace::utils

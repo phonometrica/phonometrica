@@ -19,12 +19,8 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/file.hpp>
 #include <phon/application/plugin.hpp>
 #include <phon/utils/file_system.hpp>
-#include <phon/third_party/json.hpp>
-
-using namespace nlohmann;
 
 namespace phonometrica {
 
@@ -55,78 +51,95 @@ Plugin::~Plugin()
 
 void Plugin::parse_description(Callback &callback)
 {
-	auto desc_path = filesystem::join(m_path, "description.json");
+	auto desc_path = filesystem::join(m_path, "description.phon");
+	auto old_desc_path = filesystem::join(m_path, "description.json");
+
+	if (!filesystem::exists(desc_path) && filesystem::exists(old_desc_path)) {
+		auto msg = utils::format("Plugin \"%\" is not compatible with this version of Phonometrica."
+						   "\"description.json\" should be renamed to \"description.phon\"", label());
+		throw error(msg);
+	}
+
 
 	if (!filesystem::exists(desc_path)) {
-		throw error("File \"description.json\" does not exist in plugin %", label());
+		throw error("File \"description.phon\" does not exist in plugin %", label());
+	}
+	
+	auto result = runtime.do_file(desc_path);
+	if (!check_type<Table>(result)) {
+		throw error("File \"description.phon\" must contain a table");
+	}
+	auto table = std::move(raw_cast<Table>(result).data());
+
+	auto it = table.find("name");
+	if (it == table.end()) {
+		throw error("Plugin % has no \"name\" key in description.phon", label());
+	}
+	m_label = cast<String>(it->second);
+
+	it = table.find("version");
+	if (it != table.end()) {
+		m_version = cast<String>(it->second);
 	}
 
-	auto content = File::read_all(desc_path);
-	auto js = json::parse(content);
-
-	auto it = js.find("name");
-	if (it == js.end()) {
-		throw error("Plugin % has no \"name\" key in description.json", label());
-	}
-	m_label = it->get<std::string>();
-
-	it = js.find("version");
-	if (it != js.end()) {
-		m_version = it->get<std::string>();
-	}
-
-	it = js.find("description");
-	if (it != js.end()) {
-		if (it->is_array())
+	it = table.find("description");
+	if (it != table.end())
+	{
+		if (check_type<List>(it->second))
 		{
-			for (auto line : *it)
+			auto lines = std::move(raw_cast<List>(it->second).items());
+			for (auto &line : lines)
 			{
-				m_description.append(line.get<std::string>());
+				m_description.append(cast<String>(line));
 			}
 		}
 		else
 		{
-			m_description = it->get<std::string>();
+			m_description = cast<String>(it->second);
 		}
 	}
 
-	it = js.find("actions");
-	if (it != js.end())
+	it = table.find("actions");
+	if (it != table.end())
 	{
 		// Fields "name" and "target" are compulsory, and represent the action's name and the target script, respectively.
 		// Additionally, the user may specify a "shortcut".
-		auto actions = *it;
-		for (auto action : actions)
+		if (!check_type<List>(it->second)) {
+			throw error("Error in plugin %: actions must be a list", label());
+		}
+		auto actions = std::move(raw_cast<List>(it->second).items());
+		for (auto &action_var : actions)
 		{
-			if (!action.is_object()) {
-				throw error("Error in plugin %: actions in description.json must be objects", label());
+			if (!check_type<Table>(action_var)) {
+				throw error("Error in plugin %: actions in description.phon must be tables", label());
 			}
+			auto action = std::move(raw_cast<Table>(action_var).data());
 
 			it = action.find("name");
 			if (it == action.end()) {
-				throw error("Error in plugin %: action in description.json has no \"name\" key", label());
+				throw error("Error in plugin %: action in description.phon has no \"name\" key", label());
 			}
-			String name = it->get<std::string>();
+			String name = cast<String>(it->second);
 
 			it = action.find("target");
 			if (it == action.end()) {
-				throw error("Error in plugin %: action in description.json has no \"target\" key", label());
+				throw error("Error in plugin %: action in description.phon has no \"target\" key", label());
 			}
-			String target = it->get<std::string>();
-			auto script = get_script(target);
-			if (!filesystem::is_file(script)) {
-				throw error("Error in plugin %: cannot find script \"%\"", label(), script);
-			}
-			String shortcut;
-			it = action.find("shortcut");
-			if (it != action.end()) {
-				shortcut = it->get<std::string>();
+			String target = cast<String>(it->second);
+			auto file = target.ends_with(".html") ? get_documentation_page(target) : get_script(target);
+			if (!filesystem::is_file(file)) {
+				throw error("Error in plugin %: cannot find file \"%\"", label(), file);
 			}
 
-			callback(name, script, shortcut);
+			callback(name, file);
 			has_scripts = true;
 		}
 	}
+}
+
+String Plugin::get_documentation_directory() const
+{
+	return filesystem::join(m_path, "Documentation");
 }
 
 String Plugin::get_script_directory() const
@@ -177,10 +190,10 @@ void Plugin::parse_protocols(Plugin::Callback &callback)
 
 				if (!has_separator)
 				{
-					callback(String(), String(), String());
+					callback(String(), String());
 					has_separator = true;
 				}
-				callback(label, protocol, String());
+				callback(label, protocol);
 				m_protocols.append(std::move(protocol));
 			}
 			catch (std::exception &e)
@@ -195,6 +208,16 @@ void Plugin::parse_protocols(Plugin::Callback &callback)
 bool Plugin::has_entries() const
 {
 	return has_scripts || !m_protocols.empty();
+}
+
+String Plugin::get_documentation_page(const String &name) const
+{
+	return filesystem::join(get_documentation_directory(), name);
+}
+
+String Plugin::label() const
+{
+	return m_label.empty() ? filesystem::base_name(m_path) : m_label;
 }
 
 } // namespace phonometrica

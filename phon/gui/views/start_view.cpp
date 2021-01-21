@@ -1,9 +1,8 @@
 /***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
  * later version.                                                                                                      *
  *                                                                                                                     *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
@@ -13,82 +12,65 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 15/03/2019                                                                                                 *
+ * Created: 14/01/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <QGridLayout>
+#include <wx/stattext.h>
 #include <phon/gui/views/start_view.hpp>
-#include <phon/gui/button_stylesheet.hpp>
-#include <phon/runtime/runtime.hpp>
+#include <phon/gui/main_window.hpp>
+#include <phon/application/settings.hpp>
+#include <phon/utils/file_system.hpp>
+
+#ifndef __WXGTK__
 
 namespace phonometrica {
 
-StartView::StartView(QWidget *parent, Runtime &rt) :
-    View(parent), rt(rt)
+StartView::StartView(wxWindow *parent, MainWindow *win) : View(parent)
 {
-    auto layout = new QVBoxLayout;
-    auto grid = new QGridLayout;
-    auto new_folder = makeButton(this, QIcon(":/icons/100x100/new_folder.png"), tr("Add files to project"));
-    auto folder = makeButton(this, QIcon(":/icons/100x100/folder.png"), tr("Open existing project"));
-    auto doc = makeButton(this, QIcon(":/icons/100x100/help.png"), tr("Documentation"));
-    auto settings = makeButton(this, QIcon(":/icons/100x100/settings.png"), tr("Settings"));
+	auto sizer = new wxFlexGridSizer(2, 2, 0, 0);
 
-    connect(new_folder, SIGNAL(clicked(bool)), this, SLOT(onAddFiles()));
-    connect(folder, SIGNAL(clicked(bool)), this, SLOT(onOpenProject()));
-    connect(doc, SIGNAL(clicked(bool)), this, SLOT(onOpenDoc()));
-    connect(settings, SIGNAL(clicked(bool)), this, SLOT(onOpenSettings()));
+	auto add_btn  = MakeButton("new_folder.png", _("Add files to project"));
+	auto open_btn = MakeButton("folder.png", _("Open existing project"));
+	auto doc_btn  = MakeButton("help.png", _("Read documentation"));
+	auto pref_btn = MakeButton("settings.png", _("Edit preferences"));
 
-    auto wgt = new QWidget;
-    wgt->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    wgt->setLayout(grid);
+	int padding = 25;
 
-    //grid->setSpacing(100);
-    grid->addWidget(new_folder, 0, 0);
-    grid->addWidget(folder, 0, 1);
-    grid->addWidget(doc, 1, 0);
-    grid->addWidget(settings, 1, 1);
+	sizer->Add(add_btn,  1, wxEXPAND|wxALL, padding);
+	sizer->Add(open_btn, 1, wxEXPAND|wxALL, padding);
+	sizer->Add(doc_btn,  1, wxEXPAND|wxALL, padding);
+	sizer->Add(pref_btn, 1, wxEXPAND|wxALL, padding);
 
-    layout->addWidget(wgt);
-    setLayout(layout);
+
+	add_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnAddFilesToProject, win);
+	open_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnOpenProject, win);
+	doc_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnOpenDocumentation, win);
+	pref_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnEditPreferences, win);
+
+	auto main_sizer = new wxBoxSizer(wxVERTICAL);
+	main_sizer->AddSpacer(50);
+	main_sizer->Add(sizer, 1, wxALIGN_CENTER);
+
+	SetSizer(main_sizer);
 }
 
-void StartView::onAddFiles()
+wxButton *StartView::MakeButton(std::string_view filename, const wxString &description)
 {
-    rt.do_string("phon.add_files()");
-}
+	String p = filesystem::join(Settings::icon_directory(), "100x100");
+	wxString path = filesystem::join(p, filename);
+	wxBitmap icon(path, wxBITMAP_TYPE_PNG);
+	auto btn = new wxButton(this, wxID_ANY, description, wxDefaultPosition, wxSize(300, 150), wxNO_BORDER);
+	btn->SetBitmap(icon, wxLEFT);
+	auto font = btn->GetFont();
+	font.MakeLarger();
+	btn->SetFont(font);
 
-void StartView::onOpenProject()
-{
-    rt.do_string("phon.open_project()");
-}
-
-void StartView::onOpenSettings()
-{
-    rt.do_string("phon.edit_settings()");
-}
-
-void StartView::onOpenDoc()
-{
-    rt.do_string("phon.show_help()");
-}
-
-QToolButton *StartView::makeButton(QWidget *parent, const QIcon &icon, const QString &text)
-{
-    auto button = new QToolButton(parent);
-    button->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    button->setIcon(icon);
-    button->setText(text);
-    button->setIconSize(QSize(100, 100));
-    button->setFixedSize(300, 150);
-#if PHON_MACOS
-	button->setStyleSheet(flat_button_stylesheet);
-#else
-    button->setAutoRaise(true);
-#endif
-    return button;
+	return btn;
 }
 
 } // namespace phonometrica
+
+#endif // __WXGTK__

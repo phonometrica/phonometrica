@@ -1,44 +1,19 @@
-/***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
- *                                                                                                                     *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
- * later version.                                                                                                      *
- *                                                                                                                     *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
- * details.                                                                                                            *
- *                                                                                                                     *
- * You should have received a copy of the GNU General Public License along with this program. If not, see              *
- * <http://www.gnu.org/licenses/>.                                                                                     *
- *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
- *                                                                                                                     *
- * Purpose: read/write application settings. This class only has static methods.                                       *
- *                                                                                                                     *
- ***********************************************************************************************************************/
+//
+// Created by julien on 15/01/2021.
+//
 
 #ifndef PHONOMETRICA_SETTINGS_HPP
 #define PHONOMETRICA_SETTINGS_HPP
 
-#include <phon/string.hpp>
-#include <phon/runtime/variant.hpp>
+#include <phon/runtime.hpp>
 
 namespace phonometrica {
-
-class Runtime;
-
 
 class Settings final
 {
 public:
 
-    Settings() = delete;
-
-    static void read(Runtime &rt);
-
-    static void write(Runtime &rt);
+	static void initialize(Runtime *rt);
 
     static String settings_directory();
 
@@ -48,50 +23,53 @@ public:
 
     static String user_script_directory();
 
+    static String icon_directory();
+
+    static String get_icon_path(std::string_view name);
+
     static String config_path();
 
-    static String get_string(Runtime &rt, const String &name);
+	static String get_string(const String &name);
 
-    static bool get_boolean(Runtime &rt, const String &name);
+	static bool get_boolean(const String &name);
 
-	static bool get_boolean(Runtime &rt, const String &category, const String &name);
+	static bool get_boolean(const String &category, const String &name);
 
-    static double get_number(Runtime &rt, const String &name);
+	static double get_number(const String &name);
 
-    static double get_number(Runtime &rt, const String &category, const String &name);
+	static double get_number(const String &category, const String &name);
 
-	static String get_string(Runtime &rt, const String &category, const String &name);
+	static String get_string(const String &category, const String &name);
 
-    static int get_int(Runtime &rt, const String &name);
+	static int get_int(const String &name);
 
-    static Array<Variant> &get_list(Runtime &rt, const String &name);
+	static Array<Variant> &get_list(const String &name);
 
-    static void set_value(Runtime &rt, const String &key, String value);
+	static void set_value(const String &key, Variant value);
 
-    static void set_value(Runtime &rt, const String &key, bool value);
+	static void set_value(const String &key, Array<Variant> value);
 
-    static void set_value(Runtime &rt, const String &key, double value);
+	static void set_value(const String &category, const String &key, Variant value);
 
-    static void set_value(Runtime &rt, const String &key, Array<Variant> value);
+	static String get_std_plugin_directory();
 
-    static void set_value(Runtime &rt, const String &category, const String &key, double value);
+    static String get_std_script(String name);
 
-	static void set_value(Runtime &rt, const String &category, const String &key, const String &value);
+    static String get_last_directory();
 
+    static void set_last_directory(const String &path);
 
-    static void initialize(Runtime &rt);
+    static void reset_general_settings();
 
-    static String get_std_plugin_directory();
+    static void reset_sound_settings();
 
-    static String get_std_script(Runtime &rt, String name);
+    static void read();
 
-    static String get_last_directory(Runtime &rt);
+    static void write();
+    
+private:
 
-    static void set_last_directory(Runtime &rt, const String &path);
-
-    static void reset_general_settings(Runtime &rt);
-
-    static void reset_sound_settings(Runtime &rt);
+	static Runtime *runtime;
 };
 
 } // namespace phonometrica

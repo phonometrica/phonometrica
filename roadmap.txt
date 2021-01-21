@@ -1,0 +1,81 @@
+
+Version 0.8.0:
+
+- new scripting engine
+- updating a plugin now cleanly removes the previous version
+- new user interface based on wxWidgets
+- improved shortcuts to show/hide the panels of the main window (see the Window menu)
+- plugins can now display documentation (stored in a folder named "Documentation")
+- "Search annotations" is now "Find in annotations" 
+
+TODO:
+- option for font size
+- priorité : refactoriser les vues spreadsheet / séraliser les données
+- bug décalage: décalage proportionnel à la taille du zoom. Si on fait glisser la fenêtre d'un côté ou de l'autre, le décalage sera tantôt à gauche ou à droite.
+Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers. 
+- serialize queries, improve Dataset
+- std::bad_alloc: ouvre un fichier son -> catch and rethrow
+- PRIORITE : différence/fusion entre deux résultats de query
+- raccourcis play/pause stop, ajout/suppression d'ancres
+
+- Export to plain text, lorsque l’on sélectionne un autre chemin d’accès il n’y a pas l’extension .txt
+- checkbox pour la sélection des fichiers dans les queries
+- mac : vérifier settings / edit preferences
+- mac : bug aléatoire quand on clique play
+- espace pour jouer une occurrence
+- License is now GPL2 or later (instead of GPL3 or later)
+- complex queries (if possible, otherwise 0.9)
+
+Version 0.9.0:
+
+- measure pitch and intensity
+- settings: possibilité de sauvagarde périodique des annotations (peut-être fichier buffer ?)
+- touchpad en plus de la molette dans les annotations ? 
+- concordances avec n mots à gauche et à droite plutôt que des chaînes de n caractères
+- npoint en plus de npoint average (diphtongues, pitch)
+- mettre à jour la query en cours quand on édite un item. 
+- permettre de jouer le son quand on édite un évènement (éventuellement ajouter un bouton pour jouer). Réfléchir à la meilleure manière de faire. Il
+faut que ça reste toujours au dessus de le fenêtre principale. 
+- ctrl+z : créer une pile d'opérations (ajout/suppression d'ancres, de niveaux éventuellement).
+- mesures acoustiques sur une sélection et pas seulement sur un point.
+- regarder suppression et curseur sur mac
+- multi-layer annotation queries
+- plugin section on the website
+- finalize documentation
+- coding protocol: champ libre texte (ex: mot précédent un codage)
+- étiquetage syntaxique 
+
+
+- Extraction d’une partie sélectionnée du fichier son. 
+- bug selecting_tier
+
+    3) Dans le plugin IPFC dolmen, search grammar, voyelle ou consonne :
+"TierSelectingField": 1 ?? --> layer_field
+"TierNamePattern": --> "layer_name" "cod-[iyue2oajHw]" ??
+Si j’ai bien compris, ces lignes permettent de sélectionner la bonne tier dans le premier champ de recherche. 
+    a) Je n’ai pas l’impression (dans dolmen) que ceci fonctionne bien. Si un code commençant par 01 (codage du i) se retrouve sur une tire « cod-u », il est pourtant bien trouvé dans la query où le premier champ est spécifié comme « cod-i ».  
+    b) Si ce n’est pas grave, ok 
+    c) S’il faut absolument que la bonne tire soit sélectionnée, quelle syntaxe dans le json du coding protocol ?
+
+    4) Dans les coding protocols : choices/display ne fonctionnent pas !
+
+
+    extraire extrait son + annotation
+
+- dialog edit : cliquer ailleurs devrait enlever le dialogue ?
+- drag and drop des fichiers sur le projet
+- 0 matches : renvoyer un onglet vide ? + lien avec requête sérialisée 
+- case insensitive par défaut ? OK
+
+============================================================================
+
+Non car trop compliqué :
+- ancre fantôme sous le curseur (puis disparaît si on insère une ancre)
+
+
+- ovh adresse mail / liste de diffusion
+
+
+Bugs sound view
+- when the info panel is moved, the wavebar selection is not updated
+- wrong selection in waveform

@@ -1,9 +1,8 @@
 /***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
  * later version.                                                                                                      *
  *                                                                                                                     *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
@@ -13,225 +12,203 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 13/01/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <QTextBlock>
+#include <wx/msgdlg.h>
+#include <phon/gui/macros.hpp>
 #include <phon/gui/console.hpp>
-#include <phon/gui/font.hpp>
+#include <phon/file.hpp>
 
 namespace phonometrica {
 
-static const size_t COMMAND_MAX = 30;
+static size_t QUEUE_LIMIT = 50;
 
-Console::Console(Runtime &rt, QWidget *parent) :
-		QPlainTextEdit(parent), runtime(rt), prompt(">> ")
+Console::Console(Runtime &rt, wxWindow *parent) :
+	wxPanel(parent, wxNewId(), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), runtime(rt), prompt(">> ")
 {
-	runtime.initialize_script = [=]() {
-		this->dirty = false;
-	};
+	SetIO();
+	SetSizer(m_sizer);
+	AddPrompt();
 
-	runtime.finalize_script = [=]() {
-		if (this->dirty) this->setPrompt();
-	};
+	// Redirect stdout to console.
+	if (!rt.is_text_mode())
+	{
+		rt.print = [&](const String &s) {
+			this->Append(s);
+			this->text_written = true;
+		};
 
-    auto font = get_monospace_font();
-    setFont(font);
-
-    // Redirect stdout to console.
-    if (!rt.is_text_mode())
-    {
-        rt.print = [&](const String &s) {
-            this->print(s);
-            this->dirty = true;
-        };
-
-        // Clear console.
-        auto clear = [=](Runtime &) { this->clear(); };
-        rt.new_native_function(clear, "clear", 0);
-        rt.def_global("clear", PHON_DONTENUM);
-    }
-    rt.console = this;
-    setPrompt();
+		// Clear console.
+		rt.add_global("reset", [=](Runtime &, std::span<Variant>) { this->Clear(); return Variant(); }, {});
+	}
+	rt.console = this;
 }
 
-void Console::runCommand(QString cmd, bool from_script)
+void Console::SetIO()
 {
-    if (!this->isVisible())
-    {
-        emit shown(false);
-    }
-    interpretCommand(cmd, from_script);
+	m_ctrl = new wxRichTextCtrl(this);
+	m_sizer = new wxBoxSizer(wxVERTICAL);
+	m_sizer->Add(m_ctrl, 1, wxEXPAND, 0);
+	wxFont font = MONOSPACE_FONT;
+	font.SetPointSize(12);
+	m_ctrl->SetFont(font);
+	m_ctrl->Bind(wxEVT_KEY_DOWN, &Console::OnKeyDown, this);
 }
 
-void Console::interpretCommand(const QString &command, bool from_script)
+void Console::OnKeyDown(wxKeyEvent &e)
 {
-    if (!from_script) {
-        addCommand(command);
-    }
+	// Don't write in the prompt (">> ")
+	if (m_ctrl->GetInsertionPoint() < (long)prompt.size()) return;
 
-    try
-    {
-        auto s = command.toStdString();
+	int key = e.GetKeyCode();
 
-        runtime.load_string("[string]", command);
-        runtime.push_null();
-        runtime.call(0);
-        if (runtime.is_defined(-1) && !from_script)
-        {
-            print(runtime.to_string(-1));
-        }
-        runtime.pop(1);
-    }
-    catch (std::exception &e)
-    {
-        auto error = QString::fromUtf8(e.what());
-        printError(error);
+	if (key == WXK_UP) {
 
-        // Let the script view proces the error
-        if (from_script) {
-            throw;
-        }
-    }
+		if (history_pos > 0)
+		{
+			--history_pos;
 
-    setPrompt();
+			if (history_pos < history.size())
+			{
+				ResetLastLine(history.at(history_pos));
+			}
+		}
+
+		return;
+	}
+	else if (key == WXK_DOWN)
+	{
+		if (! history.empty())
+		{
+			if (history_pos < history.size()) { ++history_pos; }
+
+			if (history_pos < history.size())
+			{
+				const wxString &line = history.at(history_pos);
+				ResetLastLine(line);
+			}
+			else
+			{
+				// Show an empty line if at the end of the queue
+				ResetLastLine(wxString());
+			}
+		}
+
+		return;
+	}
+	else if (key == WXK_LEFT || key == WXK_BACK)
+	{
+		long min_pos = m_ctrl->GetLastPosition() - m_ctrl->GetLineText(m_ctrl->GetNumberOfLines()-1).Length() + 3;
+
+		if (m_ctrl->GetInsertionPoint() <= min_pos)
+		{
+			return;
+		}
+	}
+	else if (key == WXK_RETURN)
+	{
+		GrabLine();
+		return;
+	}
+
+	e.Skip();
 }
 
-void Console::print(const String &str)
+void Console::GrabLine()
 {
-    moveToEnd();
-    textCursor().insertText("\n");
-    textCursor().insertText(str);
+	text_written = false;
+	wxString ln = m_ctrl->GetLineText(m_ctrl->GetNumberOfLines()-1);
+	auto pos = ln.Find(prompt);
+
+	if (pos == wxNOT_FOUND)
+	{
+		wxMessageBox("Invalid prompt in Console::GrabLine(): please report this to the authors", _("Internal error"), wxICON_ERROR);
+		return;
+	}
+	ln = ln.Mid(pos + prompt.size()).Trim();
+
+	if (ln.IsEmpty()) {
+		AddPrompt(); return;
+	}
+
+	String line = ln;
+	RunCode(line);
+
+	while (history.size() > QUEUE_LIMIT) { history.pop_front(); }
+
+	if (! line.empty())
+	{
+		history.push_back(line);
+		history_pos = history.size(); // current position outside of history
+	}
+
+	GoToEnd();
 }
 
-void Console::setPrompt()
+void Console::ShowErrorMessage(const wxString &msg)
 {
-    appendPlainText(">> ");
+	m_ctrl->BeginTextColour(wxColour(255, 0, 0));
+	m_ctrl->WriteText(msg);
+	m_ctrl->EndTextColour();
 }
 
-void Console::printError(const QString &msg)
+void Console::Clear()
 {
-    QString error = QString("<b><font color=\"red\">") + msg + String("</font></b>");
-    appendHtml(error);
-    setPrompt();
+	m_ctrl->SetValue("");
 }
 
-void Console::keyPressEvent(QKeyEvent *e)
+void Console::AddPrompt()
 {
-    auto key = e->key();
-
-    if (key == Qt::Key_Return)
-    {
-        moveToEnd();
-        auto cmd = currentBlock().text();
-        if (cmd.startsWith(prompt)) {
-            cmd = cmd.mid(3);
-        }
-        e->accept();
-        runCommand(cmd, false);
-    }
-    else if (key == Qt::Key_Up)
-    {
-        if (!history.empty())
-        {
-            if (current_cmd == 1)
-            {
-                setCurrentCommand(history.front());
-            }
-            else
-            {
-                auto cmd = history[--current_cmd];
-                setCurrentCommand(cmd);
-            }
-        }
-        e->ignore();
-    }
-    else if (key == Qt::Key_Down)
-    {
-        if (!history.empty())
-        {
-            if (current_cmd >= history.size())
-            {
-                current_cmd = history.size() + 1;
-                setCurrentCommand(String());
-            }
-            else
-            {
-                auto cmd = history[++current_cmd];
-                setCurrentCommand(cmd);
-            }
-        }
-        e->ignore();
-    }
-    else
-    {
-        if (key == Qt::Key_Backspace && currentBlock().text() == prompt)
-        {
-            e->ignore();
-        }
-        else
-        {
-            QPlainTextEdit::keyPressEvent(e);
-        }
-    }
+	wxString ln = m_ctrl->GetLineText(m_ctrl->GetNumberOfLines()-1);
+	// If an EOL character has been appended, the last line is empty, so we check that
+	// in order to determine whether we need to append a new line.
+	if (!ln.IsEmpty() && m_ctrl->GetLastPosition() > 0) {
+		AppendNewLine();
+	}
+	Append(prompt);
+	GoToEnd();
 }
 
-void Console::addCommand(const String &cmd)
+void Console::ResetLastLine(wxString text)
 {
-    if (history.empty())
-    {
-        history.append(cmd);
-    }
-    else if (history.back() != cmd)
-    {
-        if (history.size() == COMMAND_MAX) {
-            history.pop_first();
-        }
-        history.append(cmd);
-    }
-
-    current_cmd = history.size() + 1;
+	long line_count = m_ctrl->GetNumberOfLines();
+	long start = m_ctrl->XYToPosition(0, line_count-1);
+	long end = m_ctrl->GetLastPosition();
+	text.Prepend(prompt);
+	m_ctrl->Replace(start, end, text);
+	GoToEnd();
 }
 
-void Console::setCurrentCommand(const String &cmd)
+void Console::ChopNewLine()
 {
-    auto b = currentBlock();
-
-    if (b.isValid())
-    {
-        QTextCursor cursor(b);
-        cursor.select(QTextCursor::BlockUnderCursor);
-        cursor.removeSelectedText();
-    }
-    appendPlainText(prompt + cmd);
+	auto end = (long)m_ctrl->GetValue().length();
+	m_ctrl->Remove(end-1, end);
 }
 
-QTextBlock Console::currentBlock()
+void Console::RunScript(const String &path)
 {
-    auto ln = document()->lineCount();
-    return document()->findBlockByLineNumber(ln-1);
+	auto content = File::read_all(path);
+	RunCode(content);
 }
 
-void Console::moveToEnd()
+void Console::RunCode(const String &code)
 {
-    auto c = textCursor();
-    c.movePosition(QTextCursor::EndOfLine);
-    setTextCursor(c);
+	AppendNewLine();
+
+	try
+	{
+		runtime.do_string(code);
+	}
+	catch (std::exception &e)
+	{
+		ShowErrorMessage(e.what());
+	}
+
+	AddPrompt();
 }
 
-void Console::warn(const String &str)
-{
-	printError(str);
-}
-
-void Console::execute(const String &cmd)
-{
-	insertPlainText(cmd);
-	runCommand(cmd, false);
-}
-
-
-} // phonometrica
+} // namespace phonometrica

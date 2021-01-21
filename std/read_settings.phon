@@ -2,7 +2,7 @@
 # Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                             #
 #                                                                                                                      #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public    #
-# License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any       #
+# License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any       #
 # later version.                                                                                                       #
 #                                                                                                                      #
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied   #
@@ -18,83 +18,89 @@
 #                                                                                                                      #
 ########################################################################################################################
 
+# Platform-specific default settings
+local function get_resources()
+	if get_os_name() == "windows" then
+		return "C:\\Program Files\\Phonometrica"
+	elsif get_os_name() == "macos" then
+		return "/Applications/Phonometrica.app/Contents/Resources"
+	else
+		return "/usr/local/share/phonometrica"
+	end
+end
+
 phon.settings = {
-	recent_projects: [],
+	"recent_projects": [],
 
-	last_directory: "",
+	"resources_directory": get_resources(),
 
-	project_ratio: 0.17,
+	"last_directory": "",
 
-	console_ratio: 0.8,
+	"project_ratio": 0.17,
 
-	info_ratio: 0.8,
+	"console_ratio": 0.8,
 
-	geometry: [0, 0, 0, 0],
+	"info_ratio": 0.8,
 
-	full_screen: true,
+	"geometry": [0, 0, 0, 0],
 
-	hide_project: false,
+	"full_screen": true,
 
-	hide_console: false,
+	"hide_project": false,
 
-	hide_info: false,
+	"hide_console": false,
 
-	match_window_length: 40,
+	"hide_info": false,
 
-	autosave: false,
+	"match_window_length": 40,
 
-	autoload: false,
+	"autosave": false,
 
-	enable_mouse_tracking: true,
+	"autoload": false,
 
-	sound_plots: {
-		spectrogram: true,
-		formants: false,
-		pitch: true,
-		intensity: true
+	"enable_mouse_tracking": true,
+
+	"sound_plots": {
+		"spectrogram": true,
+		"formants": false,
+		"pitch": true,
+		"intensity": true
 	},
 
-	waveform: {
-		magnitude: 1.0,
-		scaling: "local"
+	"waveform": {
+		"magnitude": 1.0,
+		"scaling": "local"
 	},
 
-	pitch_tracking: {
-        minimum_pitch: 70,
-        maximum_pitch: 500,
-		time_step: 0.01,
-        voicing_threshold: 0.25
+	"pitch_tracking": {
+        "minimum_pitch": 70,
+        "maximum_pitch": 500,
+		"time_step": 0.01,
+        "voicing_threshold": 0.25
     },
 
-	intensity: {
-		minimum_intensity: 50,
-		maximum_intensity: 100,
-		time_step: 0.01
+	"intensity": {
+		"minimum_intensity": 50,
+		"maximum_intensity": 100,
+		"time_step": 0.01
 	},
 
-	spectrogram: {
-		window_size: 0.005,
-		frequency_range: 5500,
-		window_type: "Gaussian",
-		dynamic_range: 70,
-		preemphasis_threshold: 1000
+	"spectrogram": {
+		"window_size": 0.005,
+		"frequency_range": 5500,
+		"window_type": "Gaussian",
+		"dynamic_range": 70,
+		"preemphasis_threshold": 1000
 	},
 
-	formants: {
-		number_of_formants: 4,
-		window_size: 0.025,
-		lpc_order: 10,
-		max_frequency: 5500,
-		max_bandwidth: 400
+	"formants": {
+		"number_of_formants": 4,
+		"window_size": 0.025,
+		"lpc_order": 10,
+		"max_frequency": 5500,
+		"max_bandwidth": 400
 	}
 }
 
-# Platform-specific default settings
-if system.name == "windows" then
-	phon.settings.resources_directory = "C:\\Program Files\\Phonometrica"
-elsif system.name == "macos" then
-	phon.settings.resources_directory = "/Applications/Phonometrica.app/Contents/Resources"
-else
-	phon.settings.resources_directory = "/usr/local/share/phonometrica"
-end
+
 

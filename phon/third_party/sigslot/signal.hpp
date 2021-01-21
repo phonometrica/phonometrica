@@ -1,11 +1,22 @@
 #pragma once
-#include <type_traits>
-#include <memory>
-#include <utility>
-#include <mutex>
 #include <atomic>
+#include <memory>
+#include <mutex>
+#include <type_traits>
+#include <utility>
+#include <thread>
 #include <vector>
-#include <cassert>
+
+#if defined __clang__ || (__GNUC__ > 5)
+#define SIGSLOT_MAY_ALIAS __attribute__((__may_alias__))
+#else
+#define SIGSLOT_MAY_ALIAS
+#endif
+
+#if defined(__GXX_RTTI) || defined(__cpp_rtti) || defined(_CPPRTTI)
+#define SIGSLOT_RTTI_ENABLED 1
+#include <typeinfo>
+#endif
 
 namespace sigslot {
 
@@ -20,12 +31,12 @@ template <typename...> struct typelist {};
  * ADL to convert that type and make it usable
  */
 
-template<typename T>
+template <typename T>
 std::weak_ptr<T> to_weak(std::weak_ptr<T> w) {
     return w;
 }
 
-template<typename T>
+template <typename T>
 std::weak_ptr<T> to_weak(std::shared_ptr<T> s) {
     return s;
 }
@@ -33,13 +44,19 @@ std::weak_ptr<T> to_weak(std::shared_ptr<T> s) {
 // tools
 namespace detail {
 
-template <class...>
+template <typename...>
 struct voider { using type = void; };
 
 // void_t from c++17
-template <class...T>
+template <typename...T>
 using void_t = typename detail::voider<T...>::type;
 
+template <typename, typename = void>
+struct has_call_operator : std::false_type {};
+
+template <typename F>
+struct has_call_operator<F, void_t<decltype(&std::remove_reference<F>::type::operator())>>
+    : std::true_type {};
 
 template <typename, typename, typename = void, typename = void>
 struct is_callable : std::false_type {};
@@ -73,6 +90,13 @@ struct is_weak_ptr_compatible<T, void_t<decltype(to_weak(std::declval<T>()))>>
 
 } // namespace detail
 
+static constexpr bool with_rtti =
+#ifdef SIGSLOT_RTTI_ENABLED
+        true;
+#else
+        false;
+#endif
+
 /// determine if a pointer is convertible into a "weak" pointer
 template <typename P>
 constexpr bool is_weak_ptr_compatible_v = detail::is_weak_ptr_compatible<std::decay_t<P>>::value;
@@ -81,24 +105,257 @@ constexpr bool is_weak_ptr_compatible_v = detail::is_weak_ptr_compatible<std::de
 template <typename L, typename... T>
 constexpr bool is_callable_v = detail::is_callable<T..., L>::value;
 
+template <typename T>
+constexpr bool is_weak_ptr_v = detail::is_weak_ptr<T>::value;
+
+template <typename T>
+constexpr bool has_call_operator_v = detail::has_call_operator<T>::value;
+
+template <typename T>
+constexpr bool is_pointer_v = std::is_pointer<T>::value;
+
+template <typename T>
+constexpr bool is_func_v = std::is_function<T>::value;
+
+template <typename T>
+constexpr bool is_pmf_v = std::is_member_function_pointer<T>::value;
+
 } // namespace trait
 
 template <typename, typename...>
 class signal_base;
 
+/**
+ * A group_id is used to identify a group of slots
+ */
+using group_id = std::int32_t;
+
 namespace detail {
+
+/**
+ * The following function_traits and object_pointer series of templates are
+ * used to circumvent the type-erasing that takes place in the slot_base
+ * implementations. They are used to compare the stored functions and objects
+ * with another one for disconnection purpose.
+ */
+
+/*
+ * Function pointers and member function pointers size differ from compiler to
+ * compiler, and for virtual members compared to non virtual members. On some
+ * compilers, multiple inheritance has an impact too. Hence, we form an union
+ * big enough to store any kind of function pointer.
+ */
+namespace mock {
+
+struct a { virtual ~a() = default; void f(); virtual void g(); };
+struct b { virtual ~b() = default; virtual void h(); };
+struct c : a, b { void g() override; };
+
+union fun_types {
+    decltype(&c::g) m;
+    decltype(&a::g) v;
+    decltype(&a::f) d;
+    void (*f)();
+    void *o;
+ };
+
+} // namespace mock
+
+/*
+ * This union is used to compare function pointers
+ * Generic callables cannot be compared. Here we compare pointers but there is
+ * no guarantee that this always works.
+ */
+union SIGSLOT_MAY_ALIAS func_ptr {
+    void* value() {
+        return &data[0];
+    }
+
+    const void* value() const {
+        return &data[0];
+    }
+
+    template <typename T>
+    T& value() {
+        return *static_cast<T*>(value());
+    }
+
+    template <typename T>
+    const T& value() const {
+        return *static_cast<const T*>(value());
+    }
+
+    inline explicit operator bool() const {
+        return value() != nullptr;
+    }
+
+    inline bool operator==(const func_ptr &o) const {
+        return std::equal(std::begin(data), std::end(data), std::begin(o.data));
+    }
+
+    mock::fun_types _;
+    char data[sizeof(mock::fun_types)];
+};
+
+
+template <typename T, typename = void>
+struct function_traits {
+    static void ptr(const T &/*t*/, func_ptr &d) {
+        d.value<std::nullptr_t>() = nullptr;
+    }
+
+    static constexpr bool is_disconnectable = false;
+    static constexpr bool must_check_object = true;
+};
+
+template <typename T>
+struct function_traits<T, std::enable_if_t<trait::is_func_v<T>>> {
+    static void ptr(T &t, func_ptr &d) {
+        d.value<T*>() = &t;
+    }
+
+    static constexpr bool is_disconnectable = true;
+    static constexpr bool must_check_object = false;
+};
+
+template <typename T>
+struct function_traits<T*, std::enable_if_t<trait::is_func_v<T>>> {
+    static void ptr(T *t, func_ptr &d) {
+        d.value<T*>() = t;
+    }
+
+    static constexpr bool is_disconnectable = true;
+    static constexpr bool must_check_object = false;
+};
+
+template <typename T>
+struct function_traits<T, std::enable_if_t<trait::is_pmf_v<T>>> {
+    static void ptr(const T &t, func_ptr &d) {
+        d.value<T>() = t;
+    }
+
+    static constexpr bool is_disconnectable = trait::with_rtti;
+    static constexpr bool must_check_object = true;
+};
+
+// for function objects, the assumption is that we are looking for the call operator
+template <typename T>
+struct function_traits<T, std::enable_if_t<trait::has_call_operator_v<T>>> {
+    using call_type = decltype(&std::remove_reference<T>::type::operator());
+
+    static void ptr(const T &/*t*/, func_ptr &d) {
+        function_traits<call_type>::ptr(&T::operator(), d);
+    }
+
+    static constexpr bool is_disconnectable = function_traits<call_type>::is_disconnectable;
+    static constexpr bool must_check_object = function_traits<call_type>::must_check_object;
+};
+
+template <typename T>
+func_ptr get_function_ptr(const T &t) {
+    func_ptr d;
+    std::uninitialized_fill(std::begin(d.data), std::end(d.data), '\0');
+    function_traits<std::decay_t<T>>::ptr(t, d);
+    return d;
+}
+
+/*
+ * obj_ptr is used to store a pointer to an object.
+ * The object_pointer traits are needed to handle trackable objects correctly,
+ * as they are likely to not be pointers.
+ */
+using obj_ptr = const void*;
+
+template <typename T>
+obj_ptr get_object_ptr(const T &t);
+
+template <typename T, typename = void>
+struct object_pointer {
+    static obj_ptr get(const T&) {
+        return nullptr;
+    }
+};
+
+template <typename T>
+struct object_pointer<T*, std::enable_if_t<trait::is_pointer_v<T*>>> {
+    static obj_ptr get(const T *t) {
+        return reinterpret_cast<obj_ptr>(t);
+    }
+};
+
+template <typename T>
+struct object_pointer<T, std::enable_if_t<trait::is_weak_ptr_v<T>>> {
+    static obj_ptr get(const T &t) {
+        auto p = t.lock();
+        return get_object_ptr(p);
+    }
+};
+
+template <typename T>
+struct object_pointer<T, std::enable_if_t<!trait::is_pointer_v<T> &&
+                                          !trait::is_weak_ptr_v<T> &&
+                                          trait::is_weak_ptr_compatible_v<T>>>
+{
+    static obj_ptr get(const T &t) {
+        return t ? reinterpret_cast<obj_ptr>(t.get()) : nullptr;
+    }
+};
+
+template <typename T>
+obj_ptr get_object_ptr(const T &t) {
+    return object_pointer<T>::get(t);
+}
+
 
 // noop mutex for thread-unsafe use
 struct null_mutex {
-    null_mutex() = default;
+    null_mutex() noexcept = default;
+    ~null_mutex() noexcept = default;
     null_mutex(const null_mutex &) = delete;
-    null_mutex operator=(const null_mutex &) = delete;
+    null_mutex& operator=(const null_mutex &) = delete;
     null_mutex(null_mutex &&) = delete;
-    null_mutex operator=(null_mutex &&) = delete;
+    null_mutex& operator=(null_mutex &&) = delete;
 
     inline bool try_lock() noexcept { return true; }
     inline void lock() noexcept {}
     inline void unlock() noexcept {}
+};
+
+/**
+ * A spin mutex that yields, mostly for use in benchmarks and scenarii that invoke
+ * slots at a very high pace.
+ * One should almost always prefer a standard mutex over this.
+ */
+struct spin_mutex {
+    spin_mutex() noexcept = default;
+    ~spin_mutex() noexcept = default;
+    spin_mutex(spin_mutex const&) = delete;
+    spin_mutex& operator=(const spin_mutex &) = delete;
+    spin_mutex(spin_mutex &&) = delete;
+    spin_mutex& operator=(spin_mutex &&) = delete;
+
+    void lock() noexcept {
+        while (true) {
+            while (!state.load(std::memory_order_relaxed)) {
+                std::this_thread::yield();
+            }
+
+            if (try_lock()) {
+                break;
+            }
+        }
+    }
+
+    bool try_lock() noexcept {
+        return state.exchange(false, std::memory_order_acquire);
+    }
+
+    void unlock() noexcept {
+        state.store(true, std::memory_order_release);
+    }
+
+private:
+    std::atomic<bool> state {true};
 };
 
 /**
@@ -127,7 +384,8 @@ public:
     {}
 
     template <typename U>
-    copy_on_write(U && x, std::enable_if_t<!std::is_same<std::decay_t<U>, copy_on_write>{}>* = nullptr)
+    explicit copy_on_write(U && x, std::enable_if_t<!std::is_same<std::decay_t<U>,
+                           copy_on_write>::value>* = nullptr)
         : m_data(new payload(std::forward<U>(x)))
     {}
 
@@ -144,12 +402,16 @@ public:
     }
 
     ~copy_on_write() {
-        if (m_data && (--m_data->count == 0))
+        if (m_data && (--m_data->count == 0)) {
             delete m_data;
+        }
     }
 
     copy_on_write& operator=(const copy_on_write &x) noexcept {
-        return *this = copy_on_write(x);
+        if (&x != this) {
+            *this = copy_on_write(x);
+        }
+        return *this;
     }
 
     copy_on_write& operator=(copy_on_write && x) noexcept  {
@@ -159,8 +421,9 @@ public:
     }
 
     element_type& write() {
-        if (!unique())
+        if (!unique()) {
             *this = copy_on_write(read());
+        }
         return m_data->value;
     }
 
@@ -186,7 +449,7 @@ private:
  * Specializations for thread-safe code path
  */
 template <typename T>
-const T& cow_read(T &v) {
+const T& cow_read(const T &v) {
     return v;
 }
 
@@ -213,12 +476,12 @@ T& cow_write(copy_on_write<T> &v) {
  * - Allocates a separate control block, and will thus make the code slower.
  */
 #ifdef SIGSLOT_REDUCE_COMPILE_TIME
-template<typename B, typename D, typename ...Arg>
+template <typename B, typename D, typename ...Arg>
 inline std::shared_ptr<B> make_shared(Arg && ... arg) {
     return std::shared_ptr<B>(static_cast<B*>(new D(std::forward<Arg>(arg)...)));
 }
 #else
-template<typename B, typename D, typename ...Arg>
+template <typename B, typename D, typename ...Arg>
 inline std::shared_ptr<B> make_shared(Arg && ... arg) {
     return std::static_pointer_cast<B>(std::make_shared<D>(std::forward<Arg>(arg)...));
 }
@@ -229,8 +492,9 @@ inline std::shared_ptr<B> make_shared(Arg && ... arg) {
  */
 class slot_state {
 public:
-    constexpr slot_state() noexcept
+    constexpr slot_state(group_id gid) noexcept
         : m_index(0)
+        , m_group(gid)
         , m_connected(true)
         , m_blocked(false)
     {}
@@ -241,8 +505,9 @@ public:
 
     bool disconnect() noexcept {
         bool ret = m_connected.exchange(false);
-        if (ret)
+        if (ret) {
             do_disconnect();
+        }
         return ret;
     }
 
@@ -251,13 +516,26 @@ public:
     void unblock() noexcept { m_blocked.store(false); }
 
 protected:
-    std::size_t m_index;  // index into the array of slot pointers inside the signal
     virtual void do_disconnect() {}
+
+    auto index() const {
+        return m_index;
+    }
+
+    auto& index() {
+        return m_index;
+    }
+
+    group_id group() const {
+        return m_group;
+    }
 
 private:
     template <typename, typename...>
     friend class ::sigslot::signal_base;
 
+    std::size_t m_index;     // index into the array of slot pointers inside the signal
+    const group_id m_group;  // slot group this slot belongs to
     std::atomic<bool> m_connected;
     std::atomic<bool> m_blocked;
 };
@@ -287,16 +565,18 @@ public:
 
 private:
     friend class connection;
-    connection_blocker(std::weak_ptr<detail::slot_state> s) noexcept
+    explicit connection_blocker(std::weak_ptr<detail::slot_state> s) noexcept
         : m_state{std::move(s)}
     {
-        if (auto d = m_state.lock())
+        if (auto d = m_state.lock()) {
             d->block();
+        }
     }
 
     void release() noexcept {
-        if (auto d = m_state.lock())
+        if (auto d = m_state.lock()) {
             d->unblock();
+        }
     }
 
 private:
@@ -341,13 +621,15 @@ public:
     }
 
     void block() noexcept {
-        if (auto d = m_state.lock())
+        if (auto d = m_state.lock()) {
             d->block();
+        }
     }
 
     void unblock() noexcept {
-        if (auto d = m_state.lock())
+        if (auto d = m_state.lock()) {
             d->unblock();
+        }
     }
 
     connection_blocker blocker() const noexcept {
@@ -356,7 +638,7 @@ public:
 
 protected:
     template <typename, typename...> friend class signal_base;
-    connection(std::weak_ptr<detail::slot_state> s) noexcept
+    explicit connection(std::weak_ptr<detail::slot_state> s) noexcept
         : m_state{std::move(s)}
     {}
 
@@ -368,15 +650,15 @@ protected:
  * scoped_connection is a RAII version of connection
  * It disconnects the slot from the signal upon destruction.
  */
-class scoped_connection : public connection {
+class scoped_connection final : public connection {
 public:
     scoped_connection() = default;
-    ~scoped_connection() {
+    ~scoped_connection() override {
         disconnect();
     }
 
-    scoped_connection(const connection &c) noexcept : connection(c) {}
-    scoped_connection(connection &&c) noexcept : connection(std::move(c)) {}
+    /*implicit*/ scoped_connection(const connection &c) noexcept : connection(c) {}
+    /*implicit*/ scoped_connection(connection &&c) noexcept : connection(std::move(c)) {}
 
     scoped_connection(const scoped_connection &) noexcept = delete;
     scoped_connection & operator=(const scoped_connection &) noexcept = delete;
@@ -393,7 +675,7 @@ public:
 
 private:
     template <typename, typename...> friend class signal_base;
-    scoped_connection(std::weak_ptr<detail::slot_state> s) noexcept
+    explicit scoped_connection(std::weak_ptr<detail::slot_state> s) noexcept
         : connection{std::move(s)}
     {}
 };
@@ -413,6 +695,7 @@ class slot_base;
 template <typename... T>
 using slot_ptr = std::shared_ptr<slot_base<T...>>;
 
+
 /* A base class for slot objects. This base type only depends on slot argument
  * types, it will be used as an element in an intrusive singly-linked list of
  * slots, hence the public next member.
@@ -422,8 +705,11 @@ class slot_base : public slot_state {
 public:
     using base_types = trait::typelist<Args...>;
 
-    slot_base(cleanable &c) : cleaner(c) {}
-    virtual ~slot_base() = default;
+    explicit slot_base(cleanable &c, group_id gid)
+        : slot_state(gid)
+        , cleaner(c)
+    {}
+    ~slot_base() override = default;
 
     // method effectively responsible for calling the "slot" function with
     // supplied arguments whenever emission happens.
@@ -431,18 +717,70 @@ public:
 
     template <typename... U>
     void operator()(U && ...u) {
-        if (slot_state::connected() && !slot_state::blocked())
+        if (slot_state::connected() && !slot_state::blocked()) {
             call_slot(std::forward<U>(u)...);
+        }
     }
 
-    std::size_t& index() {
-        return m_index;
+    // check if we are storing callable c
+    template <typename C>
+    bool has_callable(const C &c) const {
+        auto cp = get_function_ptr(c);
+        auto p = get_callable();
+        return cp && p && cp == p;
+    }
+
+    template <typename C>
+    std::enable_if_t<function_traits<C>::must_check_object, bool>
+    has_full_callable(const C &c) const {
+        return has_callable(c) && check_class_type<std::decay_t<C>>();
+    }
+
+    template <typename C>
+    std::enable_if_t<!function_traits<C>::must_check_object, bool>
+    has_full_callable(const C &c) const {
+        return has_callable(c);
+    }
+
+    // check if we are storing object o
+    template <typename O>
+    bool has_object(const O &o) const {
+        return get_object() == get_object_ptr(o);
     }
 
 protected:
     void do_disconnect() final {
         cleaner.clean(this);
     }
+
+    // retieve a pointer to the object embedded in the slot
+    virtual obj_ptr get_object() const noexcept {
+        return nullptr;
+    }
+
+    // retieve a pointer to the callable embedded in the slot
+    virtual func_ptr get_callable() const noexcept {
+        return get_function_ptr(nullptr);
+    }
+
+#ifdef SIGSLOT_RTTI_ENABLED
+    // retieve a pointer to the callable embedded in the slot
+    virtual const std::type_info& get_callable_type() const noexcept {
+        return typeid(nullptr);
+    }
+
+private:
+    template <typename U>
+    bool check_class_type() const {
+        return typeid(U) == get_callable_type();
+    }
+
+#else
+    template <typename U>
+    bool check_class_type() const {
+        return false;
+    }
+#endif
 
 private:
     cleanable &cleaner;
@@ -453,16 +791,27 @@ private:
  * whenever the function call operator of its slot_base base class is called.
  */
 template <typename Func, typename... Args>
-class slot : public slot_base<Args...> {
+class slot final : public slot_base<Args...> {
 public:
-    template <typename F>
-    constexpr slot(cleanable &c, F && f)
-        : slot_base<Args...>(c)
+    template <typename F, typename Gid>
+    constexpr slot(cleanable &c, F && f, Gid gid)
+        : slot_base<Args...>(c, gid)
         , func{std::forward<F>(f)} {}
 
-    virtual void call_slot(Args ...args) override {
+protected:
+    void call_slot(Args ...args) override {
         func(args...);
     }
+
+    func_ptr get_callable() const noexcept override {
+        return get_function_ptr(func);
+    }
+
+#ifdef SIGSLOT_RTTI_ENABLED
+    const std::type_info& get_callable_type() const noexcept override {
+        return typeid(func);
+    }
+#endif
 
 private:
     std::decay_t<Func> func;
@@ -472,18 +821,29 @@ private:
  * Variation of slot that prepends a connection object to the callable
  */
 template <typename Func, typename... Args>
-class slot_extended : public slot_base<Args...> {
+class slot_extended final : public slot_base<Args...> {
 public:
     template <typename F>
-    constexpr slot_extended(cleanable &c, F && f)
-        : slot_base<Args...>(c)
+    constexpr slot_extended(cleanable &c, F && f, group_id gid)
+        : slot_base<Args...>(c, gid)
         , func{std::forward<F>(f)} {}
 
-    virtual void call_slot(Args ...args) override {
+    connection conn;
+
+protected:
+    void call_slot(Args ...args) override {
         func(conn, args...);
     }
 
-    connection conn;
+    func_ptr get_callable() const noexcept override {
+        return get_function_ptr(func);
+    }
+
+#ifdef SIGSLOT_RTTI_ENABLED
+    const std::type_info& get_callable_type() const noexcept override {
+        return typeid(func);
+    }
+#endif
 
 private:
     std::decay_t<Func> func;
@@ -495,17 +855,32 @@ private:
  * base class is called.
  */
 template <typename Pmf, typename Ptr, typename... Args>
-class slot_pmf : public slot_base<Args...> {
+class slot_pmf final : public slot_base<Args...> {
 public:
     template <typename F, typename P>
-    constexpr slot_pmf(cleanable &c, F && f, P && p)
-        : slot_base<Args...>(c)
+    constexpr slot_pmf(cleanable &c, F && f, P && p, group_id gid)
+        : slot_base<Args...>(c, gid)
         , pmf{std::forward<F>(f)}
         , ptr{std::forward<P>(p)} {}
 
-    virtual void call_slot(Args ...args) override {
+protected:
+    void call_slot(Args ...args) override {
         ((*ptr).*pmf)(args...);
     }
+
+    func_ptr get_callable() const noexcept override {
+        return get_function_ptr(pmf);
+    }
+
+    obj_ptr get_object() const noexcept override {
+        return get_object_ptr(ptr);
+    }
+
+#ifdef SIGSLOT_RTTI_ENABLED
+    const std::type_info& get_callable_type() const noexcept override {
+        return typeid(pmf);
+    }
+#endif
 
 private:
     std::decay_t<Pmf> pmf;
@@ -516,19 +891,33 @@ private:
  * Variation of slot that prepends a connection object to the callable
  */
 template <typename Pmf, typename Ptr, typename... Args>
-class slot_pmf_extended : public slot_base<Args...> {
+class slot_pmf_extended final : public slot_base<Args...> {
 public:
     template <typename F, typename P>
-    constexpr slot_pmf_extended(cleanable &c, F && f, P && p)
-        : slot_base<Args...>(c)
+    constexpr slot_pmf_extended(cleanable &c, F && f, P && p, group_id gid)
+        : slot_base<Args...>(c, gid)
         , pmf{std::forward<F>(f)}
         , ptr{std::forward<P>(p)} {}
 
-    virtual void call_slot(Args ...args) override {
+    connection conn;
+
+protected:
+    void call_slot(Args ...args) override {
         ((*ptr).*pmf)(conn, args...);
     }
 
-    connection conn;
+    func_ptr get_callable() const noexcept override {
+        return get_function_ptr(pmf);
+    }
+    obj_ptr get_object() const noexcept override {
+        return get_object_ptr(ptr);
+    }
+
+#ifdef SIGSLOT_RTTI_ENABLED
+    const std::type_info& get_callable_type() const noexcept override {
+        return typeid(pmf);
+    }
+#endif
 
 private:
     std::decay_t<Pmf> pmf;
@@ -541,11 +930,11 @@ private:
  * on said object destruction.
  */
 template <typename Func, typename WeakPtr, typename... Args>
-class slot_tracked : public slot_base<Args...> {
+class slot_tracked final : public slot_base<Args...> {
 public:
     template <typename F, typename P>
-    constexpr slot_tracked(cleanable &c, F && f, P && p)
-        : slot_base<Args...>(c)
+    constexpr slot_tracked(cleanable &c, F && f, P && p, group_id gid)
+        : slot_base<Args...>(c, gid)
         , func{std::forward<F>(f)}
         , ptr{std::forward<P>(p)}
     {}
@@ -554,15 +943,31 @@ public:
         return !ptr.expired() && slot_state::connected();
     }
 
-    virtual void call_slot(Args ...args) override {
+protected:
+    void call_slot(Args ...args) override {
         auto sp = ptr.lock();
         if (!sp) {
             slot_state::disconnect();
             return;
         }
-        if (slot_state::connected())
+        if (slot_state::connected()) {
             func(args...);
+        }
     }
+
+    func_ptr get_callable() const noexcept override {
+        return get_function_ptr(func);
+    }
+
+    obj_ptr get_object() const noexcept override {
+        return get_object_ptr(ptr);
+    }
+
+#ifdef SIGSLOT_RTTI_ENABLED
+    const std::type_info& get_callable_type() const noexcept override {
+        return typeid(func);
+    }
+#endif
 
 private:
     std::decay_t<Func> func;
@@ -575,11 +980,11 @@ private:
  * disconnect the slot on said object destruction.
  */
 template <typename Pmf, typename WeakPtr, typename... Args>
-class slot_pmf_tracked : public slot_base<Args...> {
+class slot_pmf_tracked final : public slot_base<Args...> {
 public:
     template <typename F, typename P>
-    constexpr slot_pmf_tracked(cleanable &c, F && f, P && p)
-        : slot_base<Args...>(c)
+    constexpr slot_pmf_tracked(cleanable &c, F && f, P && p, group_id gid)
+        : slot_base<Args...>(c, gid)
         , pmf{std::forward<F>(f)}
         , ptr{std::forward<P>(p)}
     {}
@@ -588,15 +993,31 @@ public:
         return !ptr.expired() && slot_state::connected();
     }
 
-    virtual void call_slot(Args ...args) override {
+protected:
+    void call_slot(Args ...args) override {
         auto sp = ptr.lock();
         if (!sp) {
             slot_state::disconnect();
             return;
         }
-        if (slot_state::connected())
+        if (slot_state::connected()) {
             ((*sp).*pmf)(args...);
+        }
     }
+
+    func_ptr get_callable() const noexcept override {
+        return get_function_ptr(pmf);
+    }
+
+    obj_ptr get_object() const noexcept override {
+        return get_object_ptr(ptr);
+    }
+
+#ifdef SIGSLOT_RTTI_ENABLED
+    const std::type_info& get_callable_type() const noexcept override {
+        return typeid(pmf);
+    }
+#endif
 
 private:
     std::decay_t<Pmf> pmf;
@@ -611,61 +1032,68 @@ private:
  * of an emitting object and slots that are connected to the signal and called
  * with supplied arguments when a signal is emitted.
  *
- * pal::signal_base is the general implementation, whose locking policy must be
- * set in order to decide thread safety guarantees. pal::signal and pal::signal_st
+ * signal_base is the general implementation, whose locking policy must be
+ * set in order to decide thread safety guarantees. signal and signal_st
  * are partial specializations for multi-threaded and single-threaded use.
  *
  * It does not allow slots to return a value.
+ *
+ * Slot execution order can be constrained by assigning group ids to the slots.
+ * The execution order of slots in a same group is unspecified and should not be
+ * relied upon, however groups are executed in ascending group ids order. When
+ * the group id of a slot is not set, it is assigned to the group 0. Group ids
+ * can have any value in the range of signed 32 bit integers.
  *
  * @tparam Lockable a lock type to decide the lock policy
  * @tparam T... the argument types of the emitting and slots functions.
  */
 template <typename Lockable, typename... T>
-class signal_base : public detail::cleanable {
+class signal_base final : public detail::cleanable {
     template <typename L>
-    using is_thread_safe = std::integral_constant<bool, not std::is_same<L, detail::null_mutex>{}>;
+    using is_thread_safe = std::integral_constant<bool, !std::is_same<L, detail::null_mutex>::value>;
 
     template <typename U, typename L>
-    using cow_type = std::conditional_t<is_thread_safe<L>{}, detail::copy_on_write<U>, U>;
+    using cow_type = std::conditional_t<is_thread_safe<L>::value,
+                                        detail::copy_on_write<U>, U>;
 
     template <typename U, typename L>
-    using cow_copy_type = std::conditional_t<is_thread_safe<L>{}, detail::copy_on_write<U>, const U&>;
+    using cow_copy_type = std::conditional_t<is_thread_safe<L>::value,
+                                             detail::copy_on_write<U>, const U&>;
 
     using lock_type = std::unique_lock<Lockable>;
     using slot_base = detail::slot_base<T...>;
     using slot_ptr = detail::slot_ptr<T...>;
-    using list_type = std::vector<slot_ptr>;
-
-    cow_copy_type<list_type, Lockable> slots_copy() {
-        lock_type lock(m_mutex);
-        return m_slots;
-    }
+    using slots_type = std::vector<slot_ptr>;
+    struct group_type { slots_type slts; group_id gid; };
+    using list_type = std::vector<group_type>;  // kept ordered by ascending gid
 
 public:
     using arg_list = trait::typelist<T...>;
     using ext_arg_list = trait::typelist<connection&, T...>;
 
     signal_base() noexcept : m_block(false) {}
-    ~signal_base() {
+    ~signal_base() override {
         disconnect_all();
     }
 
     signal_base(const signal_base&) = delete;
     signal_base & operator=(const signal_base&) = delete;
 
-    signal_base(signal_base && o)
+    signal_base(signal_base && o) /* not noexcept */
         : m_block{o.m_block.load()}
     {
         lock_type lock(o.m_mutex);
-        std::swap(m_slots, o.m_slots);
+        using std::swap;
+        swap(m_slots, o.m_slots);
     }
 
-    signal_base & operator=(signal_base && o) {
+    signal_base & operator=(signal_base && o) /* not noexcept */ {
         lock_type lock1(m_mutex, std::defer_lock);
         lock_type lock2(o.m_mutex, std::defer_lock);
         std::lock(lock1, lock2);
 
-        std::swap(m_slots, o.m_slots);
+        using std::swap;
+        swap(m_slots, o.m_slots);
         m_block.store(o.m_block.exchange(m_block.load()));
         return *this;
     }
@@ -682,15 +1110,21 @@ public:
      *
      * @param a... arguments to emit
      */
-    void operator()(T ...a) {
-        if (m_block)
+    template <typename... U>
+    void operator()(U && ...a) {
+        if (m_block) {
             return;
+        }
 
-        // copy slots to execute them out of the lock
-        cow_copy_type<list_type, Lockable> copy = slots_copy();
+        // Reference to the slots to execute them out of the lock
+        // a copy may occur if another thread writes to it.
+        cow_copy_type<list_type, Lockable> ref = slots_reference();
 
-        for (const auto &s : detail::cow_read(copy))
-            s->operator()(a...);
+        for (const auto &group : detail::cow_read(ref)) {
+            for (const auto &s : group.slts) {
+                s->operator()(a...);
+            }
+        }
     }
 
     /**
@@ -701,13 +1135,14 @@ public:
      * Safety: Thread-safety depends on locking policy.
      *
      * @param c a callable
+     * @param gid an identifier that can be used to order slot execution
      * @return a connection object that can be used to interact with the slot
      */
     template <typename Callable>
     std::enable_if_t<trait::is_callable_v<arg_list, Callable>, connection>
-    connect(Callable && c) {
+    connect(Callable && c, group_id gid = 0) {
         using slot_t = detail::slot<Callable, T...>;
-        auto s = detail::make_shared<slot_base, slot_t>(*this, std::forward<Callable>(c));
+        auto s = make_slot<slot_t>(std::forward<Callable>(c), gid);
         connection conn(s);
         add_slot(std::move(s));
         return conn;
@@ -720,13 +1155,14 @@ public:
      * the callable to manage it's own connection through this argument.
      *
      * @param c a callable
+     * @param gid an identifier that can be used to order slot execution
      * @return a connection object that can be used to interact with the slot
      */
     template <typename Callable>
     std::enable_if_t<trait::is_callable_v<ext_arg_list, Callable>, connection>
-    connect_extended(Callable && c) {
+    connect_extended(Callable && c, group_id gid = 0) {
         using slot_t = detail::slot_extended<Callable, T...>;
-        auto s = detail::make_shared<slot_base, slot_t>(*this, std::forward<Callable>(c));
+        auto s = make_slot<slot_t>(std::forward<Callable>(c), gid);
         connection conn(s);
         std::static_pointer_cast<slot_t>(s)->conn = conn;
         add_slot(std::move(s));
@@ -738,14 +1174,15 @@ public:
      *
      * @param pmf a pointer over member function
      * @param ptr an object pointer
+     * @param gid an identifier that can be used to order slot execution
      * @return a connection object that can be used to interact with the slot
      */
     template <typename Pmf, typename Ptr>
     std::enable_if_t<trait::is_callable_v<arg_list, Pmf, Ptr> &&
                      !trait::is_weak_ptr_compatible_v<Ptr>, connection>
-    connect(Pmf && pmf, Ptr && ptr) {
+    connect(Pmf && pmf, Ptr && ptr, group_id gid = 0) {
         using slot_t = detail::slot_pmf<Pmf, Ptr, T...>;
-        slot_ptr s = detail::make_shared<slot_base, slot_t>(*this, std::forward<Pmf>(pmf), std::forward<Ptr>(ptr));
+        auto s = make_slot<slot_t>(std::forward<Pmf>(pmf), std::forward<Ptr>(ptr), gid);
         connection conn(s);
         add_slot(std::move(s));
         return conn;
@@ -756,14 +1193,15 @@ public:
      *
      * @param pmf a pointer over member function
      * @param ptr an object pointer
+     * @param gid an identifier that can be used to order slot execution
      * @return a connection object that can be used to interact with the slot
      */
     template <typename Pmf, typename Ptr>
     std::enable_if_t<trait::is_callable_v<ext_arg_list, Pmf, Ptr> &&
                      !trait::is_weak_ptr_compatible_v<Ptr>, connection>
-    connect_extended(Pmf && pmf, Ptr && ptr) {
+    connect_extended(Pmf && pmf, Ptr && ptr, group_id gid = 0) {
         using slot_t = detail::slot_pmf_extended<Pmf, Ptr, T...>;
-        auto s = detail::make_shared<slot_base, slot_t>(*this, std::forward<Pmf>(pmf), std::forward<Ptr>(ptr));
+        auto s = make_slot<slot_t>(std::forward<Pmf>(pmf), std::forward<Ptr>(ptr), gid);
         connection conn(s);
         std::static_pointer_cast<slot_t>(s)->conn = conn;
         add_slot(std::move(s));
@@ -784,16 +1222,17 @@ public:
      *
      * @param pmf a pointer over member function
      * @param ptr a trackable object pointer
+     * @param gid an identifier that can be used to order slot execution
      * @return a connection object that can be used to interact with the slot
      */
     template <typename Pmf, typename Ptr>
     std::enable_if_t<!trait::is_callable_v<arg_list, Pmf> &&
                      trait::is_weak_ptr_compatible_v<Ptr>, connection>
-    connect(Pmf && pmf, Ptr && ptr) {
+    connect(Pmf && pmf, Ptr && ptr, group_id gid = 0) {
         using trait::to_weak;
         auto w = to_weak(std::forward<Ptr>(ptr));
         using slot_t = detail::slot_pmf_tracked<Pmf, decltype(w), T...>;
-        auto s = detail::make_shared<slot_base, slot_t>(*this, std::forward<Pmf>(pmf), w);
+        auto s = make_slot<slot_t>(std::forward<Pmf>(pmf), w, gid);
         connection conn(s);
         add_slot(std::move(s));
         return conn;
@@ -813,16 +1252,17 @@ public:
      *
      * @param c a callable
      * @param ptr a trackable object pointer
+     * @param gid an identifier that can be used to order slot execution
      * @return a connection object that can be used to interact with the slot
      */
     template <typename Callable, typename Trackable>
     std::enable_if_t<trait::is_callable_v<arg_list, Callable> &&
                      trait::is_weak_ptr_compatible_v<Trackable>, connection>
-    connect(Callable && c, Trackable && ptr) {
+    connect(Callable && c, Trackable && ptr, group_id gid = 0) {
         using trait::to_weak;
         auto w = to_weak(std::forward<Trackable>(ptr));
         using slot_t = detail::slot_tracked<Callable, decltype(w), T...>;
-        auto s = detail::make_shared<slot_base, slot_t>(*this, std::forward<Callable>(c), w);
+        auto s = make_slot<slot_t>(std::forward<Callable>(c), w, gid);
         connection conn(s);
         add_slot(std::move(s));
         return conn;
@@ -835,6 +1275,94 @@ public:
     template <typename... CallArgs>
     scoped_connection connect_scoped(CallArgs && ...args) {
         return connect(std::forward<CallArgs>(args)...);
+    }
+
+    /**
+     * Disconnect slots bound to a callable
+     *
+     * Effect: Disconnects all the slots bound to the callable in argument.
+     * Safety: Thread-safety depends on locking policy.
+     *
+     * If the callable is a free or static member function, this overload is always
+     * available. However, RTTI is needed for it to work for pointer to member
+     * functions, function objects or and (references to) lambdas, because the
+     * C++ spec does not mandate the pointers to member functions to be unique.
+     *
+     * @param c a callable
+     * @return the number of disconnected slots
+     */
+    template <typename Callable>
+    std::enable_if_t<(trait::is_callable_v<arg_list, Callable> ||
+                      trait::is_callable_v<ext_arg_list, Callable> ||
+                      trait::is_pmf_v<Callable>) &&
+                     detail::function_traits<Callable>::is_disconnectable, size_t>
+    disconnect(const Callable &c) {
+        return disconnect_if([&] (const auto &s) {
+            return s->has_full_callable(c);
+        });
+    }
+
+    /**
+     * Disconnect slots bound to this object
+     *
+     * Effect: Disconnects all the slots bound to the object or tracked object
+     *         in argument.
+     * Safety: Thread-safety depends on locking policy.
+     *
+     * The object may be a pointer or trackable object.
+     *
+     * @param obj an object
+     * @return the number of disconnected slots
+     */
+    template <typename Obj>
+    std::enable_if_t<!trait::is_callable_v<arg_list, Obj> &&
+                     !trait::is_callable_v<ext_arg_list, Obj> &&
+                     !trait::is_pmf_v<Obj>, size_t>
+    disconnect(const Obj &obj) {
+        return disconnect_if([&] (const auto &s) {
+            return s->has_object(obj);
+        });
+    }
+
+    /**
+     * Disconnect slots bound both to a callable and object
+     *
+     * Effect: Disconnects all the slots bound to the callable and object in argument.
+     * Safety: Thread-safety depends on locking policy.
+     *
+     * For naked pointers, the Callable is expected to be a pointer over member
+     * function. If obj is trackable, any kind of Callable can be used.
+     *
+     * @param c a callable
+     * @param obj an object
+     * @return the number of disconnected slots
+     */
+    template <typename Callable, typename Obj>
+    size_t disconnect(const Callable &c, const Obj &obj) {
+        return disconnect_if([&] (const auto &s) {
+            return s->has_object(obj) && s->has_callable(c);
+        });
+    }
+
+    /**
+     * Disconnect slots in a particular group
+     *
+     * Effect: Disconnects all the slots in the group id in argument.
+     * Safety: Thread-safety depends on locking policy.
+     *
+     * @param gid a group id
+     * @return the number of disconnected slots
+     */
+    size_t disconnect(group_id gid) {
+        lock_type lock(m_mutex);
+        for (auto &group : detail::cow_write(m_slots)) {
+            if (group.gid == gid) {
+                size_t count = group.slts.size();
+                group.slts.clear();
+                return count;
+            }
+        }
+        return 0;
     }
 
     /**
@@ -869,34 +1397,108 @@ public:
         return m_block.load();
     }
 
+    /**
+     * Get number of connected slots
+     * Safety: thread safe
+     */
+    size_t slot_count() noexcept {
+        cow_copy_type<list_type, Lockable> ref = slots_reference();
+        size_t count = 0;
+        for (const auto &g : detail::cow_read(ref)) {
+            count += g.slts.size();
+        }
+        return count;
+    }
+
 protected:
     /**
      * remove disconnected slots
      */
-    void clean(detail::slot_state *state) {
+    void clean(detail::slot_state *state) override {
         lock_type lock(m_mutex);
-        size_t idx = state->m_index;  // must take idx from inside the lock
+        const auto idx = state->index();
+        const auto gid = state->group();
 
-        auto &ss = detail::cow_write(m_slots);
+        // find the group
+        for (auto &group : detail::cow_write(m_slots)) {
+            if (group.gid == gid) {
+                auto &slts = group.slts;
 
-        assert(!ss.empty());
-        assert(idx < ss.size());
-        assert(ss[idx].get() == state);
+                // ensure we have the right slot, in case of concurrent cleaning
+                if (idx < slts.size() && slts[idx] && slts[idx].get() == state) {
+                    std::swap(slts[idx], slts.back());
+                    slts[idx]->index() = idx;
+                    slts.pop_back();
+                }
 
-        std::swap(ss[idx], ss.back());
-        ss[idx]->m_index = idx;  // update idx to new position
-        ss.pop_back();
+                return;
+            }
+        }
     }
 
 private:
-    void add_slot(slot_ptr &&s) {
+    // used to get a reference to the slots for reading
+    inline cow_copy_type<list_type, Lockable> slots_reference() {
         lock_type lock(m_mutex);
-        auto &ss = detail::cow_write(m_slots);
-        s->m_index = ss.size();
-        ss.push_back(std::move(s));
+        return m_slots;
     }
 
-    // to be called under lock
+    // create a new slot
+    template <typename Slot, typename... A>
+    inline auto make_slot(A && ...a) {
+        return detail::make_shared<slot_base, Slot>(*this, std::forward<A>(a)...);
+    }
+
+    // add the slot to the list of slots of the right group
+    void add_slot(slot_ptr &&s) {
+        const group_id gid = s->group();
+
+        lock_type lock(m_mutex);
+        auto &groups = detail::cow_write(m_slots);
+
+        // find the group
+        auto it = groups.begin();
+        while (it != groups.end() && it->gid < gid) {
+            it++;
+        }
+
+        // create a new group if necessary
+        if (it == groups.end() || it->gid != gid) {
+            it = groups.insert(it, {{}, gid});
+        }
+
+        // add the slot
+        s->index() = it->slts.size();
+        it->slts.push_back(std::move(s));
+    }
+
+    // disconnect a slot if a condition occurs
+    template <typename Cond>
+    size_t disconnect_if(Cond && cond) {
+        lock_type lock(m_mutex);
+        auto &groups = detail::cow_write(m_slots);
+
+        size_t count = 0;
+
+        for (auto &group : groups) {
+            auto &slts = group.slts;
+            size_t i = 0;
+            while (i < slts.size()) {
+                if (cond(slts[i])) {
+                    std::swap(slts[i], slts.back());
+                    slts[i]->index() = i;
+                    slts.pop_back();
+                    ++count;
+                } else {
+                    ++i;
+                }
+            }
+        }
+
+        return count;
+    }
+
+    // to be called under lock: remove all the slots
     void clear() {
         detail::cow_write(m_slots).clear();
     }
@@ -926,4 +1528,3 @@ template <typename... T>
 using signal = signal_base<std::mutex, T...>;
 
 } // namespace sigslot
-

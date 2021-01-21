@@ -2,10 +2,13 @@ Release notes
 -------------
 
 
-0.7.7 (??/05/2020)
+0.8.0 (??/06/2020)
 ~~~~~~~~~~~~~~~~~~
 
+- new scripting engine
+- faster hash table based on Robin Hood hashing
 - save annotation in annotation view with ``ctrl+s``
+
 
 0.7.6 (18/05/2020)
 ~~~~~~~~~~~~~~~~~~

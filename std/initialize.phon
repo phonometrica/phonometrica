@@ -2,7 +2,7 @@
 # Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                             #
 #                                                                                                                      #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public    #
-# License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any       #
+# License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any       #
 # later version.                                                                                                       #
 #                                                                                                                      #
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied   #
@@ -18,25 +18,12 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-# Create settings directory and subdirectories
-var config = phon.config
-
-config.get_documentation_page = function(page)
-    # `page` might be a path such as "about/license". We build a full path such as
-    # "/path/to/.../about/license/index.html".
-    page = system.nativize(page)
-    return system.join_path(config.documentation_directory, page)
-end
-
-
-#######################################################################################################################
-
 # Create directories for user settings.
-var dirs = [config.settings_directory, config.plugin_directory, config.metadata_directory, config.script_directory]
+local dirs = [get_settings_directory(), get_plugin_directory(), get_metadata_directory(), get_script_directory()]
 
-foreach var dir in dirs do
-    if not system.exists(dir) then
-        system.create_directory(dir)
+foreach dir in dirs do
+    if not exists(dir) then
+        create_directory(dir)
     end 
 end 
 

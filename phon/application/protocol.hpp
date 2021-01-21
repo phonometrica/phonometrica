@@ -79,6 +79,8 @@ public:
 
 private:
 
+	void parse();
+
 	Runtime &runtime;
 
 	Array<SearchField> m_fields;

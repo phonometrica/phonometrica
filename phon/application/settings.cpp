@@ -1,54 +1,72 @@
-/***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
- *                                                                                                                     *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
- * later version.                                                                                                      *
- *                                                                                                                     *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
- * details.                                                                                                            *
- *                                                                                                                     *
- * You should have received a copy of the GNU General Public License along with this program. If not, see              *
- * <http://www.gnu.org/licenses/>.                                                                                     *
- *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
- *                                                                                                                     *
- * Purpose: see header.                                                                                                *
- *                                                                                                                     *
- ***********************************************************************************************************************/
+//
+// Created by julien on 15/01/2021.
+//
 
 #include <phon/application/settings.hpp>
-#include <phon/file.hpp>
-#include <phon/runtime/runtime.hpp>
-#include <phon/runtime/object.hpp>
-#include <phon/utils/print.hpp>
 #include <phon/utils/file_system.hpp>
+#include <phon/runtime/file.hpp>
 #include <phon/include/read_settings_phon.hpp>
-#include "settings.hpp"
 
-
-#ifdef PHON_EMBED_SCRIPTS
+//#ifdef PHON_EMBED_SCRIPTS
 #include <phon/include/write_settings_phon.hpp>
-#include <phon/include/reset_general_settings_phon.hpp>
-#include <phon/include/reset_sound_settings_phon.hpp>
-#endif
+//#include <phon/include/reset_general_settings_phon.hpp>
+//#include <phon/include/reset_sound_settings_phon.hpp>
+//#endif
 
 namespace phonometrica {
 
+Runtime *Settings::runtime = nullptr;
 static String phon_key("phon"), settings_key("settings");
 static String last_dir_key("last_directory");
+
+void Settings::initialize(Runtime *rt)
+{
+	runtime = rt;
+	static String res("resources_directory");
+
+	// Create global functions related to settings
+	auto get_settings_directory = [](Runtime &, std::span<Variant>) -> Variant {
+		return Settings::settings_directory();
+	};
+
+	auto get_metadata_directory = [](Runtime &, std::span<Variant>) -> Variant {
+		return Settings::metadata_directory();
+	};
+
+	auto get_plugin_directory = [](Runtime &, std::span<Variant>) -> Variant {
+		return Settings::plugin_directory();
+	};
+
+	auto get_script_directory = [](Runtime &, std::span<Variant>) -> Variant {
+		return Settings::user_script_directory();
+	};
+
+	auto get_config_path = [](Runtime &, std::span<Variant>) -> Variant {
+		return Settings::config_path();
+	};
+
+	auto get_documentation_directory = [](Runtime &, std::span<Variant>) -> Variant {
+		auto dir = get_string(res);
+		return filesystem::join(dir, "html");
+	};
+
+	rt->add_global("get_settings_directory", get_settings_directory, {});
+	rt->add_global("get_metadata_directory", get_metadata_directory, {});
+	rt->add_global("get_plugin_directory", get_plugin_directory, {});
+	rt->add_global("get_script_directory", get_script_directory, {});
+	rt->add_global("get_config_path", get_config_path, {});
+	rt->add_global("get_documentation_directory", get_documentation_directory, {});
+}
 
 String Settings::settings_directory()
 {
 #if PHON_LINUX
-    auto name = "phonometrica";
+	auto name = "phonometrica";
 #else
-    auto name = "Phonometrica";
+	auto name = "Phonometrica";
 #endif
 
-    return filesystem::join(filesystem::application_directory(), name);
+	return filesystem::join(filesystem::application_directory(), name);
 }
 
 String Settings::plugin_directory()
@@ -83,142 +101,45 @@ String Settings::config_path()
 	return path;
 }
 
-void Settings::read(Runtime &rt)
-{
-    // `read_settings_script` must always be embedded because we need to resources directory
-    // to be set before we can load a script from disk.
-	String content;
-    auto path = config_path();
-
-	if (filesystem::exists(path))
-	{
-		content = File::read_all(path);
-		if (content.trim().empty())
-        {
-		    content = read_settings_script;
-        }
-	}
-	else
-	{
-		content = read_settings_script;
-	}
-	rt.do_string(content);
-
-	// Sanity checks
-	rt.do_string(R"__(
-if (not phon.contains("settings")) then
-    error("Settings could not be initialized properly: check the file '" + phon.config.path + "'")
-end
-
-var plots = phon.settings.get("sound_plots", null)
-if not plots then
-	phon.settings.sound_plots = {
-		spectrogram: true,
-		formants: false,
-		pitch: true,
-		intensity: true
-	}
-end
-)__");
-}
-
-void Settings::write(Runtime &rt)
-{
-	run_script(rt, write_settings);
-}
-
-void Settings::initialize(Runtime &rt)
-{
-	static String res("resources_directory");
-
-	auto get_settings_directory = [](Runtime &rt) {
-		rt.push(Settings::settings_directory());
-	};
-
-	auto get_metadata_directory = [](Runtime &rt) {
-		rt.push(Settings::metadata_directory());
-	};
-
-	auto get_plugin_directory = [](Runtime &rt) {
-		rt.push(Settings::plugin_directory());
-	};
-
-	auto get_script_directory = [](Runtime &rt) {
-		rt.push(Settings::user_script_directory());
-	};
-
-	auto get_config_path = [](Runtime &rt) {
-		rt.push(Settings::config_path());
-	};
-
-	auto get_documentation_directory = [](Runtime &rt) {
-		auto dir = get_string(rt, res);
-		rt.push(filesystem::join(dir, "html"));
-	};
-
-	rt.push(new Object(rt, PHON_COBJECT, rt.object_meta));
-	{
-		rt.add_accessor("settings_directory", get_settings_directory);
-		rt.add_accessor("metadata_directory", get_metadata_directory);
-		rt.add_accessor("plugin_directory", get_plugin_directory);
-		rt.add_accessor("script_directory", get_script_directory);
-		rt.add_accessor("path", get_config_path);
-		rt.add_accessor("documentation_directory", get_documentation_directory);
-	}
-	rt.set_field(-2, "config");
-}
-
-String Settings::get_string(Runtime &rt, const String &name)
+String Settings::get_string(const String &name)
 {
 	// Get "phon.settings.name"
-	rt.get_global(phon_key);
-	rt.get_field(-1, settings_key);
-	rt.get_field(-1, name);
-	auto value = rt.to_string(-1);
-	rt.pop(3);
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key));
 
-	return value;
+	return cast<String>(settings.get(name));
 }
 
-bool Settings::get_boolean(Runtime &rt, const String &name)
+bool Settings::get_boolean(const String &name)
 {
-    // Get "phon.settings.name"
-    rt.get_global(phon_key);
-    rt.get_field(-1, settings_key);
-    rt.get_field(-1, name);
-    auto value = rt.to_boolean(-1);
-    rt.pop(3);
+	// Get "phon.settings.name"
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key));
 
-    return value;
+	return cast<bool>(settings.get(name));
 }
 
-double Settings::get_number(Runtime &rt, const String &name)
+double Settings::get_number(const String &name)
 {
-    // Get "phon.settings.name"
-    rt.get_global(phon_key);
-    rt.get_field(-1, settings_key);
-    rt.get_field(-1, name);
-    auto value = rt.to_number(-1);
-    rt.pop(3);
+	// Get "phon.settings.name"
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key));
 
-    return value;
+	return settings.get(name).get_number();
 }
 
-Array<Variant> &Settings::get_list(Runtime &rt, const String &name)
+Array<Variant> &Settings::get_list(const String &name)
 {
-    // Get "phon.settings.name"
-    rt.get_global(phon_key);
-    rt.get_field(-1, settings_key);
-    rt.get_field(-1, name);
-    auto &value = rt.to_list(-1);
-    rt.pop(3);
+	// Get "phon.settings.name"
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key));
 
-    return value;
+	return cast<List>(settings.get(name)).items();
 }
 
-String Settings::get_std_script(Runtime &rt, String name)
+String Settings::get_std_script(String name)
 {
-	auto path = Settings::get_string(rt, "resources_directory");
+	auto path = Settings::get_string("resources_directory");
 	filesystem::append(path, "std");
 	filesystem::nativize(name);
 	name.append(".phon");
@@ -227,150 +148,158 @@ String Settings::get_std_script(Runtime &rt, String name)
 	return path;
 }
 
-String Settings::get_last_directory(Runtime &rt)
+String Settings::get_last_directory()
 {
-    return get_string(rt, last_dir_key);
+	return get_string(last_dir_key);
 }
 
-void Settings::set_value(Runtime &rt, const String &key, String value)
+void Settings::set_value(const String &key, Variant value)
 {
-    rt.get_global(phon_key);
-	rt.get_field(-1, settings_key);
-	{
-		rt.push(std::move(value));
-	}
-	rt.set_field(-2, key);
-    rt.pop(2);
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key));
+	settings[key] = std::move(value);
 }
 
-void Settings::set_value(Runtime &rt, const String &key, Array<Variant> value)
+void Settings::set_value(const String &key, Array<Variant> value)
 {
-    rt.get_global(phon_key);
-	rt.get_field(-1, settings_key);
-	{
-		rt.push(std::move(value));
-	}
-	rt.set_field(-2, key);
-    rt.pop(2);
+	set_value(key, make_handle<List>(runtime, std::move(value)));
 }
 
 
-void Settings::set_last_directory(Runtime &rt, const String &path)
+void Settings::set_last_directory(const String &path)
 {
 	if (!path.empty()) {
-		set_value(rt, last_dir_key, filesystem::directory_name(path));
+		set_value(last_dir_key, filesystem::directory_name(path));
 	}
 }
 
-void Settings::set_value(Runtime &rt, const String &key, bool value)
+int Settings::get_int(const String &name)
 {
-	rt.get_global(phon_key);
-	rt.get_field(-1, settings_key);
-	{
-		rt.push_boolean(value);
-	}
-	rt.set_field(-2, key);
-	rt.pop(2);
+	return int(get_number(name));
 }
 
-void Settings::set_value(Runtime &rt, const String &key, double value)
+bool Settings::get_boolean(const String &category, const String &name)
 {
-	rt.get_global(phon_key);
-	rt.get_field(-1, settings_key);
-	{
-		rt.push(value);
-	}
-	rt.set_field(-2, key);
-	rt.pop(2);
+	// Get "phon.settings.category.name"
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key));
+	auto &mod = cast<Table>(settings.get(category));
+
+	return cast<bool>(mod.get(name));
 }
 
-int Settings::get_int(Runtime &rt, const String &name)
+double Settings::get_number(const String &category, const String &name)
 {
-	return int(get_number(rt, name));
+	// Get "phon.settings.category.name"
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key));
+	auto &mod = cast<Table>(settings.get(category));
+
+	return mod.get(name).get_number();
 }
 
-
-bool Settings::get_boolean(Runtime &rt, const String &category, const String &name)
+String Settings::get_string(const String &category, const String &name)
 {
-    // Get "phon.settings.category.name"
-    rt.get_global(phon_key);
-    rt.get_field(-1, settings_key);
-    rt.get_field(-1, category);
-    rt.get_field(-1, name);
-    auto value = rt.to_boolean(-1);
-    rt.pop(4);
+	// Get "phon.settings.category.name"
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key));
+	auto &mod = cast<Table>(settings.get(category));
 
-    return value;
+	return cast<String>(mod.get(name));
 }
 
-
-double Settings::get_number(Runtime &rt, const String &category, const String &name)
+void Settings::set_value(const String &category, const String &key, Variant value)
 {
-    // Get "phon.settings.category.name"
-    rt.get_global(phon_key);
-    rt.get_field(-1, settings_key);
-    rt.get_field(-1, category);
-    rt.get_field(-1, name);
-    auto value = rt.to_number(-1);
-    rt.pop(4);
-
-    return value;
-}
-
-String Settings::get_string(Runtime &rt, const String &category, const String &name)
-{
-    // Get "phon.settings.category.name"
-    rt.get_global(phon_key);
-    rt.get_field(-1, settings_key);
-    rt.get_field(-1, category);
-    rt.get_field(-1, name);
-    auto value = rt.to_string(-1);
-    rt.pop(4);
-
-    return value;
-}
-
-void Settings::set_value(Runtime &rt, const String &category, const String &key, double value)
-{
-    rt.get_global(phon_key);
-    rt.get_field(-1, settings_key);
-    {
-        rt.get_field(-1, category);
-        {
-            rt.push(value);
-        }
-        rt.set_field(-2, key);
-    }
-    rt.pop(3);
-}
-
-void Settings::set_value(Runtime &rt, const String &category, const String &key, const String &value)
-{
-    rt.get_global(phon_key);
-    rt.get_field(-1, settings_key);
-    {
-        rt.get_field(-1, category);
-        {
-            rt.push(value);
-        }
-        rt.set_field(-2, key);
-    }
-    rt.pop(3);
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key));
+	auto &mod = cast<Table>(settings.get(category));
+	mod[key] = std::move(value);
 }
 
 String Settings::get_std_plugin_directory()
 {
-	return String();
+#if PHON_LINUX
+	String name("plugins");
+#else
+	String name("Plugins");
+#endif
+
+	return filesystem::join(Settings::get_string("resources_directory"), name);
 }
 
-void Settings::reset_general_settings(Runtime &rt)
+void Settings::reset_general_settings()
 {
-	run_script(rt, reset_general_settings);
+	//run_script(rt, reset_general_settings);
 }
 
-void Settings::reset_sound_settings(Runtime &rt)
+void Settings::reset_sound_settings()
 {
-	run_script(rt, reset_sound_settings);
+//	run_script(rt, reset_sound_settings);
 }
+
+void Settings::read()
+{
+	// `read_settings_script` must always be embedded because we need to resources directory
+	// to be set before we can load a script from disk.
+	String content;
+	auto path = config_path();
+
+	if (filesystem::exists(path))
+	{
+		content = File::read_all(path);
+		if (content.trim().empty())
+		{
+			content = read_settings_script;
+		}
+	}
+	else
+	{
+		content = read_settings_script;
+	}
+	Variant result;
+
+	try
+	{
+		result = runtime->do_string(content);
+	}
+	catch (std::exception &)
+	{
+		// TODO: notify user that settings are invalid and have been reinitialized.
+		result = runtime->do_string(read_settings_script);
+	}
+	// Versions of Phonometrica prior to 0.8 created phon.settings in settings.phon.
+	// We now simply store a table in this file, and create settings.phon ourselves to
+	// hide it from users.
+	if (result.empty())
+	{
+		// Sanity checks
+		runtime->do_string(R"__(
+			if not contains(phon, "settings") then
+			    throw "Settings could not be initialized properly: check the file '" & get_config_path() & "'"
+			end
+		)__");
+	}
+	else
+	{
+		auto &phon = cast<Module>((*runtime)[phon_key]);
+		phon["settings"] = std::move(result);
+	}
+}
+
+void Settings::write()
+{
+	run_script((*runtime), write_settings);
+}
+
+String Settings::icon_directory()
+{
+	return filesystem::join(Settings::get_string("resources_directory"), "icons");
+}
+
+String Settings::get_icon_path(std::string_view name)
+{
+	return filesystem::join(icon_directory(), name);
+}
+
 
 } // namespace phonometrica

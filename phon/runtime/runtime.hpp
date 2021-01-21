@@ -1,471 +1,425 @@
-/**************************************************************************************
- * Copyright (C) 2013-2019, Artifex Software                                          *
- *           (C) 2019, Julien Eychenne <jeychenne@gmail.com>                          *
- *                                                                                    *
- * Permission to use, copy, modify, and/or distribute this software for any purpose   *
- * with or without fee is hereby granted, provided that the above copyright notice    *
- * and this permission notice appear in all copies.                                   *
- *                                                                                    *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH      *
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND    *
- * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, *
- * OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,     *
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS    *
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS        *
- * SOFTWARE.                                                                          *
- *                                                                                    *
- **************************************************************************************/
+/***********************************************************************************************************************
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
+ *                                                                                                                     *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
+ * later version.                                                                                                      *
+ *                                                                                                                     *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
+ * details.                                                                                                            *
+ *                                                                                                                     *
+ * You should have received a copy of the GNU General Public License along with this program. If not, see              *
+ * <http://www.gnu.org/licenses/>.                                                                                     *
+ *                                                                                                                     *
+ * Created: 23/05/2020                                                                                                 *
+ *                                                                                                                     *
+ * Purpose: a runtime encapsulates a virtual machine that can execute Phonometrica code. There can be several          *
+ * runtimes in an OS thread, but runtimes must not be shared across threads.                                           *
+ *                                                                                                                     *
+ ***********************************************************************************************************************/
 
 #ifndef PHONOMETRICA_RUNTIME_HPP
 #define PHONOMETRICA_RUNTIME_HPP
 
-#include <cstdint>
+#include <type_traits>
 #include <unordered_set>
 #include <phon/string.hpp>
-#include <phon/runtime/toplevel.hpp>
-#include <phon/utils/matrix.hpp>
+#include <phon/runtime/iterator.hpp>
+#include <phon/runtime/class.hpp>
+#include <phon/runtime/list.hpp>
+#include <phon/runtime/table.hpp>
+#include <phon/runtime/set.hpp>
+#include <phon/runtime/function.hpp>
+#include <phon/runtime/module.hpp>
+#include <phon/runtime/variant.hpp>
+#include <phon/runtime/compiler/parser.hpp>
+#include <phon/runtime/compiler/compiler.hpp>
 
 namespace phonometrica {
 
-// Defined in the GUI
+class Class;
+class Object;
+class Collectable;
+#if PHON_GUI
 class Console;
-
-// An environment stores local variables for a given lexical scope. Environments can be nested:
-// each new function defines a new environment, although this is optimized out if the
-// locals are not referenced by a nested scope. The top-level environment is the global environment.
-struct Environment
-{
-	Environment *outer;
-	Object *variables;
-
-	Environment *gcnext;
-	int gcmark;
-};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#endif
 
 class Runtime final
 {
+	// Provide generic methods for each type registered with the runtime. The following methods will be added
+	// to a Class when it is created. Most of these methods are proxies that call templated functions
+	// defined in meta.hpp.
+
+	// VTable for non-primitive types.
+	template<typename T>
+	struct VTable
+	{
+		static void destroy(Object *o)
+		{
+			delete reinterpret_cast<TObject<T>*>(o);
+		}
+
+		static void traverse(Collectable *o, const GCCallback &callback)
+		{
+			auto obj = reinterpret_cast<TObject<T>*>(o);
+			meta::traverse(obj->value(), callback);
+		}
+
+		static Object *clone(const Object *o)
+		{
+			auto obj = reinterpret_cast<const TObject<T> *>(o);
+
+			if constexpr (traits::is_collectable<T>::value) {
+				return new TObject<T>(reinterpret_cast<const Collectable*>(obj)->runtime, obj->value());
+			}
+			else {
+				return new TObject<T>(obj->value());
+			}
+		}
+
+		static String to_string(const Object *o)
+		{
+			auto obj = reinterpret_cast<const TObject<T> *>(o);
+			return meta::to_string(obj->value());
+		}
+
+		static int compare(const Object *o1, const Object *o2)
+		{
+			assert(o1->get_class() == o2->get_class());
+			auto obj1 = reinterpret_cast<const TObject<T> *>(o1);
+			auto obj2 = reinterpret_cast<const TObject<T> *>(o2);
+
+			return meta::compare(obj1->value(), obj2->value());
+		}
+
+		static bool equal(const Object *o1, const Object *o2)
+		{
+			assert(o1->get_class() == o2->get_class());
+			auto obj1 = reinterpret_cast<const TObject<T> *>(o1);
+			auto obj2 = reinterpret_cast<const TObject<T> *>(o2);
+
+			return meta::equal(obj1->value(), obj2->value());
+		}
+	};
+
 public:
 
-    Runtime();
+	explicit Runtime(intptr_t stack_size = 4096);
 
-    Runtime(const Runtime &) = delete;
+	~Runtime();
 
-    Runtime(Runtime &&) = delete;
+	template<typename T>
+	Handle<Class> create_type(const char *name, Class *base, Class::Index index = Class::Index::Foreign)
+	{
+		// Sanity checks.
+		static_assert(!(std::is_same<T, String>::value && traits::is_collectable<T>::value), "String is not collectable");
+		static_assert(!(std::is_same<T, File>::value && traits::is_collectable<T>::value), "File is not collectable");
 
-    ~Runtime();
+		using Type = typename traits::bare_type<T>::type;
+		auto klass = make_handle<Class>(this, name, base, &typeid(Type), index);
+		classes.push_back(klass);
+		klass->set_object(classes.back().object());
 
-    void collect(bool report = false);
+		// Register statically known type so that we can call Class::get<T>() to retrieve a type's class.
+		detail::ClassDescriptor<T>::set(klass.get());
 
-    void report(const String &message);
+		// Object is an abstract type
+		if constexpr (traits::is_boxed<T>::value && !std::is_same<T, Object>::value)
+		{
+			// Add generic methods
+			klass->destroy   = &VTable<T>::destroy;
+			klass->to_string = &VTable<T>::to_string;
+			klass->compare   = &VTable<T>::compare;
+			klass->equal     = &VTable<T>::equal;
 
-    void set_report_callback(report_callback_t report);
+			if constexpr (traits::is_collectable<T>::value)
+			{
+				klass->traverse  = &VTable<T>::traverse;
+			}
 
-    panic_callback_t at_panic(panic_callback_t panic);
+			if constexpr (traits::is_clonable<T>::value)
+			{
+				klass->clone  = &VTable<T>::clone;
+			}
+		}
 
-    int do_string(const String &source);
+		return klass;
+	}
 
-    int do_file(const String &filename);
+	template<class T, class... Args>
+	Handle<T> create(Args... args)
+	{
+		if constexpr (traits::is_collectable<T>::value) {
+			return Handle<T>(this, std::forward<Args>(args)...);
+		}
+		else {
+			return Handle<T>(std::forward<Args>(args)...);
+		}
+	}
 
-    void load_string(const String &filename, const String &source);
+	void push_null();
 
-    void load_file(const String &filename);
+	// Push null on stack, return address.
+	Variant &push();
 
-    void eval();
+	// Push number on stack.
+	void push(double n);
 
-    int pcall(int n);
+	// Push an integer onto the stack. This method doesn't overload push() because there would be an
+	// ambiguity between double and intptr_t when pushing an integer literal, on platforms where int != intptr_t.
+	void push_int(intptr_t n);
 
-    void call(int n);
+	// Push boolean onto the stack.
+	void push(bool b);
 
-    int pconstruct(int n);
+	// Push a variant onto the stack.
+	void push(const Variant &v);
+	void push(Variant &&v);
 
-    void construct(int n);
+	// Push a string onto the stack.
+	void push(String s);
 
-    String ref();
+	void pop(int n = 1);
 
-    void unref(const String &ref);
+	template<class T>
+	void push(Handle<T> value)
+	{
+		new(var()) Variant(std::move(value));
+	}
 
-    void get_registry(const String &name);
+	Variant & peek(int n = -1);
 
-    void set_registry(const String &name);
+	Variant interpret(Handle<Closure> &closure);
 
-    void del_registry(const String &name);
+	void disassemble(const Closure &closure, const String &name);
 
-    void get_global(const String &name);
+	void disassemble(const Routine &routine, const String &name);
 
-    void set_global(const String &name);
+	Variant do_file(const String &path);
 
-    void def_global(const String &name, int atts);
+	Variant do_string(const String &code);
 
-    bool has_field(int idx, const String &name);
+	Handle<Closure> compile_file(const String &path);
 
-    void get_field(int idx, const String &name);
+	Handle<Closure> compile_string(const String &code);
 
-    void set_field(int idx, const String &name);
+	String intern_string(const String &s);
 
-    void def_field(int idx, const String &name, int atts = PHON_DONTENUM);
+	void add_global(String name, Variant value);
 
-    void del_field(int idx, const String &name);
+	void add_global(const String &name, NativeCallback cb, std::initializer_list<Handle<Class>> sig, ParamBitset ref = ParamBitset());
 
-    // Add accessor to the object on top of the stack
-    void add_accessor(const String &name, native_callback_t getter);
+	bool needs_reference() const;
 
-    void add_accessor(const String &name, native_callback_t getter, native_callback_t setter);
+	Variant &operator[](const String &key);
 
-    // TODO: make this method private
-    void def_accessor(int idx, const String &name, int atts);
+	bool debug_mode() const;
 
-    void current_function();
+	void set_debug_mode(bool value);
 
-    void push_global();
+	void suspend_gc();
 
-    void push_null();
+	void resume_gc();
 
-    void push_undefined();
+	Class *get_object_class() { return classes[1].get(); }
 
-    void push(double v);
+	std::function<void()> initialize_script;
 
-    void push_boolean(bool value); // avoid ambiguity with int
+	std::function<void()> finalize_script;
 
-    void push_int(intptr_t i) { push(double(i)); } // avoid ambiguity with int
+	std::function<void(const String &)> print;
 
-    void push(const char *v, intptr_t n);
+	void printf(const char *fmt, ...) const;
 
-    void push(String &&v);
+#if PHON_GUI
+	Console *console = nullptr;
+#endif
 
-    void push(const String &v);
+	bool is_text_mode() const { return text_mode; }
 
-    void push_iterator(int idx);
+	void set_text_mode(bool value) { text_mode = value; }
 
-    void push(Object *v);
+	void call(int narg);
 
-    void push(const Variant &v);
+	Variant import_module(const String &name);
 
-    void push(Variant &&v);
+	Variant reload_module(const String &name);
 
-    void push(Array<double> m);
+	void add_import_path(const String &path);
 
-    std::optional<Variant> next_iterator(int idx);
-
-    void new_objectx();
-
-    void new_object();
-
-    void new_list(intptr_t size = 0);
-
-    void new_array(intptr_t size);
-
-    void new_array(intptr_t nrow, intptr_t ncol);
-
-    void push(Array<Variant> lst);
-
-    void new_boolean(bool v);
-
-    void new_number(double v);
-
-    void new_string(const String &v);
-
-    void new_native_function(native_callback_t fun, const String &name, int length);
-
-    void new_native_constructor(native_callback_t fun, native_callback_t con, const String &name, int length);
-
-    void new_user_data(Object *meta, const char *tag, std::any data);
-
-    void new_user_data(const char *tag, std::any data);
-
-    void new_user_data(const char *tag, std::any data, has_field_callback_t has, put_callback_t put, delete_callback_t destroy);
-
-    void new_regex(const String &pattern, int flags);
-
-    void pop(int n = 1);
-
-    // Number of variants on the stack, including [this].
-    int top_count() const;
-
-    void rot(int n);
-
-    void copy(int idx);
-
-    void remove(int idx);
-
-    bool is_defined(int idx) const;
-
-    bool is_null(int idx) const;
-
-    bool is_boolean(int idx) const;
-
-    bool is_number(int idx) const;
-
-    bool is_string(int idx) const;
-
-    bool is_primitive(int idx) const;
-
-    bool is_object(int idx) const;
-
-    bool is_list(int idx) const;
-
-    bool is_regex(int idx) const;
-
-    bool is_array(int idx) const;
-
-    bool is_file(int idx) const;
-
-    bool is_user_data(int idx, const char *tag) const;
-
-    bool is_error(int idx) const;
-
-    bool is_coercible(int idx) const;
-
-    bool is_callable(int idx) const;
-
-    bool to_boolean(int idx) const;
-
-	Regex & to_regex(int idx);
-
-	Array<double> &to_array(int idx);
-
-    File &to_file(int idx);
-
-    Array<Variant> &to_list(int idx);
-
-    Object *to_object(int idx);
-
-    Object *to_object(Variant *v);
-
-    void add_method(const char *name, native_callback_t cfun, int n);
-
-    void add_global_function(const char *name, native_callback_t cfun, int n);
-
-    void add_math_constant(const char *name, double number);
-
-    void add_field(const char *name, const char *string);
-
-    void add_field(const char *name, double n);
-
-	void add_field(const char *name, intptr_t n);
-
-    void add_field(const char *name, bool value);
-
-    void add_field(const char *name, Array<double> a);
-
-    double to_number(int idx);
-
-    intptr_t to_integer(int idx);
-
-    int to_int32(int idx);
-
-    unsigned int to_uint32(int idx);
-
-    short to_int16(int idx);
-
-    unsigned short to_uint16(int idx);
-
-    double to_number(Variant *v);
-
-	void format_object(String &buffer, Object *obj, const char *gap, int level);
-
-    int arg_count() { return top_count() - 1; }
-
-    intptr_t to_integer(Variant *v);
-
-    String to_string(int idx);
-
-    std::any & to_user_data(int idx, const char *tag);
-
-    std::any & to_user_data(int idx); // don't check tag
-
-    template<class T>
-    T cast_user_data(int idx)
-    {
-        try
-        {
-            return std::any_cast<T>(to_user_data(idx));
-        }
-        catch (std::bad_any_cast &)
-        {
-            throw raise("Type error", "Wrong userdata type");
-        }
-    }
-
-    String internalize(const String &s);
-
-    bool has_field(Object *obj, const String &name);
-
-    void get_field(Object *obj, const String &name);
-
-    void set_field(Object *obj, const String &name);
-
-    void def_field(Object *obj, const String &name, int atts, Variant *value, Object *getter, Object *setter);
-
-    int del_field(Object *obj, const String &name);
-
-    void get_field(Object *obj, intptr_t idx);
-
-    void set_field(Object *obj, intptr_t idx);
-
-    void check_stack(int n);
-
-    intptr_t stack_size() const;
-
-    // TODO: make stack_index() private (use get() instead)
-    Variant *stack_index(int idx);
-
-    const Variant *stack_index(int idx) const;
-
-    Variant &get(int idx);
-
-    const Variant &get(int idx) const;
-
-    char32_t read_char() { return pos == source.end() ? 0 : source.next_codepoint(pos); }
-
-    void clear_stack();
-
-    std::runtime_error raise(const char *error_category, std::exception &e);
-
-    std::runtime_error raise(const char *error_category, const char *fmt, ...);
-
-    void dump_stack();
-
-    bool is_text_mode() const { return text_mode; }
-
-    void set_text_mode(bool value) { text_mode = value; }
-
-    int get_stack_trace(int skip);
-
-    bool is_stack_empty() const { return stack == top; }
-
-	std::function<void()> initialize_script, finalize_script;
+	void remove_import_path(const String &path);
 
 private:
 
-    void initialize();
+	struct CallFrame
+	{
+		// Return address in the caller.
+		const Instruction *ip = nullptr;
 
-    void init_object();
+		// Routine being called.
+		const Routine *previous_routine = nullptr;
 
-    void init_list();
+		// For the GC.
+		TObject<Closure> *current_closure = nullptr;
 
-    void init_function();
+		// Arguments and local variables on the stack.
+		Variant *locals = nullptr;
 
-    void init_boolean();
+		// Reference flags (only used to prepare a call).
+		ParamBitset ref_flags;
 
-    void init_number();
+		// Number of local variables.
+		int nlocal = -1;
+	};
 
-    void init_string();
+	friend class Object;
+	friend class Collectable;
 
-    void init_regexp();
+	void clear();
 
-    void init_array();
+	String find_import(String name);
 
-    void init_file();
+	void add_candidate(Collectable *obj);
 
-    void init_math();
+	void remove_candidate(Collectable *obj);
 
-    void init_stats();
+	void create_builtins();
 
-    void init_json();
+	void set_global_namespace();
 
-    void init_date();
+	void check_capacity();
 
-    void init_system();
+	void ensure_capacity(int n);
+
+	void check_underflow();
+
+	Variant *var();
+
+	size_t disassemble_instruction(const Routine &routine, size_t offset);
+
+	size_t print_simple_instruction(const char *name);
+
+	void negate();
+
+	void math_op(char op);
+
+	static void check_float_error();
+
+	int get_current_line() const;
+
+	void push_call_frame(TObject<Closure> *closure, int nlocal);
+
+	Variant pop_call_frame();
+
+	void get_index(int count, bool by_ref);
+
+	void get_field(bool by_ref);
+
+	void report_call_error(const Function &func, std::span<Variant> args);
+
+	void collect();
+
+	void mark_candidates();
+
+	static void mark_grey(Collectable *candidate);
+
+	static void scan(Collectable *candidate);
+
+	static void scan_black(Collectable *candidate);
+
+	void collect_candidates();
+
+	static void collect_white(Collectable *ref);
+
+	Collectable *pop_candidate();
+
+	bool is_full() const { return gc_count == gc_threshold; }
+
+	Variant call_method(Handle<Closure> &c, std::span<Variant> args);
+
+	// Builtin classes (known at compile time).
+	std::vector<Handle<Class>> classes;
+
+	// imports (path -> return value)
+	Dictionary<Variant> imports;
+
+	// Runtime stack.
+	Array<Variant> stack;
+
+	// Top of the stack. This is one slot past the last element currently on the stack.
+	Variant *top;
+
+	// End of the stack array.
+	Variant *limit;
+
+	// Routine which is being executed.
+	const Routine *current_routine = nullptr;
+
+	// Instruction pointer.
+	const Instruction *ip = nullptr;
+
+	// Currently executing code chunk.
+	const Code *code = nullptr;
+
+	// Path of the current file (empty for code chunks).
+	String current_path;
+
+	// Paths for imports.
+	std::vector<String> import_paths;
+
+	// Parses source code to an AST.
+	Parser parser;
+
+	// Compiles source code to byte code for the runtime.
+	Compiler compiler;
+
+	// Interned strings.
+	std::unordered_set<String> strings;
+
+	// Global variables.
+	Handle<Module> globals;
+
+	// Stack of call frames.
+	std::vector<std::unique_ptr<CallFrame>> frames;
+
+	// Current call frame.
+	CallFrame *current_frame = nullptr;
+
+	// Root for garbage collection
+	Collectable *gc_root = nullptr;
+
+	// Number of allocated objects
+	int gc_count = 0;
+
+	// Maximum number of objects before the next collection cycle
+	int gc_threshold = 1024;
+
+	// Runtime option
+	bool debugging = true;
+
+	// Flag to let functions know whether a reference is requested.
+	bool needs_ref = false;
+
+	// If true, the GC will be suspended until the next call to resume_gc().
+	bool gc_paused = false;
+
+	// For methods that are retrieved after the arguments have been pushed, we set this flag to true so that pop_call_frame() doesn't try
+	// to pop the function before the stack frame.
+	bool calling_method = false;
+
+	// If false, we're running from a GUI.
+	bool text_mode = true;
+
+	// Global initialization.
+	static bool initialized;
 
 public:
+	const String get_item_string, set_item_string;
+	const String get_field_string, set_field_string;
+	const String length_string;
 
-    void *actx = nullptr; // TODO: get rid of allocator context
-    alloc_callback_t alloc = nullptr;
-    report_callback_t report_callback = nullptr;
-    panic_callback_t panic = nullptr;
-    std::function<void(const String &)> print;
-    Console *console = nullptr;
-
-    // Standard locations for modules.
-    Array<String> import_directories;
-
-    std::unordered_set<String> strings;
-
-    int default_strict = 0;
-    int strict = 0;
-    bool text_mode = true;
-
-    String null_string, undef_string, true_string, false_string;
-
-    /* parser input source */
-    String filename;
-    String source;
-    String::const_iterator pos; // position in the source file
-    int line = 0;
-
-    /* lexer state */
-    String lexbuf;
-
-    int lexline = 0;
-    char32_t lexchar = 0;
-    int lasttoken = 0;
-    int newline = 0;
-
-    /* parser state */
-    int astdepth = 0;
-    int astline = 0;
-    int lookahead = 0;
-    String text;
-    double number = 0;
-    Ast *gcast = nullptr; /* list of allocated nodes to free after parsing */
-
-    /* runtime environment */
-    Object *object_meta = nullptr;
-    Object *list_meta = nullptr;
-    Object *function_meta = nullptr;
-    Object *boolean_meta = nullptr;
-    Object *number_meta = nullptr;
-    Object *string_meta = nullptr;
-    Object *regex_meta = nullptr;
-    Object *array_meta = nullptr;
-    Object *date_meta = nullptr;
-    Object *file_meta = nullptr;
-
-    // Objects that must be protected from garbage collection.
-    Array<Object*> permanent_objects;
-
-    int nextref = 0; /* for js_ref use */
-    Object *R = nullptr; /* registry of hidden values */
-    Object *G = nullptr; /* the global object */
-    Environment *E = nullptr; /* current environment scope */
-    Environment *GE = nullptr; /* global environment scope (at the root) */
-
-    /* execution stack */
-    Variant *top = nullptr, *bot = nullptr;
-    Variant *stack = nullptr;
-
-    /* garbage collector list */
-    int gcpause = 0;
-    int gcmark = 0;
-    int gccounter = 0;
-    Environment *gcenv = nullptr;
-    Function *gcfun = nullptr;
-    Object *gcobj = nullptr;
-
-    /* namespaces on the call stack but currently not in scope */
-    int nstop = 0;
-    Environment *nsstack[PHON_ENVLIMIT];
-
-    /* debug info stack trace */
-    int tracetop = 0;
-    StackTrace trace[PHON_ENVLIMIT];
 };
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Environment *new_environment(Runtime *J, Object *variables, Environment *outer);
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#ifdef PHON_EMBED_SCRIPTS
-#define run_script(e, name) e.do_string(name##_script)
-#define get_script_content(e, name) name##_script
-#else
-#define run_script(e, name) e.do_file(Settings::get_std_script(e, #name))
-#define get_script_content(e, name) File::read_all(Settings::get_std_script(e, #name))
-#endif
 
 } // namespace phonometrica
 

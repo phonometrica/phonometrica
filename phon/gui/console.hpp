@@ -1,9 +1,8 @@
 /***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
  * later version.                                                                                                      *
  *                                                                                                                     *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
@@ -13,74 +12,63 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 13/01/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Scripting console, located at the bottom of the main window.                                               *
+ * purpose: Scripting console, located at the bottom of the main window.                                               *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef CONSOLE_HPP
-#define CONSOLE_HPP
+#ifndef PHONOMETRICA_CONSOLE_HPP
+#define PHONOMETRICA_CONSOLE_HPP
 
-#include <QPlainTextEdit>
-#include <phon/runtime/runtime.hpp>
+#include <deque>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/richtext/richtextctrl.h>
+#include <phon/runtime.hpp>
 
 namespace phonometrica {
 
-class Console final : public QPlainTextEdit
+class Console final : public wxPanel
 {
-    Q_OBJECT
-
 public:
-    explicit Console(Runtime &rt, QWidget *parent = nullptr);
 
-    void runCommand(QString cmd, bool from_script);
-
-signals:
-
-    void shown(bool);
-
-public slots:
-
-    void print(const String &str);
-
-	void warn(const String &str);
-
-	void setPrompt();
-
-	// Similar to runCommand(), but prints the command before executing it
-	void execute(const String &s);
-
-protected:
-
-    void keyPressEvent(QKeyEvent *e) override;
+	Console(Runtime &rt, wxWindow *parent);
+	void ShowErrorMessage(const wxString &msg);
+	void AddPrompt();
+	void AppendNewLine() { static wxString eol("\n"); m_ctrl->WriteText(eol); }
+	void ChopNewLine();
+	void RunScript(const String &path);
 
 private:
 
-    void interpretCommand(const QString &command, bool from_script);
+	void SetIO();
+	void OnKeyDown(wxKeyEvent &e);
+	void GrabLine();
+	void Clear();
+	void ResetLastLine(wxString text);
+	void GoToEnd() { m_ctrl->SetInsertionPointEnd(); }
+	void Append(const wxString &text) { m_ctrl->WriteText(text); }
+	void RunCode(const String &code);
 
-    void printError(const QString &msg);
+	wxRichTextCtrl *m_ctrl;
 
-    void addCommand(const String &cmd);
+	wxSizer *m_sizer;
 
-    void setCurrentCommand(const String &cmd);
+	size_t history_pos = 0;
 
-    QTextBlock currentBlock();
+	std::deque<wxString> history;
 
-    void moveToEnd();
+	Runtime &runtime;
 
-    Runtime &runtime;
+	wxString prompt;
 
-    const QString prompt;
-
-    Array<String> history;
-
-    intptr_t current_cmd = 0;
-
-    // Flag used to indicate that text has been printed to the console.
-    bool dirty = false;
+	// Check whether some text has been written to stdout.
+	// This is used to add a new prompt line when running a script,
+	// if some text has been printed to the control.
+	bool text_written = false;
 };
 
-} // phonometrica
+} // namespace phonometrica
 
-#endif // CONSOLE_HPP
+#endif // PHONOMETRICA_CONSOLE_HPP

@@ -26,8 +26,6 @@
 #include <phon/utils/any.hpp>
 #include <phon/application/protocol.hpp>
 
-class QAction;
-
 namespace phonometrica {
 
 class Plugin final
@@ -40,7 +38,7 @@ public:
 	using MenuEntry = std::any;
 
 	// Callback to add entries to the plugin's menu.
-	using Callback = std::function<void(String, MenuEntry, String)>;
+	using Callback = std::function<void(String, MenuEntry)>;
 
 	Plugin(Runtime &rt, String path, Callback menu_handle);
 
@@ -48,13 +46,17 @@ public:
 
 	String path() const { return m_path; }
 
-	String label() const { return m_label; }
+	String label() const;
 
 	String get_script_directory() const;
 
 	String get_script(const String &name) const;
 
 	String get_resource_directory() const;
+
+	String get_documentation_directory() const;
+
+	String get_documentation_page(const String &name) const;
 
 	String get_resource(const String &name) const;
 
@@ -68,9 +70,9 @@ public:
 
 	String version() const { return m_version; }
 
-	QAction *action() const { return m_action; }
+	int menu_id() const { return m_menu_id; }
 
-	void setAction(QAction *a) { m_action = a; }
+	void set_menu_id(int value) { m_menu_id = value; }
 
 private:
 
@@ -90,7 +92,7 @@ private:
 
 	Array<AutoProtocol> m_protocols;
 
-	QAction *m_action = nullptr;
+	int m_menu_id = -1;
 
 	bool has_scripts = false;
 };

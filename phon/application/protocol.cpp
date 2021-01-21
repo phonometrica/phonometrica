@@ -21,58 +21,68 @@
 
 #include <phon/file.hpp>
 #include <phon/application/protocol.hpp>
-#include <phon/third_party/json.hpp>
-
-using namespace nlohmann;
 
 namespace phonometrica {
 
 Protocol::Protocol(Runtime &rt, const String &path) :
 	runtime(rt), m_path(path)
 {
-	auto content = File::read_all(path);
-	auto js = json::parse(content.data());
-	json::iterator it;
+	parse();
+}
 
-	it = js.find("type");
-	if (it == js.end()) {
+String Protocol::get_field_name(intptr_t i) const
+{
+	return m_fields[i].name;
+}
+
+void Protocol::parse()
+{
+	auto result = runtime.do_file(m_path);
+	if (!check_type<Table>(result)) {
+		throw error("File % must contain a table", m_path);
+	}
+	auto json = std::move(raw_cast<Table>(result).data());
+	Variant var;
+
+	auto it = json.find("type");
+	if (it == json.end()) {
 		throw error("Protocol has no \"type\" key");
 	}
 
-	auto type = it->get<std::string>();
+	auto type = cast<String>(it->second);
 	if (type != "coding_protocol") {
 		throw error("Invalid type in protocol: \"%\"", type);
 	}
 
-	it = js.find("name");
-	if (it == js.end()) {
+	it = json.find("name");
+	if (it == json.end()) {
 		throw error("Protocol has no \"name\" key");
 	}
-	m_name = it->get<std::string>();
+	m_name = cast<String>(it->second);
 
-	it = js.find("version");
-	if (it != js.end()) {
-		m_version = it->get<std::string>();
+	it = json.find("version");
+	if (it != json.end()) {
+		m_version = cast<String>(it->second);
 	}
 
-	it = js.find("field_separator");
-	if (it != js.end()) {
-		m_separator = it->get<std::string>();
+	it = json.find("field_separator");
+	if (it != json.end()) {
+		m_separator = cast<String>(it->second);
 	}
 
-	it = js.find("layer_index");
-	if (it != js.end()) {
-		m_layer_index = int(it->get<int64_t>());
+	it = json.find("layer_index");
+	if (it != json.end()) {
+		m_layer_index = int(cast<intptr_t>(it->second));
 	}
 
-	it = js.find("layer_name");
-	if (it != js.end()) {
-		m_layer_pattern = it->get<std::string>();
+	it = json.find("layer_name");
+	if (it != json.end()) {
+		m_layer_pattern = cast<String>(it->second);
 	}
 
-	it = js.find("layer_field");
-	if (it != js.end()) {
-		m_layer_field = int(it->get<int64_t>());
+	it = json.find("layer_field");
+	if (it != json.end()) {
+		m_layer_field = int(cast<intptr_t>(it->second));
 	}
 
 	// Don't use layer index if we have a valid name or if we use a layer field.
@@ -82,107 +92,118 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 		throw error("Invalid negative layer index");
 	}
 
-	it = js.find("case_sensitive");
-	if (it != js.end()) {
-		m_case_sensitive = it->get<bool>();
+	it = json.find("case_sensitive");
+	if (it != json.end()) {
+		m_case_sensitive = cast<bool>(it->second);
 	}
 
-	it = js.find("fields_per_row");
-	if (it != js.end()) {
-		m_fields_per_row = int(it->get<int64_t>());
+	it = json.find("fields_per_row");
+	if (it != json.end()) {
+		m_fields_per_row = int(cast<intptr_t>(it->second));
 	}
 
-	it = js.find("fields");
-	if (it == js.end()) {
+	it = json.find("fields");
+	if (it == json.end()) {
 		throw error("Protocol has no fields");
 	}
 
-	json fields = *it;
-	if (!fields.is_array()) {
-		throw error("\"fields\" must be an array");
+
+	if (!check_type<List>(it->second)) {
+		throw error("\"fields\" must be a list");
 	}
+	auto fields = std::move(raw_cast<List>(it->second).items());
+
 	int f = 0; // for error reporting
-	for (auto field : fields)
+	for (auto &field_var : fields)
 	{
 		f++;
 		SearchField search_field;
 
-		if (!field.is_object()) {
-			throw error("Field % is not an object", f);
+		if (!check_type<Table>(field_var)) {
+			throw error("Field % is not a table", f);
 		}
+		auto field = std::move(raw_cast<Table>(field_var).data());
 
 		it = field.find("name"); // can be anonymous
 		if (it != field.end()) {
-			search_field.name = it->get<std::string>();
+			search_field.name = cast<String>(it->second);
 		}
 
 		it = field.find("match_all"); // can be empty
 		if (it == field.end()) {
 			throw error("Field % has no \"match_all\" key", f);
 		}
-		search_field.match_all = it->get<std::string>();
-
+		search_field.match_all = cast<String>(it->second);
 
 		it = field.find("layer_pattern");
 		if (it != field.end()) {
 			if (f != m_layer_field) {
 				throw error("Key \"layer_pattern\" can only be found in layer-selecting field");
 			}
-			search_field.layer_pattern = it->get<std::string>();
+			search_field.layer_pattern = cast<String>(it->second);
 		}
 
 		it = field.find("values");
 		if (it == field.end()) {
 			throw error("Field % has no values", f);
 		}
-		json values = *it;
-		if (!values.is_array()) {
-			throw error("\"values\" must be an array in field %", f);
-		}
 
-		for (auto value : values)
+		if (!check_type<List>(it->second)) {
+			throw error("\"values\" must be a list in field %", f);
+		}
+		auto values = std::move(raw_cast<List>(it->second).items());
+
+		int g = 0; // for error reporting
+		for (auto &value_var : values)
 		{
+			g++;
 			SearchValue search_value;
+
+			if (!check_type<Table>(value_var)) {
+				throw error("Value % must be a ble in field %", g, f);
+			}
+			auto value = raw_cast<Table>(value_var).data();
 
 			it = value.find("match");
 			if (it == value.end()) {
-				throw error("Value has no \"match\" key in field %", f);
+				throw error("Value % has no \"match\" key in field %", g, f);
 			}
-			search_value.match = it->get<std::string>();
+			search_value.match = cast<String>(it->second);
 
 			it = value.find("text");
 			if (it == value.end()) {
-				throw error("Value has no \"text\" key in field %", f);
+				throw error("Value % has no \"text\" key in field %", g, f);
 			}
-			search_value.text = it->get<std::string>();
+			search_value.text = cast<String>(it->second);
 
 			if (f == m_layer_field)
 			{
 				it = value.find("layer_name");
 				if (it == value.end()) {
-					throw error("Value has no \"layer_name\" key in field %", f);
+					throw error("Value % has no \"layer_name\" key in field %", g, f);
 				}
-				search_value.layer_name = it->get<std::string>();
+				search_value.layer_name = cast<String>(it->second);
 			}
 
 			it = value.find("choices");
 			if (it != value.end())
 			{
-				String choices = it->get<std::string>();
+				String choices = cast<String>(it->second);
 				auto it2 = value.find("display");
 				if (it2 == value.end()) {
-					throw error("Field % has choices but no \"display\" key", f);
+					throw error("Value % in field % has choices but no \"display\" key", g, f);
 				}
-				String display = it->get<std::string>();
+				String display = cast<String>(it->second);
 
 				auto choice_items = choices.split("|");
 				auto display_items = display.split("|");
 
 				if (choice_items.size() != display_items.size()) {
-					throw error("Inconsistent number of choice and display items in field %", f);
+					throw error("Inconsistent number of choice and display items in value % in field %", g, f);
 				}
 
-				for (intptr_t i = 1; i <= choice_items.size(); i++) {
+				for (intptr_t i = 1; i <= choice_items.size(); i++)
+				{
 					String m = choice_items[i];
 					String t = display_items[i];
 					search_value.choices.append({m, t});
@@ -194,10 +215,5 @@ Protocol::Protocol(Runtime &rt, const String &path) :
 
 		m_fields.append(std::move(search_field));
 	}
-}
-
-String Protocol::get_field_name(intptr_t i) const
-{
-	return m_fields[i].name;
 }
 } // namespace phonometrica

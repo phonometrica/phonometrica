@@ -1,9 +1,8 @@
 /***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
  * later version.                                                                                                      *
  *                                                                                                                     *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
@@ -13,266 +12,143 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 14/01/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <QtGlobal>
-#include <QVBoxLayout>
-#include <QToolBar>
-#include <QFileDialog>
-#include <QTextDocumentFragment>
-#include <QMessageBox>
-#include <phon/file.hpp>
-#include <phon/regex.hpp>
+#include <wx/sizer.h>
+#include <wx/toolbar.h>
+#include <wx/artprov.h>
 #include <phon/gui/views/script_view.hpp>
+#include <phon/gui/macros.hpp>
 #include <phon/gui/console.hpp>
-#include <phon/gui/font.hpp>
 #include <phon/application/settings.hpp>
-#include <phon/application/project.hpp>
-#include <phon/utils/file_system.hpp>
+#include <phon/file.hpp>
 
 namespace phonometrica {
 
-ScriptView::ScriptView(Runtime &rt, std::shared_ptr<Script> script, QWidget *parent) :
-    View(parent), m_script(std::move(script)), rt(rt)
+ScriptView::ScriptView(Runtime &rt, wxWindow *parent) :
+	View(parent), runtime(rt)
 {
-    auto font = get_monospace_font();
-    QFontMetrics metrics(font);
-    m_editor = new CodeEditor(this);
-    m_editor->setFont(font);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-    m_editor->setTabStopDistance(metrics.width(' ') * 4);
-#endif
-    m_highlighter = new Highlighter(m_editor->document());
-    auto toolbar = createToolbar();
-
-    auto layout = new QVBoxLayout;
-    layout->addWidget(toolbar);
-    layout->addWidget(m_editor);
-    layout->setContentsMargins(0, 0, 0, 0);
-    setLayout(layout);
-
-    loadScript();
-
-    connect(m_editor, &QPlainTextEdit::textChanged, this, &ScriptView::scriptChanged);
+	SetupUi();
 }
 
-bool ScriptView::save()
+ScriptView::ScriptView(Runtime &rt, const String &path, wxWindow *parent) :
+	ScriptView(rt, parent)
 {
-    if (m_script->modified() && !isEmpty()) {
-        saveScript(false);
-    }
+	m_path = path;
+	auto content = File::read_all(path);
+	m_ctrl->SetText(content);
+}
 
+void ScriptView::SetupUi()
+{
+	auto sizer = new wxBoxSizer(wxVERTICAL);
+	auto toolbar = new wxToolBar(this, wxID_ANY);
+	toolbar->SetToolBitmapSize(wxSize(24, 24));
+
+	wxBitmap save_icon(Settings::get_icon_path("save.png"), wxBITMAP_TYPE_PNG);
+	m_save_tool = toolbar->AddTool(wxID_SAVE, _("Save script\tctrl+s"), save_icon, _("Save script (" CTRL_KEY "S)"));
+	m_save_tool->Enable(false);
+	toolbar->AddSeparator();
+	wxBitmap run_icon(Settings::get_icon_path("start.png"), wxBITMAP_TYPE_PNG);
+	auto run_tool = toolbar->AddTool(-1, _("Run script\tctrl+r"), run_icon, _("Run script or selection (" CTRL_KEY "R)"));
+	sizer->Add(toolbar, 0, wxEXPAND | wxALL, 0);
+	toolbar->AddSeparator();
+	wxBitmap on_icon(Settings::get_icon_path("toggle_on.png"), wxBITMAP_TYPE_PNG);
+	auto on_tool = toolbar->AddTool(-1, _("Comment selection"), on_icon, _("Comment line or selection"));
+	wxBitmap off_icon(Settings::get_icon_path("toggle_off.png"), wxBITMAP_TYPE_PNG);
+	auto off_tool = toolbar->AddTool(-1, _("Uncomment selection"), off_icon, _("Uncomment line or selection"));
+
+	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Run(); }, run_tool->GetId());
+	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Save(); }, m_save_tool->GetId());
+	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnCommentSelection, this, on_tool->GetId());
+	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnUncommentSelection, this, off_tool->GetId());
+
+	m_ctrl = new ScriptControl(this);
+	m_ctrl->SetSyntaxHighlighting();
+	m_ctrl->SetLineNumbering();
+	sizer->Add(m_ctrl, 1, wxEXPAND, 0);
+	SetSizer(sizer);
+	toolbar->Realize();
+    m_ctrl->SetSTCFocus(true);
+    m_ctrl->Bind(wxEVT_STC_MODIFIED, &ScriptView::OnModification, this);
+}
+
+void ScriptView::Save()
+{
+	if (m_path.empty()) return;
+	String content = m_ctrl->GetText();
+	File file(m_path, "w");
+	file.write(content);
+	m_save_tool->Enable(false);
+	MakeTitleUnmodified();
+}
+
+bool ScriptView::Finalize()
+{
 	return true;
 }
 
-void ScriptView::runScript(bool)
+void ScriptView::OnModification(wxStyledTextEvent &)
 {
-    auto cursor = m_editor->textCursor();
-
-    try
-    {
-        QString text = cursor.hasSelection() ? cursor.selection().toPlainText() : m_editor->toPlainText();
-        rt.console->runCommand(text, true);
-    }
-    catch (std::exception &e)
-    {
-        String msg = e.what();
-        Regex re("^.*\\s*at \\[string\\]:([0-9]+)");
-
-        for (auto &ln : msg.split("\n"))
-        {
-            if (re.match(ln))
-            {
-                bool ok;
-                auto num = (int) re.capture(1).to_int(&ok);
-                int line_no = 0;
-
-                if (cursor.hasSelection())
-                {
-                    cursor.setPosition(cursor.selectionStart());
-                    line_no = cursor.blockNumber();
-                }
-                line_no += num - 1;
-                m_editor->highlightError(line_no);
-
-                return;
-            }
-        }
-    }
+	//MakeTitleModified();
+	m_save_tool->Enable(true);
 }
 
-void ScriptView::scriptChanged()
+void ScriptView::Run()
 {
-    m_script->set_pending_modifications();
-    emit modified();
-}
+	String code = m_ctrl->HasSelection() ? m_ctrl->GetSelectedText() : m_ctrl->GetValue();
+	auto console = runtime.console;
+	console->AppendNewLine();
 
-void ScriptView::saveScript(bool)
-{
-    if (!m_script->has_path())
-    {
-        QString dir = Settings::get_string(rt, "last_directory");
-        auto path = QFileDialog::getSaveFileName(this, tr("Save script..."), dir, tr("Scripts (*.phon)"));
-
-        if (path.isEmpty()) {
-            return; // cancelled
-        }
-        m_script->set_path(path, true);
-
-	    auto reply = QMessageBox::question(this, tr("Import file?"),
-	                                       tr("Would you like to import this script into the current project?"),
-	                                       QMessageBox::Yes|QMessageBox::No);
-
-	    if (reply == QMessageBox::Yes)
-	    {
-		    auto project = Project::instance();
-		    project->import_file(m_script->path());
-		    emit project->notify_update();
-	    }
-    }
-
-    m_script->set_content(m_editor->toPlainText());
-    m_script->save();
-    emit saved();
-}
-
-void ScriptView::loadScript()
-{
-    auto path = m_script->path();
-
-    if (filesystem::exists(path))
-    {
-        auto code = File::read_all(path);
-        m_editor->setPlainText(code);
-    }
-}
-
-void ScriptView::showError(const QString &msg)
-{
-    QMessageBox dlg(QMessageBox::Critical, tr("Error"), msg);
-    dlg.exec();
-}
-
-QToolBar *ScriptView::createToolbar()
-{
-    auto toolbar = new QToolBar;
-    auto save_action = toolbar->addAction(QIcon(":/icons/save.png"), tr("Save"));
-    save_action->setToolTip(tr("Save script (ctrl+s)"));
-    save_action->setShortcut(QKeySequence("ctrl+s"));
-    toolbar->addSeparator();
-
-    auto run_action = toolbar->addAction(QIcon(":/icons/start.png"), tr("Run"));
-    run_action->setToolTip(tr("Run script or selection (ctrl+r)"));
-    run_action->setShortcut(QKeySequence("ctrl+r"));
-    toolbar->addSeparator();
-
-    auto comment_action = toolbar->addAction(QIcon(":/icons/toggle_off.png"), tr("Comment"));
-    comment_action->setToolTip(tr("Comment selection (ctrl+/)"));
-    comment_action->setShortcut(QKeySequence("ctrl+/"));
-
-    auto uncomment_action = toolbar->addAction(QIcon(":/icons/toggle_on.png"), tr("Uncomment"));
-    uncomment_action->setToolTip(tr("Uncomment selection (ctrl+shift+/)"));
-	uncomment_action->setShortcut(QKeySequence("ctrl+shift+/"));
-
-    connect(run_action, &QAction::triggered, this, &ScriptView::runScript);
-    connect(save_action, &QAction::triggered, this, &ScriptView::saveScript);
-    connect(comment_action, &QAction::triggered, this, &ScriptView::commentCode);
-    connect(uncomment_action, &QAction::triggered, this, &ScriptView::uncommentCode);
-
-#if PHON_MACOS || PHON_WINDOWS
-	toolbar->setMaximumHeight(30);
-#endif
-#if PHON_MACOS
-    toolbar->setStyleSheet("QToolBar{spacing:0px;}");
-#endif
-
-    return toolbar;
-}
-
-bool ScriptView::isEmpty()
-{
-    return m_editor->document()->isEmpty();
-}
-
-void ScriptView::makeFocused()
-{
-    auto tc = m_editor->textCursor();
-    tc.setPosition(0);
-    m_editor->setTextCursor(tc);
-    m_editor->setFocus();
-}
-
-bool ScriptView::finalize()
-{
-	if (m_script->modified() && !isEmpty())
+	try
 	{
-		auto reply = QMessageBox::question(this, tr("Save script?"),
-				tr("The current script has unsaved modifications. Would you like to save it?"),
-				QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
-
-		if (reply == QMessageBox::Yes)
-		{
-			if (!m_script->has_path())
-			{
-				QString dir = Settings::get_string(rt, "last_directory");
-				auto path = QFileDialog::getSaveFileName(this, tr("Save script..."), dir, tr("Scripts (*.phon)"));
-
-				if (path.isEmpty()) {
-					return false; // cancelled
-				}
-				m_script->set_path(path, true);
-			}
-
-			m_script->set_content(m_editor->toPlainText());
-			m_script->save();
-		}
-		else if (reply == QMessageBox::Cancel)
-		{
-			return false;
-		}
-		else
-		{
-			m_script->reload();
-		}
+		runtime.do_string(code);
 	}
-
-	return true;
+	catch (RuntimeError &e)
+	{
+		auto msg = utils::format("Error at line %\n", e.line_no());
+		console->ShowErrorMessage(msg);
+		console->ShowErrorMessage(e.what());
+	}
+	catch (std::exception &e)
+	{
+		console->ShowErrorMessage(e.what());
+	}
+	console->AddPrompt();
 }
 
-void ScriptView::commentCode(bool)
+void ScriptView::OnCommentSelection(wxCommandEvent &)
 {
-	auto cursor = m_editor->textCursor();
-	if (cursor.hasSelection())
-	{
-		auto lines = cursor.selection().toPlainText().split("\n");
+	auto sel = m_ctrl->GetSelectedLines();
+	if (sel.first < 0) return;
+	wxString comment("#");
 
-		for (auto &ln : lines)
-		{
-			ln.prepend('#');
-		}
-		cursor.clearSelection();
-		m_editor->insertPlainText(lines.join('\n'));
+	for (int ln = sel.first; ln <= sel.second; ln++)
+	{
+		int pos = m_ctrl->PositionFromLine(ln);
+		m_ctrl->InsertText(pos, comment);
 	}
 }
 
-void ScriptView::uncommentCode(bool)
+void ScriptView::OnUncommentSelection(wxCommandEvent &)
 {
-	auto cursor = m_editor->textCursor();
-	if (cursor.hasSelection())
-	{
-		auto lines = cursor.selection().toPlainText().split("\n");
+	auto sel = m_ctrl->GetSelectedLines();
+	if (sel.first < 0) return;
 
-		for (auto &ln : lines)
+	for (int ln = sel.first; ln <= sel.second; ln++)
+	{
+		auto line = m_ctrl->GetLine(ln);
+		if (line.StartsWith("#"))
 		{
-			if (ln.startsWith('#')) ln.remove(0, 1);
+			int pos = m_ctrl->PositionFromLine(ln);
+			m_ctrl->Replace(pos, pos+1, wxEmptyString);
 		}
-		cursor.clearSelection();
-		m_editor->insertPlainText(lines.join('\n'));
 	}
 }
 
-} // phonometrica
+
+} // namespace phonometrica

@@ -23,14 +23,17 @@ The following pages teach you how to use Phonometrica's scripting language.
    :maxdepth: 1
 	
    tutorial/getting_started
+   tutorial/values_references
+   tutorial/functions
+   tutorial/classes
+   tutorial/modules
    tutorial/user_dialogs
-   tutorial/advanced
 
 
-Modules and types
------------------ 
+Types and functions
+-------------------
 
-The following pages document Phonometrica's modules and types. It is strongly recommended that you go
+The following pages document the types and functions offered by Phonometrica's scripting language. It is strongly recommended that you go
 through the tutorials before reading this material.
 
 .. toctree::

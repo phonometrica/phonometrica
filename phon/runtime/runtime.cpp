@@ -1,2438 +1,2253 @@
-/**************************************************************************************
- * Copyright (C) 2013-2019, Artifex Software                                          *
- *           (C) 2019, Julien Eychenne <jeychenne@gmail.com>                          *
- *                                                                                    *
- * Permission to use, copy, modify, and/or distribute this software for any purpose   *
- * with or without fee is hereby granted, provided that the above copyright notice    *
- * and this permission notice appear in all copies.                                   *
- *                                                                                    *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH      *
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND    *
- * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, *
- * OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,     *
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS    *
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS        *
- * SOFTWARE.                                                                          *
- *                                                                                    *
- **************************************************************************************/
+/***********************************************************************************************************************
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
+ *                                                                                                                     *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
+ * later version.                                                                                                      *
+ *                                                                                                                     *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
+ * details.                                                                                                            *
+ *                                                                                                                     *
+ * You should have received a copy of the GNU General Public License along with this program. If not, see              *
+ * <http://www.gnu.org/licenses/>.                                                                                     *
+ *                                                                                                                     *
+ * Created: 22/05/2020                                                                                                 *
+ *                                                                                                                     *
+ * Purpose: see header.                                                                                                *
+ *                                                                                                                     *
+ ***********************************************************************************************************************/
 
-#include <cassert>
-#include <cstdarg>
-#include <cerrno>
+#include <cfenv>
+#include <cstdio>
+#include <ctime>
+#include <iomanip>
+#include <phon/runtime/runtime.hpp>
+#include <phon/regex.hpp>
 #include <phon/file.hpp>
-#include <phon/runtime/toplevel.hpp>
-#include <phon/runtime/parse.hpp>
-#include <phon/runtime/compile.hpp>
-#include <phon/runtime/object.hpp>
-#include <phon/utils/print.hpp>
-#include <phon/utils/alloc.hpp>
-#include "runtime.hpp"
+#include <phon/utils/helpers.hpp>
+#include <phon/utils/file_system.hpp>
+
+
+#define CATCH_ERROR catch (std::runtime_error &e) { RUNTIME_ERROR(e.what()); }
+#define RUNTIME_ERROR(...) throw RuntimeError(get_current_line(), __VA_ARGS__)
+
+#if 0
+#	define trace_op() std::cerr << std::setw(6) << std::left << (ip-1-code->data()) << "\t" << std::setw(15) << Code::get_opcode_name(*(ip-1)) << "stack size = " << intptr_t(top - stack.data()) << std::endl;
+#else
+#	define trace_op()
+#endif
 
 
 namespace phonometrica {
 
-static void jsR_run(Runtime *J, Function *F);
+bool Runtime::initialized = false;
 
-/* Push values on stack */
-
-// TODO: remove stack macros (low priority)
-#define TOP (J->top)
-#define BOT (J->bot)
-
-#define CHECKSTACK(n) if (TOP + n >= J->stack + PHON_STACKSIZE) throw std::runtime_error("stack overflow");
-
-static void *default_alloc(void *actx, void *ptr, int size)
+Runtime::Runtime(intptr_t stack_size) :
+		print([](const String &s) { utils::printf(s); }), stack(stack_size, Variant()), parser(this), compiler(this),
+		get_item_string(intern_string("get_item")), set_item_string(intern_string("set_item")),
+		get_field_string(intern_string("get_field")), set_field_string(intern_string("set_field")),
+		length_string(intern_string("length"))
 {
-    if (size == 0)
-    {
-        free(ptr);
-        return nullptr;
-    }
-    return realloc(ptr, (size_t) size);
+	srand(time(nullptr));
+
+	if (! initialized)
+	{
+		utils::init_random_seed();
+		Token::initialize();
+		initialized = true;
+	}
+
+	create_builtins();
+	set_global_namespace();
+	this->top = this->stack.begin();
+	this->limit = this->stack.end();
 }
 
-static void default_report(Runtime *, const String &message)
+phonometrica::Runtime::~Runtime()
 {
-    utils::print(stderr, message);
-    utils::print(stderr, "\n");
+	// Make sure we don't double free variants that have been destructed but are not null.
+	for (auto var = top; var < stack.end(); var++) {
+		new (var) Variant;
+	}
+	stack.clear();
+	globals.drop()->release();
+
+	// Finalize classes manually: this is necessary because we must finalize Class last.
+	for (auto &cls : classes) {
+		cls->finalize();
+	}
+	collect();
+
+	for (size_t i = classes.size(); i-- > 2; )
+	{
+		auto ptr = classes[i].drop();
+		ptr->release();
+	}
+	classes[0].drop()->release();
+	classes[1].drop()->release();
 }
 
-static void default_print(const String &s)
+void Runtime::add_candidate(Collectable *obj)
 {
-    utils::printf(s);
+	if (is_full()) {
+		collect();
+	}
+	assert(obj->previous == nullptr);
+
+	// obj becomes the new root
+	auto *old_root = gc_root;
+	obj->next = old_root;
+
+	if (old_root != nullptr) {
+		old_root->previous = obj;
+	}
+	gc_root = obj;
+	gc_count++;
 }
 
-static void default_panic(Runtime *J)
+void Runtime::remove_candidate(Collectable *obj)
 {
-    J->report("uncaught exception");
-    /* return to javascript to abort */
+	if (obj == gc_root)
+	{
+		assert(obj->previous == nullptr);
+		gc_root = obj->next;
+		if (gc_root) {
+			gc_root->previous = nullptr;
+		}
+		obj->next = nullptr;
+	}
+	else
+	{
+		if (obj->previous != nullptr)
+		{
+			obj->previous->next = obj->next;
+		}
+		if (obj->next != nullptr)
+		{
+			obj->next->previous = obj->previous;
+		}
+		obj->previous = nullptr;
+		obj->next = nullptr;
+	}
+	gc_count--;
 }
 
-static void js_loadstringx(Runtime *J, const String &filename, const String &source, bool iseval)
+void Runtime::create_builtins()
 {
-    Ast *P;
-    Function *F;
+	// We need to boostrap the class system, since we are creating class instances but the class type doesn't exist
+	// yet. We can't create it first because it inherits from Object.
+	auto object_class = create_type<Object>("Object", nullptr, Class::Index::Object);
+	auto raw_object_class = object_class.get();
 
-    try
-    {
-        P = parse(J, filename, source);
-        F = jsC_compilescript(J, P, iseval ? J->strict : J->default_strict);
-        free_parse(J);
-        create_script(J, F, iseval ? (J->strict ? J->E : nullptr) : J->GE);
-    }
-    catch (std::exception &e)
-    {
-        free_parse(J);
-        throw;
-    }
-}
+	auto class_class = create_type<Class>("Class", raw_object_class, Class::Index::Class);
+	assert(class_class->inherits(raw_object_class));
 
-void load_eval(Runtime *J, const String &filename, const String &source)
-{
-    js_loadstringx(J, filename, source, 1);
-}
+	assert(object_class.object()->get_class() == nullptr);
+	assert(class_class.object()->get_class() == nullptr);
 
-Runtime::Runtime() :
-    null_string("null"), undef_string("undefined"), true_string("true"), false_string("false")
-{
-    auto alloc = default_alloc;
-    this->actx = nullptr;
-    this->alloc = alloc;
-    this->print = default_print;
+	object_class.object()->set_class(class_class.get());
+	class_class.object()->set_class(class_class.get());
 
-    this->trace[0].name = "-top-";
-    this->trace[0].file = "native";
-    this->trace[0].line = 0;
+	// Create other builtin types.
+	auto null_type = create_type<std::nullptr_t>("Null", raw_object_class, Class::Index::Null);
+	auto bool_class = create_type<bool>("Boolean", raw_object_class, Class::Index::Boolean);
+	auto num_class = create_type<Number>("Number", raw_object_class, Class::Index::Number);
+	auto int_class = create_type<intptr_t>("Integer", num_class.get(), Class::Index::Integer);
+	auto float_class = create_type<double>("Float", num_class.get(), Class::Index::Float);
+	auto string_class = create_type<String>("String", raw_object_class, Class::Index::String);
+	auto regex_class = create_type<Regex>("Regex", raw_object_class, Class::Index::Regex);
+	auto list_class = create_type<List>("List", raw_object_class, Class::Index::List);
+	auto array_class = create_type<Array<double>>("Array", raw_object_class, Class::Index::Array);
+	auto table_class = create_type<Table>("Table", raw_object_class, Class::Index::Table);
+	auto file_class = create_type<File>("File", raw_object_class, Class::Index::File);
+	auto module_class = create_type<Module>("Module", raw_object_class, Class::Index::Module);
+	// Function and Closure have the same name because the difference is an implementation detail.
+	auto func_class = create_type<Function>("Function", raw_object_class, Class::Index::Function);
+	create_type<Closure>("Function", raw_object_class, Class::Index::Closure);
+	auto set_class = create_type<Set>("Set", raw_object_class, Class::Index::Set);
 
-    this->report_callback = default_report;
-    this->panic = default_panic;
+	// Iterators are currently not exposed to users.
+	create_type<Iterator>("Iterator", raw_object_class, Class::Index::Iterator);
+	create_type<ListIterator>("Iterator", raw_object_class, Class::Index::ListIterator);
+	create_type<TableIterator>("Iterator", raw_object_class, Class::Index::TableIterator);
+	create_type<StringIterator>("Iterator", raw_object_class, Class::Index::StringIterator);
+	create_type<FileIterator>("Iterator", raw_object_class, Class::Index::FileIterator);
+	create_type<RegexIterator>("Iterator", raw_object_class, Class::Index::RegexIterator);
 
-    this->stack = utils::allocate<Variant>(PHON_STACKSIZE);
-    this->top = this->bot = this->stack;
+	// Sanity checks
+	assert(object_class.object()->get_class() != nullptr);
+	assert(class_class.object()->get_class() != nullptr);
+	assert((Class::get<Class>()) != nullptr);
 
-    if (!this->stack)
-    {
-        alloc(nullptr, nullptr, 0);
-        return;
-    }
+	globals = make_handle<Module>(this, "global");
 
-    this->gcmark = 1;
-    this->nextref = 0;
-
-    this->R = new Object(*this, PHON_COBJECT, nullptr);
-    this->G = new Object(*this, PHON_COBJECT, nullptr);
-    this->E = new_environment(this, this->G, nullptr);
-    this->GE = this->E;
-
-    initialize();
-}
-
-void Runtime::set_report_callback(report_callback_t report)
-{
-    this->report_callback = report;
-}
-
-void Runtime::report(const String &message)
-{
-    if (report_callback)
-        report_callback(this, message);
-}
-
-panic_callback_t Runtime::at_panic(panic_callback_t panic)
-{
-    auto old = this->panic;
-    this->panic = panic;
-
-    return old;
-}
-
-int Runtime::do_string(const String &source)
-{
-	if (initialize_script) initialize_script();
-    this->load_string("[string]", source);
-    push_null();
-    call(0);
-    pop(1);
-    if (finalize_script) finalize_script();
-
-    return 0;
-}
-
-int Runtime::do_file(const String &filename)
-{
-	if (initialize_script) initialize_script();
-    load_file(filename);
-    push_null();
-    call(0);
-    pop(1);
-    if (finalize_script) finalize_script();
-
-    return 0;
-}
-
-int Runtime::pcall(int n)
-{
-    // FIXME: it seems we need to save the bottom in addition to the top
-    //  in order to properly restore the stack.
-    auto savetop = this->top - n - 2;
-    auto save_bot = bot;
-    try
-    {
-        call(n);
-        return 0;
-    }
-    catch (std::exception &)
-    {
-        /* clean up the stack to only hold the error object */
-        *savetop = std::move(*(--top));
-        bot = save_bot;
-
-        while (top > savetop + 1)
-        {
-            top--;
-            top->~Variant();
-        }
-//        this->top = savetop + 1;
-
-        throw;
-    }
-}
-
-int Runtime::pconstruct(int n)
-{
-    auto savetop = this->top - n - 2;
-    auto save_bot = bot;
-    try
-    {
-        construct(n);
-        return 0;
-    }
-    catch (std::exception &)
-    {
-        /* clean up the stack to only hold the error object */
-        *savetop = std::move(*(--top));
-        bot = save_bot;
-
-        while (top > savetop + 1)
-        {
-            top--;
-            top->~Variant();
-        }
-//        this->top = savetop + 1;
-        throw;
-    }
-}
-
-void Runtime::pop(int n)
-{
-    if (unlikely(top - n < bot))
-    {
-        // Clean up variants on the stack before throwing.
-        while (top-- != bot)
-        {
-            top->~Variant();
-        }
-
-        throw std::runtime_error("[Internal error] stack underflow!");
-    }
-
-    while (n-- > 0)
-    {
-        (--top)->~Variant();
-    }
-}
-
-void Runtime::load_string(const String &filename, const String &source)
-{
-    js_loadstringx(this, filename, source, 0);
-}
-
-void Runtime::load_file(const String &filename)
-{
-    String content;
-
-    try
-    {
-        content = File::read_all(filename);
-    }
-    catch (std::exception &e)
-    {
-        throw raise("Input/Output error", e);
-    }
-
-    load_string(filename, content);
-}
-
-void Runtime::eval()
-{
-    if (!is_string(-1))
-        return;
-    load_eval(this, "(eval)", to_string(-1));
-    js_rot2pop1(this);
-    copy(0); /* copy 'this' */
-    call(0);
-}
-
-String Runtime::internalize(const String &s)
-{
-    auto it = strings.insert(s);
-    return *it.first;
-}
-
-std::runtime_error Runtime::raise(const char *error_category, std::exception &e)
-{
-    return raise(error_category, "%s", e.what());
-}
-
-std::runtime_error Runtime::raise(const char *error_category, const char *fmt, ...)
-{
-    va_list ap;
-    char buf[256];
-    va_start(ap, fmt);
-    vsnprintf(buf, sizeof buf, fmt, ap);
-
-    if (is_stack_empty())
-    {
-        return error("[%] %", error_category, buf);
-    }
-    else
-    {
-        get_stack_trace(0);
-        auto trace = to_string(-1);
-        pop(1);
-
-        return  error("[%] %\n%", error_category, buf, trace);
-    }
-}
-
-double Runtime::to_number(Variant *v)
-{
-    switch (v->type)
-    {
-    default:
-    case PHON_TNULL:
-        return std::nan("");
-    case PHON_TBOOLEAN:
-        return v->as.boolean;
-    case PHON_TNUMBER:
-        return v->as.number;
-    case PHON_TSTRING:
-        return v->as.string.to_float();
-    case PHON_TOBJECT:
-        var_to_primitive(this, v, PHON_HINT_NUMBER);
-        return to_number(v);
-    }
-}
-
-intptr_t Runtime::to_integer(Variant *v)
-{
-    return number_to_integer(to_number(v));
-}
-
-File &Runtime::to_file(int idx)
-{
-    Variant *v = stack_index(idx);
-    if (v->is_file())
-        return v->as.object->as.file;
-    throw raise("Type error", "not a file");
-}
-
-Array<Variant> &Runtime::to_list(int idx)
-{
-    Variant *v = stack_index(idx);
-    if (v->is_list())
-        return v->as.object->as.list;
-    throw raise("Type error", "not a list");
-}
-
-void Runtime::add_method(const char *name, native_callback_t cfun, int n)
-{
-    const char *pname = strrchr(name, '.');
-    pname = pname ? pname + 1 : name;
-    new_native_function(std::move(cfun), name, n);
-    def_field(-2, pname, PHON_DONTENUM);
-}
-
-void Runtime::add_global_function(const char *name, native_callback_t cfun, int n)
-{
-    new_native_function(std::move(cfun), name, n);
-    def_global(name, PHON_DONTENUM);
-}
-
-void Runtime::add_math_constant(const char *name, double number)
-{
-    push(number);
-    def_field(-2, name, PHON_READONLY | PHON_DONTENUM | PHON_DONTCONF);
-}
-
-void Runtime::add_field(const char *name, const char *string)
-{
-    push(string);
-    def_field(-2, name, PHON_DONTENUM);
-}
-
-void Runtime::add_field(const char *name, double n)
-{
-	push(n);
-	def_field(-2, name, PHON_DONTENUM);
-}
-
-void Runtime::add_field(const char *name, intptr_t n)
-{
-	push(n);
-	def_field(-2, name, PHON_DONTENUM);
-}
-
-void Runtime::add_field(const char *name, bool value)
-{
-	push(value);
-	def_field(-2, name, PHON_DONTENUM);
-}
-
-void Runtime::add_field(const char *name, Array<double> a)
-{
-	push(std::move(a));
-	def_field(-2, name, PHON_DONTENUM);
-}
-
-Variant &Runtime::get(int idx)
-{
-    return *stack_index(idx);
-}
-
-const Variant &Runtime::get(int idx) const
-{
-    return *stack_index(idx);
-}
-
-void Runtime::add_accessor(const String &name, native_callback_t getter)
-{
-    new_native_function(std::move(getter), name, 0);
-    push_null(); // setter
-    def_accessor(-3, name, PHON_READONLY | PHON_DONTENUM);
-}
-
-void Runtime::add_accessor(const String &name, native_callback_t getter, native_callback_t setter)
-{
-    new_native_function(std::move(getter), name, 0);
-    new_native_function(std::move(setter), name, 1);
-    def_accessor(-3, name, PHON_DONTENUM);
-}
-
-void Runtime::push(Array<Variant> lst)
-{
-    auto obj = new Object(*this, PHON_CLIST, list_meta);
-    new (&obj->as.list) Array<Variant>(std::move(lst));
-    push(obj);
-}
-
-int Runtime::get_stack_trace(int skip)
-{
-    char buf[256];
-    int n = this->tracetop - skip;
-    if (n <= 0)
-        return 0;
-    for (; n > 0; --n)
-    {
-        auto &name = this->trace[n].name;
-        auto &file = this->trace[n].file;
-        int line = this->trace[n].line;
-        if (line > 0)
-        {
-            if (!name.empty())
-                snprintf(buf, sizeof buf, "\n\tat %s (%s:%d)", name.data(), file.data(), line);
-            else
-                snprintf(buf, sizeof buf, "\n\tat %s:%d", file.data(), line);
-        }
-        else
-            snprintf(buf, sizeof buf, "\n\tat %s (%s)", name.data(), file.data());
-        this->push(buf);
-        if (n < this->tracetop - skip)
-            js_concat(this);
-    }
-    return 1;
-}
-
-
-void Runtime::push(const Variant &v)
-{
-	check_stack(1);
-	*top = v;
-	++top;
-}
-
-void Runtime::push(Variant &&v)
-{
-	check_stack(1);
-	*top = std::move(v);
-	++top;
+#define GLOB(T, h) add_global(Class::get_name<T>(), std::move(h));
+	GLOB(Object, object_class);
+	GLOB(Class, class_class);
+	GLOB(bool, bool_class);
+	GLOB(Number, num_class);
+	GLOB(intptr_t, int_class);
+	GLOB(double, float_class);
+	GLOB(String, string_class);
+	GLOB(Regex, regex_class);
+	GLOB(List, list_class);
+	GLOB(Array<double>, array_class);
+	GLOB(Table, table_class);
+	GLOB(File, file_class);
+	GLOB(Function, func_class);
+	GLOB(Module, module_class);
+	GLOB(Set, set_class);
+#undef GLOB
 }
 
 void Runtime::push_null()
 {
-	check_stack(1);
-	top->undef();
-	++top;
+	new(var()) Variant();
 }
 
-void Runtime::push_undefined()
+Variant &Runtime::push()
 {
-	push(std::nan(""));
+	return *(new(var()) Variant());
 }
 
-void Runtime::push_boolean(bool value)
+void Runtime::push(double n)
 {
-	check_stack(1);
-	top->set_boolean(value);
-	++top;
+	new(var()) Variant(n);
 }
 
-void Runtime::push(double v)
+void Runtime::push_int(intptr_t n)
 {
-	check_stack(1);
-	top->set_number(v);
-	++top;
+	new(var()) Variant(n);
 }
 
-void Runtime::push(String &&v)
+void Runtime::push(bool b)
 {
-	check_stack(1);
-	top->set_string(std::move(v));
-	++top;
+	new(var()) Variant(b);
 }
 
-void Runtime::push(Array<double> m)
+void Runtime::push(const Variant &v)
 {
-	auto obj = new Object(*this, PHON_CARRAY, array_meta);
-	new (&obj->as.array) Array<double>(std::move(m));
-	push(obj);
+	new(var()) Variant(v);
 }
 
-void Runtime::push(const char *v, intptr_t n)
+void Runtime::push(Variant &&v)
 {
-	push(String(v, n));
+	new(var()) Variant(std::move(v));
 }
 
-void Runtime::push(const String &v)
+void Runtime::push(String s)
 {
-	check_stack(1);
-	top->set_string(v);
-	++top;
+	new(var()) Variant(std::move(s));
 }
 
-void Runtime::push(Object *v)
+Variant *Runtime::var()
 {
-	check_stack(1);
-	new (top) Variant(v);
-	++top;
+	check_capacity();
+	return this->top++;
 }
 
-void Runtime::push_global()
+void Runtime::check_capacity()
 {
-	push(G);
-}
-
-void Runtime::current_function()
-{
-	check_stack(1);
-	*top = *(bot - 1);
-	++top;
-}
-
-
-/* Read values from stack */
-
-Variant *Runtime::stack_index(int idx)
-{
-	static Variant undefined;
-	auto pos = idx < 0 ? top + idx : bot + idx;
-
-	if (pos < stack || pos >= top)
-		return &undefined;
-
-	return pos;
-}
-
-const Variant *Runtime::stack_index(int idx) const
-{
-	return const_cast<Runtime*>(this)->stack_index(idx);
-}
-
-Variant *get_variant(Runtime *J, int idx)
-{
-	return J->stack_index(idx);
-}
-
-bool Runtime::is_defined(int idx) const
-{
-	return !is_null(idx);
-}
-
-bool Runtime::is_null(int idx) const
-{
-	return stack_index(idx)->is_null();
-}
-
-bool Runtime::is_boolean(int idx) const
-{
-	return stack_index(idx)->is_boolean();
-}
-
-bool Runtime::is_number(int idx) const
-{
-	return stack_index(idx)->is_number();
-}
-
-bool Runtime::is_string(int idx) const
-{
-	return stack_index(idx)->is_string();
-}
-
-bool Runtime::is_primitive(int idx) const
-{
-	return !is_object(idx);
-}
-
-bool Runtime::is_object(int idx) const
-{
-	return stack_index(idx)->is_object();
-}
-
-bool Runtime::is_list(int idx) const
-{
-	return stack_index(idx)->is_list();
-}
-
-bool Runtime::is_regex(int idx) const
-{
-	return stack_index(idx)->is_regex();
-}
-
-bool Runtime::is_array(int idx) const
-{
-	return stack_index(idx)->is_array();
-}
-
-bool Runtime::is_file(int idx) const
-{
-	return stack_index(idx)->is_file();
-}
-
-bool Runtime::is_user_data(int idx, const char *tag) const
-{
-	return stack_index(idx)->is_user_data(tag);
-}
-
-bool Runtime::is_error(int idx) const
-{
-	return stack_index(idx)->is_error();
-}
-
-
-bool Runtime::is_coercible(int idx) const
-{
-	auto v = stack_index(idx);
-	return !v->is_null();
-}
-
-bool Runtime::is_callable(int idx) const
-{
-	return stack_index(idx)->is_callable();
-}
-
-
-static const char *js_typeof(Runtime *J, int idx)
-{
-	Variant *v = J->stack_index(idx);
-	switch (v->type)
-	{
-		default:
-		case PHON_TNULL:
-			return "Null";
-		case PHON_TBOOLEAN:
-			return "Boolean";
-		case PHON_TNUMBER:
-			return "Number";
-		case PHON_TSTRING:
-			return "String";
-		case PHON_TOBJECT:
-			if (v->as.object->type == PHON_CFUNCTION || v->as.object->type == PHON_CCFUNCTION)
-				return "Function";
-			if (v->is_list())
-				return "List";
-			if (v->is_regex())
-				return "Regex";
-			if (v->is_file())
-				return "File";
-			if (v->is_array())
-				return "Array";
-			if (v->is_user_data())
-				return v->as.object->as.user.tag;
-			return "Object";
+	if (this->top == this->limit) {
+		throw error("[Runtime error] Stack overflow.");
 	}
 }
 
-bool Runtime::to_boolean(int idx) const
+void Runtime::ensure_capacity(int n)
 {
-	return stack_index(idx)->to_boolean();
-}
-
-Regex &Runtime::to_regex(int idx)
-{
-	Variant *v = stack_index(idx);
-	if (v->type == PHON_TOBJECT && v->as.object->type == PHON_CREGEX)
-		return v->as.object->as.regex;
-	throw raise("Type error", "not a Regex");
-}
-
-Array<double> &Runtime::to_array(int idx)
-{
-	Variant *v = stack_index(idx);
-	if (v->type == PHON_TOBJECT && v->as.object->type == PHON_CARRAY)
-		return v->as.object->as.array;
-	throw raise("Type error", "not an Array");
-}
-
-
-double Runtime::to_number(int idx)
-{
-	return to_number(stack_index(idx));
-}
-
-intptr_t Runtime::to_integer(int idx)
-{
-	return number_to_integer(to_number(stack_index(idx)));
-}
-
-int Runtime::to_int32(int idx)
-{
-	return number_to_int32(to_number(stack_index(idx)));
-}
-
-unsigned int Runtime::to_uint32(int idx)
-{
-	return number_to_uint32(to_number(stack_index(idx)));
-}
-
-short Runtime::to_int16(int idx)
-{
-	return number_to_int16(to_number(stack_index(idx)));
-}
-
-unsigned short Runtime::to_uint16(int idx)
-{
-	return number_to_uint16(to_number(stack_index(idx)));
-}
-
-String Runtime::to_string(int idx)
-{
-	return var_to_string(this, stack_index(idx));
-}
-
-std::any & Runtime::to_user_data(int idx, const char *tag)
-{
-	Variant *v = stack_index(idx);
-
-	if (v->type == PHON_TOBJECT && v->as.object->type == PHON_CUSERDATA)
-	{
-		if (!strcmp(tag, v->as.object->as.user.tag))
-			return v->as.object->as.user.data;
+	if (top + n >= limit) {
+		throw error("[Runtime error] Stack overflow.");
 	}
-
-	throw raise("Type error", "not a %s", tag);
 }
 
-std::any & Runtime::to_user_data(int idx)
+void Runtime::check_underflow()
 {
-	Variant *v = stack_index(idx);
-
-	if (v->type == PHON_TOBJECT && v->as.object->type == PHON_CUSERDATA)
+	if (this->top == this->stack.begin())
 	{
-		return v->as.object->as.user.data;
+		RUNTIME_ERROR("[Internal error] Stack underflow");
 	}
-
-	throw raise("Type error", "not a user data");
 }
 
-Object *Runtime::to_object(int idx)
+void Runtime::pop(int n)
 {
-	return to_object(stack_index(idx));
-}
+	auto limit = top - n;
 
-void var_to_primitive(Runtime *J, int idx, int hint)
-{
-	var_to_primitive(J, J->stack_index(idx), hint);
-}
-
-static Object *jsR_tofunction(Runtime *J, int idx)
-{
-	Variant *v = J->stack_index(idx);
-	if (v->is_null())
-		return nullptr;
-	if (v->type == PHON_TOBJECT)
-		if (v->as.object->type == PHON_CFUNCTION || v->as.object->type == PHON_CCFUNCTION)
-			return v->as.object;
-	throw J->raise("Type error", "not a function");
-}
-
-/* Stack manipulation */
-
-int Runtime::top_count() const
-{
-	return int(top - bot);
-}
-
-void Runtime::copy(int idx)
-{
-	check_stack(1);
-	*top = *stack_index(idx);
-	++top;
-}
-
-void Runtime::remove(int idx)
-{
-	auto pos = idx < 0 ? top + idx : bot + idx;
-
-	if (pos < bot || pos >= top)
+	if (unlikely(limit < stack.begin()))
 	{
-		throw raise("Error", "stack error!");
-	}
-
-	for (; pos < top - 1; ++pos)
-	{
-		pos = pos + 1;
-	}
-	--top;
-}
-
-void js_dup(Runtime *J)
-{
-	CHECKSTACK(1);
-	*TOP = *(TOP - 1);
-	++TOP;
-}
-
-void js_dup2(Runtime *J)
-{
-	CHECKSTACK(2);
-	TOP = TOP - 2;
-	*(TOP + 1) = *(TOP - 1);
-	TOP += 2;
-}
-
-void js_rot2(Runtime *J)
-{
-	/* A B -> B A */
-	std::swap(*(TOP - 1), *(TOP - 2));
-}
-
-void js_rot3(Runtime *J)
-{
-	/* A B C -> C A B */
-	Variant tmp = *(TOP - 1);    /* A B C (C) */
-	*(TOP - 1) = *(TOP - 2);    /* A B B */
-	*(TOP - 2) = *(TOP - 3);    /* A A B */
-	*(TOP - 3) = std::move(tmp);        /* C A B */
-}
-
-void js_rot4(Runtime *J)
-{
-	/* A B C D -> D A B C */
-	Variant tmp = *(TOP - 1);    /* A B C D (D) */
-	*(TOP - 1) = *(TOP - 2);    /* A B C C */
-	*(TOP - 2) = *(TOP - 3);    /* A B B C */
-	*(TOP - 3) = *(TOP - 4);    /* A A B C */
-	*(TOP - 4) = std::move(tmp);        /* D A B C */
-}
-
-void js_rot2pop1(Runtime *J)
-{
-	/* A B -> B */
-	*(TOP - 2) = std::move(*(TOP - 1));
-	--TOP;
-}
-
-void js_rot3pop2(Runtime *J)
-{
-	/* A B C -> C */
-	*(TOP - 3) = std::move(*(TOP - 1));
-	J->pop(2);
-}
-
-void Runtime::rot(int n)
-{
-	int i;
-	Variant tmp = *(top - 1);
-
-	for (i = 1; i < n; ++i)
-	{
-		*(top - i) = std::move(*(top - i - 1));
-	}
-
-	*(top - i) = std::move(tmp);
-}
-
-
-/* Field access that takes care of attributes and getters/setters */
-
-int is_array_index(Runtime *J, const String &s, int *idx)
-{
-	int n = 0;
-	auto p = s.data();
-	while (*p)
-	{
-		int c = *p++;
-		if (c >= '0' && c <= '9')
+		// Clean up stack
+		while (top > stack.begin())
 		{
-			if (n >= INT_MAX / 10)
-				return 0;
-			n = n * 10 + (c - '0');
+			(--top)->~Variant();
 		}
-		else
-		{
-			return 0;
-		}
-	}
-	return *idx = n, 1;
-}
-
-bool Runtime::has_field(Object *obj, const String &name)
-{
-	Field *ref;
-	int k;
-
-	if (name == "length")
-	{
-		if (obj->type == PHON_CLIST)
-		{
-			push(obj->as.list.size());
-		}
-		else if (obj->type == PHON_CSTRING)
-		{
-			push(obj->as.string.grapheme_count());
-		}
-		else if (obj->type == PHON_CREGEX)
-		{
-			push(obj->as.regex.count());
-		}
-		else if (obj->type == PHON_CARRAY)
-		{
-			push(obj->as.array.size());
-		}
-		else if (obj->type == PHON_COBJECT)
-		{
-			push(obj->fields.size());
-		}
-
-		return true;
+		RUNTIME_ERROR("[Internal error] Stack underflow");
 	}
 
-	if (obj->type == PHON_CSTRING)
-	{
-		if (is_array_index(this, name, &k))
-		{
-			auto &s = obj->as.string;
-			push(s.next_grapheme(k));
-			return true;
-		}
-	}
-	else if (obj->type == PHON_CREGEX)
-	{
-		if (name == "ignore_case")
-		{
-			push_boolean(obj->as.regex.flags() & Regex::Caseless);
-			return true;
-		}
-		if (name == "multiline")
-		{
-			push_boolean(obj->as.regex.flags() & Regex::Multiline);
-			return true;
-		}
-	}
-	else if (obj->type == PHON_CFILE)
-	{
-		auto &file = obj->as.file;
-
-		if (name == "path")
-		{
-			push(file.path());
-			return true;
-		}
-		if (name == "length")
-		{
-			push(file.size());
-			return true;
-		}
-	}
-//    else if (obj->type == PHON_CUSERDATA)
-//    {
-//        if (obj->as.user.has && obj->as.user.has(this, obj->as.user.data, name))
-//            return true;
-//    }
-
-	ref = obj->get_field(*this, name);
-	if (ref)
-	{
-		if (ref->getter)
-		{
-			push(ref->getter);
-			push(obj);
-			this->call(0);
-		}
-		else
-		{
-			push(ref->value);
-		}
-		return true;
-	}
-
-	return false;
-}
-
-
-void Runtime::get_field(Object *obj, const String &name)
-{
-	if (!has_field(obj, name))
-	{
-		throw raise("Index error", "field \'%s\' does not exist", name.data());
-	}
-}
-
-void Runtime::get_field(Object *obj, intptr_t pos)
-{
-	try
-	{
-		if (obj->type == PHON_CLIST)
-		{
-			auto &v = obj->as.list.at(pos);
-			push(v);
-		}
-		else if (obj->type == PHON_CARRAY)
-		{
-			auto &x = obj->as.array;
-			if (x.ndim() != 1) {
-				throw raise("Index error", "1 index provided, but array has %ld dimensions", x.ndim());
-			}
-			push(x.at(pos));
-		}
-		else if (obj->type == PHON_CSTRING)
-		{
-			throw raise("Index error", "Cannot index String code point");
-//            auto c = obj->as.string.next_codepoint(pos);
-//            auto str = unicode::encode(c);
-//            push(str.data);
-		}
-		else
-		{
-			throw raise("Error", "%s (type id: %d)", "cannot get numeric index for object which is neither a list nor an array", obj->type);
-		}
-	}
-	catch (std::runtime_error &e)
-	{
-		throw raise("Index error", e);
-	}
-}
-
-void Runtime::set_field(Object *obj, intptr_t idx)
-{
-	if (obj->type == PHON_CLIST)
-	{
-		try
-		{
-			obj->as.list.at(idx) = *stack_index(-1);
-		}
-		catch (std::runtime_error &e)
-		{
-			throw raise("Index error", e);
-		}
-	}
-	else if (obj->type == PHON_CARRAY)
-	{
-		try
-		{
-			auto &x = obj->as.array;
-			if (x.ndim() != 1) {
-				throw error("1 index provided but array has %ld dimensions", x.ndim());
-			}
-			x.at(idx) = stack_index(-1)->to_number();
-		}
-		catch (std::exception &e)
-		{
-			throw raise("Index error", "%s", e.what());
-		}
-	}
-	else
-	{
-		throw raise("Index error", "%s (type id: %d)", "cannot set numeric index for object which is neither a list nor an array", obj->type);
-	}
-}
-
-void Runtime::set_field(Object *obj, const String &name)
-{
-	Variant *value = stack_index(-1);
-	Field *ref;
-	int k;
-	bool own;
-
-	if (obj->type == PHON_CLIST)
-	{
-		if (name == "length")
-		{
-			double rawlen = to_number(value);
-			int newlen = number_to_integer(rawlen);
-			if (newlen != rawlen || newlen < 0)
-				throw raise("Range error", "invalid array length");
-			obj->resize_list(*this, newlen);
-			return;
-		}
-	}
-	else if (obj->type == PHON_CSTRING)
-	{
-		if (name == "length")
-			goto readonly;
-		if (is_array_index(this, name, &k))
-			if (k >= 0 && k < obj->as.string.size())
-				goto readonly;
-	}
-	else if (obj->type == PHON_CREGEX)
-	{
-		if (name == "pattern") goto readonly;
-		if (name == "length") goto readonly;
-	}
-	else if (obj->type == PHON_CFILE)
-	{
-		if (name == "path") goto readonly;
-		if (name == "length") goto readonly;
-	}
-//    else if (obj->type == PHON_CUSERDATA)
-//    {
-//        if (obj->as.user.put && obj->as.user.put(this, obj->as.user.data, name))
-//            return;
-//    }
-	/* First try to find a setter in prototype chain */
-	ref = obj->get_field(*this, name, &own);
-	if (ref)
-	{
-		if (ref->setter)
-		{
-			push(ref->setter);
-			push(obj);
-			push(*value);
-			call(1);
-			pop(1);
-			return;
-		}
-		else
-		{
-			if (this->strict)
-				if (ref->getter)
-					goto readonly;
-		}
-	}
-
-	/* Field not found on this object, so create one */
-	if (!ref || !own)
-		ref = obj->set_field(*this, name);
-
-	if (ref)
-	{
-		if (!(ref->atts & PHON_READONLY))
-			ref->value = *value;
-		else
-			goto readonly;
-	}
-
-	return;
-
-	readonly:
-	if (this->strict)
-		throw raise("Error", "cannot set read-only field '%s'", name.data());
-
-}
-
-void Runtime::def_field(Object *obj, const String &name, int atts, Variant *value, Object *getter, Object *setter)
-{
-	Field *ref;
-	int k;
-
-	if (obj->type == PHON_CLIST)
-	{
-		if (name == "length")
-			goto readonly;
-	}
-	else if (obj->type == PHON_CSTRING)
-	{
-		if (name == "length")
-			goto readonly;
-		if (is_array_index(this, name, &k))
-			if (k >= 0 && k < obj->as.string.size())
-				goto readonly;
-	}
-	else if (obj->type == PHON_CREGEX)
-	{
-		if (name == "pattern") goto readonly;
-		if (name == "global") goto readonly;
-		if (name == "ignore_case") goto readonly;
-		if (name == "multiline") goto readonly;
-	}
-	else if (obj->type == PHON_CFILE)
-	{
-		if (name == "path") goto readonly;
-		if (name == "length") goto readonly;
-	}
-//    else if (obj->type == PHON_CUSERDATA)
-//    {
-//        if (obj->as.user.put && obj->as.user.put(this, obj->as.user.data, name))
-//            return;
-//    }
-
-	ref = obj->set_field(*this, name);
-	if (ref)
-	{
-		if (value)
-		{
-			if (!(ref->atts & PHON_READONLY))
-				ref->value = *value;
-			else if (this->strict)
-				throw raise("Type error", "'%s' is read-only", name.data());
-		}
-		if (getter)
-		{
-			if (!(ref->atts & PHON_DONTCONF))
-				ref->getter = getter;
-			else if (this->strict)
-				throw raise("Type error", "'%s' is non-configurable", name.data());
-		}
-		if (setter)
-		{
-			if (!(ref->atts & PHON_DONTCONF))
-				ref->setter = setter;
-			else if (this->strict)
-				throw raise("Type error", "'%s' is non-configurable", name.data());
-		}
-		ref->atts |= atts;
-	}
-
-	return;
-
-	readonly:
-	if (this->strict)
-		throw raise("Type error", "'%s' is read-only or non-configurable", name.data());
-}
-
-int Runtime::del_field(Object *obj, const String &name)
-{
-	Field *ref;
-	int k;
-
-	if (obj->type == PHON_CLIST)
-	{
-		if (name == "length")
-			goto dontconf;
-	}
-	else if (obj->type == PHON_CSTRING)
-	{
-		if (name == "length")
-			goto dontconf;
-		if (is_array_index(this, name, &k))
-			if (k >= 0 && k < obj->as.string.size())
-				goto dontconf;
-	}
-	else if (obj->type == PHON_CREGEX)
-	{
-		if (name == "pattern") goto dontconf;
-	}
-	else if (obj->type == PHON_CFILE)
-	{
-		if (name == "path" || name == "length") goto dontconf;
-	}
-	else if (obj->type == PHON_CUSERDATA)
-	{
-		if (obj->as.user.destroy && obj->as.user.destroy(this, obj->as.user.data, name))
-			return 1;
-	}
-
-	ref = obj->get_own_field(*this, name);
-	if (ref)
-	{
-		if (ref->atts & PHON_DONTCONF)
-			goto dontconf;
-		obj->del_field(*this, name);
-	}
-	return 1;
-
-	dontconf:
-	if (this->strict)
-		throw raise("Type error", "'%s' is non-configurable", name.data());
-	return 0;
-}
-
-/* Registry, global and object field accessors */
-
-String Runtime::ref()
-{
-	static String Null("_Null");
-	static String True("_True");
-	static String False("_False");
-	Variant *v = stack_index(-1);
-	String s;
-	char buf[32];
-
-	switch (v->type)
-	{
-		case PHON_TNULL:
-			s = Null;
-			break;
-		case PHON_TBOOLEAN:
-			s = v->as.boolean ? True : False;
-			break;
-		case PHON_TOBJECT:
-			sprintf(buf, "%p", (void *) v->as.object);
-			s = internalize(buf);
-			break;
-		default:
-			sprintf(buf, "%d", nextref++);
-			s = internalize(buf);
-			break;
-	}
-	set_registry(s);
-
-	return s;
-}
-
-void Runtime::unref(const String &ref)
-{
-	del_registry(ref);
-}
-
-void Runtime::get_registry(const String &name)
-{
-	get_field(R, name);
-}
-
-void Runtime::set_registry(const String &name)
-{
-	set_field(R, name);
-	pop(1);
-}
-
-void Runtime::del_registry(const String &name)
-{
-	del_field(R, name);
-}
-
-void Runtime::get_global(const String &name)
-{
-	get_field(G, name);
-}
-
-void Runtime::set_global(const String &name)
-{
-	set_field(G, name);
-	pop(1);
-}
-
-void Runtime::def_global(const String &name, int atts)
-{
-	def_field(G, name, atts, stack_index(-1), nullptr, nullptr);
-	pop(1);
-}
-
-void Runtime::get_field(int idx, const String &name)
-{
-	get_field(to_object(idx), name);
-}
-
-void Runtime::set_field(int idx, const String &name)
-{
-	set_field(to_object(idx), name);
-	pop(1);
-}
-
-void Runtime::def_field(int idx, const String &name, int atts)
-{
-	def_field(to_object(idx), name, atts, stack_index(-1), nullptr, nullptr);
-	pop(1);
-}
-
-void Runtime::del_field(int idx, const String &name)
-{
-	del_field(to_object(idx), name);
-}
-
-void Runtime::def_accessor(int idx, const String &name, int atts)
-{
-	def_field(to_object(idx), name, atts, nullptr, jsR_tofunction(this, -2), jsR_tofunction(this, -1));
-	pop(2);
-}
-
-bool Runtime::has_field(int idx, const String &name)
-{
-	return has_field(to_object(idx), name);
-}
-
-/* Iterator */
-
-void Runtime::push_iterator(int idx)
-{
-	auto obj = to_object(idx);
-	push(obj->new_iterator(*this));
-}
-
-std::optional<Variant> Runtime::next_iterator(int idx)
-{
-	return to_object(idx)->next_iterator(*this);
-}
-
-/* Environment records */
-
-Environment *new_environment(Runtime *J, Object *variables, Environment *outer)
-{
-	auto E = new Environment;
-	E->gcmark = 0;
-	E->gcnext = J->gcenv;
-	J->gcenv = E;
-	++J->gccounter;
-
-	E->outer = outer;
-	E->variables = variables;
-	return E;
-}
-
-static void init_variable(Runtime *J, const String &name, int idx)
-{
-	J->def_field(J->E->variables, name, PHON_DONTENUM | PHON_DONTCONF, J->stack_index(idx), nullptr, nullptr);
-}
-
-static void define_variable(Runtime *J, const String &name)
-{
-	J->def_field(J->E->variables, name, PHON_DONTENUM | PHON_DONTCONF, nullptr, nullptr, nullptr);
-}
-
-static int has_variable(Runtime *J, const String &name)
-{
-	Environment *E = J->E;
-	do
-	{
-		Field *ref = E->variables->get_field(*J, name);
-		if (ref)
-		{
-			if (ref->getter)
-			{
-				J->push(ref->getter);
-				J->push(E->variables);
-				J->call(0);
-			}
-			else
-			{
-				J->push(ref->value);
-			}
-			return 1;
-		}
-		E = E->outer;
-	} while (E);
-	return 0;
-}
-
-static void set_variable(Runtime *J, const String &name)
-{
-	Environment *E = J->E;
-	do
-	{
-		Field *ref = E->variables->get_field(*J, name);
-		if (ref)
-		{
-			if (ref->setter)
-			{
-				J->push(ref->setter);
-				J->push(E->variables);
-				J->copy(-3);
-				J->call(1);
-				J->pop(1);
-				return;
-			}
-			if (!(ref->atts & PHON_READONLY))
-				ref->value = *J->stack_index(-1);
-			else if (J->strict)
-				throw J->raise("Type error", "'%s' is read-only", name.data());
-			return;
-		}
-		E = E->outer;
-	} while (E);
-	if (J->strict)
-		throw J->raise("Reference error", "assignment to undeclared variable '%s'", name.data());
-	J->set_field(J->G, name);
-}
-
-static int delete_variable(Runtime *J, const String &name)
-{
-	Environment *E = J->E;
-	do
-	{
-		Field *ref = E->variables->get_own_field(*J, name);
-		if (ref)
-		{
-			if (ref->atts & PHON_DONTCONF)
-			{
-				if (J->strict)
-					throw J->raise("Type error", "'%s' is non-configurable", name.data());
-				return 0;
-			}
-			E->variables->del_field(*J, name);
-			return 1;
-		}
-		E = E->outer;
-	} while (E);
-	return J->del_field(J->G, name);
-}
-
-/* Function calls */
-
-static void save_scope(Runtime *J, Environment *newE)
-{
-	if (J->nstop + 1 >= PHON_ENVLIMIT)
-		throw std::runtime_error("stack overflow");
-	J->nsstack[J->nstop++] = J->E;
-	J->E = newE;
-}
-
-static void restore_scope(Runtime *J)
-{
-	J->E = J->nsstack[--J->nstop];
-}
-
-static void call_wfunction(Runtime *J, int n, Function *F, Environment *scope)
-{
-	Variant v;
-	int i;
-
-	save_scope(J, scope);
-
-	if (n > F->numparams)
-	{
-		J->pop(n - F->numparams);
-		n = F->numparams;
-	}
-	for (i = n; i < F->vartab.size(); ++i)
-		J->push_null();
-
-	jsR_run(J, F);
-	v = *J->stack_index(-1);
-	J->clear_stack();
-	J->push(v);
-
-	restore_scope(J);
-}
-
-static void call_function(Runtime *J, int n, Function *F, Environment *scope)
-{
-	Variant v;
-	int i;
-
-	scope = new_environment(J, new Object(*J, PHON_COBJECT, nullptr), scope);
-
-	save_scope(J, scope);
-
-	if (F->arguments)
-	{
-		J->new_object();
-		if (!J->strict)
-		{
-			J->current_function();
-			J->def_field(-2, "callee", PHON_DONTENUM);
-		}
-		J->push(n);
-		J->def_field(-2, "length", PHON_DONTENUM);
-		for (i = 0; i < n; ++i)
-		{
-			J->copy(i + 1);
-			js_setindex(J, -2, i);
-		}
-		init_variable(J, "arguments", -1);
-		J->pop(1);
-	}
-
-	for (i = 0; i < F->numparams; ++i)
-	{
-		if (i < n)
-			init_variable(J, F->vartab[i], i + 1);
-		else
-		{
-			J->push_null();
-			init_variable(J, F->vartab[i], -1);
-			J->pop(1);
-		}
-	}
-	J->pop(n);
-
-	jsR_run(J, F);
-	v = *J->stack_index(-1);
-	J->clear_stack();
-	J->push(v);
-
-	restore_scope(J);
-}
-
-static void call_script(Runtime *J, int n, Function *F, Environment *scope)
-{
-	Variant v;
-
-	if (scope)
-		save_scope(J, scope);
-
-	J->pop(n);
-	jsR_run(J, F);
-	v = *J->stack_index(-1);
-	J->clear_stack();
-	J->push(v);
-
-	if (scope)
-		restore_scope(J);
-}
-
-static void call_native_function(Runtime *J, int n, int min, native_callback_t &F)
-{
-	int i;
-	Variant v;
-
-	for (i = n; i < min; ++i)
-		J->push_null();
-
-	F(*J);
-	v = *J->stack_index(-1);
-	J->clear_stack();
-	J->push(v);
-}
-
-static void push_trace(Runtime *J, const String &name, const String &file, int line)
-{
-	if (J->tracetop + 1 == PHON_ENVLIMIT)
-		throw J->raise("Runtime error", "call stack overflow");
-	++J->tracetop;
-	J->trace[J->tracetop].name = name;
-	J->trace[J->tracetop].file = file;
-	J->trace[J->tracetop].line = line;
-}
-
-/* Main interpreter loop */
-
-void Runtime::dump_stack()
-{
-	printf("stack {\n");
-
-	for (auto i = stack; i < top; ++i)
-	{
-		putchar(i == bot ? '>' : ' ');
-		printf("% 4d: ", int(i - stack));
-		dump_variant(this, *i);
-		putchar('\n');
-	}
-	printf("}\n");
-}
-
-static void jsR_dumpenvironment(Runtime *J, Environment *E, int d)
-{
-	printf("scope %d ", d);
-	dump_object(J, E->variables);
-	if (E->outer)
-		jsR_dumpenvironment(J, E->outer, d + 1);
-}
-
-void js_stacktrace(Runtime *J)
-{
-	int n;
-	printf("stack trace:\n");
-	for (n = J->tracetop; n >= 0; --n)
-	{
-		auto &name = J->trace[n].name;
-		auto &file = J->trace[n].file;
-		int line = J->trace[n].line;
-		if (line > 0)
-		{
-			if (!name.empty())
-				printf("\tat %s (%s:%d)\n", name.data(), file.data(), line);
-			else
-				printf("\tat %s:%d\n", file.data(), line);
-		}
-		else
-			printf("\tat %s (%s)\n", name.data(), file.data());
-	}
-}
-
-void trap(Runtime *J, int pc)
-{
-	if (pc > 0)
-	{
-		Function *F = (BOT - 1)->as.object->as.f.function;
-		printf("trap at %d in function ", pc);
-		jsC_dumpfunction(J, F);
-	}
-	J->dump_stack();
-	jsR_dumpenvironment(J, J->E, 0);
-	js_stacktrace(J);
-}
-
-static void jsR_run(Runtime *J, Function *F)
-{
-	auto &FT = F->funtab;
-	auto &NT = F->numtab;
-	auto &ST = F->strtab;
-	instruction_t *pcstart = F->code.data();
-	instruction_t *pc = F->code.data();
-	enum js_OpCode opcode;
-	int offset;
-	int savestrict;
-
-	const char *str;
-	Object *obj;
-	double x, y;
-	unsigned int ux, uy;
-	int ix, iy, okay;
-	int b;
-
-	savestrict = J->strict;
-	J->strict = F->strict;
-
-	while (true)
-	{
-		if (J->gccounter > PHON_GCLIMIT)
-		{
-			J->collect();
-		}
-
-		opcode = (js_OpCode) *pc++;
-		switch (opcode)
-		{
-			case OP_POP:
-				J->pop(1);
-				break;
-			case OP_DUP:
-				js_dup(J);
-				break;
-			case OP_DUP2:
-				js_dup2(J);
-				break;
-			case OP_ROT2:
-				js_rot2(J);
-				break;
-			case OP_ROT3:
-				js_rot3(J);
-				break;
-			case OP_ROT4:
-				js_rot4(J);
-				break;
-
-			case OP_NUMBER_0:
-				J->push_int(0);
-				break;
-			case OP_NUMBER_1:
-				J->push_int(1);
-				break;
-			case OP_NUMBER_POS:
-				J->push(*pc++);
-				break;
-			case OP_NUMBER_NEG:
-				J->push(-(*pc++));
-				break;
-			case OP_NUMBER:
-				J->push(NT[*pc++]);
-				break;
-			case OP_STRING:
-				J->push(ST[*pc++]);
-				break;
-
-			case OP_CLOSURE:
-				create_function(J, FT[*pc++], J->E);
-				break;
-			case OP_NEWOBJECT:
-				J->new_object();
-				break;
-			case OP_NEWLIST:
-			{
-				SizeOpcode op;
-				memcpy(op.ins, pc, sizeof(SizeOpcode));
-				pc += OpSize;
-				J->new_list(op.size);
-				break;
-			}
-			case OP_NEWARRAY:
-			{
-				SizeOpcode row, col;
-				memcpy(row.ins, pc, sizeof(SizeOpcode));
-				pc += OpSize;
-				memcpy(col.ins, pc, sizeof(SizeOpcode));
-				pc += OpSize;
-				if (row.size == 1)
-					J->new_array(col.size);
-				else
-					J->new_array(row.size, col.size);
-				break;
-			}
-			case OP_NEWREGEXP:
-				J->new_regex(ST[pc[0]], pc[1]);
-				pc += 2;
-				break;
-
-			case OP_UNDEF:
-				J->push_undefined();
-				break;
-			case OP_NULL:
-				J->push_null();
-				break;
-			case OP_TRUE:
-				J->push_boolean(true);
-				break;
-			case OP_FALSE:
-				J->push_boolean(false);
-				break;
-
-			case OP_THIS:
-				if (J->strict)
-				{
-					J->copy(0);
-				}
-				else
-				{
-					if (J->is_coercible(0))
-						J->copy(0);
-					else
-						J->push_global();
-				}
-				break;
-
-			case OP_CURRENT:
-				J->current_function();
-				break;
-
-			case OP_INITLOCAL:
-				*(BOT + *pc++) = *(--TOP);
-				break;
-
-			case OP_GETLOCAL:
-				CHECKSTACK(1);
-				*(TOP++) = *(BOT + *pc++);
-				break;
-
-			case OP_SETLOCAL:
-				*(BOT + *pc++) = *(TOP - 1);
-				break;
-
-			case OP_DELLOCAL:
-				++pc;
-				J->push_boolean(false);
-				break;
-
-			case OP_INITVAR:
-				init_variable(J, ST[*pc++], -1);
-				J->pop(1);
-				break;
-
-			case OP_DEFVAR:
-				define_variable(J, ST[*pc++]);
-				break;
-
-			case OP_GETVAR:
-			{
-				auto &str = ST[*pc++];
-				if (!has_variable(J, str))
-					throw J->raise("Reference error", "'%s' is not defined", str.data());
-				break;
-			}
-			case OP_HASVAR:
-				if (!has_variable(J, ST[*pc++]))
-					J->push_null();
-				break;
-
-			case OP_SETVAR:
-				set_variable(J, ST[*pc++]);
-				break;
-
-			case OP_DELVAR:
-				b = delete_variable(J, ST[*pc++]);
-				J->push_boolean(b);
-				break;
-
-			case OP_IN:
-			{
-				auto str = J->to_string(-2);
-				if (!J->is_object(-1))
-					throw J->raise("Type error", "operand to 'in' is not an object");
-				auto b = J->has_field(-1, str);
-				J->pop(2 + b);
-				J->push_boolean(b);
-				break;
-			}
-			case OP_INITPROP:
-			{
-				obj = J->to_object(-3);
-				if (J->is_number(-2))
-				{
-					auto i = J->to_integer(-2);
-					J->set_field(obj, i);
-				}
-				else
-				{
-					auto str = J->to_string(-2);
-					J->set_field(obj, str);
-				}
-				J->pop(2);
-				break;
-			}
-			case OP_INITGETTER:
-			{
-				obj = J->to_object(-3);
-				auto str = J->to_string(-2);
-				J->def_field(obj, str, 0, nullptr, jsR_tofunction(J, -1), nullptr);
-				J->pop(2);
-				break;
-			}
-			case OP_INITSETTER:
-			{
-				obj = J->to_object(-3);
-				auto str = J->to_string(-2);
-				J->def_field(obj, str, 0, nullptr, nullptr, jsR_tofunction(J, -1));
-				J->pop(2);
-				break;
-			}
-			case OP_GETPROP:
-			{
-				obj = J->to_object(-2);
-
-				if (J->is_number(-1))
-				{
-					auto pos = J->to_integer(-1);
-					J->get_field(obj, pos);
-				}
-				else
-				{
-					auto str = J->to_string(-1);
-					J->get_field(obj, str);
-				}
-
-				js_rot3pop2(J);
-				break;
-			}
-			case OP_GETPROPX:
-			{
-				int argc = *pc++;
-				int pos = -1 - argc;
-				if (!J->is_array(pos)) {
-					throw J->raise("Index error", "Multi-dimensional indexing is only supported for numeric arrays");
-				}
-				auto &X = J->to_array(pos);
-				intptr_t i = J->to_integer(-2);
-				intptr_t j = J->to_integer(-1);
-				J->pop(argc + 1);
-				if (X.ndim() != 2) {
-					throw J->raise("Index error", "2 indexes provided, but array has %ld dimension(s)", X.ndim());
-				}
-				J->push(X.at(i,j));
-				break;
-			}
-			case OP_GETPROP_S:
-			{
-				auto &str = ST[*pc++];
-				obj = J->to_object(-1);
-				J->get_field(obj, str);
-				js_rot2pop1(J);
-				break;
-			}
-			case OP_SETPROP:
-			{
-				obj = J->to_object(-3);
-
-				if (J->is_number(-2))
-				{
-					auto pos = J->to_number(-2);
-					J->set_field(obj, pos);
-				}
-				else
-				{
-					auto str = J->to_string(-2);
-					J->set_field(obj, str);
-				}
-				js_rot3pop2(J);
-				break;
-			}
-			case OP_SETPROPX:
-			{
-				int argc = *pc++;
-				int pos = -2 - argc;
-				if (!J->is_array(pos)) {
-					throw J->raise("Index error", "Multi-dimensional indexing is only supported for numeric arrays");
-				}
-				auto &X = J->to_array(pos);
-				intptr_t i = J->to_integer(-3);
-				intptr_t j = J->to_integer(-2);
-				double value = J->to_number(-1);
-				if (X.ndim() != 2) {
-					throw J->raise("Index error", "2 indexes provided, but array has %d dimension(s)", int(X.ndim()));
-				}
-				X.at(i,j) = value;
-				J->pop(argc + 1); // FIXME: stack underflow if we pop 4 arguments.
-				break;
-			}
-			case OP_SETPROP_S:
-			{
-				auto &str = ST[*pc++];
-				obj = J->to_object(-2);
-				J->set_field(obj, str);
-				js_rot2pop1(J);
-				break;
-			}
-			case OP_DELPROP:
-			{
-				auto str = J->to_string(-1);
-				obj = J->to_object(-2);
-				b = J->del_field(obj, str);
-				J->pop(2);
-				J->push_boolean(b);
-				break;
-			}
-			case OP_DELPROP_S:
-			{
-				auto &str = ST[*pc++];
-				obj = J->to_object(-1);
-				b = J->del_field(obj, str);
-				J->pop(1);
-				J->push_boolean(b);
-				break;
-			}
-			case OP_ITERATOR:
-				if (J->is_coercible(-1))
-				{
-					auto o = J->to_object(-1);
-					obj = o->new_iterator(*J);
-					J->pop(1);
-					J->push(obj);
-				}
-				break;
-
-			case OP_NEXTITER:
-				if (J->is_object(-1))
-				{
-					obj = J->to_object(-1);
-					auto it = obj->next_iterator(*J);
-					if (it)
-					{
-						J->push(std::move(*it));
-						J->push_boolean(true);
-					}
-					else
-					{
-						J->pop(1);
-						J->push_boolean(false);
-					}
-				}
-				else
-				{
-					J->pop(1);
-					J->push_boolean(false);
-				}
-				break;
-
-				/* Function calls */
-
-			case OP_EVAL:
-				J->eval();
-				break;
-
-			case OP_CALL:
-				J->call(*pc++);
-				break;
-
-			case OP_NEW:
-				J->construct(*pc++);
-				break;
-
-				/* Unary operators */
-
-			case OP_TYPEOF:
-				str = js_typeof(J, -1);
-				J->pop(1);
-				J->push(str);
-				break;
-
-			case OP_POS:
-				x = J->to_number(-1);
-				J->pop(1);
-				J->push(x);
-				break;
-
-			case OP_NEG:
-				x = J->to_number(-1);
-				J->pop(1);
-				J->push(-x);
-				break;
-
-			case OP_BITNOT:
-				ix = J->to_int32(-1);
-				J->pop(1);
-				J->push(~ix);
-				break;
-
-			case OP_LOGNOT:
-				b = J->to_boolean(-1);
-				J->pop(1);
-				J->push_boolean(!b);
-				break;
-
-			case OP_INC:
-				x = J->to_number(-1);
-				J->pop(1);
-				J->push(x + 1);
-				break;
-
-			case OP_DEC:
-				x = J->to_number(-1);
-				J->pop(1);
-				J->push(x - 1);
-				break;
-
-			case OP_POSTINC:
-				x = J->to_number(-1);
-				J->pop(1);
-				J->push(x + 1);
-				J->push(x);
-				break;
-
-			case OP_POSTDEC:
-				x = J->to_number(-1);
-				J->pop(1);
-				J->push(x - 1);
-				J->push(x);
-				break;
-
-				/* Multiplicative operators */
-
-			case OP_MUL:
-			{
-				if (J->is_array(-2))
-				{
-					auto &X = J->to_array(-2);
-					if (J->is_array(-1))
-					{
-						auto &Y = J->to_array(-1);
-						if (X.nrow() == Y.ncol() && X.ncol() == Y.nrow())
-						{
-							J->pop(2);
-							J->push(mul(X, Y));
-						}
-						else
-						{
-							J->raise("Math error", "Cannot multiply matrices with dimensions %ldx%ld and %ldx%ld",
-									X.nrow(), X.ncol(), Y.nrow(), Y.ncol());
-						}
-					}
-					else
-					{
-						y = J->to_number(-1);
-						J->pop(2);
-						J->push(mul(X,y));
-					}
-				}
-				else
-				{
-					x = J->to_number(-2);
-					if (J->is_array(-1))
-					{
-						auto &Y = J->to_array(-1);
-						J->pop(2);
-						J->push(mul(Y,x));
-					}
-					else
-					{
-						y = J->to_number(-1);
-						J->pop(2);
-						J->push(x * y);
-					}
-				}
-				break;
-			}
-			case OP_DIV:
-			{
-				if (J->is_array(-2))
-				{
-					auto &X = J->to_array(-2);
-					y = J->to_number(-1);
-					J->pop(2);
-					J->push(div(X,y));
-				}
-				else
-				{
-					x = J->to_number(-2);
-					y = J->to_number(-1);
-					J->pop(2);
-					J->push(x / y);
-				}
-				break;
-			}
-			case OP_MOD:
-				x = J->to_number(-2);
-				y = J->to_number(-1);
-				J->pop(2);
-				J->push(fmod(x, y));
-				break;
-
-				/* Additive operators */
-
-			case OP_ADD:
-				x = J->to_number(-2);
-				y = J->to_number(-1);
-				J->pop(2);
-				J->push(x + y);
-				break;
-
-			case OP_SUB:
-				x = J->to_number(-2);
-				y = J->to_number(-1);
-				J->pop(2);
-				J->push(x - y);
-				break;
-
-				/* Shift operators */
-
-			case OP_SHL:
-				ix = J->to_int32(-2);
-				uy = J->to_uint32(-1);
-				J->pop(2);
-				J->push(ix << (uy & 0x1F));
-				break;
-
-			case OP_SHR:
-				ix = J->to_int32(-2);
-				uy = J->to_uint32(-1);
-				J->pop(2);
-				J->push(ix >> (uy & 0x1F));
-				break;
-
-			case OP_USHR:
-				ux = J->to_uint32(-2);
-				uy = J->to_uint32(-1);
-				J->pop(2);
-				J->push(ux >> (uy & 0x1F));
-				break;
-
-				/* Relational operators */
-
-			case OP_LT:
-				b = js_compare(J, &okay);
-				J->pop(2);
-				J->push_boolean(okay && b < 0);
-				break;
-			case OP_GT:
-				b = js_compare(J, &okay);
-				J->pop(2);
-				J->push_boolean(okay && b > 0);
-				break;
-			case OP_LE:
-				b = js_compare(J, &okay);
-				J->pop(2);
-				J->push_boolean(okay && b <= 0);
-				break;
-			case OP_GE:
-				b = js_compare(J, &okay);
-				J->pop(2);
-				J->push_boolean(okay && b >= 0);
-				break;
-
-			case OP_INSTANCEOF:
-				b = js_instanceof(J);
-				J->pop(2);
-				J->push_boolean(b);
-				break;
-
-				/* Equality */
-
-			case OP_EQ:
-				b = js_equal(J);
-				J->pop(2);
-				J->push_boolean(b);
-				break;
-			case OP_NE:
-				b = js_equal(J);
-				J->pop(2);
-				J->push_boolean(!b);
-				break;
-
-			case OP_JCASE:
-				offset = *pc++;
-				b = js_equal(J);
-				if (b)
-				{
-					J->pop(2);
-					pc = pcstart + offset;
-				}
-				else
-				{
-					J->pop(1);
-				}
-				break;
-
-				/* Binary bitwise operators */
-
-			case OP_CONCAT:
-				js_concat(J);
-				break;
-
-			case OP_BITXOR:
-				ix = J->to_int32(-2);
-				iy = J->to_int32(-1);
-				J->pop(2);
-				J->push(ix ^ iy);
-				break;
-
-			case OP_BITOR:
-				ix = J->to_int32(-2);
-				iy = J->to_int32(-1);
-				J->pop(2);
-				J->push(ix | iy);
-				break;
-
-				/* Branching */
-
-			case OP_DEBUGGER:
-				trap(J, (int) (pc - pcstart) - 1);
-				break;
-
-			case OP_JUMP:
-				pc = pcstart + *pc;
-				break;
-
-			case OP_JTRUE:
-				offset = *pc++;
-				b = J->to_boolean(-1);
-				J->pop(1);
-				if (b)
-					pc = pcstart + offset;
-				break;
-
-			case OP_JFALSE:
-				offset = *pc++;
-				b = J->to_boolean(-1);
-				J->pop(1);
-				if (!b)
-					pc = pcstart + offset;
-				break;
-
-			case OP_RETURN:
-				J->strict = savestrict;
-				return;
-
-			case OP_LINE:
-				J->trace[J->tracetop].line = *pc++;
-				break;
-		}
-	}
-}
-
-void Runtime::call(int n)
-{
-	auto &v = get(-n-2);
-	if (!is_callable(-n - 2))
-		throw raise("Type error", "called object is not a function");
-
-	auto obj = to_object(-n - 2);
-	auto savebot = bot;
-	bot = top - n - 1;
-
-	if (obj->type == PHON_CFUNCTION)
-	{
-		push_trace(this, obj->as.f.function->name, obj->as.f.function->filename, obj->as.f.function->line);
-		if (obj->as.f.function->lightweight)
-			call_wfunction(this, n, obj->as.f.function, obj->as.f.scope);
-		else
-			call_function(this, n, obj->as.f.function, obj->as.f.scope);
-		--tracetop;
-	}
-	else if (obj->type == PHON_CSCRIPT)
-	{
-		push_trace(this, obj->as.f.function->name, obj->as.f.function->filename, obj->as.f.function->line);
-		call_script(this, n, obj->as.f.function, obj->as.f.scope);
-		--tracetop;
-	}
-	else if (obj->type == PHON_CCFUNCTION)
-	{
-		push_trace(this, obj->as.c.name, "native", 0);
-		call_native_function(this, n, obj->as.c.length, obj->as.c.function);
-		--tracetop;
-	}
-
-	bot = savebot;
-}
-
-void Runtime::construct(int n)
-{
-	Object *obj;
-	Object *prototype;
-	Object *newobj;
-
-	if (!is_callable(-n - 1))
-		throw raise("Type error", "called object is not a function");
-
-	obj = to_object(-n - 1);
-
-	/* built-in constructors create their own objects, give them a 'null' this */
-	if (obj->type == PHON_CCFUNCTION && obj->as.c.constructor)
-	{
-		auto savebot = this->bot;
-		push_null();
-		if (n > 0) rot(n + 1);
-		this->bot = this->top - n - 1;
-
-		push_trace(this, obj->as.c.name, "native", 0);
-		call_native_function(this, n, obj->as.c.length, obj->as.c.constructor);
-		--tracetop;
-
-		this->bot = savebot;
-
-		return;
-	}
-
-	/* extract the function object's prototype field */
-	get_field(-n - 1, "meta");
-	if (is_object(-1))
-		prototype = to_object(-1);
-	else
-		prototype = this->object_meta;
-	pop(1);
-
-	/* create a new object with above prototype, and shift it into the 'this' slot */
-	newobj = new Object(*this, PHON_COBJECT, prototype);
-	push(newobj);
-	if (n > 0) rot(n + 1);
-
-	/* call the function */
-	this->call(n);
-
-	/* if result is not an object, return the original object we created */
-	if (!is_object(-1))
-	{
-		pop(1);
-		push(newobj);
-	}
-}
-
-void Runtime::check_stack(int n)
-{
-	if (this->top + n >= this->stack + PHON_STACKSIZE)
-		throw std::runtime_error("stack overflow");
-}
-
-void Runtime::clear_stack()
-{
-	while (top > bot)
+	while (top > limit)
 	{
 		(--top)->~Variant();
 	}
-	--top;
-	--bot;
-//    top = --bot;
 }
 
-intptr_t Runtime::stack_size() const
+Variant & Runtime::peek(int n)
 {
-    return ((intptr_t)top - (intptr_t)stack) / sizeof(Variant);
+	return *(top + n);
+}
+
+void Runtime::negate()
+{
+	auto &var = peek();
+
+	if (var.is_integer())
+	{
+		intptr_t value = -raw_cast<intptr_t>(var);
+		pop();
+		push_int(value);
+	}
+	else if (var.is_float())
+	{
+		double value = -raw_cast<double>(var);
+		pop();
+		push(value);
+	}
+	else
+	{
+		throw error("[Type error] Negation operator expected a Number, got a %", var.class_name());
+	}
+}
+
+void Runtime::math_op(char op)
+{
+	auto &v1 = peek(-2).resolve();
+	auto &v2 = peek(-1).resolve();
+	std::feclearexcept(FE_ALL_EXCEPT);
+
+	if (v1.is_number() && v2.is_number())
+	{
+		switch (op)
+		{
+			case '+':
+			{
+				if (v1.is_integer() && v2.is_integer())
+				{
+					auto x = cast<intptr_t>(v1);
+					auto y = cast<intptr_t>(v2);
+					pop(2);
+					if ((x < 0.0) == (y < 0.0) && std::abs(y) > (std::numeric_limits<intptr_t>::max)() - std::abs(x)) {
+						RUNTIME_ERROR("[Math error] Integer overflow");
+					}
+					push_int(x+y);
+				}
+				else
+				{
+					auto x = v1.get_number();
+					auto y = v2.get_number();
+					pop(2);
+					auto result = x + y;
+					check_float_error();
+					push(result);
+				}
+				return;
+			}
+			case '-':
+			{
+				if (v1.is_integer() && v2.is_integer())
+				{
+					auto x = cast<intptr_t>(v1);
+					auto y = cast<intptr_t>(v2);
+					pop(2);
+					push_int(x - y);
+				}
+				else
+				{
+					auto x = v1.get_number();
+					auto y = v2.get_number();
+					pop(2);
+					auto result = x - y;
+					check_float_error();
+					push(result);
+				}
+				return;
+			}
+			case '*':
+			{
+				if (v1.is_integer() && v2.is_integer())
+				{
+					auto x = cast<intptr_t>(v1);
+					auto y = cast<intptr_t>(v2);
+					pop(2);
+					push_int(x * y);
+				}
+				else
+				{
+					auto x = v1.get_number();
+					auto y = v2.get_number();
+					pop(2);
+					auto result = x * y;
+					check_float_error();
+					push(result);
+				}
+				return;
+			}
+			case '/':
+			{
+				auto x = v1.get_number();
+				auto y = v2.get_number();
+				pop(2);
+				auto result = x / y;
+				check_float_error();
+				push(result);
+				return;
+			}
+			case '^':
+			{
+				auto x = v1.get_number();
+				auto y = v2.get_number();
+				pop(2);
+				auto result = pow(x, y);
+				check_float_error();
+				push(result);
+				return;
+			}
+			case '%':
+			{
+				if (v1.is_integer() && v2.is_integer())
+				{
+					auto x = cast<intptr_t>(v1);
+					auto y = cast<intptr_t>(v2);
+					pop(2);
+					push_int(x % y);
+				}
+				else
+				{
+					auto x = v1.get_number();
+					auto y = v2.get_number();
+					pop(2);
+					push(std::fmod(x, y));
+				}
+				return;
+			}
+			default:
+				break;
+		}
+	}
+
+	pop(2);
+	char opstring[2] = { op, '\0' };
+	RUNTIME_ERROR("[Type error] Cannot apply math operator '%' to % and %", opstring, v1.class_name(), v2.class_name());
+}
+
+void Runtime::check_float_error()
+{
+	if (fetestexcept(FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO | FE_INVALID))
+	{
+		if (fetestexcept(FE_OVERFLOW)) {
+			throw error("[Math error] Number overflow");
+		}
+		if (fetestexcept(FE_UNDERFLOW)) {
+			throw error("[Math error] Number underflow");
+		}
+		if (fetestexcept(FE_DIVBYZERO)) {
+			throw error("[Math error] Division by zero");
+		}
+		if (fetestexcept(FE_INVALID)) {
+			throw error("[Math error] Undefined number");
+		}
+	}
+}
+
+Variant Runtime::interpret(Handle <Closure> &closure)
+{
+	if (current_frame) {
+		current_frame->previous_routine = current_routine;
+	}
+	assert(!closure->routine->is_native());
+	Routine &routine = *(reinterpret_cast<Routine*>(closure->routine.get()));
+	current_routine = &routine;
+	code = &routine.code;
+	auto old_ip = ip;
+	ip = routine.code.data();
+
+	while (true)
+	{
+		auto op = static_cast<Opcode>(*ip++);
+
+		switch (op)
+		{
+			case Opcode::Add:
+			{
+				trace_op();
+				math_op('+');
+				break;
+			}
+			case Opcode::Assert:
+			{
+				trace_op();
+				int narg = *ip++;
+				bool value = peek(-narg).to_boolean();
+				if (!value)
+				{
+					auto msg = (narg == 2) ? utils::format("Assertion failed: %", peek(-1).to_string()) : std::string("Assertion failed");
+					RUNTIME_ERROR(msg);
+				}
+				break;
+			}
+			case Opcode::Call:
+			{
+				trace_op();
+				Instruction flags = *ip++;
+				// TODO: handle return by reference
+				needs_ref = flags & (1<<9);
+				int narg = flags & 255;
+
+				auto &v = peek(-narg - 1);
+				// Precall already checked that we have a function object.
+				auto &func = raw_cast<Function>(v);
+				std::span<Variant> args(top - narg, narg);
+
+				try 
+				{
+					auto c = func.find_closure(args);
+					if (!c) {
+						report_call_error(func, args);
+					}
+
+					if (c->routine->is_native())
+					{
+						try
+						{
+							auto &r = reinterpret_cast<NativeRoutine&>(*(c->routine));
+							auto result = r(*this, args);
+							pop(narg + 1);
+							push(std::move(result));
+						}
+						CATCH_ERROR
+					}
+					else
+					{
+						// The arguments are on top of the stack. We adjust the top of the stack accordingly.
+						top -= narg;
+						current_frame->ip = ip;
+						push(interpret(c));
+					}
+				}
+				CATCH_ERROR
+				needs_ref = false;
+				break;
+			}
+			case Opcode::ClearLocal:
+			{
+				trace_op();
+				auto &v = current_frame->locals[*ip++];
+				v.clear();
+				break;
+			}
+			case Opcode::Compare:
+			{
+				trace_op();
+				auto &v1 = peek(-2);
+				auto &v2 = peek(-1);
+				int result = v1.compare(v2);
+				pop(2);
+				push_int(result);
+				break;
+			}
+			case Opcode::Concat:
+			{
+				trace_op();
+				int narg = *ip++;
+				String s;
+				for (int i = narg; i > 0; i--) {
+					s.append(peek(-i).to_string());
+				}
+				pop(narg);
+				push(std::move(s));
+				break;
+			}
+			case Opcode::DecrementLocal:
+			{
+				trace_op();
+				int index = *ip++;
+				auto &v = current_frame->locals[index];
+				assert(v.is_integer());
+				raw_cast<intptr_t>(v)--;
+				break;
+			}
+			case Opcode::DefineLocal:
+			{
+				trace_op();
+				Variant &local = current_frame->locals[*ip++];
+				local = std::move(peek());
+				pop();
+				break;
+			}
+			case Opcode::Divide:
+			{
+				trace_op();
+				math_op('/');
+				break;
+			}
+			case Opcode::Equal:
+			{
+				trace_op();
+				auto &v2 = peek(-1);
+				auto &v1 = peek(-2);
+				bool value = (v1 == v2);
+				pop(2);
+				push(value);
+				break;
+			}
+			case Opcode::GetField:
+			{
+				trace_op();
+				get_field(false);
+				break;
+			}
+			case Opcode::GetFieldArg:
+			{
+				trace_op();
+				bool by_ref = current_frame->ref_flags[*ip++];
+				if (by_ref) {
+					RUNTIME_ERROR("Passing dotted expression as an argument by reference is not yet supported");
+				}
+				get_field(by_ref);
+				break;
+			}
+			case Opcode::GetFieldRef:
+			{
+				trace_op();
+				get_field(true);
+				break;
+			}
+			case Opcode::GetGlobal:
+			{
+				trace_op();
+				auto name = routine.get_string(*ip++);
+				auto it = globals->find(name);
+				if (it == globals->end()) {
+					RUNTIME_ERROR("[Symbol error] Undefined variable \"%\"", name);
+				}
+				push(it->second.resolve());
+				break;
+			}
+			case Opcode::GetGlobalArg:
+			{
+				trace_op();
+				auto name = routine.get_string(*ip++);
+				bool by_ref = current_frame->ref_flags[*ip++];
+				auto it = globals->find(name);
+				if (it == globals->end()) {
+					RUNTIME_ERROR("[Symbol error] Undefined variable \"%\"", name);
+				}
+				if (by_ref)
+				{
+					it->second.unshare();
+					push(it->second.make_alias());
+				}
+				else
+				{
+					push(it->second.resolve());
+				}
+				break;
+			}
+			case Opcode::GetGlobalRef:
+			{
+				trace_op();
+				auto name = routine.get_string(*ip++);
+				auto it = globals->find(name);
+				if (it == globals->end()) {
+					RUNTIME_ERROR("[Symbol error] Undefined variable \"%\"", name);
+				}
+				it->second.unshare();
+				push(it->second.make_alias());
+				break;
+			}
+			case Opcode::GetIndex:
+			{
+				trace_op();
+				get_index(*ip++, false);
+				break;
+			}
+			case Opcode::GetIndexArg:
+			{
+				trace_op();
+				int count = *ip++;
+				bool by_ref = current_frame->ref_flags[*ip++];
+				if (by_ref) {
+					RUNTIME_ERROR("Passing indexed expression as an argument by reference is not yet supported");
+				}
+				get_index(count, by_ref);
+				break;
+			}
+			case Opcode::GetIndexRef:
+			{
+				trace_op();
+				get_index(*ip++, true);
+				break;
+			}
+			case Opcode::GetLocal:
+			{
+				trace_op();
+				auto &v = current_frame->locals[*ip++];
+				push(v.resolve());
+				break;
+			}
+			case Opcode::GetLocalArg:
+			{
+				trace_op();
+				auto &v = current_frame->locals[*ip++];
+				bool by_ref = current_frame->ref_flags[*ip++];
+				if (by_ref) {
+					push(v.make_alias());
+				}
+				else {
+					push(v.resolve());
+				}
+				break;
+			}
+			case Opcode::GetLocalRef:
+			{
+				trace_op();
+				Variant &v = current_frame->locals[*ip++];
+				push(v.make_alias());
+				break;
+			}
+			case Opcode::GetUniqueGlobal:
+			{
+				trace_op();
+				auto name = routine.get_string(*ip++);
+				auto it = globals->find(name);
+				if (it == globals->end()) {
+					RUNTIME_ERROR("[Symbol error] Undefined variable \"%\"", name);
+				}
+				push(it->second.unshare());
+				break;
+			}
+			case Opcode::GetUniqueLocal:
+			{
+				trace_op();
+				push(current_frame->locals[*ip++].unshare());
+				break;
+			}
+			case Opcode::GetUniqueUpvalue:
+			{
+				trace_op();
+				push(closure->upvalues[*ip++].unshare());
+				break;
+			}
+			case Opcode::GetUpvalue:
+			{
+				trace_op();
+				auto &v = closure->upvalues[*ip++];
+				push(v.resolve());
+				break;
+			}
+			case Opcode::GetUpvalueArg:
+			{
+				trace_op();
+				auto &v = closure->upvalues[*ip++];
+				bool by_ref = current_frame->ref_flags[*ip++];
+				if (by_ref) {
+					push(v.make_alias());
+				}
+				else {
+					push(v.resolve());
+				}
+				break;
+			}
+			case Opcode::GetUpvalueRef:
+			{
+				trace_op();
+				Variant &v = closure->upvalues[*ip++];
+				push(v.make_alias());
+				break;
+			}
+			case Opcode::Greater:
+			{
+				trace_op();
+				auto &v2 = peek(-1);
+				auto &v1 = peek(-2);
+				bool value = (v1.compare(v2) > 0);
+				pop(2);
+				push(value);
+				break;
+			}
+			case Opcode::GreaterEqual:
+			{
+				trace_op();
+				auto &v2 = peek(-1);
+				auto &v1 = peek(-2);
+				bool value = (v1.compare(v2) >= 0);
+				pop(2);
+				push(value);
+				break;
+			}
+			case Opcode::IncrementLocal:
+			{
+				trace_op();
+				int index = *ip++;
+				auto &v = current_frame->locals[index];
+				assert(v.is_integer());
+				raw_cast<intptr_t>(v)++;
+				break;
+			}
+			case Opcode::Jump:
+			{
+				trace_op();
+				int addr = Code::read_integer(ip);
+				ip = code->data() + addr;
+				break;
+			}
+			case Opcode::JumpFalse:
+			{
+				trace_op();
+				int addr = Code::read_integer(ip);
+				bool value = peek().to_boolean();
+				pop();
+				if (!value) ip = code->data() + addr;
+				break;
+			}
+			case Opcode::JumpFalseAnd:
+			{
+				trace_op();
+				int addr = Code::read_integer(ip);
+				bool value = peek().to_boolean();
+				if (!value) ip = code->data() + addr;
+				else pop();
+				break;
+			}
+			case Opcode::JumpTrue:
+			{
+				trace_op();
+				int addr = Code::read_integer(ip);
+				bool value = peek().to_boolean();
+				pop();
+				if (value) ip = code->data() + addr;
+				break;
+			}
+			case Opcode::JumpTrueOr:
+			{
+				trace_op();
+				int addr = Code::read_integer(ip);
+				bool value = peek().to_boolean();
+				if (value) ip = code->data() + addr;
+				else pop();
+				break;
+			}
+			case Opcode::Less:
+			{
+				trace_op();
+				auto &v2 = peek(-1);
+				auto &v1 = peek(-2);
+				bool value = (v1.compare(v2) < 0);
+				pop(2);
+				push(value);
+				break;
+			}
+			case Opcode::LessEqual:
+			{
+				trace_op();
+				auto &v2 = peek(-1);
+				auto &v1 = peek(-2);
+				bool value = (v1.compare(v2) <= 0);
+				pop(2);
+				push(value);
+				break;
+			}
+			case Opcode::Modulus:
+			{
+				trace_op();
+				math_op('%');
+				break;
+			}
+			case Opcode::Multiply:
+			{
+				trace_op();
+				math_op('*');
+				break;
+			}
+			case Opcode::Negate:
+			{
+				trace_op();
+				negate();
+				break;
+			}
+			case Opcode::NewArray:
+			{
+				trace_op();
+				int nrow = *ip++;
+				int ncol = *ip++;
+				int narg = nrow * ncol;
+				if (nrow == 1)
+				{
+					Array<double> array(ncol, 0.0);
+					for (int i = 1; i <= ncol; i++)
+					{
+						array(i) = peek(-ncol + i - 1).to_float();
+					}
+					pop(narg);
+					push(make_handle<Array<double>>(std::move(array)));
+				}
+				else
+				{
+					int k = narg;
+					Array<double> array(nrow, ncol, 0.0);
+					for (int i = 1; i <= nrow; i++)
+					{
+						for (int j = 1; j <= ncol; j++)
+						{
+							array(i,j) = peek(-k).to_float();
+							k--;
+						}
+					}
+					pop(narg);
+					push(make_handle<Array<double>>(std::move(array)));
+				}
+				break;
+			}
+			case Opcode::NewClosure:
+			{
+				trace_op();
+				const int index = *ip++;
+				const int narg = *ip++;
+				auto r = routine.get_routine(index);
+				if (!r->sealed())
+				{
+					for (int i = narg; i > 0; i--)
+					{
+						auto &v = peek(-i);
+						if (!check_type<Class>(v)) {
+							RUNTIME_ERROR("Expected a Class object as type of parameter %", (narg + 1 - i));
+						}
+						r->add_parameter_type(v.handle<Class>());
+					}
+					r->seal();
+				}
+				pop(narg);
+				auto rout = r.get();
+				auto c = make_handle<Closure>(this, std::move(r));
+				for (int i = 0; i < rout->upvalue_count(); i++)
+				{
+					auto upvalue = rout->upvalues[i];
+					Variant *var;
+					if (upvalue.is_local) {
+						var = &current_frame->locals[upvalue.index];
+					}
+					else {
+						var = &closure->upvalues[upvalue.index];
+					}
+					c->upvalues.emplace_back(var->make_alias());
+				}
+				push(make_handle<Function>(this, rout->name(), std::move(c)));
+				break;
+			}
+			case Opcode::NewFrame:
+			{
+				trace_op();
+				push_call_frame(closure.object(), *ip++);
+
+				break;
+			}
+			case Opcode::NewIterator:
+			{
+				trace_op();
+				bool ref_val = bool(*ip++);
+				auto v = std::move(peek());
+				pop();
+				if (check_type<List>(v)) {
+					push(make_handle<ListIterator>(std::move(v), ref_val));
+				}
+				else if (check_type<Table>(v)) {
+					push(make_handle<TableIterator>(std::move(v), ref_val));
+				}
+				else if (check_type<File>(v)) {
+					push(make_handle<FileIterator>(std::move(v), ref_val));
+				}
+				else if (check_type<Regex>(v)) {
+					push(make_handle<RegexIterator>(std::move(v), ref_val));
+				}
+				else if (check_type<String>(v)) {
+					push(make_handle<StringIterator>(std::move(v), ref_val));
+				}
+				else {
+					RUNTIME_ERROR("Type % is not iterable", v.class_name());
+				}
+				break;
+			}
+			case Opcode::NewList:
+			{
+				trace_op();
+				int narg = *ip++;
+				List lst(narg);
+				for (int i = narg; i > 0; i--) {
+					lst[narg+1-i] = std::move(peek(-i));
+				}
+				pop(narg);
+				push(make_handle<List>(this, std::move(lst)));
+				break;
+			}
+			case Opcode::NewTable:
+			{
+				trace_op();
+				int narg = *ip++ * 2;
+				Table::Storage tab;
+				for (int i = narg; i > 0; i -= 2)
+				{
+					auto &key = peek(-i).resolve();
+					auto &val = peek(-i+1).resolve();
+					try {
+						tab.insert({ std::move(key), std::move(val) });
+					}
+					CATCH_ERROR
+				}
+				pop(narg);
+				push(make_handle<Table>(this, std::move(tab)));
+				break;
+			}
+			case Opcode::NewSet:
+			{
+				trace_op();
+				int narg = *ip++;
+				Set::Storage set;
+				for (int i = narg; i > 0; i--) {
+					set.insert(std::move(peek(-i)));
+				}
+				pop(narg);
+				push(make_handle<Set>(this, std::move(set)));
+				break;
+			}
+			case Opcode::NextKey:
+			{
+				trace_op();
+				try {
+					auto v = std::move(peek());
+					pop();
+					auto &it = raw_cast<Iterator>(v);
+					push(it.get_key());
+				}
+				CATCH_ERROR
+				break;
+			}
+			case Opcode::NextValue:
+			{
+				trace_op();
+				try {
+					auto v = std::move(peek());
+					pop();
+					auto &it = raw_cast<Iterator>(v);
+					push(it.get_value());
+				}
+				CATCH_ERROR
+
+				break;
+			}
+			case Opcode::Not:
+			{
+				trace_op();
+				bool value = peek().to_boolean();
+				pop();
+				push(!value);
+				break;
+			}
+			case Opcode::NotEqual:
+			{
+				trace_op();
+				auto &v2 = peek(-1);
+				auto &v1 = peek(-2);
+				bool value = (v1 != v2);
+				pop(2);
+				push(value);
+				break;
+			}
+			case Opcode::Pop:
+			{
+				trace_op();
+				pop();
+				break;
+			}
+			case Opcode::Power:
+			{
+				trace_op();
+				math_op('^');
+				break;
+			}
+			case Opcode::Precall:
+			{
+				trace_op();
+				auto &v = peek();
+				Handle<Function> func;
+				if (check_type<Function>(v))
+				{
+					func = v.resolve().handle<Function>();
+				}
+				else if (check_type<Class>(v))
+				{
+					// Replace the class with its constructor.
+					auto cls = v.handle<Class>();
+					pop();
+					try {
+						func = cls->get_constructor();
+						push(func);
+					}
+					CATCH_ERROR
+				}
+				else
+				{
+					RUNTIME_ERROR("Expected a Function or a Class, got a %", v.class_name());
+				}
+
+				current_frame->ref_flags = func->ref_flags;
+				break;
+			}
+			case Opcode::Print:
+			{
+				trace_op();
+				int narg = *ip++;
+				for (int i = narg; i > 0; i--)
+				{
+					auto s = peek(-i).to_string();
+					this->print(s);
+				}
+				pop(narg);
+				break;
+			}
+			case Opcode::PrintLine:
+			{
+				trace_op();
+				int narg = *ip++;
+				for (int i = narg; i > 0; i--)
+				{
+					auto s = peek(-i).to_string();
+					this->print(s);
+				}
+				static String new_line("\n");
+				this->print(new_line);
+				pop(narg);
+				break;
+			}
+			case Opcode::PushBoolean:
+			{
+				trace_op();
+				bool value = bool(*ip++);
+				push(value);
+				break;
+			}
+			case Opcode::PushFalse:
+			{
+				trace_op();
+				push(false);
+				break;
+			}
+			case Opcode::PushFloat:
+			{
+				trace_op();
+				double value = routine.get_float(*ip++);
+				push(value);
+				break;
+			}
+			case Opcode::PushInteger:
+			{
+				trace_op();
+				intptr_t value = routine.get_integer(*ip++);
+				push_int(value);
+				break;
+			}
+			case Opcode::PushNan:
+			{
+				trace_op();
+				push(std::nan(""));
+				break;
+			}
+			case Opcode::PushNull:
+			{
+				trace_op();
+				push_null();
+				break;
+			}
+			case Opcode::PushSmallInt:
+			{
+				trace_op();
+				push_int((int16_t) *ip++);
+				break;
+			}
+			case Opcode::PushString:
+			{
+				trace_op();
+				String value = routine.get_string(*ip++);
+				push(std::move(value));
+				break;
+			}
+			case Opcode::PushTrue:
+			{
+				trace_op();
+				push(true);
+				break;
+			}
+			case Opcode::Return:
+			{
+				trace_op();
+				auto result = pop_call_frame();
+				ip = old_ip;
+				return result;
+			}
+			case Opcode::SetField:
+			{
+				trace_op();
+				auto &v = peek(-3);
+				auto cls = v.get_class();
+				std::span<Variant> args(&v, 3);
+				auto method = cls->get_method(set_field_string);
+				if (!method) {
+					RUNTIME_ERROR("[Type error] Member access is not supported for % values", v.class_name());
+				}
+				auto c = method->find_closure(args);
+				if (!c) {
+					report_call_error(*method, args);
+				}
+				try {
+					call_method(c, args);
+				}
+				CATCH_ERROR
+				pop(3);
+				break;
+			}
+			case Opcode::SetGlobal:
+			{
+				trace_op();
+				auto name = routine.get_string(*ip++);
+				globals->insert({std::move(name), std::move(peek())});
+				pop();
+				break;
+			}
+			case Opcode::SetIndex:
+			{
+				trace_op();
+				int count = *ip++ + 2; // add indexed expression and value
+				auto &v = peek(-count);
+				auto cls = v.get_class();
+				std::span<Variant> args(&v, count);
+				auto method = cls->get_method(set_item_string);
+				if (!method) {
+					RUNTIME_ERROR("[Type error] % type is not index-assignable");
+				}
+				auto c = method->find_closure(args);
+				if (!c) {
+					report_call_error(*method, args);
+				}
+				try {
+					call_method(c, args);
+				}
+				CATCH_ERROR
+				pop(count);
+				break;
+			}
+			case Opcode::SetLocal:
+			{
+				trace_op();
+				Variant &v = current_frame->locals[*ip++];
+				try {
+					v = std::move(peek());
+				}
+				CATCH_ERROR
+				pop();
+				break;
+			}
+			case Opcode::SetUpvalue:
+			{
+				trace_op();
+				Variant &v = closure->upvalues[*ip++];
+				try {
+					v = std::move(peek());
+				}
+				CATCH_ERROR
+				pop();
+				break;
+			}
+			case Opcode::Subtract:
+			{
+				trace_op();
+				math_op('-');
+				break;
+			}
+			case Opcode::TestIterator:
+			{
+				trace_op();
+				auto v = std::move(peek());
+				pop();
+				auto &it = raw_cast<Iterator>(v);
+				push(!it.at_end());
+				break;
+			}
+			case Opcode::Throw:
+			{
+				String msg;
+				try {
+					msg = peek().to_string();
+					pop();
+				}
+				CATCH_ERROR
+				RUNTIME_ERROR("[Runtime error] %", msg);
+			}
+			default:
+				throw error("[Internal error] Invalid opcode: %", (int)op);
+		}
+	}
+
+	return Variant();
+}
+
+void Runtime::disassemble(const Routine &routine, const String &name)
+{
+	printf("========================= %s =========================\n", name.data());
+	printf("strings: %d, large integers: %d, floats: %d, routines: %d\n", (int)routine.string_pool.size(), (int) routine.integer_pool.size(),
+		   (int) routine.float_pool.size(), (int) routine.routine_pool.size());
+	printf("offset    line   instruction    operands   comments\n");
+	size_t size = routine.code.size();
+
+	for (size_t offset = 0; offset < size; )
+	{
+		offset += disassemble_instruction(routine, offset);
+	}
+
+	for (auto &r : routine.routine_pool)
+	{
+		printf("\n");
+		disassemble(*r, r->name());
+	}
+
+}
+
+void Runtime::disassemble(const Closure &closure, const String &name)
+{
+	auto &routine = *(reinterpret_cast<Routine*>(closure.routine.get()));
+	disassemble(routine, name);
+}
+
+size_t Runtime::print_simple_instruction(const char *name)
+{
+	printf("%s\n", name);
+	return 1;
+}
+
+size_t Runtime::disassemble_instruction(const Routine &routine, size_t offset)
+{
+	auto op = static_cast<Opcode>(routine.code[offset]);
+	printf("%6zu   %5d   ", offset, routine.code.get_line(offset));
+
+	switch (op)
+	{
+		case Opcode::Add:
+		{
+			return print_simple_instruction("ADD");
+		}
+		case Opcode::Assert:
+		{
+			int narg = routine.code[offset + 1];
+			printf("ASSERT         %-5d\n", narg);
+			return 2;
+		}
+		case Opcode::Call:
+		{
+			int narg = routine.code[offset + 1];
+			printf("CALL           %-5d\n", narg);
+			return 2;
+		}
+		case Opcode::ClearLocal:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_local_name(index);
+			printf("CLEAR_LOCAL    %-5d     ; %s\n", index, value.data());
+			return 2;
+		}
+		case Opcode::Compare:
+		{
+			return print_simple_instruction("COMPARE");
+		}
+		case Opcode::Concat:
+		{
+			int narg = routine.code[offset+1];
+			printf("CONCAT         %-5d\n", narg);
+			return 2;
+		}
+		case Opcode::DecrementLocal:
+		{
+			int index = routine.code[offset + 1];
+			printf("DEC_LOCAL      %-5d\n", index);
+			return 2;
+		}
+		case Opcode::DefineLocal:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_local_name(index);
+			printf("DEFINE_LOCAL   %-5d      ; %s\n", index, value.data());
+			return 2;
+		}
+		case Opcode::Divide:
+		{
+			return print_simple_instruction("DIVIDE");
+		}
+		case Opcode::Equal:
+		{
+			return print_simple_instruction("EQUAL");
+		}
+		case Opcode::GetField:
+		{
+			return print_simple_instruction("GET_FIELD");
+		}
+		case Opcode::GetFieldArg:
+		{
+			int index = routine.code[offset + 1];
+			printf("GET_FIELD_ARG  %-5d\n", index);
+			return 2;
+		}
+		case Opcode::GetFieldRef:
+		{
+			return print_simple_instruction("GET_FIELD_REF");
+		}
+		case Opcode::GetGlobal:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_string(index);
+			printf("GET_GLOBAL     %-5d      ; %s\n", index, value.data());
+			return 2;
+		}
+		case Opcode::GetGlobalArg:
+		{
+			int index = routine.code[offset + 1];
+			int narg = routine.code[offset + 2];
+			String value = routine.get_string(index);
+			printf("GET_GLOBAL_ARG %-5d %-5d; %s\n", index, narg, value.data());
+			return 3;
+		}
+		case Opcode::GetGlobalRef:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_string(index);
+			printf("GET_GLOBAL_REF %-5d      ; %s\n", index, value.data());
+			return 2;
+		}
+		case Opcode::GetIndex:
+		{
+			int count = routine.code[offset + 1];
+			printf("GET_INDEX      %-5d\n", count);
+			return 2;
+		}
+		case Opcode::GetIndexArg:
+		{
+			int count = routine.code[offset + 1];
+			int index = routine.code[offset + 2];
+			printf("GET_INDEX_ARG %-5d %-5d\n", count, index);
+			return 3;
+		}
+		case Opcode::GetIndexRef:
+		{
+			int count = routine.code[offset + 1];
+			printf("GET_INDEX_REF  %-5d\n", count);
+			return 2;
+		}
+		case Opcode::GetLocal:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_local_name(index);
+			printf("GET_LOCAL      %-5d      ; %s\n", index, value.data());
+			return 2;
+		}
+		case Opcode::GetLocalArg:
+		{
+			int index = routine.code[offset + 1];
+			int narg = routine.code[offset + 2];
+			String value = routine.get_local_name(index);
+			printf("GET_LOCAL_ARG  %-5d %-5d; %s\n", index, narg, value.data());
+			return 3;
+		}
+		case Opcode::GetLocalRef:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_local_name(index);
+			printf("GET_LOCAL_REF  %-5d      ; %s\n", index, value.data());
+			return 2;
+		}
+		case Opcode::GetUniqueGlobal:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_string(index);
+			printf("GET_UNIQUE_GLOBAL %-5d   ; %s\n", index, value.data());
+			return 2;
+		}
+		case Opcode::GetUniqueLocal:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_local_name(index);
+			printf("GET_UNIQUE_LOCAL %-5d    ; %s\n", index, value.data());
+			return 2;
+		}
+		case Opcode::GetUniqueUpvalue:
+		{
+			int index = routine.code[offset + 1];
+			printf("GET_UNIQUE_UPVALUE %-5d\n", index);
+			return 2;
+		}
+		case Opcode::GetUpvalue:
+		{
+			int index = routine.code[offset + 1];
+			printf("GET_UPVALUE    %-5d\n", index);
+			return 2;
+		}
+		case Opcode::GetUpvalueArg:
+		{
+			int index = routine.code[offset + 1];
+			int narg = routine.code[offset + 2];
+			printf("GET_UPVALUE_ARG %-5d %-5d\n", index, narg);
+			return 3;
+		}
+		case Opcode::GetUpvalueRef:
+		{
+			int index = routine.code[offset + 1];
+			printf("GET_UPVALUE_REF %-5d\n", index);
+			return 2;
+		}
+
+		case Opcode::Greater:
+		{
+			return print_simple_instruction("GREATER");
+		}
+		case Opcode::GreaterEqual:
+		{
+			return print_simple_instruction("GREATER_EQUAL");
+		}
+		case Opcode::IncrementLocal:
+		{
+			int index = routine.code[offset + 1];
+			printf("INC_LOCAL      %-5d\n", index);
+			return 2;
+		}
+		case Opcode::Jump:
+		{
+			auto ptr = routine.code.data() + offset + 1;
+			int addr = Code::read_integer(ptr);
+			printf("JUMP           %-5d\n", addr);
+			return 1 + Code::IntSerializer::IntSize;
+		}
+		case Opcode::JumpFalse:
+		{
+			auto ptr = routine.code.data() + offset + 1;
+			int addr = Code::read_integer(ptr);
+			printf("JUMP_FALSE     %-5d\n", addr);
+			return 1 + Code::IntSerializer::IntSize;
+		}
+		case Opcode::JumpFalseAnd:
+		{
+			auto ptr = routine.code.data() + offset + 1;
+			int addr = Code::read_integer(ptr);
+			printf("JUMP_FALSE_AND %-5d\n", addr);
+			return 1 + Code::IntSerializer::IntSize;
+		}
+		case Opcode::JumpTrue:
+		{
+			auto ptr = routine.code.data() + offset + 1;
+			int addr = Code::read_integer(ptr);
+			printf("JUMP_TRUE      %-5d\n", addr);
+			return 1 + Code::IntSerializer::IntSize;
+		}
+		case Opcode::JumpTrueOr:
+		{
+			auto ptr = routine.code.data() + offset + 1;
+			int addr = Code::read_integer(ptr);
+			printf("JUMP_TRUE_OR   %-5d\n", addr);
+			return 1 + Code::IntSerializer::IntSize;
+		}
+		case Opcode::Less:
+		{
+			return print_simple_instruction("LESS");
+		}
+		case Opcode::LessEqual:
+		{
+			return print_simple_instruction("LESS_EQUAL");
+		}
+		case Opcode::Modulus:
+		{
+			return print_simple_instruction("MODULUS");
+		}
+		case Opcode::Multiply:
+		{
+			return print_simple_instruction("MULTIPLY");
+		}
+		case Opcode::Negate:
+		{
+			return print_simple_instruction("NEGATE");
+		}
+		case Opcode::NewArray:
+		{
+			int nrow = routine.code[offset+1];
+			int ncol = routine.code[offset+2];
+			printf("NEW_ARRAY      %-5d %-5d\n", nrow, ncol);
+			return 3;
+		}
+		case Opcode::NewClosure:
+		{
+			int index = routine.code[offset + 1];
+			int narg = routine.code[offset + 2];
+			auto r = routine.get_routine(index);
+			printf("NEW_CLOSURE    %-3d %-5d  ; <%p>\n", index, narg, r.get());
+			return 3;
+		}
+		case Opcode::NewFrame:
+		{
+			int nlocal = routine.code[offset+1];
+			printf("NEW_FRAME      %-5d\n", nlocal);
+			return 2;
+		}
+		case Opcode::NewIterator:
+		{
+			bool ref_val = bool(routine.code[offset+1]);
+			printf("NEW_ITER       %-5d\n", ref_val);
+			return 2;
+		}
+		case Opcode::NewList:
+		{
+			int nlocal = routine.code[offset+1];
+			printf("NEW_LIST       %-5d\n", nlocal);
+			return 2;
+		}
+		case Opcode::NewTable:
+		{
+			int len = routine.code[offset+1];
+			printf("NEW_TABLE      %-5d\n", len);
+			return 2;
+		}
+		case Opcode::NewSet:
+		{
+			int nlocal = routine.code[offset+1];
+			printf("NEW_SET        %-5d\n", nlocal);
+			return 2;
+		}
+		case Opcode::NextKey:
+		{
+			return print_simple_instruction("NEXT_KEY");
+		}
+		case Opcode::NextValue:
+		{
+			return print_simple_instruction("NEXT_VALUE");
+		}
+		case Opcode::Not:
+		{
+			return print_simple_instruction("NOT");
+		}
+		case Opcode::NotEqual:
+		{
+			return print_simple_instruction("NOT_EQUAL");
+		}
+		case Opcode::Pop:
+		{
+			return print_simple_instruction("POP");
+		}
+		case Opcode::Power:
+		{
+			return print_simple_instruction("POWER");
+		}
+		case Opcode::Precall:
+		{
+			return print_simple_instruction("PRECALL");
+		}
+		case Opcode::Print:
+		{
+			int narg = routine.code[offset+1];
+			printf("PRINT         %-5d\n", narg);
+			return 2;
+		}
+		case Opcode::PrintLine:
+		{
+			int narg = routine.code[offset+1];
+			printf("PRINT_LINE     %-5d\n", narg);
+			return 2;
+
+		}
+		case Opcode::PushBoolean:
+		{
+			int value = routine.code[offset + 1];
+			auto str = value ? "true" : "false";
+			printf("PUSH_BOOLEAN   %-5d      ; %s\n", value, str);
+			return 2;
+		}
+		case Opcode::PushFalse:
+		{
+			return print_simple_instruction("PUSH_FALSE");
+		}
+		case Opcode::PushFloat:
+		{
+			int index = routine.code[offset + 1];
+			double value = routine.get_float(index);
+			printf("PUSH_FLOAT     %-5d      ; %f\n", index, value);
+			return 2;
+		}
+		case Opcode::PushInteger:
+		{
+			int index = routine.code[offset + 1];
+			intptr_t value = routine.get_integer(index);
+			printf("PUSH_INTEGER   %-5d      ; %" PRIdPTR "\n", index, value);
+			return 2;
+		}
+		case Opcode::PushNan:
+		{
+			return print_simple_instruction("PUSH_NAN");
+		}
+		case Opcode::PushNull:
+		{
+			return print_simple_instruction("PUSH_NULL");
+		}
+		case Opcode::PushSmallInt:
+		{
+			int value = (int16_t) routine.code[offset + 1];
+			printf("PUSH_SMALL_INT %-5d\n", value);
+			return 2;
+		}
+		case Opcode::PushString:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_string(index);
+			printf("PUSH_STRING    %-5d      ; \"%s\"\n", index, value.data());
+			return 2;
+		}
+		case Opcode::PushTrue:
+		{
+			return print_simple_instruction("PUSH_TRUE");
+		}
+		case Opcode::Return:
+		{
+			return print_simple_instruction("RETURN");
+		}
+		case Opcode::SetField:
+		{
+			return print_simple_instruction("SET_FIELD");
+		}
+		case Opcode::SetGlobal:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_string(index);
+			printf("SET_GLOBAL     %-5d      ; %s\n", index, value.data());
+			return 2;
+		}
+		case Opcode::SetIndex:
+		{
+			int count = routine.code[offset + 1];
+			printf("SET_INDEX      %-5d\n", count);
+			return 2;
+		}
+		case Opcode::SetLocal:
+		{
+			int index = routine.code[offset + 1];
+			String value = routine.get_local_name(index);
+			printf("SET_LOCAL      %-5d      ; %s\n", index, value.data());
+			return 2;
+		}
+		case Opcode::Subtract:
+		{
+			return print_simple_instruction("SUBTRACT");
+		}
+		case Opcode::TestIterator:
+		{
+			return print_simple_instruction("TEST_ITER");
+		}
+		case Opcode::Throw:
+		{
+			return print_simple_instruction("THROW");
+		}
+		default:
+			printf("Unknown opcode %d", static_cast<int>(op));
+	}
+
+	return 1;
+}
+
+Handle<Closure> Runtime::compile_file(const String &path)
+{
+	this->clear();
+	auto ast = parser.parse_file(path);
+
+	return compiler.compile(std::move(ast));
+}
+
+Handle<Closure> Runtime::compile_string(const String &code)
+{
+	this->clear();
+	auto ast = parser.parse_string(code);
+
+	return compiler.compile(std::move(ast));
+}
+
+Variant Runtime::do_file(const String &path)
+{
+	auto old_path = current_path;
+	current_path = path;
+	auto closure = compile_file(path);
+	auto result = interpret(closure);
+	current_path = old_path;
+
+	return result;
+}
+
+Variant Runtime::do_string(const String &code)
+{
+	auto old_path = current_path;
+	current_path = String();
+	auto closure = compile_string(code);
+	auto result = interpret(closure);
+	current_path = old_path;
+
+	return result;
+}
+
+int Runtime::get_current_line() const
+{
+	auto offset = int(ip - 1 - code->data());
+	return code->get_line(offset);
+}
+
+String Runtime::intern_string(const String &s)
+{
+	auto result = strings.insert(s);
+	return *result.first;
+}
+
+void Runtime::push_call_frame(TObject<Closure> *closure, int nlocal)
+{
+	// FIXME: valgrind complains about a fishy size passed to malloc here when PHON_STD_UNORDERED_MAP is defined.
+	frames.push_back(std::make_unique<CallFrame>());
+	current_frame = frames.back().get();
+	ensure_capacity(nlocal);
+	current_frame->current_closure = closure;
+	current_frame->locals = top;
+	current_frame->nlocal = nlocal;
+	int argc = current_routine->arg_count();
+	top += argc;
+	for (int i = argc; i < nlocal; i++) {
+		new (top++) Variant;
+	}
+}
+
+Variant Runtime::pop_call_frame()
+{
+	Variant result;
+
+	// If there's a value left on top of the stack, it is taken as the return value.
+	auto locals_end = current_frame->locals + current_frame->nlocal;
+	if (top > locals_end) {
+		result = std::move(*--top);
+	}
+
+	// Clean current frame.
+	auto n = int(top - current_frame->locals);
+	assert(n >= 0);
+	// Account for the function that was left on the stack, if there's one.
+	int extra = calling_method ? 0 : 1;
+	pop(n + extra); // pop the frame
+
+	// Restore previous frame.
+	frames.pop_back();
+	current_frame = frames.empty() ? nullptr : frames.back().get();
+
+	if (frames.empty())
+	{
+		current_frame = nullptr;
+		code = nullptr;
+		current_routine = nullptr;
+		ip = nullptr;
+	}
+	else
+	{
+		current_frame = frames.back().get();
+		code = &current_frame->previous_routine->code;
+		current_routine = current_frame->previous_routine;
+		ip = current_frame->ip;
+	}
+
+	return result;
+}
+
+void Runtime::add_global(String name, Variant value)
+{
+	globals->insert({ std::move(name), std::move(value) });
+}
+
+void Runtime::add_global(const String &name, NativeCallback cb, std::initializer_list<Handle<Class>> sig, ParamBitset ref)
+{
+	(*globals)[name] = make_handle<Function>(this, this, name, std::move(cb), sig, ref);
+}
+
+void Runtime::get_index(int count, bool by_ref)
+{
+	needs_ref = by_ref;
+	count++; // add indexed expression
+	auto &v = peek(-count);
+	Variant result;
+	std::span<Variant> args(&v, count);
+	auto cls = v.get_class();
+	auto method = cls->get_method(get_item_string);
+	if (!method) {
+		RUNTIME_ERROR("[Type error] % type is not indexable");
+	}
+	auto closure = method->find_closure(args);
+	if (!closure) {
+		report_call_error(*method, args);
+	}
+	try {
+		result = call_method(closure, args);
+	}
+	CATCH_ERROR
+	pop(count);
+	push(std::move(result));
+	needs_ref = false;
+}
+
+void Runtime::get_field(bool by_ref)
+{
+	needs_ref = by_ref;
+	auto &v = peek(-2);
+	Variant result;
+	std::span<Variant> args(&v, 2);
+	auto cls = v.get_class();
+	auto method = cls->get_method(get_field_string);
+	if (!method) {
+		RUNTIME_ERROR("[Type error] Member access is not supported for type %", v.class_name());
+	}
+	auto closure = method->find_closure(args);
+	if (!closure) {
+		report_call_error(*method, args);
+	}
+	try {
+		result = call_method(closure, args);
+	}
+	CATCH_ERROR
+	pop(2);
+	push(std::move(result));
+	needs_ref = false;
+}
+
+bool Runtime::needs_reference() const
+{
+	return needs_ref;
+}
+
+void Runtime::clear()
+{
+	needs_ref = false;
+}
+
+Variant &Runtime::operator[](const String &key)
+{
+	return (*globals)[key];
+}
+
+bool Runtime::debug_mode() const
+{
+	return debugging;
+}
+
+void Runtime::set_debug_mode(bool value)
+{
+	debugging = value;
+}
+
+void Runtime::report_call_error(const Function &func, std::span<Variant> args)
+{
+	Array<String> types;
+
+	for (auto &arg : args) {
+		types.append(arg.class_name());
+	}
+	String candidates;
+	for (auto &c : func.closures) {
+		candidates.append(c->routine->get_definition());
+		candidates.append('\n');
+	}
+	RUNTIME_ERROR("Cannot resolve call to function '%' with the following argument types: (%).\nCandidates are:\n%",
+				  func.name(), String::join(types, ", "), candidates);
+}
+
+
+void Runtime::collect()
+{
+	if (gc_paused) {
+		return;
+	}
+	mark_candidates();
+	auto candidate = gc_root;
+	while (candidate != nullptr)
+	{
+		scan(candidate);
+		candidate = candidate->next;
+	}
+	collect_candidates();
+}
+
+void Runtime::mark_candidates()
+{
+	auto candidate = gc_root;
+
+	while (candidate != nullptr)
+	{
+		if (candidate->is_purple())
+		{
+			mark_grey(candidate);
+		}
+		else
+		{
+			remove_candidate(candidate);
+
+			if (candidate->is_black() && !candidate->is_used()) {
+				candidate->destroy();
+			}
+		}
+		candidate = candidate->next;
+	}
+}
+
+void Runtime::mark_grey(Collectable *candidate)
+{
+	if (!candidate->is_grey())
+	{
+		candidate->mark_grey();
+		auto traverse = candidate->get_class()->traverse;
+
+		if (traverse)
+		{
+			// Run trial deletion on each child
+			auto lambda = [](Collectable *child) {
+				child->remove_reference();
+				mark_grey(child);
+			};
+
+			traverse(candidate, lambda);
+		}
+	}
+}
+
+void Runtime::scan(Collectable *candidate)
+{
+	if (candidate->is_grey())
+	{
+		if (candidate->is_used())
+		{
+			// There must be an external reference.
+			scan_black(candidate);
+		}
+		else
+		{
+			// This looks like garbage
+			candidate->mark_white();
+			auto traverse = candidate->get_class()->traverse;
+
+			if (traverse)
+			{
+				auto lambda = [](Collectable *child) {
+					scan(child);
+				};
+
+				traverse(candidate, lambda);
+			}
+		}
+	}
+}
+
+void Runtime::scan_black(Collectable *candidate)
+{
+	// Repair reference count of live data.
+	candidate->mark_black();
+	auto traverse = candidate->get_class()->traverse;
+
+	if (traverse)
+	{
+		auto lambda = [](Collectable *child) {
+			// Undo trial deletion
+			child->add_reference();
+
+			if (!child->is_black()) {
+				scan_black(child);
+			}
+		};
+
+		traverse(candidate, lambda);
+	}
+}
+
+void Runtime::collect_candidates()
+{
+	Collectable *candidate;
+
+	while ((candidate = pop_candidate())) {
+		collect_white(candidate);
+	}
+}
+
+void Runtime::collect_white(Collectable *ref)
+{
+	if (ref->is_white() && !ref->is_candidate())
+	{
+		// Free-list objects are black
+		ref->mark_black();
+		auto traverse = ref->get_class()->traverse;
+
+		if (traverse) {
+			traverse(ref, collect_white);
+		}
+		ref->destroy();
+	}
+}
+
+void Runtime::suspend_gc()
+{
+	gc_paused = true;
+}
+
+void Runtime::resume_gc()
+{
+	gc_paused = false;
+}
+
+Variant Runtime::call_method(Handle<Closure> &c, std::span<Variant> args)
+{
+	if (c->routine->is_native())
+	{
+		auto &r = reinterpret_cast<NativeRoutine&>(*(c->routine));
+		return r(*this, args);
+	}
+	else
+	{
+		auto flag = calling_method;
+		calling_method = true;
+		top -= args.size();
+		auto v = interpret(c);
+		calling_method = flag;
+
+		return v;
+	}
+}
+
+Collectable *Runtime::pop_candidate()
+{
+	auto cand = gc_root;
+	if (cand)
+	{
+		gc_root = cand->next;
+		cand->next = nullptr;
+		if (gc_root) gc_root->previous = nullptr;
+	}
+
+	return cand;
+}
+
+void Runtime::add_import_path(const String &path)
+{
+	auto it = std::find(import_paths.begin(), import_paths.end(), path);
+	if (it == import_paths.end()) {
+		import_paths.push_back(path);
+	}
+}
+
+void Runtime::remove_import_path(const String &path)
+{
+	auto it = std::find(import_paths.begin(), import_paths.end(), path);
+	if (it != import_paths.end()) {
+		import_paths.erase(it);
+	}
+}
+
+String Runtime::find_import(String name)
+{
+	using namespace filesystem;
+
+	if (!name.ends_with(PHON_FILE_EXTENSION))
+		name.append(PHON_FILE_EXTENSION);
+
+	auto path = join(directory_name(current_path), name);
+	if (exists(path)) {
+		return path;
+	}
+
+	for (auto &dir : import_paths)
+	{
+		auto path = join(dir, name);
+		if (exists(path)) {
+			return path;
+		}
+	}
+
+	throw error("[Input/Output error] Cannot find file \"%s\"", name);
+}
+
+void Runtime::call(int narg)
+{
+	// Call a function on top of the stack
+	auto old_ip = ip; // NULL?
+
+	auto &v = peek(-narg - 1);
+	auto &func = cast<Function>(v);
+	std::span<Variant> args(top - narg, narg);
+
+	try
+	{
+		auto c = func.find_closure(args);
+		if (!c) {
+			report_call_error(func, args);
+		}
+
+		if (c->routine->is_native())
+		{
+			auto &r = reinterpret_cast<NativeRoutine&>(*(c->routine));
+			auto result = r(*this, args);
+			pop(narg + 1);
+			push(std::move(result));
+		}
+		else
+		{
+			// The arguments are on top of the stack. We adjust the top of the stack accordingly.
+			top -= narg;
+			if (current_frame) {
+				current_frame->ip = ip;
+			}
+			push(interpret(c));
+		}
+	}
+	catch (std::exception &e)
+	{
+		throw RuntimeError(get_current_line(), e.what());
+	}
+	auto new_ip = ip;
+	assert(old_ip == new_ip);
+}
+
+Variant Runtime::import_module(const String &name)
+{
+	auto it = imports.find(name);
+	if (it == imports.end()) {
+		return reload_module(name);
+	}
+
+	return it->second;
+}
+
+Variant Runtime::reload_module(const String &name)
+{
+	auto path = find_import(name);
+	auto result = do_file(path);
+	imports.insert({ path, result });
+
+	return result;
+}
+
+void Runtime::printf(const char *fmt, ...) const
+{
+	char buffer[256];
+	va_list args;
+
+	va_start(args, fmt);
+	vsnprintf(buffer, 256, fmt, args);
+	va_end(args);
+	this->print(buffer);
 }
 
 } // namespace phonometrica
+
+#undef CATCH_ERROR
+#undef RUNTIME_ERROR
+#undef trace_op

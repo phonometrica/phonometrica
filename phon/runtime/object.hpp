@@ -1,137 +1,243 @@
-/**************************************************************************************
- * Copyright (C) 2013-2019, Artifex Software                                          *
- *           (C) 2019, Julien Eychenne <jeychenne@gmail.com>                          *
- *                                                                                    *
- * Permission to use, copy, modify, and/or distribute this software for any purpose   *
- * with or without fee is hereby granted, provided that the above copyright notice    *
- * and this permission notice appear in all copies.                                   *
- *                                                                                    *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH      *
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND    *
- * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, *
- * OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,     *
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS    *
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS        *
- * SOFTWARE.                                                                          *
- *                                                                                    *
- **************************************************************************************/
+/***********************************************************************************************************************
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
+ *                                                                                                                     *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
+ * later version.                                                                                                      *
+ *                                                                                                                     *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
+ * details.                                                                                                            *
+ *                                                                                                                     *
+ * You should have received a copy of the GNU General Public License along with this program. If not, see              *
+ * <http://www.gnu.org/licenses/>.                                                                                     *
+ *                                                                                                                     *
+ * Created: 23/05/2020                                                                                                 *
+ *                                                                                                                     *
+ * Purpose: Object type. The mother of all Phonometrica objects.                                                       *
+ *                                                                                                                     *
+ ***********************************************************************************************************************/
 
 #ifndef PHONOMETRICA_OBJECT_HPP
 #define PHONOMETRICA_OBJECT_HPP
 
-#include <cstdint>
-#include <unordered_map>
-#include <phon/regex.hpp>
-#include <phon/file.hpp>
-#include <phon/runtime/common.hpp>
-#include <phon/runtime/variant.hpp>
-#include <phon/utils/matrix.hpp>
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
+class Class;
 class Runtime;
-struct Function;
-struct Environment;
 
-class Field final
+// Flag for the backup garbage collector.  The algorithm implements the synchronous Recycler
+// described in _The Garbage Collection Handbook. The Art of Automatic Memory Management_, by R. Jones,
+// A. Hosking & E. Moss. (See p. 66 ff.). This algorithm was first proposed by Bacon & Rajan (2001). It is
+// used to break reference cycles.
+// Objects that are acyclic (i.e. contain no cyclic reference) are marked as green and are not attached to
+// the GC chain. Base types such as String and Regex are considered acyclic because there is no way they
+// can store a reference to themselves. Collections (List, Table, etc.) are GC candidates because they are
+// considered potentially cyclic. Collectable objects start their life as white, and are marked as black
+// during the mark phase. The remaining white objects are deleted during the sweep phase.
+enum class GCColor : uint8_t
 {
-public:
-
-    Field() = default;
-
-    ~Field() = default;
-
-    String name;
-    int atts = 0;
-    Variant value;
-    Object *getter = nullptr;
-    Object *setter = nullptr;
+	Green,      // object which is not collectable
+	Black,      // Assumed to be alive
+	Grey,       // Possible member of a GC cycle
+	White,      // Possibly dead
+	Purple      // Root candidate for a GC cycle
 };
 
 
-using FieldMap = std::unordered_map<String, Field>;
+// Primitive values and strings are always unboxed. Non-primitive types (roughly speaking objects which are larger than
+// the size of a double), are boxed in a Handle<T> template, which behaves pretty much like a shared_ptr. Internally, a
+// Handle<T> contains a pointer to a heap-allocated subclass of the abstract base class [Object].
+//
+// All non-primitive Phonometrica values derive from Object. The inheritance graph is given below:
+//
+//                                                         Object
+//                                             (base class for all boxed values)
+//                                                   |               |
+//                                                Atomic          Collectable
+//                                (base for acyclic objects)  (base for possibly cyclic objects)
+//                                (e.g. File, Regex.       )  (e.g. List, Table.               )
+//                                                      |        |
+//                                                      TObject<T>
+//                                       ("typed object": wrapper for boxed values, defined in typed_object.hpp)
+//
+// Boxed objects pointers are never manipulated explicitly in the user-visible API. Instead, they are wrapped in a
+// stack-allocated Handle<T>, which manages reference counting automatically.
+
+
+//----------------------------------------------------------------------------------------------------------------------
+
+// Abstract base class for all Phonometrica objects. This class doesn't use C++'s virtual inheritance; instead, each object
+// contains a pointer to a Class object which contains, among other things, function pointers that dispatch calls to
+// "virtual" methods to a templated function, which can be specialized for each type. This approach gives us much more
+// flexibility since we can check for the availability of a method at runtime, and we can add more information in
+// a Class (in particular, an inheritance graph).
+class Object
+{
+public:
+
+	bool collectable() const noexcept;
+
+	bool gc_candidate() const noexcept;
+
+	bool clonable() const noexcept;
+
+	bool comparable() const noexcept;
+
+	bool equatable() const noexcept;
+
+	bool hashable() const noexcept;
+
+	bool traversable() const noexcept;
+
+	bool printable() const noexcept;
+
+	void retain() noexcept { add_reference(); }
+
+	void release();
+
+	void add_reference() noexcept { ++ref_count; }
+
+	bool remove_reference() noexcept;
+
+	bool shared() const noexcept;
+
+	bool unique() const noexcept;
+
+	int32_t use_count() const noexcept;
+
+	bool is_used() const { return use_count() > 0; }
+
+	Class *get_class() const { return klass; }
+
+	size_t hash() const;
+
+	String to_string() const;
+
+	int compare(const Object *other) const;
+
+	Object *clone() const;
+
+	void traverse(const GCCallback &callback);
+
+	bool equal(const Object *other) const;
+
+	String class_name() const;
+
+	const std::type_info *type_info() const;
+
+protected:
+
+	friend class Runtime;
+
+	// Only used to bootstrap the class system.
+	void set_class(Class *klass) { this->klass = klass; }
+
+	Object(Class *klass, bool collectable);
+
+	void destroy();
+
+	bool is_black() const
+	{
+		return gc_color == GCColor::Black;
+	}
+
+	bool is_grey() const
+	{
+		return gc_color == GCColor::Grey;
+	}
+
+	bool is_white() const
+	{
+		return gc_color == GCColor::White;
+	}
+
+	bool is_purple() const
+	{
+		return gc_color == GCColor::Purple;
+	}
+
+	bool is_green() const
+	{
+		return gc_color == GCColor::Green;
+	}
+
+	void mark_black()
+	{
+		assert(gc_color != GCColor::Green);
+		gc_color = GCColor::Black;
+	}
+
+	void mark_grey()
+	{
+		assert(gc_color != GCColor::Green);
+		gc_color = GCColor::Grey;
+	}
+
+	void mark_white()
+	{
+		assert(gc_color != GCColor::Green);
+		gc_color = GCColor::White;
+	}
+
+	void mark_purple()
+	{
+		assert(gc_color != GCColor::Green);
+		gc_color = GCColor::Purple;
+	}
+
+	// Pointer to the object's class. This provides runtime type information and polymorphic methods.
+	Class *klass;
+
+	// Reference count. The object is automatically destroyed when this reaches 0.
+	int32_t ref_count;
+
+	// Information for the garbage collector.
+	GCColor gc_color;
+};
+
 
 //---------------------------------------------------------------------------------------------------------------------
 
-class Object final /* : public Countable<Object, int32_t> */
+// Abstract base class for all non-collectable objects (e.g. Regex, File). An atomic object cannot contain cyclic
+// references (i.e. references to itself).
+class Atomic : public Object
+{
+protected:
+
+	Atomic(Class *klass);
+};
+
+
+//---------------------------------------------------------------------------------------------------------------------
+
+// Abstract base class for all collectable objects (e.g. List, Table). Such objects may contain cyclic references.
+class Collectable : public Object
 {
 public:
 
-    Object(Runtime &rt, ClassTag type, Object *prototype);
+	Collectable(Class *klass, Runtime *runtime);
 
-    ~Object();
+	~Collectable();
 
-    Field *get_own_field(Runtime &, const String &name);
+	bool is_candidate() const { return next != nullptr || previous != nullptr; }
 
-    Field *get_field(Runtime &, const String &name, bool *own);
+private:
 
-    Field *get_field(Runtime &, const String &name);
+	friend class Runtime;
+	friend class Class;
+	friend class Object;
 
-    Field *set_field(Runtime &rt, const String &name);
+	// Runtime this object is attached to. If this is null, the object is not considered for garbage collection and
+	// must not contain cyclic references.
+	Runtime *runtime;
 
-    void del_field(Runtime &rt, const String &name);
-
-    Object *new_iterator(Runtime &rt);
-
-    std::optional<Variant> next_iterator(Runtime &rt);
-
-    void resize_list(Runtime &rt, int new_size);
-
-    String to_string(Runtime &rt);
-
-public:
-
-    ClassTag type;
-    bool extensible;
-    uint8_t gcmark;
-    uint32_t version = 0;
-    FieldMap fields;
-    Object *gcnext; // *gcprev;
-    //Environment *runtime; // environment the object was created from (for destruction)
-    Object *prototype;
-
-    union Storage
-    {
-        Storage() { }
-        ~Storage() { }
-
-        bool boolean;
-        double number;
-        String string;
-        Array<double> array;
-        struct
-        {
-            Function *function;
-            Environment *scope;
-        } f;
-        struct
-        {
-            String name;
-            native_callback_t function;
-            native_callback_t constructor;
-            int length;
-        } c;
-        Regex regex;
-        File file;
-        Array<Variant> list;
-        struct
-        {
-            Object *target;
-            intptr_t index;
-            std::any data;   // type erased C++ iterator
-        } iter;
-        struct
-        {
-            const char *tag;
-            std::any data;
-            has_field_callback_t has;
-            put_callback_t put;
-            delete_callback_t destroy;
-            finalize_callback_t finalize;
-        } user;
-    } as;
+	// Doubly linked list for the GC.
+	Collectable *previous = nullptr;
+	Collectable *next = nullptr;
 };
-
 
 } // namespace phonometrica
 

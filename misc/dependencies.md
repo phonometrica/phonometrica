@@ -20,6 +20,8 @@ Install packages:
 
 `sudo apt install python3-sphinx python3-setuptools python3-pip latexmk`
 
+Note: On Debian 10, it's better to install sphinx through pip as the version in the repos is really old.
+
 Install lexer in docs/phon_lexer:
 
 `sudo python3 setup.py develop`

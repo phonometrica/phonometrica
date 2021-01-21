@@ -1,106 +1,120 @@
-/**********************************************************************************************************************
- *                                                                                                                    *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                           *
- *                                                                                                                    *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public  *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any     *
- * later version.                                                                                                     *
- *                                                                                                                    *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more      *
- * details.                                                                                                           *
- *                                                                                                                    *
- * You should have received a copy of the GNU General Public License along with this program. If not, see             *
- * <http://www.gnu.org/licenses/>.                                                                                    *
- *                                                                                                                    *
- * Created: 26/02/2019                                                                                                *
- *                                                                                                                    *
- * Purpose: main entry point.                                                                                         *
- *                                                                                                                    *
- **********************************************************************************************************************/
-
+#include <iostream>
 #ifdef PHON_GUI
 #include <phon/gui/application.hpp>
-#include <phon/gui/main_window.hpp>
-#include <phon/application/sound.hpp>
-#include <phon/utils/file_system.hpp>
+#include <phon/application/settings.hpp>
+#else
+#include <phon/runtime.hpp>
 #endif
-
-#include <clocale>
-#include <phon/runtime/toplevel.hpp>
-#include <phon/utils/helpers.hpp>
+#ifdef PHON_EMBED_SCRIPTS
+#include <phon/include/initialize_phon.hpp>
+#endif
 
 using namespace phonometrica;
 
-#ifdef PHON_ENABLE_LOGGING
-void message_handler(QtMsgType, const QMessageLogContext&, const QString& msg)
+static void show_usage()
 {
-	static QFile file(filesystem::join(filesystem::user_directory(), "phonometrica.log"));
-	if (!file.isOpen()) file.open(QIODevice::Append);
-	static QTextStream stream(&file);
-	stream << msg << "\n";
-	stream.flush();
-};
+	std::cout << "Usage: program [option] file" << std::endl;
+	std::cout << "Options: " << std::endl;
+	std::cout << " -l\t(list)\tlist bytecode (disassemble) file" << std::endl;
+	std::cout << " -r\t(run)\texecute file" << std::endl;
+	std::cout << " -a\t(all)\tdisassemble and execute file" << std::endl;
+}
+
+static void initialize(Runtime &rt)
+{
+	rt["phon"] = make_handle<Module>(&rt, "phon");
+
+#ifdef PHON_GUI
+	Settings::initialize(&rt);
+	Settings::read();
+	run_script(rt, initialize);
+#endif
+}
+
+static void finalize(Runtime &)
+{
+#ifdef PHON_GUI
+	Settings::write();
+#endif
+}
+
+int main(int argc, char **argv)
+{
+	Runtime runtime;
+	runtime.set_text_mode(argc > 1);
+	initialize(runtime);
+
+#ifdef PHON_GUI
+	wxApp *app = new Application(runtime, argv[0]);
+	wxApp::SetInstance(app);
 #endif
 
-int main(int argc, char *argv[])
-{
-
-#ifdef PHON_ENABLE_LOGGING
-	qInstallMessageHandler(message_handler);
-#endif
-
-	PHON_LOG("*******************************************************");
-	PHON_LOG("New session");
-	Runtime rt;
-	initialize(rt);
-	PHON_LOG("Runtime initialized");
+	int error_code = 0;
 
 	try
-    {
+	{
+		if (argc > 2)
+		{
+			String option(argv[1]), path(argv[2]);
+
+			if (option == "-l") // list
+			{
+				auto closure = runtime.compile_file(path);
+				runtime.disassemble(*closure, "main");
+			}
+			else if (option == "-r") // run
+			{
+				runtime.do_file(path);
+			}
+			else if (option == "-a") // all
+			{
+				auto closure = runtime.compile_file(path);
+				runtime.disassemble(*closure, "main");
+				puts("-------------------------------------------------------------------\n");
+				runtime.interpret(closure);
+			}
+			else
+			{
+				show_usage();
+				error_code = 1;
+			}
+		}
+		else if (argc > 1)
+		{
+			String path(argv[1]);
+			runtime.do_file(path);
+		}
+		else
+		{
 #ifdef PHON_GUI
-	    Sound::set_sound_formats();
-
-        bool text_mode = (argc > 1);
-
-        PHON_LOG("Creating application");
-        Application app(argc, argv);
-#if PHON_WINDOWS
-		QCoreApplication::addLibraryPath("./");
-#endif
-        rt.set_text_mode(text_mode);
-        setlocale(LC_NUMERIC, "C"); // for proper floating point conversion
-        PHON_LOG("Creating main window");
-        MainWindow win(rt);
-        auto version = utils::get_version();
-
-        app.setOrganizationDomain("phonometrica-ling.org");
-        app.setApplicationName("Phonometrica");
-        app.setApplicationVersion(version.data());
-
-        if (argc > 1)
-        {
-            return interpret(rt, argc, argv);
-        }
-        else
-        {
-            win.display();
-            return app.exec();
-        }
+			wxEntry(argc, argv);
 #else
-	    setlocale(LC_NUMERIC, "C"); // for proper floating point conversion
-        return interpret(runtime, argc, argv);
+			show_usage();
+			error_code = 1;
 #endif
-    }
-    catch (std::bad_alloc &)
-    {
-        fprintf(stderr, "out of memory error\n");
-    }
-    catch (std::exception &e)
-    {
-        utils::print(stderr, e.what());
-        utils::print(stderr, "\n");
+		}
+	}
+	catch (RuntimeError &e)
+	{
+		utils::fprintf(stderr, "Error on line %:\n", e.line_no());
+		utils::print(stderr, e.what());
+		utils::print(stderr, "\n");
+		error_code = 1;
 
-        return 1;
-    }
+	}
+	catch (std::bad_alloc &)
+	{
+		utils::print(stderr, "out of memory error\n");
+		utils::print(stderr, "\n");
+		error_code = 1;
+	}
+	catch (std::exception &e)
+	{
+		utils::print(stderr, e.what());
+		utils::print(stderr, "\n");
+		error_code = 1;
+	}
+	finalize(runtime);
+
+	return error_code;
 }

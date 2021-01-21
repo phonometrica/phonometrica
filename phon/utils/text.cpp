@@ -87,7 +87,7 @@ Array<double> read_matrix(const String &path, std::string_view splitter, bool ha
 			try {
 				M(i,j) = row[j].to_float();
 			}
-			catch (std::exception) {
+			catch (std::exception &) {
 				throw error("Invalid numeric value at row %, column %", i, j);
 			}
 		}

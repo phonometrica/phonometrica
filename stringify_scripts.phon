@@ -1,58 +1,55 @@
 #!/usr/bin/env phonometrica
 
-var blacklist = []
-var root = system.get_full_path('.')
-var stdlib = system.join_path(root, 'std')
-var outdir = system.join_path(root, 'phon', 'include')
-var dirs = system.list_directory(stdlib, false)
+local blacklist = []
+local root = get_full_path('.')
+local stdlib = join_path(root, 'std')
+local outdir = join_path(join_path(root, 'phon'), 'include')
+local dirs = list_directory(stdlib, false)
 
-foreach var name in dirs do
-	if not name.ends_with('.phon') or blacklist.contains(name) then
+foreach name in dirs do
+	if not ends_with(name, '.phon') or contains(blacklist, name) then
 		continue
 	end
 		
-	var f = system.join_path(stdlib, name)
-	var infile = new File(f)
-	var content = []
-	var multiline_comment = false
-	var previous_empty = false # don't include multiple empty lines
+	local f = join_path(stdlib, name)
+	local content = []
+	local multiline_comment = false
+	local previous_empty = false # don't include multiple empty lines
 	
 	# Get lines, stripping comments
-	var lines = infile.read_lines()
-	foreach var line in lines do
+	foreach ln in open(f) do
+		trim(ln)
 		simple_comment = false
-		var ln = line.trim()
 
-		if ln.starts_with('#') then
+		if starts_with(ln, '#') then
 			simple_comment = true
-		elsif ln.starts_with('!*') then
+		elsif starts_with(ln, '!*') then
 			multiline_comment = true
-		elsif ln.ends_with('*!') then
+		elsif ends_with(ln, '*!') then
 			simple_comment = true # make sure the line is not included
 			multiline_comment = false
 		end
 		
-		var empty = ln.is_empty()
+		local empty = is_empty(ln)
 				
 		if not simple_comment and not multiline_comment and not (empty and previous_empty) then
-			content.append(line)
+			append(content, ln)
 		end
 			
 		previous_empty = empty
 	end
 			
-	var base = system.strip_extension(name)
-	var outname = system.join_path(outdir, base & '_phon.hpp')
-	var include = base.to_upper() & '_PHON_SCRIPT_INCLUDE'
-	var outfile = new File(outname, 'w')
-	
-	
-	outfile.write('#ifndef ' & include & '\n')
-	outfile.write('#define ' & include & '\n\n')
-	outfile.write('static const char *' & base & '_script = R"_(')
-	outfile.write_lines(content)
-	outfile.write(')_";\n\n')
-	outfile.write('#endif /* ' & include & ' */')
-	outfile.close()
+	local base = strip_extension(name)
+	local outname = join_path(outdir, base & '_phon.hpp')
+	local include = to_upper(base) & '_PHON_SCRIPT_INCLUDE'
+
+	local outfile = open(outname, 'w')
+	write(outfile, '#ifndef ' & include & '\n')
+	write(outfile, '#define ' & include & '\n\n')
+	write(outfile, 'static const char *' & base & '_script = R"_(')
+	write_lines(outfile, content)
+	write(outfile, ')_";\n\n')
+	write(outfile, '#endif /* ' & include & ' */')
+	close(outfile)
 end
 	

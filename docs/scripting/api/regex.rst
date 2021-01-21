@@ -1,7 +1,7 @@
 Regular expressions
 ===================
 
-This page documents the ``Regex`` type.
+This page documents the ``Regex`` type. ``Regex`` is :ref:`non-clonable <clonability>`.
 
 General concepts
 ----------------
@@ -65,36 +65,71 @@ since it extracts the shortest string that satisfies the regular
 expression. To enable non-greedy behavior, we must use the quantifier
 ``?`` after the star (in this case, ``"j.*?e"``).
 
-Functions
----------
+Methods
+-------
 
 .. class:: Regex
 
-.. method:: Regex(pattern)
+.. method:: init(pattern as String)
 
 Create a new regular expression from a string pattern. The regex can be matched against any string.
 
 .. code:: phon
 
-    var re = new Regex("^(..)")
+    re = Regex("^(..)")
     # Do something with re...
 
 See also: :func:`pattern`
 
 
+.. method:: Regex(pattern as String, flags as String)
+
+Create a new regular expression from a string pattern. The ``flags`` argument can contain any of the following
+options, separated by the character ``|``:
+
+- ``caseless``: ignore case
+- ``multiline``: match expression on several lines
+
+.. code:: phon
+
+    re = Regex("^(..)", "caseless|multiline")
+    # Do something with re...
+
+See also: :func:`pattern`
+
+
+Functions
+---------
+
+.. function:: count(regex as Regex)
+
+Returns the number of captures in the last match. This is equivalent to ``len()``.
+
+
 ------------
 
-.. method:: match(subject)
 
-Match regular expression against string ``subject``. Returns
-``true`` if there was a match, ``false`` otherwise.
+.. function:: match(regex as Regex, subject as String)
 
-See also: :func:`count`, :func:`group`, :func:`has\_match`
+Match ``regex`` against the string ``subject``. Returns
+``true`` if there was a match, and ``false`` otherwise.
+
+See also: :func:`count`, :func:`group`, :func:`has_match`
 
 
 ------------
 
-.. method:: has\_match()
+
+.. function:: match(regex as Regex, subject as String, pos as Integer)
+
+Match ``regex`` against the string ``subject``, starting at position ``pos``. Returns
+``true`` if there was a match, and ``false`` otherwise.
+
+See also: :func:`count`, :func:`group`, :func:`has_match`
+
+------------
+
+.. function:: has_match(regex as Regex)
 
 Returns ``true`` if the last call to ``match`` was sucessful, and
 ``false`` if it was unsuccessful or if ``match`` was not called.
@@ -104,37 +139,53 @@ See also: :func:`match`
 
 ------------
 
-.. method:: group(nth)
+.. function:: get_end(regex as Regex, nth as Intger)
+
+Returns the index of the last character of the ``nth`` capture in ``regex``. If
+``nth`` equals ``0``, it returns the index of the last character in the
+whole matched string.
+
+See also: :func:`match`, :func:`get_start`
+
+
+------------
+
+.. function:: get_start(regex as Regex, nth as Integer)
+
+Returns the index of the first character of the ``nth`` capture in ``regex``. If
+``nth`` equals ``0``, it returns the index of the first character in the
+whole matched string.
+
+See also: :func:`group`, :func:`get_end`
+
+
+------------
+
+.. function:: group(regex as Regex, nth as Integer)
 
 Returns the ``nth`` captured sub-expression in the last successful call
 to ``match``. If ``nth`` equals ``0``, the whole matched string is
 returned, even if no sub-expression was captured.
 
-**Note:** This function returns an empty string if ``nth`` is greater
-than the number returned by the ``count`` function.
-
 See also: :func:`count`, :func:`match`, :func:`first`, :func:`last`
 
 ------------
 
-.. method:: first(nth)
+.. function:: len(regex as Regex)
 
-Returns the index of the first character of the ``nth`` capture. If
-``nth`` equals ``0``, it returns the index of the first character in the
-whole matched string.
+Returns the number of captures in the last match. This function returns 0 if there was no captured
+sub-expression, if there was no match or if ``match`` was not called. This is equivalent to ``count()``.
 
-See also: :func:`group`, :func:`last`
+.. code:: phon
 
+    re = Regex("^a(...)(..)(..)")
 
-------------
-
-.. method:: last(nth)
-
-Returns the index of the last character of the ``nth`` capture. If
-``nth`` equals ``0``, it returns the index of the last character in the
-whole matched string.
-
-See also: :func:`match`, :func:`first`
+    # Print "bra", "ca", "da"
+    if match(re, "abracadabra") then
+        for i = 1 to len(re) do
+            print group(re, i)
+        end       
+    end
 
 
 Fields
@@ -143,22 +194,22 @@ Fields
 .. attribute:: length
 
 Returns the number of captured sub-expressions in the last call to
-``match``. This function returns 0 if there was no captured
+``match``. This field is equal to 0 if there was no captured
 sub-expression, if there was no match or if ``match`` was not called.
 
 .. code:: phon
 
-    var re = new Regex("^a(...)(..)(..)")
+    re = new Regex("^a(...)(..)(..)")
 
     # Print "bra", "ca", "da"
     if re.match("abracadabra") then
-        for var i = 1 to re.length do
-            var text = re.group(i)
+        for i = 1 to re.length do
+            text = re.group(i)
             print(text)
         end       
     end
 
-See also: :func:`group`, :func:`match`
+See also: :func:`len`, :func:`count`
 
 
 ------------

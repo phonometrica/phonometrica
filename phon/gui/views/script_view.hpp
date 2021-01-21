@@ -1,9 +1,8 @@
 /***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
  * later version.                                                                                                      *
  *                                                                                                                     *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
@@ -13,75 +12,49 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 14/01/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: script editor.                                                                                             *
+ * purpose: View for scripts.                                                                                          *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
 #ifndef PHONOMETRICA_SCRIPT_VIEW_HPP
 #define PHONOMETRICA_SCRIPT_VIEW_HPP
 
-#include <QPlainTextEdit>
 #include <phon/gui/views/view.hpp>
-#include <phon/gui/highlighter.hpp>
-#include <phon/gui/code_editor.hpp>
-#include <phon/application/script.hpp>
-#include <phon/runtime/runtime.hpp>
+#include <phon/gui/script_ctrl.hpp>
+#include <phon/runtime.hpp>
 
-class QToolBar;
+class wxToolBarToolBase;
 
 namespace phonometrica {
 
-class Console;
-
-
 class ScriptView final : public View
 {
-    Q_OBJECT
-
 public:
 
-    explicit ScriptView(Runtime &rt, std::shared_ptr<Script> script, QWidget *parent = nullptr);
-
-    bool save() override;
-
-    void makeFocused() override;
-
-	bool finalize() override;
-
-private slots:
-
-    void runScript(bool);
-
-    void scriptChanged();
-
-    void saveScript(bool);
-
-    void commentCode(bool);
-
-    void uncommentCode(bool);
+	ScriptView(Runtime &rt, wxWindow *parent);
+	ScriptView(Runtime &rt, const String &path, wxWindow *parent);
+	bool Finalize() override;
+	void Save() override;
+	void Run() override;
 
 private:
 
-    void loadScript();
+	void SetupUi();
+	void OnModification(wxStyledTextEvent &);
+	void OnCommentSelection(wxCommandEvent &);
+	void OnUncommentSelection(wxCommandEvent &);
 
-    void showError(const QString &msg);
+	ScriptControl *m_ctrl;
 
-    QToolBar *createToolbar();
+	wxToolBarToolBase *m_save_tool;
 
-    bool isEmpty();
+	String m_path; // temp
 
-    std::shared_ptr<Script> m_script;
-
-    Runtime &rt;
-
-    CodeEditor *m_editor;
-
-    Highlighter *m_highlighter;
+	Runtime &runtime;
 };
 
-
-} // phonometrica
+} // namespace phonometrica
 
 #endif // PHONOMETRICA_SCRIPT_VIEW_HPP

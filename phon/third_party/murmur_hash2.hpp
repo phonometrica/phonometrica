@@ -3,7 +3,7 @@
 #include <cstdlib>
 
 // This code is released to the public domain by Austin Appleby
-// Modified by Julien Eychenne for phonometrica.
+// Modified by Julien Eychenne for phon.
 
 //-----------------------------------------------------------------------------
 // MurmurHash2, by Austin Appleby

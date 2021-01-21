@@ -1,26 +1,19 @@
-/***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
- *                                                                                                                     *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
- * later version.                                                                                                      *
- *                                                                                                                     *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
- * details.                                                                                                            *
- *                                                                                                                     *
- * You should have received a copy of the GNU General Public License along with this program. If not, see              *
- * <http://www.gnu.org/licenses/>.                                                                                     *
- *                                                                                                                     *
- * Created: 20/02/2019                                                                                                 *
- *                                                                                                                     *
- * Purpose: path manipulation routines.                                                                                *
- *                                                                                                                     *
- ***********************************************************************************************************************/
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Copyright (C) 2019-2021 Julien Eychenne <jeychenne@gmail.com>                                                      *
+ *                                                                                                                    *
+ * The contents of this file are subject to the Mozilla Public License Version 2.0 (the "License"); you may not use   *
+ * this file except in compliance with the License. You may obtain a copy of the License at                           *
+ * http://www.mozilla.org/MPL/.                                                                                       *
+ *                                                                                                                    *
+ * Created: 20/02/2019                                                                                                *
+ *                                                                                                                    *
+ * Purpose: path manipulation routines.                                                                               *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_PATH_HPP
-#define PHONOMETRICA_PATH_HPP
+#ifndef PHONOMETRICA_FILESYSTEM_HPP
+#define PHONOMETRICA_FILESYSTEM_HPP
 
 #include <phon/string.hpp>
 
@@ -76,7 +69,7 @@ bool is_directory(const String &path);
 
 bool is_file(const String &path);
 
-void clear_directory(const String &path);
+bool clear_directory(const String &path);
 
 void rename(std::string_view old_name, std::string_view new_name);
 
@@ -96,10 +89,7 @@ String &nativize(String &path);
 // Convert to generic (UNIX-like) separator (if needed), modifying the String in-place
 String &genericize(String &path);
 
-void interpolate(String &path, std::string_view project_dir);
-
-void compress(String &path, std::string_view project_dir);
 
 }} // namespace phonometrica::filesystem
 
-#endif // PHONOMETRICA_PATH_HPP
+#endif // PHONOMETRICA_FILESYSTEM_HPP

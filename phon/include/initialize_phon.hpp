@@ -2,21 +2,13 @@
 #define INITIALIZE_PHON_SCRIPT_INCLUDE
 
 static const char *initialize_script = R"_(
-var config = phon.config
+local dirs = [get_settings_directory(), get_plugin_directory(), get_metadata_directory(), get_script_directory()]
 
-config.get_documentation_page = function(page)
-    page = system.nativize(page)
-    return system.join_path(config.documentation_directory, page)
+foreach dir in dirs do
+if not exists(dir) then
+create_directory(dir)
 end
-
-
-var dirs = [config.settings_directory, config.plugin_directory, config.metadata_directory, config.script_directory]
-
-foreach var dir in dirs do
-    if not system.exists(dir) then
-        system.create_directory(dir)
-    end 
-end 
+end
 
 )_";
 

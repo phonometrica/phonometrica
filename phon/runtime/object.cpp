@@ -1,240 +1,209 @@
-/**************************************************************************************
- * Copyright (C) 2013-2019, Artifex Software                                          *
- *           (C) 2019, Julien Eychenne <jeychenne@gmail.com>                          *
- *                                                                                    *
- * Permission to use, copy, modify, and/or distribute this software for any purpose   *
- * with or without fee is hereby granted, provided that the above copyright notice    *
- * and this permission notice appear in all copies.                                   *
- *                                                                                    *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH      *
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND    *
- * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, *
- * OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,     *
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS    *
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS        *
- * SOFTWARE.                                                                          *
- *                                                                                    *
- **************************************************************************************/
+/***********************************************************************************************************************
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
+ *                                                                                                                     *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
+ * later version.                                                                                                      *
+ *                                                                                                                     *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
+ * details.                                                                                                            *
+ *                                                                                                                     *
+ * You should have received a copy of the GNU General Public License along with this program. If not, see              *
+ * <http://www.gnu.org/licenses/>.                                                                                     *
+ *                                                                                                                     *
+ * Created: 22/05/2020                                                                                                *
+ *                                                                                                                     *
+ * Purpose: see header.                                                                                                *
+ *                                                                                                                     *
+ ***********************************************************************************************************************/
 
 #include <phon/runtime/object.hpp>
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime/class.hpp>
+#include <phon/runtime.hpp>
 
 namespace phonometrica {
 
-
-static Field *jsV_getenumfield(Runtime *J, Object *obj, const String &name)
+Object::Object(Class *klass, bool collectable) :
+		klass(klass), ref_count(1), gc_color(collectable ? GCColor::Black : GCColor::Green)
 {
-    do
-    {
-        Field *ref = obj->get_own_field(*J, name);
-        if (ref && !(ref->atts & PHON_DONTENUM))
-            return ref;
-        obj = obj->prototype;
-    } while (obj);
-    return nullptr;
+
 }
 
-Object::Object(Runtime &rt, ClassTag type, Object *prototype)
+void Object::destroy()
 {
-    memset(&this->as, 0, sizeof(Storage));
-    this->gcmark = 0;
-    // Attach to GC chain.
-    this->gcnext = rt.gcobj;
-    //if (runtime.gcobj) runtime.gcobj->gcprev = this;
-    rt.gcobj = this;
-    ++rt.gccounter;
-    //this->runtime = &runtime;
-
-    this->type = type;
-    this->prototype = prototype;
-    this->extensible = true;
+	assert(klass->destroy);
+	klass->destroy(this);
 }
 
-Object::~Object()
+void Object::release()
 {
-    if (this->type == PHON_CLIST)
-        this->as.list.~Array<Variant>();
-    else if (this->type == PHON_CREGEX)
-        this->as.regex.~Regex();
-    else if (this->type == PHON_CFILE)
-        this->as.file.~File();
-    else if (this->type == PHON_CITERATOR)
-        this->as.iter.data.~any();
-    else if (this->type == PHON_CUSERDATA)
-        this->as.user.data.~any();
-    else if (this->type == PHON_CCFUNCTION)
-    {
-        this->as.c.constructor.~native_callback_t();
-        this->as.c.function.~native_callback_t();
-        this->as.c.name.~String();
-    }
-    else if (this->type == PHON_CARRAY)
-    	this->as.array.~Array();
-
-    // Detach object from the GC chain.
-//    if (this == runtime->gcobj) {
-//        runtime->gcobj = this->gcnext;
-//    }
-//
-//    if (this->gcprev) {
-//        this->gcprev->gcnext = this->gcnext;
-//    }
-//    if (this->gcnext) {
-//        this->gcnext->gcprev = this->gcprev;
-//    }
-}
-
-Field *Object::get_own_field(Runtime &, const String &name)
-{
-    auto it = fields.find(name);
-    return (it == fields.end()) ? nullptr : &it->second;
-}
-
-Field *Object::get_field(Runtime &, const String &name, bool *own)
-{
-    *own = true;
-    auto obj = this;
-
-    do
-    {
-        auto it = obj->fields.find(name);
-        if (it != obj->fields.end())
-            return &it->second;
-        obj = obj->prototype;
-        *own = false;
-    }
-    while (obj);
-
-    return nullptr;
-}
-
-Field *Object::get_field(Runtime &, const String &name)
-{
-    auto obj = this;
-
-    do
-    {
-        auto it = obj->fields.find(name);
-        if (it != obj->fields.end())
-            return &it->second;
-        obj = obj->prototype;
-    }
-    while (obj);
-
-    return nullptr;
-}
-
-Field *Object::set_field(Runtime &rt, const String &name)
-{
-    if (!this->extensible)
-    {
-        auto result = this->get_own_field(rt, name);
-        if (rt.strict && !result)
-            throw rt.raise("Type error", "object is non-extensible");
-        return result;
-    }
-
-    auto r = this->fields.emplace(name, Field{});
-    if (r.second) this->version++;
-
-    return &r.first->second;
-}
-
-void Object::del_field(Runtime &rt, const String &name)
-{
-    fields.erase(name);
-    version++;
-}
-
-Object *Object::new_iterator(Runtime &rt)
-{
-    if (type == PHON_CSTRING)
-    {
-        throw rt.raise("Error", "%s", "cannot iterate string");
-    }
-
-    auto io = new Object(rt, PHON_CITERATOR, nullptr);
-    io->as.iter.target = this;
-
-    if (type == PHON_CLIST || type == PHON_CSTRING)
-    {
-        new (&io->as.iter.data) std::any();
-        io->as.iter.index = 1;
-
-        return io;
-    }
-    io->as.iter.index = 0;
-    io->version = this->version;
-    new (&io->as.iter.data) std::any(this->fields.begin());
-
-    return io;
-}
-
-std::optional<Variant> Object::next_iterator(Runtime &rt)
-{
-    assert(as.iter.target->type != PHON_CSTRING);
-
-    if (this->type != PHON_CITERATOR)
-        throw rt.raise("Type error", "not an iterator");
-
-    if (as.iter.target->type == PHON_CLIST)
-    {
-        auto &lst = as.iter.target->as.list;
-        auto i = as.iter.index;
-
-        if (i > 0 && i <= lst.size())
-        {
-            // Move to the next position.
-            as.iter.index = i + 1;
-
-            return lst[i];
-        }
-    }
-    else
-    {
-        if (this->version != as.iter.target->version)
-        {
-            throw rt.raise("Error", "%s", "object iterator has been invalidated by a mutating operation");
-        }
-        auto &it = std::any_cast<FieldMap::iterator&>(as.iter.data);
-
-        if (it != fields.end())
-        {
-            auto &key = it->first;
-            it++;
-
-            return key;
-        }
-    }
-
-    return std::optional<Variant>(); // done
-}
-
-void Object::resize_list(Runtime &rt, int new_size)
-{
-    as.list.resize(new_size);
-}
-
-String Object::to_string(Runtime &rt)
-{
-	String s("{ ");
-
-	for (auto &field : fields)
+	if (remove_reference())
 	{
-		s.append('"');
-		s.append(field.first);
-		s.append("\": ");
-		auto getter = field.second.getter;
-		if (getter)
-			rt.format_object(s,getter, "", 0);
-		else
-			s.append(var_to_string(&rt, &field.second.value, true));
-		s.append(", ");
+		destroy();
 	}
-	s.remove_last(", ");
-	s.append(" }");
+	else if (collectable() && !is_purple())
+	{
+		mark_purple();
+		auto obj = static_cast<Collectable*>(this);
+		if (obj->runtime)
+		{
+			obj->runtime->add_candidate(obj);
+		}
+	}
+}
 
-	return s;
+bool Object::remove_reference() noexcept
+{
+	return --ref_count == 0;
+}
+
+bool Object::shared() const noexcept
+{
+	return ref_count > 1;
+}
+
+bool Object::unique() const noexcept
+{
+	return ref_count == 1;
+}
+
+int32_t Object::use_count() const noexcept
+{
+	return ref_count;
+}
+
+bool Object::collectable() const noexcept
+{
+	return gc_color != GCColor::Green;
+}
+
+bool Object::clonable() const noexcept
+{
+	return klass->clone != nullptr;
+}
+
+bool Object::comparable() const noexcept
+{
+	return klass->compare != nullptr;
+}
+
+bool Object::equatable() const noexcept
+{
+	return klass->equal != nullptr;
+}
+
+bool Object::hashable() const noexcept
+{
+	return klass->hash != nullptr;
+}
+
+bool Object::traversable() const noexcept
+{
+	return klass->traverse != nullptr;
+}
+
+bool Object::printable() const noexcept
+{
+	return klass->to_string != nullptr;
+}
+
+size_t Object::hash() const
+{
+	if (this->hashable()) {
+		return klass->hash(this);
+	}
+
+	throw error("[Type error] Type % is not hashable", class_name());
+}
+
+String Object::to_string() const
+{
+	if (this->printable()) {
+		return klass->to_string(this);
+	}
+
+	throw error("[Type error] Type % cannot be converted to string", class_name());
+}
+
+Object *Object::clone() const
+{
+	if (this->clonable())
+	{
+		return klass->clone(this);
+	}
+
+	throw error("[Type error] Type % is not cloneable", class_name());
+}
+
+void Object::traverse(const GCCallback &callback)
+{
+	if (this->traversable())
+	{
+		klass->traverse(reinterpret_cast<Collectable*>(this), callback);
+	}
+}
+
+bool Object::equal(const Object *other) const
+{
+	if (this->equatable())
+	{
+		return klass->equal(this, other);
+	}
+
+	// Try to compare values instead. This will throw an error if comparison is not supported.
+	return compare(other) == 0;
+}
+
+int Object::compare(const Object *other) const
+{
+	if (this->comparable())
+	{
+		return klass->compare(this, other);
+	}
+
+	throw error("[Type error] Type % does not support comparison", class_name());
+}
+
+String Object::class_name() const
+{
+	return klass->name();
+}
+
+const std::type_info *Object::type_info() const
+{
+	return klass->type_info();
+}
+
+bool Object::gc_candidate() const noexcept
+{
+	return gc_color == GCColor::White;
+}
+
+
+//---------------------------------------------------------------------------------------------------------------------
+
+Atomic::Atomic(Class *klass) :
+	Object(klass, false)
+{
+
+}
+
+
+//---------------------------------------------------------------------------------------------------------------------
+
+Collectable::Collectable(Class *klass, Runtime *runtime) :
+	Object(klass, runtime != nullptr), runtime(runtime)
+{
+
+}
+
+Collectable::~Collectable()
+{
+	if (is_candidate() && runtime)
+	{
+		runtime->remove_candidate(this);
+	}
 }
 
 } // namespace phonometrica

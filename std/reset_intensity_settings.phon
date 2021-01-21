@@ -1,5 +1,0 @@
-phon.settings.intensity = {
-    minimum_intensity: 50,
-	maximum_intensity: 100,
-	time_step: 0.01
-}

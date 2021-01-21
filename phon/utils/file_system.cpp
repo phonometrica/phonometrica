@@ -1,29 +1,23 @@
-/***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
- *                                                                                                                     *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
- * later version.                                                                                                      *
- *                                                                                                                     *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
- * details.                                                                                                            *
- *                                                                                                                     *
- * You should have received a copy of the GNU General Public License along with this program. If not, see              *
- * <http://www.gnu.org/licenses/>.                                                                                     *
- *                                                                                                                     *
- * Created: 20/02/2019                                                                                                 *
- *                                                                                                                     *
- * Purpose: see header.                                                                                                *
- *                                                                                                                     *
- ***********************************************************************************************************************/
+/**********************************************************************************************************************
+ *                                                                                                                    *
+ * Copyright (C) 2019-2021 Julien Eychenne <jeychenne@gmail.com>                                                      *
+ *                                                                                                                    *
+ * The contents of this file are subject to the Mozilla Public License Version 2.0 (the "License"); you may not use   *
+ * this file except in compliance with the License. You may obtain a copy of the License at                           *
+ * http://www.mozilla.org/MPL/.                                                                                       *
+ *                                                                                                                    *
+ * Created: 20/02/2019                                                                                                *
+ *                                                                                                                    *
+ * Purpose: see header.                                                                                               *
+ *                                                                                                                    *
+ **********************************************************************************************************************/
 
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
 #include <functional>
 
+#include <phon/error.hpp>
 #include <phon/utils/file_system.hpp>
 #include <phon/utils/helpers.hpp>
 
@@ -57,11 +51,6 @@ namespace filesystem {
 	#define PHON_PATH_ENV_DELIMITER ":"
 	#define PHON_USER_DIRECTORY "HOME"
 #endif
-
-// application variables
-static const std::string_view VAR_APPDIR("$PHON_APPDIR");
-static const std::string_view VAR_HOME("$HOME");
-static const std::string_view VAR_PROJECT("$PHON_PROJECT");
 
 #define MAX_SIZE 1024
 
@@ -112,7 +101,7 @@ String full_path(const String &relative_path)
 #endif
 		if (result.empty())
 		{
-			throw error("Cannot get absolute path of \"%\": %", relative_path, utils::error_message());
+			throw error("[System error] Cannot get absolute path of \"%\": %", relative_path, utils::error_message());
 		}
 
 		return result;
@@ -156,7 +145,7 @@ String current_directory()
 	}
 #endif
 
-	throw error(utils::error_message());
+	throw error("[System error] %", utils::error_message());
 }
 
 void set_current_directory(const String &path)
@@ -172,7 +161,7 @@ void set_current_directory(const String &path)
 
 	if (err)
 	{
-		throw error("Cannot move to directory \"%\": %", path, utils::error_message());
+		throw error("[System error] Cannot move to directory \"%\": %", path, utils::error_message());
 	}
 }
 
@@ -205,7 +194,7 @@ String application_directory()
 	return filesystem::join(user_directory(), "AppData", "Roaming");
 
 #elif PHON_MACOS
-	return filesystem::join(user_directory(), "Applications");;
+	return filesystem::join(user_directory(), "Applications");
 
 #else
 	return filesystem::join(user_directory(), ".config");;
@@ -280,7 +269,7 @@ bool create_directory(const String &path)
 
 	if (has_error)
 	{
-		throw error("Cannot create directory \"%\": %\n", path, utils::error_message());
+		throw error("[System error] Cannot create directory \"%\": %\n", path, utils::error_message());
 	}
 
 	return !has_error;
@@ -290,7 +279,7 @@ bool remove_directory(const String &dir)
 {
 	if (!is_directory(dir))
 	{
-		throw error("Trying to remove \"%\" which is not a directory", dir);
+		throw error("[System error] Trying to remove \"%\" which is not a directory", dir);
 	}
 
 	bool has_error;
@@ -333,7 +322,7 @@ bool remove_directory(const String &dir)
 
 	if (has_error)
 	{
-		throw error("Cannot remove directory \"%\": %\n", dir, utils::error_message());
+		throw error("[System error] Cannot remove directory \"%\": %\n", dir, utils::error_message());
 	}
 
 	return !has_error;
@@ -355,12 +344,12 @@ bool remove_file(const String &path)
 
 		if (has_error)
 		{
-			throw error("Cannot remove file \"%\": %", path, utils::error_message());
+			throw error("[System error] Cannot remove file \"%\": %", path, utils::error_message());
 		}
 	}
 	else
 	{
-		throw error("Cannot remove \"%\": file does not exist", path);
+		throw error("[System error] Cannot remove \"%\": file does not exist", path);
 	}
 
 	return !has_error;
@@ -398,7 +387,7 @@ static void read_dir_entries(const String &path, std::function<void(String)> fun
 	hFind = FindFirstFile(utf16.data(), &ffd);
 
 	if (INVALID_HANDLE_VALUE == hFind) {
-		throw error("problem with FindFirstFile()");
+		throw error("[System error] Problem with FindFirstFile()");
 		return;
 	}
 
@@ -414,7 +403,7 @@ static void read_dir_entries(const String &path, std::function<void(String)> fun
 	dwError = GetLastError();
 	if (dwError != ERROR_NO_MORE_FILES)
 	{
-		throw error("problem with FindFirstFile()");
+		throw error("[System error] Problem with FindFirstFile()");
 		return;
 	}
 
@@ -438,7 +427,7 @@ static void read_dir_entries(const String &path, std::function<void(String)> fun
 	}
 	else
 	{
-		throw error("Couldn't open directory \"%\"", path);
+		throw error("[System error] Couldn't open directory \"%\"", path);
 	}
 #else
 #error undefined function
@@ -529,7 +518,7 @@ bool is_file(const String &path)
 	}
 }
 
-void clear_directory(const String &path)
+bool clear_directory(const String &path)
 {
 	if (is_directory(path))
 	{
@@ -560,18 +549,20 @@ void clear_directory(const String &path)
 			}
 			closedir(dir);
 
-			return;
+			return result;
 		}
 		else
 		{
-			throw error("Couldn't open directory \"%\"", path);
+			throw error("[System error] Couldn't open directory \"%\"", path);
 		}
 #endif
 	}
 	else
 	{
-		throw error("\"%\" is not a directory", path);
+		throw error("[System error] \"%\" is not a directory", path);
 	}
+
+	return false;
 }
 
 std::pair<String, String> split_ext(const String &path)
@@ -672,46 +663,8 @@ void rename(std::string_view old_name, std::string_view new_name)
 
     if (result != 0)
     {
-        throw error(utils::error_message());
+        throw error("[System error] %", utils::error_message());
     }
-}
-
-void interpolate(String &path, std::string_view project_dir)
-{
-	if (path.starts_with(VAR_PROJECT)) {
-		path.replace(1, VAR_PROJECT.size(), project_dir);
-	}
-	else if (path.starts_with(VAR_APPDIR)) {
-		path.replace(1, VAR_APPDIR.size(), application_directory());
-	}
-	else if (path.starts_with(VAR_HOME)) {
-		path.replace(1, VAR_HOME.size(), user_directory());
-	}
-
-	nativize(path);
-}
-
-void compress(String &path, std::string_view project_dir)
-{
-	if (path.starts_with(project_dir)) {
-		path.replace(1, project_dir.size(), VAR_PROJECT);
-	}
-	else {
-		auto app_dir = application_directory();
-
-		if (path.starts_with(app_dir)) {
-			path.replace(1, app_dir.size(), VAR_APPDIR);
-		}
-		else {
-			auto user_dir = user_directory();
-
-			if (path.starts_with(user_dir)) {
-				path.replace(1, user_dir.size(), VAR_HOME);
-			}
-		}
-	}
-
-	genericize(path);
 }
 
 }

@@ -1,6 +1,6 @@
 /* -*- mode: c; c-basic-offset: 2; tab-width: 2; indent-tabs-mode: nil -*- */
 /*
- *  Copyright (c) 2018 Steven G. Johnson, Jiahao Chen, Peter Colberg, Tony Kelman, Scott P. Jones, and other contributors.
+ *  Copyright (c) 2014-2019 Steven G. Johnson, Jiahao Chen, Peter Colberg, Tony Kelman, Scott P. Jones, and other contributors.
  *  Copyright (c) 2009 Public Software Group e. V., Berlin, Germany
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
@@ -27,7 +27,7 @@
  *  Unicode data files.
  *
  *  The original data files are available at
- *  http://www.unicode.org/Public/UNIDATA/
+ *  https://www.unicode.org/Public/UNIDATA/
  *
  *  Please notice the copyright statement in the file "utf8proc_data.c".
  */
@@ -101,7 +101,7 @@ UTF8PROC_DLLEXPORT const char *utf8proc_version(void) {
 }
 
 UTF8PROC_DLLEXPORT const char *utf8proc_unicode_version(void) {
-  return "12.1.0";
+  return "13.0.0";
 }
 
 UTF8PROC_DLLEXPORT const char *utf8proc_errmsg(utf8proc_ssize_t errcode) {
@@ -290,10 +290,14 @@ static utf8proc_bool grapheme_break_simple(int lbc, int tbc) {
 
 static utf8proc_bool grapheme_break_extended(int lbc, int tbc, utf8proc_int32_t *state)
 {
-  int lbc_override = ((state && *state != UTF8PROC_BOUNDCLASS_START)
-                      ? *state : lbc);
-  utf8proc_bool break_permitted = grapheme_break_simple(lbc_override, tbc);
   if (state) {
+    int lbc_override;
+    if (*state == UTF8PROC_BOUNDCLASS_START)
+      *state = lbc_override = lbc;
+    else
+      lbc_override = *state;
+    utf8proc_bool break_permitted = grapheme_break_simple(lbc_override, tbc);
+
     // Special support for GB 12/13 made possible by GB999. After two RI
     // class codepoints we want to force a break. Do this by resetting the
     // second RI's bound class to UTF8PROC_BOUNDCLASS_OTHER, to force a break
@@ -312,8 +316,11 @@ static utf8proc_bool grapheme_break_extended(int lbc, int tbc, utf8proc_int32_t 
     }
     else
       *state = tbc;
+
+    return break_permitted;
   }
-  return break_permitted;
+  else
+    return grapheme_break_simple(lbc, tbc);
 }
 
 UTF8PROC_DLLEXPORT utf8proc_bool utf8proc_grapheme_break_stateful(
@@ -382,6 +389,18 @@ UTF8PROC_DLLEXPORT utf8proc_int32_t utf8proc_totitle(utf8proc_int32_t c)
 {
   utf8proc_int32_t cu = utf8proc_get_property(c)->titlecase_seqindex;
   return cu != UINT16_MAX ? seqindex_decode_index(cu) : c;
+}
+
+UTF8PROC_DLLEXPORT int utf8proc_islower(utf8proc_int32_t c)
+{
+  const utf8proc_property_t *p = utf8proc_get_property(c);
+  return p->lowercase_seqindex != p->uppercase_seqindex && p->lowercase_seqindex == UINT16_MAX;
+}
+
+UTF8PROC_DLLEXPORT int utf8proc_isupper(utf8proc_int32_t c)
+{
+  const utf8proc_property_t *p = utf8proc_get_property(c);
+  return p->lowercase_seqindex != p->uppercase_seqindex && p->uppercase_seqindex == UINT16_MAX && p->category != UTF8PROC_CATEGORY_LT;
 }
 
 /* return a character width analogous to wcwidth (except portable and

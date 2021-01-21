@@ -30,10 +30,10 @@ class PhonLexer(RegexLexer):
             # Please note that keyword and operator are case insensitive.
             (r'(?i)(true|false|null|undefined)\b', Keyword.Constant),
             (words((
-                'and', 'break', 'continue', 'debug', 'do', 'downto', 'else', 'elsif', 
-                'end', 'export', 'for', 'foreach', 'function', 'get', 'if', 'import', 
-                'in', 'instanceof', 'is', 'new', 'not', 'or', 'pass', 'repeat', 
-                'return', 'set', 'step', 'then', 'to', 'typeof', 'until', 'var', 'while'), prefix=r'(?i)\b', suffix=r'\b'),
+                'and', 'as', 'assert', 'break', 'class', 'continue', 'debug', 'do', 'downto', 'else', 'elsif', 
+                'end', 'for', 'foreach', 'function', 'get', 'if',
+                'in', 'inherits', 'local', 'method', 'not', 'or', 'option', 'pass', 'print', 'ref', 'repeat', 
+                'return', 'step', 'then', 'throw', 'to', 'until', 'var', 'while'), prefix=r'(?i)\b', suffix=r'\b'),
              Keyword.Reserved),
             (r'"\[(([^\]%]|\n)|%(.|\n)|\][^"])*?\]"', String),
             (r'"([^"%\n]|%.)*?"', String),
@@ -58,5 +58,5 @@ class PhonLexer(RegexLexer):
 
 def setup(sphinx):
   from sphinx.highlighting import lexers
-  sphinx.add_lexer('phon', PhonLexer())
+  sphinx.add_lexer('phon', PhonLexer)
   

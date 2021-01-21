@@ -1,833 +1,729 @@
-/**************************************************************************************
- * Copyright (C) 2013-2019, Artifex Software                                          *
- *           (C) 2019, Julien Eychenne <jeychenne@gmail.com>                          *
- *                                                                                    *
- * Permission to use, copy, modify, and/or distribute this software for any purpose   *
- * with or without fee is hereby granted, provided that the above copyright notice    *
- * and this permission notice appear in all copies.                                   *
- *                                                                                    *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH      *
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND    *
- * FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, *
- * OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,     *
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS    *
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS        *
- * SOFTWARE.                                                                          *
- *                                                                                    *
- **************************************************************************************/
+/***********************************************************************************************************************
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
+ *                                                                                                                     *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
+ * later version.                                                                                                      *
+ *                                                                                                                     *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more       *
+ * details.                                                                                                            *
+ *                                                                                                                     *
+ * You should have received a copy of the GNU General Public License along with this program. If not, see              *
+ * <http://www.gnu.org/licenses/>.                                                                                     *
+ *                                                                                                                     *
+ * Created: 12/07/2019                                                                                                 *
+ *                                                                                                                     *
+ * Purpose: see header.                                                                                                *
+ *                                                                                                                     *
+ ***********************************************************************************************************************/
 
-#include <cstring>
-#include <limits>
-#include <phon/runtime/toplevel.hpp>
-#include <phon/runtime/lex.hpp>
-#include <phon/runtime/compile.hpp>
-#include <phon/runtime/object.hpp>
-#include "runtime.hpp"
-#include "variant.hpp"
-#include "object.hpp"
-
+#include <phon/runtime/variant.hpp>
+#include <phon/runtime/meta.hpp>
+#include <phon/runtime/class.hpp>
+#include <phon/runtime/function.hpp>
+#include <phon/runtime/table.hpp>
+#include <phon/runtime/list.hpp>
+#include <phon/third_party/utf8/utf8.h>
 
 namespace phonometrica {
 
-static inline
-bool equal(double x, double y)
+Variant::Variant() :
+		m_data_type(Datatype::Null)
 {
-	// Comparison method by Christer Ericson. See http://doubletimecollisiondetection.net/blog/?p=89
-	double scale = std::max<double>(1.0, std::max<double>(std::fabs(x), std::fabs(y)));
-	return std::fabs(x - y) <= std::numeric_limits<double>::epsilon() * scale;
+
+}
+
+Variant::Variant(bool val) :
+		m_data_type(Datatype::Boolean)
+{
+	new (&as.storage) bool(val);
+}
+
+Variant::Variant(intptr_t val) :
+		m_data_type(Datatype::Integer)
+{
+	new (&as.storage) intptr_t(val);
+}
+
+Variant::Variant(Object *obj) :
+		m_data_type(Datatype::Object)
+{
+	obj->retain();
+	as.object = obj;
 }
 
 
-intptr_t number_to_integer(double n)
+Variant::Variant(double val) :
+		m_data_type(Datatype::Float)
 {
-    if (n == 0) return 0;
-    if (std::isnan(n)) return 0;
-    n = (n < 0) ? -floor(-n) : floor(n);
-    if constexpr (sizeof(intptr_t) < sizeof(double))
-    {
-        if (n < std::numeric_limits<intptr_t>::min()) return std::numeric_limits<intptr_t>::min();
-        if (n > std::numeric_limits<intptr_t>::max()) return std::numeric_limits<intptr_t>::max();
-    }
-    return (intptr_t) n;
-}
-
-int number_to_int32(double n)
-{
-    double two32 = 4294967296.0;
-    double two31 = 2147483648.0;
-
-    if (!std::isfinite(n) || n == 0)
-        return 0;
-
-    n = fmod(n, two32);
-    n = n >= 0 ? floor(n) : ceil(n) + two32;
-    if (n >= two31)
-        return n - two32;
-    else
-        return n;
-}
-
-unsigned int number_to_uint32(double n)
-{
-    return (unsigned int) number_to_int32(n);
-}
-
-short number_to_int16(double n)
-{
-    return number_to_int32(n);
-}
-
-unsigned short number_to_uint16(double n)
-{
-    return number_to_int32(n);
-}
-
-/* obj.toString() */
-static int jsV_toString(Runtime *J, Object *obj)
-{
-    J->push(obj);
-    J->get_field(-1, "to_string");
-    if (J->is_callable(-1))
-    {
-        js_rot2(J);
-        J->call(0);
-        if (J->is_primitive(-1))
-            return 1;
-        J->pop(1);
-        return 0;
-    }
-    J->pop(2);
-    return 0;
-}
-
-/* obj.to_value() */
-static int jsV_to_value(Runtime *J, Object *obj)
-{
-    J->push(obj);
-    J->get_field(-1, "to_value");
-    if (J->is_callable(-1))
-    {
-        js_rot2(J);
-        J->call(0);
-        if (J->is_primitive(-1))
-            return 1;
-        J->pop(1);
-        return 0;
-    }
-    J->pop(2);
-    return 0;
-}
-
-/* ToPrimitive() on a value */
-void var_to_primitive(Runtime *J, Variant *v, int preferred)
-{
-    Object *obj;
-
-    if (v->type != PHON_TOBJECT)
-        return;
-
-    obj = v->as.object;
-
-    if (preferred == PHON_HINT_NONE)
-        preferred = obj->type == PHON_CDATE ? PHON_HINT_STRING : PHON_HINT_NUMBER;
-
-    if (preferred == PHON_HINT_STRING)
-    {
-        if (jsV_toString(J, obj) || jsV_to_value(J, obj))
-        {
-            *v = *get_variant(J, -1);
-            J->pop(1);
-            return;
-        }
-    }
-    else
-    {
-        if (jsV_to_value(J, obj) || jsV_toString(J, obj))
-        {
-            *v = *get_variant(J, -1);
-            J->pop(1);
-            return;
-        }
-    }
-
-    if (J->strict)
-        throw J->raise("Type error", "cannot convert object to primitive");
-
-    v->set_string("[object]");
-    return;
-}
-
-/* to_boolean() on a value */
-bool Variant::to_boolean() const
-{
-    switch (type)
-    {
-    case PHON_TNULL:
-        return false;
-    case PHON_TBOOLEAN:
-        return as.boolean;
-    case PHON_TNUMBER:
-        return as.number != 0 && !std::isnan(as.number);
-    case PHON_TSTRING: // the empty string is also true
-    default:
-        return true;
-    }
-}
-
-const char *int_to_str(char *out, int v)
-{
-    char buf[32], *s = out;
-    unsigned int a;
-    int i = 0;
-    if (v < 0)
-    {
-        a = -v;
-        *s++ = '-';
-    }
-    else
-    {
-        a = v;
-    }
-    while (a)
-    {
-        buf[i++] = (a % 10) + '0';
-        a /= 10;
-    }
-    if (i == 0)
-        buf[i++] = '0';
-    while (i > 0)
-        *s++ = buf[--i];
-    *s = 0;
-    return out;
-}
-
-double string_to_float(const char *s, char **ep)
-{
-    char *end;
-    double n;
-    const char *e = s;
-    int isflt = 0;
-    if (*e == '+' || *e == '-') ++e;
-    while (*e >= '0' && *e <= '9') ++e;
-    if (*e == '.')
-    {
-        ++e;
-        isflt = 1;
-    }
-    while (*e >= '0' && *e <= '9') ++e;
-    if (*e == 'e' || *e == 'E')
-    {
-        ++e;
-        if (*e == '+' || *e == '-') ++e;
-        while (*e >= '0' && *e <= '9') ++e;
-        isflt = 1;
-    }
-    if (isflt || e - s > 9)
-        n = str_to_double(s, &end);
-    else
-        n = strtol(s, &end, 10);
-    if (end == e)
-    {
-        *ep = (char *) e;
-        return n;
-    }
-    *ep = (char *) s;
-    return 0;
-}
-
-/* ToString() on a number */
-String number_to_string(Runtime *J, char *buf, double f)
-{
-    char digits[32], *p = buf, *s = digits;
-    int exp, ndigits, point;
-
-    if (f == 0) return "0";
-    if (std::isnan(f)) return J->undef_string;
-    if (std::isinf(f)) return f < 0 ? "-Infinity" : "Infinity";
-
-    /* Fast case for integers. This only works assuming all integers can be
-     * exactly represented by a float. This is true for 32-bit integers and
-     * 64-bit floats. */
-    if (f >= INT_MIN && f <= INT_MAX)
-    {
-        int i = (int) f;
-        if ((double) i == f)
-            return int_to_str(buf, i);
-    }
-
-    ndigits = grisu2(f, digits, &exp);
-    point = ndigits + exp;
-
-    if (std::signbit(f))
-        *p++ = '-';
-
-    if (point < -5 || point > 21)
-    {
-        *p++ = *s++;
-        if (ndigits > 1)
-        {
-            int n = ndigits - 1;
-            *p++ = '.';
-            while (n--)
-                *p++ = *s++;
-        }
-        fmt_exp(p, point - 1);
-    }
-
-    else if (point <= 0)
-    {
-        *p++ = '0';
-        *p++ = '.';
-        while (point++ < 0)
-            *p++ = '0';
-        while (ndigits-- > 0)
-            *p++ = *s++;
-        *p = 0;
-    }
-
-    else
-    {
-        while (ndigits-- > 0)
-        {
-            *p++ = *s++;
-            if (--point == 0 && ndigits > 0)
-                *p++ = '.';
-        }
-        while (point-- > 0)
-            *p++ = '0';
-        *p = 0;
-    }
-
-    return buf;
-}
-
-/* to_string() on a value */
-String var_to_string(Runtime *J, Variant *v, bool quote)
-{
-    switch (v->type)
-    {
-    default:
-    case PHON_TNULL:
-        return J->null_string;
-    case PHON_TBOOLEAN:
-        return v->as.boolean ? J->true_string : J->false_string;
-    case PHON_TSTRING:
-    {
-    	if (quote)
-	    {
-		    String s(v->as.string.size() + 3);
-		    s.append('"');
-		    s.append(v->as.string);
-		    s.append('"');
-
-		    return s;
-	    }
-	    else
-	    {
-	    	return v->as.string;
-	    }
-    }
-    case PHON_TNUMBER:
-    {
-        char buf[32];
-        return number_to_string(J, buf, v->as.number);
-    }
-    case PHON_TOBJECT:
-        var_to_primitive(J, v, PHON_HINT_STRING);
-        return var_to_string(J, v);
-    }
-}
-
-/* Objects */
-
-static Object *jsV_newboolean(Runtime *J, bool v)
-{
-    Object *obj = new Object(*J, PHON_CBOOLEAN, J->boolean_meta);
-    obj->as.boolean = v;
-    return obj;
-}
-
-static Object *jsV_newnumber(Runtime *J, double v)
-{
-    Object *obj = new Object(*J, PHON_CNUMBER, J->number_meta);
-    obj->as.number = v;
-    return obj;
-}
-
-static Object *jsV_newstring(Runtime *J, const String &v)
-{
-    Object *obj = new Object(*J, PHON_CSTRING, J->string_meta);
-    new(&obj->as.string) String(std::move(J->internalize(v)));
-
-    return obj;
-}
-
-/* ToObject() on a value */
-Object *Runtime::to_object(Variant *v)
-{
-    switch (v->type)
-    {
-    default:
-    case PHON_TNULL:
-        throw raise("Type error", "cannot convert null to object");
-    case PHON_TBOOLEAN:
-        return jsV_newboolean(this, v->as.boolean);
-    case PHON_TNUMBER:
-        return jsV_newnumber(this, v->as.number);
-    case PHON_TSTRING:
-        return jsV_newstring(this, v->as.string);
-    case PHON_TOBJECT:
-        return v->as.object;
-    }
-}
-
-void Runtime::new_objectx()
-{
-    Object *prototype = to_object(-1);
-    pop(1);
-    push(new Object(*this, PHON_COBJECT, prototype));
-}
-
-void Runtime::new_object()
-{
-    push(new Object(*this, PHON_COBJECT, object_meta));
-}
-
-void Runtime::new_list(intptr_t size)
-{
-    auto obj = new Object(*this, PHON_CLIST, list_meta);
-    new (&obj->as.list) Array<Variant>(size, Variant());
-    push(obj);
-}
-
-void Runtime::new_array(intptr_t size)
-{
-    auto obj = new Object(*this, PHON_CARRAY, array_meta);
-    new (&obj->as.array) Array<double>(size, 0.0);
-    push(obj);
-}
-
-void Runtime::new_array(intptr_t nrow, intptr_t ncol)
-{
-	auto obj = new Object(*this, PHON_CARRAY, array_meta);
-	new (&obj->as.array) Array<double>(nrow, ncol, 0.0);
-	push(obj);
-}
-
-void Runtime::new_boolean(bool v)
-{
-    push(jsV_newboolean(this, v));
-}
-
-void Runtime::new_number(double v)
-{
-    push(jsV_newnumber(this, v));
-}
-
-void Runtime::new_string(const String &v)
-{
-    push(jsV_newstring(this, v));
-}
-
-void create_function(Runtime *J, Function *fun, Environment *scope)
-{
-    Object *obj = new Object(*J, PHON_CFUNCTION, J->function_meta);
-    obj->as.f.function = fun;
-    obj->as.f.scope = scope;
-    J->push(obj);
-    {
-        J->push(fun->numparams);
-        J->def_field(-2, "length", PHON_READONLY | PHON_DONTENUM | PHON_DONTCONF);
-        J->new_object();
-        {
-            J->copy(-2);
-            J->def_field(-2, "constructor", PHON_DONTENUM);
-        }
-        J->def_field(-2, "meta", PHON_DONTCONF);
-    }
-}
-
-void create_script(Runtime *J, Function *fun, Environment *scope)
-{
-    Object *obj = new Object(*J, PHON_CSCRIPT, nullptr);
-    obj->as.f.function = fun;
-    obj->as.f.scope = scope;
-    J->push(obj);
-}
-
-void Runtime::new_native_function(native_callback_t fun, const String &name, int length)
-{
-    Object *obj = new Object(*this, PHON_CCFUNCTION, function_meta);
-    new (&obj->as.c.name) String(name);
-    new (&obj->as.c.function) native_callback_t(std::move(fun));
-    obj->as.c.length = length;
-    push(obj);
-    {
-        push(length);
-        def_field(-2, "length", PHON_READONLY | PHON_DONTENUM | PHON_DONTCONF);
-        new_object();
-        {
-            copy(-2);
-            def_field(-2, "constructor", PHON_DONTENUM);
-        }
-        def_field(-2, "meta", PHON_DONTCONF);
-    }
-}
-
-/* prototype -- constructor */
-void Runtime::new_native_constructor(native_callback_t fun, native_callback_t con, const String &name, int length)
-{
-    Object *obj = new Object(*this, PHON_CCFUNCTION, function_meta);
-    new (&obj->as.c.name) String(name);
-    new (&obj->as.c.function) native_callback_t(std::move(fun));
-    new (&obj->as.c.constructor) native_callback_t(std::move(con));
-    obj->as.c.length = length;
-    push(obj); /* proto obj */
-    {
-        push(length);
-        def_field(-2, "length", PHON_READONLY | PHON_DONTENUM | PHON_DONTCONF);
-        js_rot2(this); /* obj proto */
-        copy(-2); /* obj proto obj */
-        def_field(-2, "constructor", PHON_DONTENUM);
-        def_field(-2, "meta", PHON_READONLY | PHON_DONTENUM | PHON_DONTCONF);
-    }
-}
-
-void Runtime::new_user_data(const char *tag, std::any data, has_field_callback_t has, put_callback_t put,
-                            delete_callback_t destroy)
-{
-    Object *prototype = nullptr;
-    Object *obj;
-
-    if (is_object(-1))
-        prototype = to_object(-1);
-    pop(1);
-
-    obj = new Object(*this, PHON_CUSERDATA, prototype);
-    obj->as.user.tag = tag;
-    new(&obj->as.user.data) std::any(std::move(data));
-    obj->as.user.has = has;
-    obj->as.user.put = put;
-    obj->as.user.destroy = destroy;
-    push(obj);
-}
-
-void Runtime::new_user_data(const char *tag, std::any data)
-{
-    new_user_data(tag, std::move(data), nullptr, nullptr, nullptr);
-}
-
-void Runtime::new_user_data(Object *meta, const char *tag, std::any data)
-{
-    push(meta);
-    new_user_data(tag, std::move(data));
-}
-
-
-/* Non-trivial operations on values. These are implemented using the stack. */
-
-int js_instanceof(Runtime *J)
-{
-    Object *O, *V;
-
-    if (!J->is_callable(-1))
-        throw J->raise("Type error", "instanceof: invalid operand");
-
-    if (!J->is_object(-2))
-        return 0;
-
-    J->get_field(-1, "meta");
-    if (!J->is_object(-1))
-        throw J->raise("Type error", "instanceof: 'prototype' field is not an object");
-    O = J->to_object(-1);
-    J->pop(1);
-
-    V = J->to_object(-2);
-    while (V)
-    {
-        V = V->prototype;
-        if (O == V)
-            return 1;
-    }
-
-    return 0;
-}
-
-void js_concat(Runtime *J)
-{
-	auto str = J->to_string(-2);
-	str.append(J->to_string(-1));
-	J->pop(2);
-	J->push(std::move(str));
-#if 0
-    var_to_primitive(J, -2, PHON_HINT_NONE);
-    var_to_primitive(J, -1, PHON_HINT_NONE);
-
-    if (J->is_string(-2) || J->is_string(-1))
-    {
-        auto str = J->to_string(-2);
-        str.append(J->to_string(-1));
-        J->pop(2);
-        J->push(std::move(str));
-    }
-    else
-    {
-        double x = J->to_number(-2);
-        double y = J->to_number(-1);
-        J->pop(2);
-        J->push(x + y);
-    }
-#endif
-}
-
-int js_compare(Runtime *J, int *okay)
-{
-    var_to_primitive(J, -2, PHON_HINT_NUMBER);
-    var_to_primitive(J, -1, PHON_HINT_NUMBER);
-
-    *okay = 1;
-    if (J->is_string(-2) && J->is_string(-1))
-    {
-        return J->to_string(-2).compare(J->to_string(-1));
-    }
-    else
-    {
-        double x = J->to_number(-2);
-        double y = J->to_number(-1);
-        if (std::isnan(x) || std::isnan(y))
-            *okay = 0;
-        return x < y ? -1 : x > y ? 1 : 0;
-    }
-}
-
-int js_equal(Runtime *J)
-{
-    Variant *x = get_variant(J, -2);
-    Variant *y = get_variant(J, -1);
-
-    return *x == *y;
+	new (&as.storage) double(val);
 }
 
 Variant::Variant(const Variant &other)
 {
-    this->raw_copy(other);
-    this->retain();
+	copy_fields(other);
+	retain();
+}
+
+Variant::Variant(Variant &other)
+{
+	copy_fields(other);
+	retain();
 }
 
 Variant::Variant(Variant &&other) noexcept
 {
-    this->raw_copy(other);
-    other.undef();
+	copy_fields(other);
+	other.zero();
 }
 
-void Variant::undef()
+Variant::~Variant()
 {
-    type = PHON_TNULL;
-}
-
-Variant &Variant::operator=(const Variant &other)
-{
-    if (this != &other)
-    {
-        this->release();
-        this->raw_copy(other);
-        this->retain();
-    }
-
-    return *this;
-}
-
-Variant &Variant::operator=(Variant &&other) noexcept
-{
-    this->release();
-    this->raw_copy(other);
-    other.undef();
-
-    return *this;
-}
-
-void Variant::swap(Variant &other) noexcept
-{
-    this->as.swap(other.as);
-    std::swap(this->type, other.type);
+	this->release();
 }
 
 void Variant::retain()
 {
-    if (is_string())
-        as.string.impl->retain();
-//    else if (is_object())
-//        as.object->retain();
+	if (this->is_string())
+	{
+		raw_cast<String>(*this).impl->retain();
+	}
+	else if (this->is_object())
+	{
+		as.object->retain();
+	}
+	else if (this->is_alias())
+	{
+		as.alias->retain();
+	}
 }
 
 void Variant::release()
 {
-    if (is_string())
-        as.string.~String();
-//    else if (is_object())
-//        as.object->release();
+	if (this->is_string())
+	{
+		raw_cast<String>(*this).~String();
+	}
+	else if (this->is_object())
+	{
+		as.object->release();
+	}
+	else if (this->is_alias())
+	{
+		auto count = as.alias->ref_count - 1;
+		as.alias->release();
+		if (count == 1)
+		{
+			*this = std::move(as.alias->variant);
+		}
+	}
 }
 
-void Variant::raw_copy(const Variant &src)
+void Variant::swap(Variant &other) noexcept
 {
-    std::memcpy(this, &src, sizeof(Variant));
+	std::swap(m_data_type, other.m_data_type);
+	std::swap(as, other.as);
 }
 
-bool Variant::is_list() const
+bool Variant::empty() const
 {
-    return is_object() && as.object->type == PHON_CLIST;
+	return m_data_type == Datatype::Null;
 }
 
-bool Variant::is_regex() const
+void Variant::zero()
 {
-    return is_object() && as.object->type == PHON_CREGEX;
+	m_data_type = Datatype::Null;
 }
 
-bool Variant::is_user_data() const
+void Variant::clear()
 {
-    return is_object() && as.object->type == PHON_CUSERDATA;
+	release();
+	zero();
 }
 
-bool Variant::is_user_data(const char *tag) const
+void Variant::copy_fields(const Variant &other)
 {
-    if (is_user_data())
-    {
-        return !strcmp(tag, as.object->as.user.tag);
-    }
-
-    return false;
+	m_data_type = other.m_data_type;
+	as = other.as;
 }
 
-bool Variant::is_error() const
+bool Variant::is_object() const
 {
-    return is_object() && as.object->type == PHON_CERROR;
+	return m_data_type == Datatype::Object;
 }
 
-bool Variant::is_callable() const
+const std::type_info *Variant::type_info() const
 {
-    if (is_object())
-    {
-        auto t = as.object->type;
-        return t == PHON_CFUNCTION || t == PHON_CSCRIPT || t == PHON_CCFUNCTION;
-    }
+	switch (m_data_type)
+	{
+		case Datatype::String:
+			return &typeid(String);
+		case Datatype::Object:
+			return as.object->type_info();
+		case Datatype::Integer:
+			return &typeid(intptr_t);
+		case Datatype::Float:
+			return &typeid(double);
+		case Datatype::Boolean:
+			return &typeid(bool);
+		case Datatype::Alias:
+			return resolve().type_info();
+		case Datatype::Null:
+			return &typeid(std::nullptr_t);
+		default:
+			break;
+	}
 
-    return false;
+	throw error("[Internal error] Invalid type ID in type_info function");
 }
 
-bool Variant::is_file() const
+String Variant::class_name() const
 {
-    return is_object() && as.object->type == PHON_CFILE;
+	static String null("Null");
+
+	switch (data_type())
+	{
+		case Datatype::String:
+			return Class::get_name<String>();
+		case Datatype::Object:
+			return as.object->class_name();
+		case Datatype::Integer:
+			return Class::get_name<intptr_t>();
+		case Datatype::Float:
+			return Class::get_name<double>();
+		case Datatype::Boolean:
+			return Class::get_name<bool>();
+		case Datatype::Alias:
+			return resolve().class_name();
+		case Datatype::Null:
+			return null;
+		default:
+			break;
+	}
+
+	throw error("[Internal error] Invalid type ID in class_name function");
 }
 
-bool Variant::operator<(const Variant &other) const
+void Variant::traverse(const GCCallback &callback)
 {
-    if (this->type != other.type) {
-        throw error("cannot compare values with different types");
-    }
-
-    switch (type)
-    {
-    case PHON_TBOOLEAN:
-        return as.boolean < other.as.boolean;
-    case PHON_TNUMBER:
-        return as.number < other.as.number;
-    case PHON_TSTRING:
-        return as.string < other.as.string;
-    case PHON_TNULL:
-        throw error("null values cannot be ordered");
-    default:
-        // Use address
-        return as.object < other.as.object;
-    }
+	if (this->is_object() && as.object->collectable())
+	{
+		callback(reinterpret_cast<Collectable*>(as.object));
+	}
+	else if (this->is_alias())
+	{
+		resolve().traverse(callback);
+	}
 }
 
 bool Variant::operator==(const Variant &other) const
 {
-    if (this->type != other.type) {
-        return false;
-    }
+	auto &v1 = this->resolve();
+	auto &v2 = other.resolve();
 
-    switch (type)
-    {
-    case PHON_TBOOLEAN:
-        return as.boolean == other.as.boolean;
-    case PHON_TNUMBER:
-    {
-        auto n1 = this->as.number;
-        auto n2 = other.as.number;
-        // (undefined == undefined) is true
-        return (std::isnan(n1) && std::isnan(n2)) || equal(n1, n2);
-    }
-        return as.number == other.as.number;
-    case PHON_TSTRING:
-        return as.string == other.as.string;
-    case PHON_TNULL:
-        return true;
-    default:
-        if (as.object->type == PHON_CLIST)
-            return as.object->as.list == other.as.object->as.list;
-        return as.object == other.as.object;
-    }
+	if (v1.data_type() == v2.data_type())
+	{
+		switch (v1.data_type())
+		{
+			case Datatype::String:
+			{
+				auto &s1 = raw_cast<String>(v1);
+				auto &s2 = raw_cast<String>(v2);
+
+				return s1 == s2;
+			}
+			case Datatype::Object:
+			{
+				auto o1 = v1.as.object;
+				auto o2 = v2.as.object;
+
+				if (o1->get_class() != o2->get_class()) {
+					break;
+				}
+
+				return o1->equal(o2);
+			}
+			case Datatype::Integer:
+			{
+				auto x = raw_cast<intptr_t>(v1);
+				auto y = raw_cast<intptr_t>(v2);
+
+				return x == y;
+			}
+			case Datatype::Float:
+			{
+				auto x = raw_cast<double>(v1);
+				auto y = raw_cast<double>(v2);
+
+				return meta::equal(x, y);
+			}
+			case Datatype::Boolean:
+			{
+				auto x = raw_cast<bool>(v1);
+				auto y = raw_cast<bool>(v2);
+
+				return x == y;
+			}
+			case Datatype::Null:
+				return true;
+			default:
+				break;
+		}
+	}
+	else if (v1.is_number() && v2.is_number())
+	{
+		auto x = v1.get_number();
+		auto y = v2.get_number();
+
+		return meta::equal(x, y);
+	}
+	else if (v1.is_null() || v2.is_null()) {
+		return false;
+	}
+
+	throw error("[Type error] Cannot compare values of type % and %", this->class_name(), other.class_name());
 }
 
-double Variant::to_number() const
-{
-    if (is_number())
-        return as.number;
 
-    throw std::runtime_error("[Type error] value is not a number");
+int Variant::compare(const Variant &other) const
+{
+	auto &v1 = this->resolve();
+	auto &v2 = other.resolve();
+
+	if (v1.data_type() == v2.data_type())
+	{
+		switch (v1.data_type())
+		{
+			case Datatype::String:
+			{
+				auto &s1 = raw_cast<String>(v1);
+				auto &s2 = raw_cast<String>(v2);
+
+				return s1.compare(s2);
+			}
+			case Datatype::Object:
+			{
+				auto o1 = v1.as.object;
+				auto o2 = v2.as.object;
+
+				// TODO: handle subclasses in comparison
+				if (o1->get_class() != o2->get_class()) {
+					break;
+				}
+
+				return o1->compare(o2);
+			}
+			case Datatype::Integer:
+			{
+				auto x = raw_cast<intptr_t>(v1);
+				auto y = raw_cast<intptr_t>(v2);
+
+				return meta::compare(x, y);
+			}
+			case Datatype::Float:
+			{
+				auto x = raw_cast<double>(v1);
+				auto y = raw_cast<double>(v2);
+
+				return meta::compare(x, y);
+			}
+			case Datatype::Boolean:
+			{
+				auto x = raw_cast<bool>(v1);
+				auto y = raw_cast<bool>(v2);
+
+				return meta::compare(x, y);
+			}
+			case Datatype::Null:
+				return 0;
+			default:
+				break;
+		}
+	}
+	else if (v1.is_number() && v2.is_number())
+	{
+		auto x = v1.get_number();
+		auto y = v2.get_number();
+
+		return meta::compare(x, y);
+	}
+
+	throw error("[Type error] Cannot compare values of type % and %", this->class_name(), other.class_name());
 }
 
-bool Variant::is_array() const
+double Variant::get_number() const
 {
-	return is_object() && as.object->type == PHON_CARRAY;
+	if (data_type() == Datatype::Float)
+		return raw_cast<double>(*this);
+	else if (data_type() != Datatype::Integer) {
+		throw error("[Type error] Expected a Number, got a %", this->class_name());
+	}
+	auto i = raw_cast<intptr_t>(*this);
+
+	if constexpr (meta::is_arch32)
+	{
+		return i; // 32 bit integers can be safely converted to double.
+	}
+	if (unlikely(i < smallest_integer || i > largest_integer))
+	{
+		throw error("[Cast error] Integer value cannot be converted to Float: magnitude too large");
+	}
+
+	return double(i);
 }
 
-void Variant::Storage::swap(Variant::Storage &other)
+bool Variant::operator!=(const Variant &other) const
 {
-    Storage tmp;
-    std::memcpy(&tmp, this, sizeof(Storage));
-    std::memcpy(this, &other, sizeof(Storage));
-    std::memcpy(&other, &tmp, sizeof(Storage));
+	return ! (*this == other);
+}
+
+bool Variant::to_boolean() const
+{
+	// There are only 3 values that evaluate to false: null, false and nan. Everything else is true.
+	switch (m_data_type)
+	{
+		case Datatype::Boolean:
+			return raw_cast<bool>(*this);
+		case Datatype::Null:
+			return false;
+		case Datatype::Float:
+			return !std::isnan(raw_cast<double>(*this));
+		case Datatype::Alias:
+			return resolve().to_boolean();
+		default:
+			return true;
+	}
+}
+
+String Variant::to_string(bool quote) const
+{
+	auto s = as_string();
+	if (quote && resolve().is_string()) { s.prepend('"'); s.append('"'); }
+
+	return s;
+}
+
+String Variant::as_string() const
+{
+	switch (m_data_type)
+	{
+		case Datatype::String:
+		{
+			return raw_cast<String>(*this);
+		}
+		case Datatype::Object:
+		{
+			return as.object->to_string();
+		}
+		case Datatype::Integer:
+		{
+			intptr_t num = raw_cast<intptr_t>(*this);
+			return meta::to_string(num);
+		}
+		case Datatype::Float:
+		{
+			double num = raw_cast<double>(*this);
+			return meta::to_string(num);
+		}
+		case Datatype::Boolean:
+		{
+			bool b = raw_cast<bool>(*this);
+			return meta::to_string(b);
+		}
+		case Datatype::Alias:
+		{
+			return resolve().to_string();
+		}
+		case Datatype::Null:
+		{
+			static String null("null");
+			return null;
+		}
+	}
+
+	throw error("[Internal error] Invalid type ID in to_string function");
 }
 
 
-//---------------------------------------------------------------------------------------------------------------------
-
-Value::Value(Runtime &rt, int idx) :
-    variant(rt.get(idx))
+String Variant::to_json(int spacing) const
 {
-    // Don't register primitive types.
-    if (variant.is_object())
-    {
-        rt.copy(idx);
-        this->handle = rt.ref();
-        this->rt = &rt;
-    }
-    else
-    {
-        this->rt = nullptr;
-    }
+	switch (m_data_type)
+	{
+		case Datatype::String:
+		{
+			return to_json(raw_cast<String>(*this));
+		}
+		case Datatype::Object:
+		{
+			if (check_type<Table>(*this)) {
+				return raw_cast<Table>(*this).to_json(spacing);
+			}
+			if (check_type<List>(*this)) {
+				return raw_cast<List>(*this).to_json(spacing);
+			}
+			break;
+		}
+		case Datatype::Integer:
+		{
+			intptr_t num = raw_cast<intptr_t>(*this);
+			return meta::to_string(num);
+		}
+		case Datatype::Float:
+		{
+			double num = raw_cast<double>(*this);
+			return meta::to_string(num);
+		}
+		case Datatype::Boolean:
+		{
+			bool b = raw_cast<bool>(*this);
+			return meta::to_string(b);
+		}
+		case Datatype::Alias:
+		{
+			return resolve().to_string();
+		}
+		case Datatype::Null:
+		{
+			static String null("null");
+			return null;
+		}
+	}
+
+	throw error("[Internal error] Invalid type ID in to_string function");
 }
 
-Value::Value(Value &&other) noexcept :
-    variant(std::move(other.variant)), handle(std::move(other.handle)), rt(other.rt)
+Variant &Variant::operator=(Variant other)
 {
-    other.rt = nullptr;
+	auto &self = resolve();
+
+	if (check_type<Function>(self) && check_type<Function>(other))
+	{
+		auto &f1 = raw_cast<Function>(self);
+		auto &f2 = raw_cast<Function>(other);
+
+		if (&f1 != &f2)
+		{
+			for (auto &r : f2.closures) {
+				f1.add_closure(r);
+			}
+		}
+	}
+	else
+	{
+		self.swap(other);
+	}
+
+	return *this;
 }
 
-Value::Value(const Value &other) :
-    variant(other.variant), handle(other.handle), rt(other.rt)
+Variant::Variant(String s) :
+	m_data_type(Datatype::String)
 {
-
+	new (&as.storage) String(std::move(s));
 }
 
-Value::~Value()
+Class *Variant::get_class() const
 {
-    if (rt)
-    {
-        rt->unref(handle);
-    }
+	switch (data_type())
+	{
+		case Datatype::String:
+			return Class::get<String>();
+		case Datatype::Integer:
+			return Class::get<intptr_t>();
+		case Datatype::Float:
+			return Class::get<double>();
+		case Datatype::Boolean:
+			return Class::get<bool>();
+		case Datatype::Null:
+			return Class::get<std::nullptr_t>();
+		case Datatype::Object:
+			return as.object->get_class();
+		case Datatype::Alias:
+			return resolve().get_class();
+	}
+
+	throw error("[Internal error] Invalid variant ID in type method");
+}
+
+size_t Variant::hash() const
+{
+	switch (data_type())
+	{
+		case Datatype::String:
+			return raw_cast<String>(*this).hash();
+		case Datatype::Integer:
+			return meta::hash(static_cast<uint64_t>((raw_cast<intptr_t>(*this))));
+		case Datatype::Float:
+			return meta::hash(static_cast<uint64_t>((raw_cast<double>(*this))));
+		case Datatype::Object:
+			return as.object->hash();
+		case Datatype::Boolean:
+			return raw_cast<bool>(*this) ? 3 : 7;
+		case Datatype::Alias:
+			return resolve().hash();
+		case Datatype::Null:
+			throw error("[Type error] Null value is not hashable");
+	}
+
+	return 0; // please GCC
+}
+
+Variant & Variant::make_alias()
+{
+	if (!this->is_alias())
+	{
+		auto alias = new Alias(std::move(*this));
+		as.alias = alias;
+		m_data_type = Datatype::Alias;
+	}
+
+	return *this;
+}
+
+Variant &Variant::resolve()
+{
+	Variant *v = this;
+
+	while (v->is_alias())
+	{
+		v = &v->as.alias->variant;
+	}
+
+	return *v;
+}
+
+const Variant &Variant::resolve() const
+{
+	return const_cast<Variant*>(this)->resolve();
+}
+
+void Variant::finalize()
+{
+	release();
+	zero();
+}
+
+void Variant::unalias()
+{
+	if (is_alias())
+	{
+		Variant tmp(resolve());
+		as.alias->release();
+		zero();
+		swap(tmp);
+	}
+}
+
+Variant & Variant::unshare()
+{
+	// Note: we don't need to handle String here because it will be unshared automatically.
+	switch (data_type())
+	{
+		case Datatype::Object:
+		{
+			if (as.object->shared() && as.object->clonable())
+			{
+				auto obj = as.object->clone();
+				as.object->release();
+				as.object = obj;
+			}
+			// Non-clonable objects are unaffected.
+			break;
+		}
+		case Datatype::Alias:
+			resolve().unshare();
+			break;
+		default:
+			break;
+	}
+
+	return *this;
+}
+
+bool Variant::operator<(const Variant &other) const
+{
+	return compare(other) < 0;
+}
+
+intptr_t Variant::to_integer() const
+{
+	switch (data_type())
+	{
+		case Datatype::Integer:
+			return raw_cast<intptr_t>(*this);
+		case Datatype::Float:
+			return intptr_t(raw_cast<double>(*this));
+		case Datatype::Boolean:
+			return intptr_t(raw_cast<bool>(*this));
+		case Datatype::Alias:
+			return resolve().to_integer();
+		default:
+			throw error("[Cast error] Value of type % cannot be converted to Integer", class_name());
+	}
+
+	return 0;
+}
+
+double Variant::to_float() const
+{
+	switch (data_type())
+	{
+		case Datatype::Integer:
+		case Datatype::Float:
+			return get_number();
+		case Datatype::Boolean:
+			return double(raw_cast<bool>(*this));
+		case Datatype::Alias:
+			return resolve().to_float();
+		default:
+			throw error("[Cast error] Value of type % cannot be converted to Float", class_name());
+	}
+
+	return 0.0;
+}
+
+String Variant::to_json(const String &str) const
+{
+	String buffer(str.size() + 3);
+	char32_t c;
+	buffer.append('"');
+	auto s = str.data();
+
+	while (*s)
+	{
+		c = utf8::unchecked::next(s);
+		switch (c)
+		{
+			case '"':
+				buffer.append("\\\"");
+				break;
+			case '\\':
+				buffer.append("\\\\");
+				break;
+			case '\b':
+				buffer.append("\\b");
+				break;
+			case '\f':
+				buffer.append("\\f");
+				break;
+			case '\n':
+				buffer.append("\\n");
+				break;
+			case '\r':
+				buffer.append("\\r");
+				break;
+			case '\t':
+				buffer.append("\\t");
+				break;
+			default:
+				buffer.append(c);
+				break;
+		}
+	}
+	buffer.append('"');
+
+	return buffer;
 }
 
 } // namespace phonometrica

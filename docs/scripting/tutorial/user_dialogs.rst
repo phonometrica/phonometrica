@@ -52,7 +52,7 @@ to the ``create_dialog()`` function.
 
 .. code:: phon
 
-    var ui = {
+    local ui = {
         "title": "My first dialog",
         "width": 300,
         "height": 100,
@@ -164,7 +164,7 @@ In addition, you may specify a ``default`` value, which must be ``Boolean``.
 Check list
 ~~~~~~~~~~
 
-A **check list** must have its ``type`` attribute set to `check_list``. It is used to display a list of values that can be checked. You must specify a 
+A **check list** must have its ``type`` attribute set to ``check_list``. It is used to display a list of values that can be checked. You must specify a 
 ``name`` attribute, which is the key that will be used in the result object to retrieve the check list's values. You must also provide a list of ``values``
 as a JSON array of strings: all checked values will be stored in the return value (again, as a JSON array of strings). In addition to the list of values, 
 you may specify a list of ``labels``: in this case, labels will be displayed instead of values and values will be shown as tool tips when the user hovers 
@@ -283,7 +283,7 @@ Here is the part of the script that corresponds to the creation of the user inte
 .. code:: phon
 
     # Setup user interface as a JSON object. 
-    var ui = {
+    local = ui = {
         title: "Transphon",
         width: 300,
         items: [
@@ -299,11 +299,11 @@ Here is the part of the script that corresponds to the creation of the user inte
     }
 
     # Insert check list for annotations
-    var labels = []
-    var values = []
+    local labels = []
+    local values = []
 
-    foreach var annot in get_annotations() do
-        var path = annot.path
+    foreach annot in get_annotations() do
+        local path = annot.path
         # This is the real value we are interested in
         values.append(path)
         # This is the label that will be displayed
@@ -311,11 +311,11 @@ Here is the part of the script that corresponds to the creation of the user inte
     end
 
     # Create item and insert it at position 6 in the list of items
-    var item = { "type": "check_list", "name": "annotations", "labels": labels, "values": values }
+    local item = { "type": "check_list", "name": "annotations", "labels": labels, "values": values }
     ui.items.insert(6, item)
 
     # `result` will contain a JSON object if the user pressed "OK", or null otherwise.
-    var result = create_dialog(ui)
+    local result = create_dialog(ui)
 
     if result then
         # Process the result. Here we will simply print it.

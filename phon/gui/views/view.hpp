@@ -1,9 +1,8 @@
 /***********************************************************************************************************************
- *                                                                                                                     *
- * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
+ * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
  * later version.                                                                                                      *
  *                                                                                                                     *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
@@ -13,49 +12,43 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 14/01/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: abstract base for all view types displayed in the viewer.                                                  *
+ * purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
 #ifndef PHONOMETRICA_VIEW_HPP
 #define PHONOMETRICA_VIEW_HPP
 
-#include <QWidget>
-#include <phon/string.hpp>
+#include <wx/panel.h>
 
 namespace phonometrica {
 
-
-class View : public QWidget
+class View : public wxPanel
 {
-    Q_OBJECT
-
 public:
-    explicit View(QWidget *parent = nullptr);
 
-    virtual bool save() { return true; }
+	explicit View(wxWindow *parent);
 
-    virtual void makeFocused() { }
+	// This method is called before the view is destroyed. It returns true
+	// if the view can be closed, false if it must be kept open.
+	virtual bool Finalize() = 0;
 
-    virtual void postInitialize() { }
+	// These methods can be overriden to respond to accelerators such as ctrl+s (save) or ctrl+r (run)
+	virtual void Save() { }
+	virtual void Run() { }
 
-    virtual bool finalize() { return true; }
+protected:
 
-signals:
+	// These functions assume that the view is selected.
+	wxString GetTitle() const;
+	void SetTitle(const wxString &title);
+	void MakeTitleModified();
+	void MakeTitleUnmodified();
 
-    void modified();
-
-    void saved();
-
-	void sendCommand(const String &);
-
-	void statusMessage(const QString &);
-
-public slots:
 };
 
-} // phonometrica
+} // namespace phonometrica
 
 #endif // PHONOMETRICA_VIEW_HPP

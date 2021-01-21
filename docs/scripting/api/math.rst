@@ -10,106 +10,173 @@ to each element in the array.
 Global functions
 ----------------
 
-.. function:: abs(x)
+.. function:: abs(x as Number)
 
-Returns the absolute value of ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
-
-------------
-
-.. function:: acos(x)
-
-Returns the arccosine of ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
+Returns the absolute value of ``x``. 
 
 
 ------------
 
-.. function:: asin(x)
+.. function:: abs(x as Array)
 
-Returns the arcsine of ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
+Returns a copy of the array in which ``abs`` has been applied to each element. 
+
+
+------------
+
+.. function:: acos(x as Number)
+
+Returns the arccosine of ``x``. 
 
 
 ------------
 
-.. function:: atan(x)
+.. function:: acos(x as Array)
 
-Returns the arctangent of ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
+Returns a copy of the array in which ``acos`` has been applied to each element. 
+
 
 ------------
 
-.. function:: atan2(y, x)
+.. function:: asin(x as Number)
+
+Returns the arcsine of ``x``. 
+
+------------
+
+.. function:: asin(x as Array)
+
+Returns a copy of the array in which ``asin`` has been applied to each element. 
+
+------------
+
+.. function:: atan(x as Number)
+
+Returns the arctangent of ``x``. 
+
+------------
+
+.. function:: atan(x as Array)
+
+Returns a copy of the array in which ``atn`` has been applied to each element. 
+
+
+
+------------
+
+.. function:: atan2(y as Number, x as Number)
 
 Returns the four-quadrant inverse tangent of ``y`` and ``x``. 
 
 ------------
 
-.. function:: ceil(x)
+.. function:: ceil(x as Number)
 
-Returns the smallest integer no smaller than ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
-
-------------
-
-.. function:: cos(x)
-
-Returns the cosine of ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
+Returns the smallest integer no smaller than ``x``.
 
 ------------
 
-.. function:: exp(x)
+.. function:: ceil(x as Array)
 
-Returns the exponential of ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
-
-------------
-
-.. function:: floor(x)
-
-Returns the largest integer that is no larger than ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
+Returns a copy of the array in which ``ceil`` has been applied to each element. 
 
 ------------
 
-.. function:: log(x)
+.. function:: cos(x as Number)
 
-Returns the natural logarithm of ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
-
-------------
-
-.. function:: log2(x)
-
-Returns the logarithm of ``x`` in base 2. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
+Returns the cosine of ``x``. 
 
 ------------
 
-.. function:: log10(x)
+.. function:: cos(x as Array)
 
-Returns the logarithm of ``x`` in base 10. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
-
-------------
-
-.. function:: max(x, y [, ...])
-
-Returns the maximum value among the arguments passed to the function.
+Returns a copy of the array in which ``cos`` has been applied to each element. 
 
 ------------
 
-.. function:: min(x, y [, ...])
+.. function:: exp(x as Number)
 
-Returns the minimum value among the arguments passed to the function.
+Returns the exponential of ``x``. 
 
 ------------
 
-.. function:: pow(x, y)
+.. function:: exp(x as Array)
 
-Returns ``x`` raised to the power of ``y``.
+Returns a copy of the array in which ``exp`` has been applied to each element. 
+
+------------
+
+.. function:: floor(x as Nubmer)
+
+Returns the largest integer that is no larger than ``x``. 
+
+------------
+
+.. function:: floor(x as Array)
+
+Returns a copy of the array in which ``floor`` has been applied to each element. 
+
+------------
+
+.. function:: log(x as Number)
+
+Returns the natural logarithm of ``x``.
+
+------------
+
+.. function:: log(x as Array)
+
+Returns a copy of the array in which ``log`` has been applied to each element. 
+
+
+------------
+
+.. function:: log2(x as Number)
+
+Returns the logarithm of ``x`` in base 2. 
+
+------------
+
+.. function:: log2(x as Array)
+
+Returns a copy of the array in which ``log2`` has been applied to each element. 
+
+------------
+
+.. function:: log10(x as Number)
+
+Returns the logarithm of ``x`` in base 10. 
+
+------------
+
+.. function:: log10(x as Array)
+
+Returns a copy of the array in which ``log10`` has been applied to each element. 
+
+------------
+
+.. function:: max(x as Number, y as Number)
+
+Returns the larger value between ``x`` and ``y``.
+
+------------
+
+.. function:: max(x as Integer, y as Integer)
+
+Returns the larger value between ``x`` and ``y``.
+
+
+------------
+
+.. function:: min(x as Number, y as Number)
+
+Returns the smaller value between ``x`` and ``y``.
+
+------------
+
+.. function:: min(x as Integer, y as Integer)
+
+Returns the smaller value between ``x`` and ``y``.
 
 ------------
 
@@ -119,31 +186,52 @@ Returns a pseudo-random value in the interval [0, 1[ according to a uniform dist
 
 ------------
 
-.. function:: round(x)
+.. function:: round(x as Number)
 
-Rounds ``x`` to the nearest integer. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
-
-------------
-
-.. function:: sin(x)
-
-Returns the sine of ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
+Rounds ``x`` to the nearest integer. 
 
 ------------
 
-.. function:: sqrt(x)
+.. function:: round(x as Array)
 
-Returns the square root of ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
+Returns a copy of the array in which ``round`` has been applied to each element. 
+
 
 ------------
 
-.. function:: tan(x)
+.. function:: sin(x as Number)
 
-Returns the tangent of ``x``. If ``x`` is an array, the function returns a copy of the array in which the
-function has been applied to each element.
+Returns the sine of ``x``. 
+
+------------
+
+.. function:: sin(x as Array)
+
+Returns a copy of the array in which ``sin`` has been applied to each element. 
+
+------------
+
+.. function:: sqrt(x as Number)
+
+Returns the square root of ``x``. 
+
+------------
+
+.. function:: sqrt(x as Array)
+
+Returns a copy of the array in which ``sqrt`` has been applied to each element. 
+
+------------
+
+.. function:: tan(x as Number)
+
+Returns the tangent of ``x``. 
+
+------------
+
+.. function:: tan(x as Array)
+
+Returns a copy of the array in which ``tan`` has been applied to each element. 
 
 
 

@@ -1,13 +1,21 @@
 Lists
 =====
 
-This page documents the ``List`` type.
+This page documents the ``List`` type. ``List`` is :ref:`clonable <clonability>`.
 
 General concepts
 ----------------
 
 A list is an ordered collection of values, which may be of different types. Elements in a list can be added and removed, and the list grows dynamically to accomodate 
 new incoming elements. Indices in a list start at 1 and can be negative: -1 represents the last element, -2 the second-to-last element, and so on.
+
+Lists can be created using a literal array and elements can be accessed and modified using the indexing operator ``[]``:
+
+.. code:: phon
+
+    var lst = ["A", 111, "hello", 3.14]
+    lst[-1] = "pi"
+    print lst # print '["A", 111, "hello", "pi"]'
 
 
 Methods
@@ -16,82 +24,58 @@ Methods
 .. class:: List
 
 
-.. method:: append(elem [, ...])
+.. method:: init()
 
-Appends one or more elements at the end of the list.
+Creates a new empty list.
+
+.. code:: phon
+
+    # Create a new empty list using ``List``'s constructor (which calls the ``init()`` method)
+    var lst1 = List()
+    # Create a new empty list using a list literal
+    var lst2 = []
+
+
+
+Functions
+---------
+
+.. function:: append(ref list as List, item as Object)
+
+Inserts ``item`` at the end of ``list``.
 
 See also: :func:`prepend`, :func:`insert`
 
 ------------
 
-.. method:: clear()
+.. function:: clear(ref list as List)
 
-Empty the content of the list. After this method is called, a call to :func:`is_empty` will return ``true``.
-
-------------
-
-.. method:: clone()
-
-Returns a shallow copy of the list.
+Empty the content of the list. After this function is called, a call to :func:`is_empty` will return ``true``.
 
 ------------
 
-.. method:: concat(arg [,...])
+.. function:: contains(list as List, item as Object)
 
-Returns a new list, which is the concatenation of this list with one or more lists.
-
-------------
-
-.. method:: contains(elem)
-
-Returns ``true`` if elem is in the list and ``false`` otherwise.
+Returns ``true`` if ``item`` is in the list and ``false`` otherwise.
 
 ------------
 
-.. method:: every(callback)
+.. function:: find(list as List, item as Object)
 
-Returns ``true`` if all the elements in the list satisfy the condition ``callback``, which must be a function that takes a value as input and 
-returns a ``Boolean``.
 
-.. code:: phon
+Returns the index of ``item`` in the list. If the element is not found, 0 is returned.
 
-    function greater_than_10(x)
-        return x > 10
-    end
-    var lst = [11, 12, 13]
+Note: If the list is sorted, you can use :func:`sorted_find` instead, which is a little faster since it can take advantage of the fact
+that the order of the elements is known.
 
-    # Prints "true"
-    print(lst.every(greater_than_10))
-    
-
-See also: :func:`some`
-
+See also: :func:`find_back`, :func:`sorted_find`
 
 ------------
 
-.. method:: filter(callback)
-
-Returns a new list containing the elements that satisfy the condition ``callback``, which must be a function that takes a value as input and 
-returns a ``Boolean``.
-
-.. code:: phon
-
-    function is_odd(x)
-        return x % 2 == 1
-    end
-
-    var lst = [1, 2, 3, 4, 5, 6]
-    print(lst.filter(is_odd)) # prints [1, 3, 5]
-
-See also: :func:`map`
-
-------------
-
-.. method:: find(elem [, i])
+.. function:: find(list as List, item as Object, pos as Integer)
 
 
-Returns the index of ``elem`` in the list, starting the search at index ``i`` (1 by default). If the element is not found,
-0 is returned.
+Returns the index of ``item`` in the list, starting the search at index ``pos``. If the element is not found, 0 is returned.
 
 Note: If the list is sorted, you can use :func:`sorted_find` instead, which is a little faster since it can take advantage of the fact
 that the order of the elements is known.
@@ -101,78 +85,73 @@ See also: :func:`find_back`, :func:`sorted_find`
 ------------
 
 
-.. method:: find_back(elem [, i])
+.. function:: find_back(list as List, item as Object)
 
 
-Returns the index of ``elem`` in the list, starting the search from the end at index ``i`` (-1 by default). If the element is not found,
+Returns the index of ``item`` in the list, starting the search from the end. If the element is not found,
 0 is returned.
 
 See also: :func:`find`
 
 ------------
 
-.. method:: includes(other)
 
-Returns ``true`` if the elements in ``other`` are a subsequence this list. Both lists must be sorted, but the elements in ``other`` don't need
-to be a contiguous sequence.
+.. function:: find_back(list as List, item as Object, pos as Integer)
+
+
+Returns the index of ``item`` in the list, starting the search from the end at index ``pos``. If the element is not found,
+0 is returned.
+
+See also: :func:`find`
 
 
 ------------
 
-.. method:: insert(i, elem)
+.. function:: insert(ref list as List, pos as Integer, item as Object)
 
-Inserts the element ``elem`` at index ``i``.
+Inserts the element ``item`` at index ``pos``.
 
 See also: :func:`sorted_insert`
 
 
 ------------
 
-.. method:: intersect(other)
+.. function:: intersect(list1 as List, list2 as List)
 
-Returns a new list which contains all the elements that are in this list and in ``other``.
+Returns a new list which contains all the elements that are in both ``list1`` and ``list2``. This function assumes that the lists 
+are sorted.
 
 See also:: :func:`unite`, :func:`subtract`
 
 ------------
 
-.. method:: is_empty()
+.. function:: is_empty(list as List)
 
 Returns ``true`` if the list doesn't contain any element, and ``false`` if it does.
 
 ------------
 
-.. method:: is_sorted()
+.. function:: is_sorted(list as List)
+
+Returns true if all the elements are sorted in ascending order.
 
 See also: :func:`sort`, :func:`reverse`
 
 ------------
 
-.. method:: join(sep)
+.. function:: join(items as List, delim as String)
 
-Returns a string in which all elements have been joined with the ``sep`` separator.
-
-------------
-
-.. function:: map(callback)
-
-Returns a new list in which ``callback`` has been applied to each element in the original list. ``callback`` must be a function that takes a value 
-and returns a value. 
-
-.. code:: phon
-
-    function upper(s)
-        return s.to_upper()
-    end
-    var lst = ["a", "b", "c"]
-    print(lst.map(upper))
-
-
-See also: :func:`filter`
+Returns a string in which all the elements in ``items`` have been joined with the separator ``delim``.
 
 ------------
 
-.. method:: pop()
+.. function:: len(list as List)
+
+Returns the number of elements in the list.
+
+------------
+
+.. function:: pop(ref list as List)
 
 Removes the last element from the list and returns it.
 
@@ -180,61 +159,54 @@ See also: :func:`shift`
 
 ------------
 
-.. method:: prepend(elem [, ...])
+.. function:: prepend(ref list as List, item as Object)
 
-Inserts one or more elements at the beginning of the list. 
+Inserts ``item`` at the beginning of the list. 
 
 See also: :func:`append`, :func:`insert`
 
-------------
-
-.. method:: reduce(callback)
-
-Reduces the list to a single value, by applying ``callback`` to each element in the list from beginning to end. ``callback`` must be a function which takes two 
-arguments (an accumulator and a value) and returns a single value. 
-
-.. code:: phon
-
-    function callback(accumulator, value)
-        return accumulator + value
-    end
-
-    var lst = [1, 2, 3, 4]
-    print(lst.reduce(callback)) # prints 10
-
-See also: :func:`reduce_back`
 
 ------------
 
-.. method:: reduce_back(callback)
+.. function:: remove(ref list as List, item as Object)
 
-Reduces the list to a single value, by applying ``callback`` to each element in the list from end to beginning. ``callback`` must be a function which takes two 
-arguments (an accumulator and a value) and returns a single value. 
+Removes all the elements in the list that are equal to ``item``.
 
-See also: :func:`reduce`
+
+See also: :func:`remove_at`, :func:`remove_first`, :func:`remove_last`
+
 
 ------------
 
-.. method:: remove(value)
+.. function:: remove_first(ref list as List, item as Object)
 
-Removes all the elements in the list that are equal to ``value``.
+Removes the first element in the list that is equal to ``item``.
 
 
-See also: :func:`remove_at`
+See also: :func:`remove_at`, :func:`remove`, :func:`remove_last`
 
 ------------
 
-.. method:: remove(i)
+.. function:: remove_last(ref list as List, item as Object)
 
-Remove the element at index ``i``.
+Removes the last element in the list that is equal to ``item``.
 
 
-See also: :func:`remove`
+See also: :func:`remove_at`, :func:`remove`, :func:`remove_first`
+
+------------
+
+.. function:: remove_at(ref list as List, pos as Integer)
+
+Remove the element at index ``pos``.
+
+
+See also: :func:`remove`, :func:`remove_first`, :func:`remove_last`
 
 ------------
 
 
-.. method:: reverse()
+.. function:: reverse(ref list as List)
 
 Reverses the order of the elements in the list. If the elements are not sorted, the result is undefined. (Use :func:`sort` to sort the elements.)
 
@@ -243,13 +215,13 @@ See also: :func:`is_sorted`, :func:`sort`
 
 ------------
 
-.. method:: sample(n)
+.. function:: sample(list as List, n as Integer)
 
 Returns a list containing ``n`` elements from the list drawn at random.
 
 ------------
 
-.. method:: shift()
+.. function:: shift(ref list as List)
 
 Removes the first element from the list and returns it.
 
@@ -257,40 +229,20 @@ See also: :func:`pop`
 
 ------------
 
-..method:: shuffle()
+.. function:: shuffle(ref list as List)
 
-Randomizes the order of elements in the list. 
+Randomizes the order of the elements in the list. 
 
 ------------
 
-.. method:: slice(from, to)
+.. function:: slice(list as List, from as Integer, to as Integer)
 
 Returns a new list which contains the elements of the original list starting at index ``from`` and ending at index ``to`` (inclusive).
 
 
 ------------
 
-.. method:: some(callback)
-
-Returns ``true`` if at least one element in the list satisfies the condition ``callback``, which must be a function that takes a value as input and 
-returns a ``Boolean``.
-
-.. code:: phon
-
-    function less_than_10(x)
-        return x < 10
-    end
-    var lst = [9, 11, 12, 13]
-
-    # Prints "true"
-    print(lst.every(greater_than_10))
-    
-
-See also: :func:`every`
-
-------------
-
-.. method:: sort()
+.. function:: sort(ref list as List)
 
 Sorts the elements in the list in increasing order. The elements should be of the same type.
 
@@ -298,41 +250,43 @@ See also: :func:`is_sorted`, :func:`reverse`
 
 ------------
 
-.. method:: sorted_find(value)
+.. function:: sorted_find(list as List, item as Object)
 
-Finds the index of ``value`` in a sorted list. If ``value`` is not in the list, 0 is returned. Note that if the list is not sorted, the result of this operation is undefined.
+Finds the index of ``item`` in a sorted list. If ``item`` is not in the list, 0 is returned. Note that if the list is not sorted, the result of this operation is undefined.
 
-This method is faster than :func:`find` on average for sorted lists.
+This function is generally faster than :func:`find` for sorted lists, as it takes logarithmic (as opposed to linear) time on average.
 
 See also: :func:`find`
 
 ------------
 
-.. method:: sorted_insert(value)
+.. function:: sorted_insert(ref list as List, item as Object)
 
-Inserts ``value`` after the first element that is not less than elem. If the list is not sorted, the result of this operation is undefined.
+Inserts ``item`` after the first element that is not less than elem. If the list is not sorted, the result of this operation is undefined.
 
 See also: :func:`insert`
 
 ------------
 
-.. method:: subtract(other)
-
-Returns a new list which contains all the elements that are in this list but not in ``other``.
-
-See also:: :func:`intersect`, :func:`unite`
-
-------------
-
-.. method:: to_string()
+.. function:: str(list as List)
 
 Returns a string representation of the list.
 
 ------------
 
-.. method:: unite(other)
+.. function:: subtract(list1 as List, list2 as List)
 
-Returns a new list which contains all the elements that are either in this list or in ``other`` (or in both).
+Returns a new list which contains all the elements that are in ``list1`` but not in ``list2``. This function assumes that the lists 
+are sorted.
+
+See also:: :func:`intersect`, :func:`unite`
+
+------------
+
+.. function:: unite(list1 as List, list2 as List)
+
+Returns a new list which contains all the elements that are in ``list1`` and/or in ``list2``. This function assumes that the lists 
+are sorted.
 
 See also:: :func:`intersect`, :func:`subtract`
 
@@ -340,6 +294,21 @@ See also:: :func:`intersect`, :func:`subtract`
 Fields
 ------
 
+
+.. attribute:: first
+
+Returns the first item in the list.
+
+------------
+
+.. attribute:: last
+
+Returns the last item in the list.
+
+------------
+
 .. attribute:: length
 
 Returns the number of elements in the list.
+
+See also:: :func:`len`

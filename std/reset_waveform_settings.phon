@@ -1,4 +1,0 @@
-phon.settings.waveform = {
-	magnitude: 1.0,
-	scaling: "local"
-}
