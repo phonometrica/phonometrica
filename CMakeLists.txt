@@ -63,12 +63,12 @@ add_definitions(-DPHON_VERSION_MINOR=8)
 # Revision release: incremented when bugs are fixed are small features are added
 add_definitions(-DPHON_VERSION_MICRO=0)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=3)
+add_definitions(-DPHON_VERSION_NANO=4)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2021)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=1)
-add_definitions(-DPHON_RELEASE_DATE_DAY=21)
+add_definitions(-DPHON_RELEASE_DATE_DAY=22)
 
 
 ########################
@@ -121,7 +121,6 @@ if(WIN32)
 	add_definitions(-DUTF8PROC_STATIC)
 	add_definitions(-DENABLE_SNDFILE_WINDOWS_PROTOTYPES=1 -DENABLE_SNDFILE_WINDOWS_PROTOTYPES=1)
     include_directories(${BOOST_DIR})
-
     if(MSVC)
         add_definitions(-D_CRT_SECURE_NO_WARNINGS=1)
     endif()
@@ -163,11 +162,14 @@ if (EMBED_SCRIPTS)
     add_definitions(-DPHON_EMBED_SCRIPTS=1)
 endif()
 
-# SPTK
-#include_directories(phon/third_party/sptk/include/)
 
 if (WITH_GUI)
     add_definitions(-DPHON_GUI=1)
+    # SPTK
+    include_directories(phon/third_party/sptk/include/)
+
+    # So that LBFGS can find Eigen
+    include_directories(${CMAKE_SOURCE_DIR}/phon/third_party)
 
     if(WIN32)
         set(EXTRA_COMPONENTS scintilla)
@@ -185,6 +187,9 @@ if (WITH_GUI)
     endif(WIN32)
 
 
+    add_definitions(-DPHON_USE_FFTW=1)
+
+
     if(CMAKE_COMPILER_IS_GNUCXX)
         message("Compiling with GNU C++")
         set(CMAKE_CXX_FLAGS "-Wall") # -Wextra")
@@ -192,10 +197,21 @@ if (WITH_GUI)
 
     file(GLOB APP_FILES
             phon/application/*.cpp
+            phon/application/search/*.cpp
+            phon/analysis/*.cpp
             phon/gui/*.cpp
             phon/gui/views/*.cpp
             phon/gui/pref/*.cpp
+            phon/third_party/pugixml/pugixml.cpp
+            phon/third_party/rtaudio/RtAudio.cpp
+            phon/third_party/sqlite/sqlite3.c
+            phon/third_party/sendpraat.c
+            phon/third_party/r8brain/*.cpp
             phon/third_party/zip/zip.cpp
+            phon/third_party/sptk/*.c
+            phon/third_party/sptk/*.cpp
+            #phon/third_party/snack/*.c
+            phon/third_party/swipe/*.c phon/third_party/swipe/*.cpp phon/third_party/swipe/*.h
     )
 
 else (WITH_GUI)
@@ -205,7 +221,31 @@ else (WITH_GUI)
 endif(WITH_GUI)
 
 add_executable(${PROJECT_NAME} phonometrica.cpp ${APP_FILES})
-target_link_libraries(${PROJECT_NAME} phon-runtime pcre2-8 ${wxWidgets_LIBRARIES})
+
+if (WIN32)
+    add_definitions(-D__WINDOWS_DS__=1)
+    include_directories(${LIBSNDFILE_DIR})
+    link_directories(${LIBSNDFILE_DIR})
+    target_link_libraries(
+            ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 ole32 winmm dsound
+            ${LIBSNDFILE_DIR}/libsndfile-1.lib
+            ${wxWidgets_LIBRARIES}
+    )
+elseif (APPLE)
+    add_definitions(-D__MACOSX_CORE__=1)
+    target_link_libraries(
+            ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 pthread dl sndfile
+            ${wxWidgets_LIBRARIES}
+            "-framework Foundation" "-framework Cocoa" "-framework CoreAudio" objc
+    )
+else()
+    add_definitions(-D__LINUX_ALSA__=1)
+    target_link_libraries(
+            ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 pthread dl asound sndfile ${wxWidgets_LIBRARIES}
+    )
+
+endif (WIN32)
+
 
 if(BUILD_UNIT_TEST)
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")

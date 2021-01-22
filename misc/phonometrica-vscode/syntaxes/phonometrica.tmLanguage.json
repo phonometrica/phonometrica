@@ -19,7 +19,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.phon",
-				"match": "\\b(and|as|do|downto|else|elsif|end|field|for|foreach|function|if|in|new|not|or|pass|return|step|then|to|var|while)\\b"
+				"match": "\\b(and|as|assert|break|class|continue|debug|do|downto|else|elsif|end|field|for|foreach|function|if|in|inherits|local|method|not|or|option|pass|print|ref|repeat|return|shared|step|super|then|throw|to|until|while)\\b"
 			},
 			{
 				"name": "constant.numeric.phon",
@@ -27,10 +27,10 @@
 			},
 			{
 				"name": "constant.language.phon",
-				"match": "\\b(false|nan|null|true|undefined)\\b"
+				"match": "\\b(false|nan|null|true)\\b"
 			},
 			{
-				"match": "\\b(Array|Boolean|Date|File|Function|List|Number|Object|Regex|String|Table)\\b",
+				"match": "\\b(Array|Boolean|Date|File|Float|Function|Integer|List|Number|Object|Regex|String|Table)\\b",
 				"name": "support.type.sys-types.phon"
 			},
 			{

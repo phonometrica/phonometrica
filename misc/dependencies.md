@@ -1,17 +1,16 @@
 Dependencies for Phonometrica
 =============================
 
-* Qt framework
+* wxWidgets 3.1
 * Boost
 
 
 Packages for development on Linux (Debian/Ubuntu)
 -------------------------------------------------
 
-* qtbase5-dev
-* libqt5svg5-dev
 * libasound2-dev
 * libsndfile1-dev
+* libfftw3-dev
 
 Documentation
 -------------

@@ -41,7 +41,7 @@
 #include <stdbool.h>
 
 #ifdef PHON_USE_FFTW
-#include "fftw3.h"   // http://www.fftw.org/
+#include <fftw3.h>   // http://www.fftw.org/
 #else
 
 #include <ffts.h>
@@ -486,12 +486,12 @@ vector swipe(vector x, double samplerate, double min, double max, double st, dou
 	{
 		max = nyquist;
 		PHON_LOG("SWIPE: Max pitch exceeds Nyquist frequency...");
-		PHON_LOG("SWIPE: max pitch set to " << max << " Hz.\\n\"");
+		PHON_LOG("SWIPE: max pitch set to %f Hz.\\n\"", max);
 	}
 	if (dt > nyquist2)
 	{
 		dt = nyquist2;
-		PHON_LOG("SWIPE: Timestep > SR...timestep set to " << nyquist2 << ".\n");
+		PHON_LOG("SWIPE: Timestep > SR...timestep set to %f.\n", nyquist2);
 	}
 	intvector ws = makeiv(round(log2((nyquist16) / min) - log2((nyquist16) / max)) + 1);
 	for (i = 0; i < ws.x; i++)
