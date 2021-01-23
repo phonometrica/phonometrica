@@ -26,7 +26,7 @@
 #include <wx/sizer.h>
 #include <phon/gui/views/view.hpp>
 
-#ifndef __WXGTK__
+
 
 namespace phonometrica {
 
@@ -36,16 +36,22 @@ class StartView final : public View
 {
 public:
 
-	explicit StartView(wxWindow *parent, MainWindow *win);
+	StartView(wxWindow *parent, MainWindow *win);
 	bool Finalize() override { return true; }
 
 private:
 
-	wxButton *MakeButton(std::string_view filename, const wxString &description);
+	void SetupUi(MainWindow *win);
+
+#ifdef __WXGTK__
+	wxButton *MakeButton(const wxBitmap &img);
+	wxBoxSizer * MakeLabel(const char *label);
+#else
+	wxButton *MakeButton(const wxBitmap &img, const wxString &description);
+#endif
 };
 
 
 } // namespace phonometrica
 
-#endif // __WXGTK__
 #endif // PHONOMETRICA_START_VIEW_HPP

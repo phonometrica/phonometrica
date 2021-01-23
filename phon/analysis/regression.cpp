@@ -260,6 +260,7 @@ static double poisson_cost(const Array<double> &response, const Vector<double> &
 {
 	intptr_t n = response.size();
 	Eigen::Map<Vector<double>> y(const_cast<double*>(response.data()), n);
+	// FIXME: check this code, the transpose is not used
 	auto ya = y.transpose().array();
 	auto ha = h.array();
 

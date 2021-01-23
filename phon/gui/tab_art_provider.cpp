@@ -31,15 +31,13 @@
 #include <wx/settings.h>
 #include <phon/gui/tab_art_provider.hpp>
 #include <phon/gui/macros.hpp>
-#include <phon/application/settings.hpp>
+#include <phon/include/icons.hpp>
 
 // TODO: better match tab color to system color on mac
 #ifdef __WXMAC__
 #define BACKGROUND_COLOR wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK)
 //wxColor(237, 237, 237)
 #endif
-
-using namespace phonometrica;
 
 static void IndentPressedBitmap(const wxSize& offset, wxRect* rect, int button_state)
 {
@@ -75,8 +73,8 @@ static wxColour wxAuiGetBetterContrastColour(const wxColour& back_color,
 
 TabArtProvider::TabArtProvider() : wxAuiGenericTabArt()
 {
-	m_disabledCloseBmp = wxBitmap(Settings::get_icon_path("close_tab.png"), wxBITMAP_TYPE_PNG);;
-	m_activeCloseBmp = wxBitmap(Settings::get_icon_path("close_tab2.png"), wxBITMAP_TYPE_PNG);;
+	m_disabledCloseBmp = wxBitmap(wxBITMAP_PNG(close_tab));
+	m_activeCloseBmp = wxBitmap(wxBITMAP_PNG(close_tab2));
 }
 
 void TabArtProvider::DrawBackground(wxDC &dc, wxWindow *, const wxRect &rect)

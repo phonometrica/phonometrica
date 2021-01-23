@@ -22,21 +22,51 @@
 #include <wx/stattext.h>
 #include <phon/gui/views/start_view.hpp>
 #include <phon/gui/main_window.hpp>
-#include <phon/application/settings.hpp>
+#include <phon/include/icons.hpp>
 #include <phon/utils/file_system.hpp>
-
-#ifndef __WXGTK__
 
 namespace phonometrica {
 
 StartView::StartView(wxWindow *parent, MainWindow *win) : View(parent)
 {
+	SetupUi(win);
+}
+
+void StartView::SetupUi(MainWindow *win)
+{
+#ifdef __WXGTK__
+	int vspace = 40;
+	auto sizer = new wxFlexGridSizer(5, 2, 0, 0);
+
+	auto add_btn  = MakeButton(wxBITMAP_PNG(new_folder));
+	auto open_btn = MakeButton(wxBITMAP_PNG(folder));
+	auto doc_btn  = MakeButton(wxBITMAP_PNG(help));
+	auto pref_btn = MakeButton(wxBITMAP_PNG(settings));
+
+	int padding = 5;
+
+	sizer->Add(add_btn,  0, wxEXPAND|wxALL, padding);
+	sizer->Add(open_btn, 0, wxEXPAND|wxALL, padding);
+	sizer->Add(MakeLabel("Add files to project"), 0, wxEXPAND|wxALL, padding);
+	sizer->Add(MakeLabel("Open existing project"), 0, wxEXPAND|wxALL, padding);
+	sizer->AddSpacer(vspace);
+	sizer->AddSpacer(vspace);
+	sizer->Add(doc_btn,  0, wxEXPAND|wxALL, padding);
+	sizer->Add(pref_btn, 0, wxEXPAND|wxALL, padding);
+	sizer->Add(MakeLabel("Documentation"), 0, wxEXPAND|wxALL, padding);
+	sizer->Add(MakeLabel("Settings"), 0, wxEXPAND|wxALL, padding);
+
+	auto main_sizer = new wxBoxSizer(wxVERTICAL);
+	main_sizer->AddSpacer(vspace);
+	main_sizer->Add(sizer, 1, wxALIGN_CENTER|wxALL);
+
+#else
 	auto sizer = new wxFlexGridSizer(2, 2, 0, 0);
 
-	auto add_btn  = MakeButton("new_folder.png", _("Add files to project"));
-	auto open_btn = MakeButton("folder.png", _("Open existing project"));
-	auto doc_btn  = MakeButton("help.png", _("Read documentation"));
-	auto pref_btn = MakeButton("settings.png", _("Edit preferences"));
+	auto add_btn  = MakeButton(wxBITMAP_PNG(new_folder));
+	auto open_btn = MakeButton(wxBITMAP_PNG(folder));
+	auto doc_btn  = MakeButton(wxBITMAP_PNG(help));
+	auto pref_btn = MakeButton(wxBITMAP_PNG(settings));
 
 	int padding = 25;
 
@@ -45,33 +75,54 @@ StartView::StartView(wxWindow *parent, MainWindow *win) : View(parent)
 	sizer->Add(doc_btn,  1, wxEXPAND|wxALL, padding);
 	sizer->Add(pref_btn, 1, wxEXPAND|wxALL, padding);
 
+	auto main_sizer = new wxBoxSizer(wxVERTICAL);
+	main_sizer->AddSpacer(50);
+	main_sizer->Add(sizer, 1, wxALIGN_CENTER);
+#endif
+
+	SetSizer(main_sizer);
 
 	add_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnAddFilesToProject, win);
 	open_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnOpenProject, win);
 	doc_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnOpenDocumentation, win);
 	pref_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &MainWindow::OnEditPreferences, win);
-
-	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-	main_sizer->AddSpacer(50);
-	main_sizer->Add(sizer, 1, wxALIGN_CENTER);
-
-	SetSizer(main_sizer);
 }
 
-wxButton *StartView::MakeButton(std::string_view filename, const wxString &description)
+#if __WXGTK__
+wxButton *StartView::MakeButton(const wxBitmap &img)
 {
-	String p = filesystem::join(Settings::icon_directory(), "100x100");
-	wxString path = filesystem::join(p, filename);
-	wxBitmap icon(path, wxBITMAP_TYPE_PNG);
+	auto btn = new wxButton(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+	btn->SetBitmap(img);
+
+	return btn;
+}
+
+wxBoxSizer *StartView::MakeLabel(const char *label)
+{
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	auto txt = new wxStaticText(this, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
+//	auto font = txt->GetFont();
+//	font.MakeLarger();
+//	txt->SetFont(font);
+	sizer->AddStretchSpacer(1);
+	sizer->Add(txt, 2);
+	sizer->AddStretchSpacer(1);
+
+	return sizer;
+}
+
+#else // __WXGTK__
+
+wxButton *StartView::MakeButton(const wxBitmap &img, const wxString &description)
+{
 	auto btn = new wxButton(this, wxID_ANY, description, wxDefaultPosition, wxSize(350, 150), wxNO_BORDER);
-	btn->SetBitmap(icon, wxLEFT);
+	btn->SetBitmap(img, wxLEFT);
 	auto font = btn->GetFont();
 	font.MakeLarger();
 	btn->SetFont(font);
 
 	return btn;
 }
+#endif // #if __WXGTK__
 
 } // namespace phonometrica
-
-#endif // __WXGTK__

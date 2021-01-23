@@ -660,7 +660,7 @@ void MainWindow::OnOpenProject(wxCommandEvent &)
 void MainWindow::OnEditPreferences(wxCommandEvent &)
 {
 	PreferencesEditor dlg(this);
-	dlg.SetSize(FromDIP(wxSize(450, 300)));
+	dlg.SetSize(FromDIP(wxSize(450, 320)));
 	dlg.ShowModal();
 }
 

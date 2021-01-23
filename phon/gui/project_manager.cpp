@@ -22,6 +22,7 @@
 #include <wx/sizer.h>
 #include <wx/settings.h>
 #include <phon/gui/project_manager.hpp>
+#include <phon/include/icons.hpp>
 #include <phon/application/settings.hpp>
 
 namespace phonometrica {
@@ -43,16 +44,24 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	m_label->SetForegroundColour(wxColor(75, 75, 75));
 
 	SetSizer(sizer);
-	auto images = new wxImageList(20, 20);
-	m_corpus_img = images->Add(wxBitmap(Settings::get_icon_path("corpus.png"), wxBITMAP_TYPE_PNG));
-	m_query_img = images->Add(wxBitmap(Settings::get_icon_path("search.png"), wxBITMAP_TYPE_PNG));
-	m_data_img = images->Add(wxBitmap(Settings::get_icon_path("data.png"), wxBITMAP_TYPE_PNG));
-	m_script_img = images->Add(wxBitmap(Settings::get_icon_path("console.png"), wxBITMAP_TYPE_PNG));
-	m_bookmark_img = images->Add(wxBitmap(Settings::get_icon_path("favorite.png"), wxBITMAP_TYPE_PNG));
-	m_annot_img = images->Add(wxBitmap(Settings::get_icon_path("annotation.png"), wxBITMAP_TYPE_PNG));
+	auto images = new wxImageList(16, 16);
+//	m_corpus_img = images->Add(wxBitmap(Settings::get_icon_path("corpus.png"), wxBITMAP_TYPE_PNG));
+	m_corpus_img = images->Add(wxBITMAP_PNG(corpus));
+	m_query_img = images->Add(wxBITMAP_PNG(search));
+	m_data_img = images->Add(wxBITMAP_PNG(data));
+	m_script_img = images->Add(wxBITMAP_PNG(console));
+	m_bookmark_img = images->Add(wxBITMAP_PNG(favorite));
+	m_annot_img = images->Add(wxBITMAP_PNG(annotation));
 	m_tree->SetImageList(images);
 	m_root = m_tree->AddRoot(_("Untitled project"));
-	m_tree->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK));
+#if PHON_LINUX
+	auto col = m_label->GetBackgroundColour();
+#else
+	auto col = wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK);
+#endif
+	this->SetBackgroundColour(col);
+	m_label->SetBackgroundColour(col);
+	m_tree->SetBackgroundColour(col);
 
 	m_root = m_tree->GetRootItem();
 	Populate();

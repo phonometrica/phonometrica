@@ -26,11 +26,8 @@
 #include <wx/aui/auibook.h>
 #include <phon/runtime.hpp>
 #include <phon/gui/views/script_view.hpp>
-#ifdef __WXGTK__
-#   include <phon/gui/views/linux_start_view.hpp>
-#else
-#   include <phon/gui/views/start_view.hpp>
-#endif
+#include <phon/gui/views/start_view.hpp>
+
 
 namespace phonometrica {
 

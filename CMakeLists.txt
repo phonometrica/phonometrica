@@ -25,6 +25,9 @@ set(ENABLE_LOGGING ON)
 set(WITH_GUI ON)
 # Run unit tests for core types
 set(BUILD_UNIT_TEST OFF)
+# Cross-compile the Windows version on Linux
+set(CROSS_COMPILE_WINDOWS ON)
+
 
 if (WIN32)
 
@@ -116,6 +119,10 @@ endif()
 ##  BUILD RUNTIME  ##
 #####################
 
+if (CROSS_COMPILE_WINDOWS)
+    set(DCMAKE_TOOLCHAIN_FILE toolchain.cmake)
+endif(CROSS_COMPILE_WINDOWS)
+
 if (EMBED_SCRIPTS)
     add_definitions(-DPHON_EMBED_SCRIPTS=1)
 endif()
@@ -179,7 +186,10 @@ endif()
 if (WITH_GUI)
     add_definitions(-DPHON_GUI=1)
 
-    SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /subsystem:windows")
+    if (WIN32)
+        SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /subsystem:windows")
+    endif(WIN32)
+
     # SPTK
     include_directories(phon/third_party/sptk/include/)
 
@@ -199,6 +209,7 @@ if (WITH_GUI)
         #  to work, although Microsoft recommends using a manifest file instead. See:
         #  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setprocessdpiaware
         #add_definitions(-DwxUSE_DPI_AWARE_MANIFEST=2)
+
         # needed by wxCheckListBox
         add_definitions(-DwxUSE_OWNER_DRAWN=1)
 
@@ -291,9 +302,10 @@ elseif (APPLE)
 else()
     add_definitions(-D__LINUX_ALSA__=1)
 
+    set(FFTW3 /usr/lib/x86_64-linux-gnu/libfftw3.a)
     add_executable(${PROJECT_NAME} phonometrica.cpp ${APP_FILES})
     target_link_libraries(
-            ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 pthread dl asound sndfile ${wxWidgets_LIBRARIES}
+            ${PROJECT_NAME} phon-runtime pcre2-8 ${FFTW3} pthread dl asound sndfile ${wxWidgets_LIBRARIES}
     )
 
 endif (WIN32)
