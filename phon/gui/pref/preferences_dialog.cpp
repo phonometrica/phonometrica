@@ -54,7 +54,12 @@ void PreferencesDialog::CreateButtons()
 	hsizer->Add(cancel_btn, 1, 0, 0);
 	hsizer->AddSpacer(10);
 	hsizer->Add(ok_btn, 1, 0, 0);
-	m_sizer->Add(hsizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 20);
+#ifdef PHON_WINDOWS
+	int spacing = 10;
+#else
+	int spacing = 20;
+#endif
+	m_sizer->Add(hsizer, 0, wxEXPAND|wxLEFT|wxRIGHT, spacing);
 	m_sizer->AddSpacer(10);
 
 	reset_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &PreferencesDialog::OnReset, this);

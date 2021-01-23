@@ -42,36 +42,26 @@ if (WIN32)
     set(BOOST_DIR "C:/Devel/Lib/boost_1_72_0")
     set(LIBSNDFILE_DIR "C:/Devel/Lib/libsndfile")
 
-    include_directories(C:/Devel/Lib/fftw-3.3.9/output/${OUTPUT_DIR}
-            C:/Devel/Lib/fftw-3.3.9/output
+    include_directories(C:/Devel/Lib/fftw-3.3.9/build/${OUTPUT_DIR}
+            C:/Devel/Lib/fftw-3.3.9/build
             C:/Devel/Lib/fftw-3.3.9/api
             )
-    link_directories(C:/Devel/Lib/fftw-3.3.9/output/${OUTPUT_DIR}
+    link_directories(C:/Devel/Lib/fftw-3.3.9/build/${OUTPUT_DIR}
             )
 
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MD${SUFFIX}")
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj /MD${SUFFIX}")
-    SET(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /bigobj")
+    SET(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /bigobj /MD${SUFFIX}")
     SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj /MD${SUFFIX}")
-    SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /bigobj")
+    SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /bigobj /MD${SUFFIX}")
 endif()
 
 if(WIN32)
-    #add_definitions(-D_WIN64=1)
-    set(LIB_DIR "C:/Lib")
-    include_directories(${LIB_DIR}/include)
-
-#    set(wxWidgets_FIND_STYLE "unix")
-#    set(wxWidgets_ROOT_DIR C:/Devel/Lib/wxWidgets-3.1.4)
-#    set(wxWidgets_LIB_DIR C:/Devel/Lib/wxWidgets-3.1.4/release/lib/vc_x64_lib)
-#    set(wxWidgets_CONFIGURATION mswu)
-#    set(wxWidgets_INCLUDE_DIRS C:/Devel/Lib/wxWidgets-3.1.4/include)
-#    add_definitions(-DWIN32_LEAN_AND_MEAN)
-    include_directories(C:/Devel/Lib/wxWidgets-3.1.4/include
-            C:/Devel/Lib/wxWidgets-3.1.4/release/lib/vc_x64_lib/mswu${SUFFIX})
-
-    link_directories(C:/Devel/Lib/wxWidgets-3.1.4/release/lib/vc_x64_lib)
-
+    # FIXME: find_package() doesn't work well with wxWidgets on Windows. On this platform, we hard-code include
+    #  and link paths. This is less portable, but it works reliably.
+    set(WX_ROOT C:/Devel/Lib/wxWidgets-3.1.4)
+    include_directories(${WX_ROOT}/include ${WX_ROOT}/release/lib/vc_x64_lib/mswu${SUFFIX})
+    link_directories(${WX_ROOT}/release/lib/vc_x64_lib)
 endif(WIN32)
 
 
@@ -204,8 +194,11 @@ if (WITH_GUI)
 
 
     if(WIN32)
-        # Full support
-        add_definitions(-DwxUSE_DPI_AWARE_MANIFEST=2)
+        # FIXME: wxWindows is supposed to enable DPI awareness with this macro but this doesn't seem to work on my
+        #  machine. Instead, we call SetProcessDPIAware() in WinMain() before creating the application. This seems
+        #  to work, although Microsoft recommends using a manifest file instead. See:
+        #  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setprocessdpiaware
+        #add_definitions(-DwxUSE_DPI_AWARE_MANIFEST=2)
         # needed by wxCheckListBox
         add_definitions(-DwxUSE_OWNER_DRAWN=1)
 
@@ -282,7 +275,7 @@ if (WIN32)
 
     add_executable(${PROJECT_NAME} WIN32 phonometrica.cpp windows.rc ${APP_FILES})
     target_link_libraries(
-            ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 ole32 comctl32 winmm uuid Rpcrt4 dsound
+            ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 ole32 comctl32 winmm uuid Rpcrt4 User32 dsound
             ${LIBSNDFILE_DIR}/libsndfile-1.lib
             ${WX_LIBS}
     )

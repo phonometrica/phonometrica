@@ -30,7 +30,6 @@ PreferencesEditor::PreferencesEditor(wxWindow *parent) :
 {
 	AddPage(MakeGeneralPanel(), _("General"));
 	AddPage(MakeSoundPanel(), _("Sound"));
-	SetSize(wxSize(450, 300));
 }
 
 wxPanel *PreferencesEditor::MakeGeneralPanel()

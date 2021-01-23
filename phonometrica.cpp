@@ -70,6 +70,7 @@ int main(int argc, char **argv)
 	initialize(runtime);
 
 #ifdef PHON_GUI
+    SetProcessDPIAware();
 	wxApp *app = new Application(runtime, "");// argv[0]);
 	wxApp::SetInstance(app);
 #endif

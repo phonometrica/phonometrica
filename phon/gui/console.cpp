@@ -55,7 +55,9 @@ void Console::SetIO()
 	m_sizer = new wxBoxSizer(wxVERTICAL);
 	m_sizer->Add(m_ctrl, 1, wxEXPAND, 0);
 	wxFont font = MONOSPACE_FONT;
+#if !PHON_WINDOWS
 	font.SetPointSize(12);
+#endif
 	m_ctrl->SetFont(font);
 	m_ctrl->Bind(wxEVT_KEY_DOWN, &Console::OnKeyDown, this);
 }

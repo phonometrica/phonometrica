@@ -26,14 +26,16 @@
 
 // Monospace font
 #if __WXMAC__
-#define MONOSPACE_FONT wxFont(wxFontInfo(12).FaceName("Monaco"))
+#define MONOSPACE_FONT wxFont(wxFontInfo(13).FaceName("Monaco"))
+#elif defined(__WXWINDOWS__)
+#define MONOSPACE_FONT wxFont(wxFontInfo(10).FaceName("Consolas"))
 #else
 #define MONOSPACE_FONT wxSystemSettings::GetFont(wxSYS_OEM_FIXED_FONT)
 #endif
 
 // Control key as displayed in tooltips.
 #ifdef __WXMAC__
-#define CTRL_KEY "⌘"
+#define CTRL_KEY u8"⌘"
 #else
 #define CTRL_KEY "ctrl+"
 #endif

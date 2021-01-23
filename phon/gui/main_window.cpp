@@ -83,7 +83,7 @@ MainWindow::MainWindow(Runtime &rt, const wxString &title) :
 		wxFrame(nullptr, wxNewId(), title), runtime(rt)
 {
 	wxSize size(1200, 800);
-	SetMinSize(size);
+	SetMinSize(FromDIP(size));
 	SetSize(size);
 	MakeMenus();
 	SetupUi();
@@ -629,6 +629,7 @@ void MainWindow::OnAbout(wxCommandEvent &)
 	dlg.SetWebSite("http://www.phonometrica-ling.org");
 	dlg.AddDeveloper("Julien Eychenne");
 	dlg.AddDeveloper(wxString::FromUTF8("Léa Courdès-Murphy"));
+	dlg.AddArtist(_("Icons by Icons8 <https://icons8.com>"));
 	wxAboutBox(dlg, this);
 }
 
@@ -659,6 +660,7 @@ void MainWindow::OnOpenProject(wxCommandEvent &)
 void MainWindow::OnEditPreferences(wxCommandEvent &)
 {
 	PreferencesEditor dlg(this);
+	dlg.SetSize(FromDIP(wxSize(450, 300)));
 	dlg.ShowModal();
 }
 

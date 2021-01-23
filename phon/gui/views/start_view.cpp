@@ -63,7 +63,7 @@ wxButton *StartView::MakeButton(std::string_view filename, const wxString &descr
 	String p = filesystem::join(Settings::icon_directory(), "100x100");
 	wxString path = filesystem::join(p, filename);
 	wxBitmap icon(path, wxBITMAP_TYPE_PNG);
-	auto btn = new wxButton(this, wxID_ANY, description, wxDefaultPosition, wxSize(300, 150), wxNO_BORDER);
+	auto btn = new wxButton(this, wxID_ANY, description, wxDefaultPosition, wxSize(350, 150), wxNO_BORDER);
 	btn->SetBitmap(icon, wxLEFT);
 	auto font = btn->GetFont();
 	font.MakeLarger();
