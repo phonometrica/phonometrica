@@ -30,7 +30,7 @@ namespace phonometrica::speech {
 
 double legendre(double x, unsigned int n)
 {
-	assert(x >= -1.0 and x <= 1.0);
+	assert(x >= -1.0 && x <= 1.0);
 
 	switch (n)
 	{

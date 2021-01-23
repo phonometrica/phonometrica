@@ -268,7 +268,7 @@ public:
 
 	size_type size() const noexcept { return m_size; }
 
-	size_type max_size() const noexcept { return std::numeric_limits<size_type>::max(); }
+	size_type max_size() const noexcept { return (std::numeric_limits<size_type>::max)(); }
 
 	size_type capacity() const
 	{

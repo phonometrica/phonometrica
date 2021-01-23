@@ -55,14 +55,22 @@ static void finalize(Runtime &)
 #endif
 }
 
+#if PHON_WINDOWS
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nCmdShow)
+#else
 int main(int argc, char **argv)
+#endif
 {
 	Runtime runtime;
+#if PHON_WINDOWS
+	int argc = 1;
+	char **argv = nullptr;
+#endif
 	runtime.set_text_mode(argc > 1);
 	initialize(runtime);
 
 #ifdef PHON_GUI
-	wxApp *app = new Application(runtime, argv[0]);
+	wxApp *app = new Application(runtime, "");// argv[0]);
 	wxApp::SetInstance(app);
 #endif
 
@@ -104,7 +112,13 @@ int main(int argc, char **argv)
 		else
 		{
 #ifdef PHON_GUI
-			wxEntry(argc, argv);
+
+
+#if PHON_WINDOWS
+            return wxEntry(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+#else
+			return wxEntry(argc, argv);
+#endif // PHON_WINDOWS
 #else
 			show_usage();
 			error_code = 1;

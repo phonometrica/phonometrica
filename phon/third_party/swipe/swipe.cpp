@@ -78,15 +78,15 @@
 
 
 
-#ifndef log2
-
-// a base-2 log function
-double log2(double x)
-{
-	return log(x) / log(2.);
-}
-
-#endif
+//#ifndef log2
+//
+//// a base-2 log function
+//static double log2(double x)
+//{
+//	return log(x) / log(2.);
+//}
+//
+//#endif
 
 #ifndef round
 // rounds a double to the nearest integer value

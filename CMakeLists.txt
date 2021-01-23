@@ -27,28 +27,51 @@ set(WITH_GUI ON)
 set(BUILD_UNIT_TEST OFF)
 
 if (WIN32)
+
+    message(${CMAKE_BUILD_TYPE})
+    if(CMAKE_BUILD_TYPE MATCHES "Debug")
+        set(SUFFIX "d")
+        set(OUTPUT_DIR "Debug")
+        message("Debug build")
+    else()
+        set(SUFFIX "")
+        set(OUTPUT_DIR "Release")
+        message("Release build")
+    endif(CMAKE_BUILD_TYPE MATCHES "Debug")
+
     set(BOOST_DIR "C:/Devel/Lib/boost_1_72_0")
     set(LIBSNDFILE_DIR "C:/Devel/Lib/libsndfile")
+
+    include_directories(C:/Devel/Lib/fftw-3.3.9/output/${OUTPUT_DIR}
+            C:/Devel/Lib/fftw-3.3.9/output
+            C:/Devel/Lib/fftw-3.3.9/api
+            )
+    link_directories(C:/Devel/Lib/fftw-3.3.9/output/${OUTPUT_DIR}
+            )
+
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MD${SUFFIX}")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj /MD${SUFFIX}")
+    SET(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /bigobj")
+    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj /MD${SUFFIX}")
+    SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /bigobj")
 endif()
 
 if(WIN32)
-    set(BUILD_X64 off)
+    #add_definitions(-D_WIN64=1)
     set(LIB_DIR "C:/Lib")
     include_directories(${LIB_DIR}/include)
 
-    set(wxWidgets_FIND_STYLE "unix")
-    set(wxWidgets_ROOT_DIR C:/Lib/wxWidgets)
-    set(wxWidgets_LIB_DIR C:/Lib/wxWidgets/lib/vc_lib)
-    set(wxWidgets_CONFIGURATION mswu)
-    set(wxWidgets_INCLUDE_DIRS C:/Lib/wx/include C:/Lib/wx/lib/vc_lib/mswu)
-    add_definitions(-DWIN32_LEAN_AND_MEAN)
-    #include_directories(C:/Lib/wxWidgets/include C:/Lib/wxWidgets/lib/vc_lib/mswu)
+#    set(wxWidgets_FIND_STYLE "unix")
+#    set(wxWidgets_ROOT_DIR C:/Devel/Lib/wxWidgets-3.1.4)
+#    set(wxWidgets_LIB_DIR C:/Devel/Lib/wxWidgets-3.1.4/release/lib/vc_x64_lib)
+#    set(wxWidgets_CONFIGURATION mswu)
+#    set(wxWidgets_INCLUDE_DIRS C:/Devel/Lib/wxWidgets-3.1.4/include)
+#    add_definitions(-DWIN32_LEAN_AND_MEAN)
+    include_directories(C:/Devel/Lib/wxWidgets-3.1.4/include
+            C:/Devel/Lib/wxWidgets-3.1.4/release/lib/vc_x64_lib/mswu${SUFFIX})
 
-    if (BUILD_X64)
-        link_directories(${LIB_DIR}/x64)
-    else()
-        link_directories(${LIB_DIR}/x86)
-    endif(BUILD_X64)
+    link_directories(C:/Devel/Lib/wxWidgets-3.1.4/release/lib/vc_x64_lib)
+
 endif(WIN32)
 
 
@@ -165,6 +188,8 @@ endif()
 
 if (WITH_GUI)
     add_definitions(-DPHON_GUI=1)
+
+    SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /subsystem:windows")
     # SPTK
     include_directories(phon/third_party/sptk/include/)
 
@@ -177,15 +202,44 @@ if (WITH_GUI)
         set(EXTRA_COMPONENTS "")
     endif(WIN32)
 
-    # XML is needed by richtext
-    find_package(wxWidgets COMPONENTS aui html adv stc richtext xml ${EXTRA_COMPONENTS} core base REQUIRED)
-    include("${wxWidgets_USE_FILE}")
 
-    # needed by wxCheckListBox
     if(WIN32)
+        # Full support
+        add_definitions(-DwxUSE_DPI_AWARE_MANIFEST=2)
+        # needed by wxCheckListBox
         add_definitions(-DwxUSE_OWNER_DRAWN=1)
-    endif(WIN32)
 
+        set(WX_LIBS
+                #wxmsw31u_propgrid${SUFFIX}.lib
+                #wxmsw31u_ribbon${SUFFIX}.lib
+                wxmsw31u${SUFFIX}_stc.lib
+                #wxmsw31u${SUFFIX}_webview.lib
+                #wxmsw31u${SUFFIX}_gl.lib
+                wxmsw31u${SUFFIX}_richtext.lib
+                #wxmsw31u${SUFFIX}_xrc.lib
+                wxmsw31u${SUFFIX}_aui.lib
+                wxmsw31u${SUFFIX}_html.lib
+                wxmsw31u${SUFFIX}_adv.lib
+                wxmsw31u${SUFFIX}_core.lib
+                wxbase31u${SUFFIX}_xml.lib
+                #wxbase31u${SUFFIX}_net.lib
+                wxbase31u${SUFFIX}.lib
+                wxscintilla${SUFFIX}.lib
+                wxtiff${SUFFIX}.lib
+                wxjpeg${SUFFIX}.lib
+                wxpng${SUFFIX}.lib
+                wxzlib${SUFFIX}.lib
+                wxregexu${SUFFIX}.lib
+                wxexpat${SUFFIX}.lib
+#                wxmsw31u_media${SUFFIX}.lib
+        )
+
+    else(WIN32)
+        # XML is needed by richtext
+        find_package(wxWidgets COMPONENTS aui html adv stc richtext xml ${EXTRA_COMPONENTS} core base REQUIRED)
+        #find_package(wxWidgets 3.1 REQUIRED)
+        include("${wxWidgets_USE_FILE}")
+    endif(WIN32)
 
     add_definitions(-DPHON_USE_FFTW=1)
 
@@ -220,19 +274,22 @@ else (WITH_GUI)
     file(GLOB APP_FILES )
 endif(WITH_GUI)
 
-add_executable(${PROJECT_NAME} phonometrica.cpp ${APP_FILES})
 
 if (WIN32)
     add_definitions(-D__WINDOWS_DS__=1)
     include_directories(${LIBSNDFILE_DIR})
     link_directories(${LIBSNDFILE_DIR})
+
+    add_executable(${PROJECT_NAME} WIN32 phonometrica.cpp windows.rc ${APP_FILES})
     target_link_libraries(
-            ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 ole32 winmm dsound
+            ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 ole32 comctl32 winmm uuid Rpcrt4 dsound
             ${LIBSNDFILE_DIR}/libsndfile-1.lib
-            ${wxWidgets_LIBRARIES}
+            ${WX_LIBS}
     )
 elseif (APPLE)
     add_definitions(-D__MACOSX_CORE__=1)
+
+    add_executable(${PROJECT_NAME} MACOSX_BUNDLE phonometrica.cpp ${APP_FILES})
     target_link_libraries(
             ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 pthread dl sndfile
             ${wxWidgets_LIBRARIES}
@@ -240,6 +297,8 @@ elseif (APPLE)
     )
 else()
     add_definitions(-D__LINUX_ALSA__=1)
+
+    add_executable(${PROJECT_NAME} phonometrica.cpp ${APP_FILES})
     target_link_libraries(
             ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 pthread dl asound sndfile ${wxWidgets_LIBRARIES}
     )

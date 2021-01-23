@@ -115,7 +115,7 @@ String user_directory()
 
 	if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, path))) 
 	{
-		return String(path);
+		return String(path, wcslen(path));
 	}
 	else
 	{

@@ -43,7 +43,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	m_label->SetForegroundColour(wxColor(75, 75, 75));
 
 	SetSizer(sizer);
-	auto images = new wxImageList;
+	auto images = new wxImageList(20, 20);
 	m_corpus_img = images->Add(wxBitmap(Settings::get_icon_path("corpus.png"), wxBITMAP_TYPE_PNG));
 	m_query_img = images->Add(wxBitmap(Settings::get_icon_path("search.png"), wxBITMAP_TYPE_PNG));
 	m_data_img = images->Add(wxBitmap(Settings::get_icon_path("data.png"), wxBITMAP_TYPE_PNG));
