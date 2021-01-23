@@ -36,7 +36,7 @@ public:
 
 	void SetSyntaxHighlighting();
 
-	void AddTypeName(const wxString &kw);
+	void AddTypeNames();
 
 	void HideMargin();
 

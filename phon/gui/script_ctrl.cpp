@@ -61,9 +61,10 @@ void ScriptControl::SetSyntaxHighlighting()
 
     SetKeyWords(0, "and as assert break class continue debug do downto else elsif end explicit field for foreach function "
 				   "if in inherits local method not option or pass print ref repeat return step super then throw "
-	                "to until var while");
+	                "to until while");
 
-    SetKeyWords(1, "false nan null this true");
+    SetKeyWords(0, "false nan null this true");
+
     StyleSetForeground(wxSTC_P_STRING, wxColour(0, 102, 0));
     StyleSetForeground(wxSTC_P_NUMBER, wxColour(0, 0, 102));
     StyleSetForeground(wxSTC_P_COMMENTLINE, comment_color);
@@ -72,6 +73,7 @@ void ScriptControl::SetSyntaxHighlighting()
 
     StyleSetBold(wxSTC_P_WORD, true);
     StyleSetBold(wxSTC_P_WORD2, true);
+	AddTypeNames();
 }
 
 void ScriptControl::SetLineNumbering()
@@ -82,10 +84,10 @@ void ScriptControl::SetLineNumbering()
     SetMarginType(MARGIN_LINE_NUMBERS, wxSTC_MARGIN_NUMBER);
 }
 
-void ScriptControl::AddTypeName(const wxString &kw)
+void ScriptControl::AddTypeNames()
 {
-    wxString keywords = "List String Regex";
-    SetKeyWords(1, keywords.Append(kw));
+    wxString keywords = "Array Boolean Float Function Integer json List Module Number Object phon Regex Set String Table";
+    SetKeyWords(1, keywords);
 }
 
 void ScriptControl::HideMargin()
