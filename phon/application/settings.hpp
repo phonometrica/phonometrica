@@ -40,9 +40,7 @@ public:
 
     static String user_script_directory();
 
-    static String icon_directory();
-
-    static String get_icon_path(std::string_view name);
+    static String resources_directory();
 
     static String config_path();
 
@@ -89,6 +87,7 @@ public:
 private:
 
 	static Runtime *runtime;
+	static String std_resource_path;
 };
 
 } // namespace phonometrica

@@ -2,20 +2,8 @@
 #define READ_SETTINGS_PHON_SCRIPT_INCLUDE
 
 static const char *read_settings_script = R"_(
-local function get_resources()
-if get_os_name() == "windows" then
-return "C:\\Program Files\\Phonometrica"
-elsif get_os_name() == "macos" then
-return "/Applications/Phonometrica.app/Contents/Resources"
-else
-return "/usr/local/share/phonometrica"
-end
-end
-
 phon.settings = {
 "recent_projects": [],
-
-"resources_directory": get_resources(),
 
 "last_directory": "",
 

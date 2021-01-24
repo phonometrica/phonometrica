@@ -36,16 +36,12 @@ wxPanel *PreferencesEditor::MakeGeneralPanel()
 {
 	auto panel = new wxPanel(m_book);
 
-	m_resources_picker = new wxDirPickerCtrl(panel, wxID_ANY, Settings::get_string("resources_directory"));
-
 	m_match_window_ctrl = new wxSpinCtrl(panel, wxID_ANY);
 	m_match_window_ctrl->SetRange(1, 100);
 	m_match_window_ctrl->SetValue((int)Settings::get_number("match_window_length"));
 
 	// Main sizer.
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(new wxStaticText(panel, wxID_ANY, _("Resources folder:")), 0, wxEXPAND|wxALL, 10);
-	sizer->Add(m_resources_picker, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	auto match_sizer = new wxBoxSizer(wxHORIZONTAL);
 	match_sizer->Add(new wxStaticText(panel, wxID_ANY, _("Match context length:"), wxDefaultPosition, wxDefaultSize, wxALIGN_BOTTOM), 0, wxEXPAND, 0);
 	match_sizer->AddSpacer(10);
@@ -83,8 +79,6 @@ wxPanel *PreferencesEditor::MakeSoundPanel()
 void PreferencesEditor::DoOk()
 {
 	// General panel
-	String rsc = m_resources_picker->GetPath();
-	Settings::set_value("resources_directory", rsc);
 	Settings::set_value("match_window_length", (intptr_t)m_match_window_ctrl->GetValue());
 	Settings::set_value("autoload", m_autoload_checkbox->GetValue());
 	Settings::set_value("autosave", m_autosave_checkbox->GetValue());

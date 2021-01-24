@@ -353,7 +353,7 @@ void MainWindow::PostInitialize()
 	ShowAllPanels();
 
 	// Load system plugins and scripts, and then the user's plugins and scripts.
-	String resources_dir = Settings::get_string("resources_directory");
+	String resources_dir = Settings::resources_directory();
 	String user_dir = Settings::settings_directory();
 	LoadPluginsAndScripts(resources_dir);
 	LoadPluginsAndScripts(user_dir);
@@ -660,9 +660,9 @@ void MainWindow::OnEditPreferences(wxCommandEvent &)
 {
 	PreferencesEditor dlg(this);
 #ifdef __WXGTK__
-    wxSize size(450, 320);
+    wxSize size(450, 270);
 #else
-    wxSize size(450, 300);
+    wxSize size(450, 250);
 #endif
 	dlg.SetSize(FromDIP(size));
 	dlg.ShowModal();

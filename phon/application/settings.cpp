@@ -33,13 +33,22 @@
 namespace phonometrica {
 
 Runtime *Settings::runtime = nullptr;
+String Settings::std_resource_path;
 static String phon_key("phon"), settings_key("settings");
 static String last_dir_key("last_directory");
 
 void Settings::initialize(Runtime *rt)
 {
 	runtime = rt;
-	static String res("resources_directory");
+	using namespace filesystem;
+
+#if PHON_WINDOWS
+	std_resource_path = directory_name(rt->program_path());
+#elif PHON_MACOS
+	std_resource_path = directory_name(directory_name(directory_name(rt->program_path())));
+#else
+	std_resource_path = "/usr/local/share/phonometrica";
+#endif
 
 	// Create global functions related to settings
 	auto get_settings_directory = [](Runtime &, std::span<Variant>) -> Variant {
@@ -62,27 +71,19 @@ void Settings::initialize(Runtime *rt)
 		return Settings::config_path();
 	};
 
-	auto get_documentation_directory = [](Runtime &, std::span<Variant>) -> Variant {
-		auto dir = get_string(res);
-		return filesystem::join(dir, "html");
-	};
-
 	rt->add_global("get_settings_directory", get_settings_directory, {});
 	rt->add_global("get_metadata_directory", get_metadata_directory, {});
 	rt->add_global("get_plugin_directory", get_plugin_directory, {});
 	rt->add_global("get_script_directory", get_script_directory, {});
 	rt->add_global("get_config_path", get_config_path, {});
-	rt->add_global("get_documentation_directory", get_documentation_directory, {});
 }
 
 String Settings::settings_directory()
 {
-#if PHON_WINDOWS
-	auto name = "Phonometrica";
-#elif PHON_MACOS
-	auto name = ".phonometrica";
-#else
+#if PHON_LINUX
 	auto name = "phonometrica";
+#else
+	auto name = "Phonometrica";
 #endif
 
 	return filesystem::join(filesystem::application_directory(), name);
@@ -158,7 +159,7 @@ Array<Variant> &Settings::get_list(const String &name)
 
 String Settings::get_std_script(String name)
 {
-	auto path = Settings::get_string("resources_directory");
+	auto path = Settings::resources_directory();
 	filesystem::append(path, "std");
 	filesystem::nativize(name);
 	name.append(".phon");
@@ -243,7 +244,7 @@ String Settings::get_std_plugin_directory()
 	String name("Plugins");
 #endif
 
-	return filesystem::join(Settings::get_string("resources_directory"), name);
+	return filesystem::join(Settings::resources_directory(), name);
 }
 
 void Settings::reset_general_settings()
@@ -310,26 +311,21 @@ void Settings::write()
 	run_script((*runtime), write_settings);
 }
 
-String Settings::icon_directory()
-{
-	return filesystem::join(Settings::get_string("resources_directory"), "icons");
-}
-
-String Settings::get_icon_path(std::string_view name)
-{
-	return filesystem::join(icon_directory(), name);
-}
-
 String Settings::get_documentation_page(String page)
 {
 	filesystem::nativize(page);
-	auto path = filesystem::join(Settings::get_string("resources_directory"), "html", page);
+	auto path = filesystem::join(resources_directory(), "html", page);
 	if (!path.ends_with(".html")) {
 		filesystem::append(path, "index.html");
 	}
 	path.prepend("file://");
 
 	return path;
+}
+
+String Settings::resources_directory()
+{
+	return std_resource_path;
 }
 
 

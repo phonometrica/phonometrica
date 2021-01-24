@@ -30,7 +30,7 @@ class Application final : public wxApp
 {
 public:
 
-	Application(Runtime &rt, const char *program);
+	explicit Application(Runtime &rt);
 
 	bool OnInit() override;
 
@@ -43,8 +43,6 @@ public:
 private:
 
 	Runtime &runtime;
-
-	const char *program_path;
 
 	MainWindow *window;
 };

@@ -192,12 +192,10 @@ String application_directory()
 {
 #if PHON_WINDOWS
 	return filesystem::join(user_directory(), "AppData", "Roaming");
-
 #elif PHON_MACOS
-	return user_directory();
-
+	return filesystem::join(user_directory(), "Library", "Application Support");
 #else
-	return filesystem::join(user_directory(), ".config");;
+	return filesystem::join(user_directory(), ".config");
 #endif
 }
 

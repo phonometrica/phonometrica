@@ -25,7 +25,7 @@
 namespace phonometrica {
 
 PreferencesDialog::PreferencesDialog(wxWindow *parent, const wxString &title) :
-	wxDialog(parent, wxID_ANY, title)
+	wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
 	m_sizer = new wxBoxSizer(wxVERTICAL);
 	m_book = new wxNotebook(this, wxID_ANY);
@@ -54,10 +54,10 @@ void PreferencesDialog::CreateButtons()
 	hsizer->Add(cancel_btn, 1, 0, 0);
 	hsizer->AddSpacer(10);
 	hsizer->Add(ok_btn, 1, 0, 0);
-#ifdef PHON_WINDOWS
-	int spacing = 10;
+#if PHON_MACOS
+	int spacing = 15;
 #else
-	int spacing = 20;
+	int spacing = 10;
 #endif
 	m_sizer->Add(hsizer, 0, wxEXPAND|wxLEFT|wxRIGHT, spacing);
 	m_sizer->AddSpacer(10);

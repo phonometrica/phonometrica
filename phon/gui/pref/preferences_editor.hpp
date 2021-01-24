@@ -23,7 +23,6 @@
 #define PHONOMETRICA_PREFERENCES_EDITOR_HPP
 
 #include <wx/checkbox.h>
-#include <wx/filepicker.h>
 #include <wx/simplebook.h>
 #include <wx/spinctrl.h>
 #include <wx/combobox.h>
@@ -45,8 +44,6 @@ private:
 	wxPanel *MakeGeneralPanel();
 
 	wxPanel *MakeSoundPanel();
-
-	wxDirPickerCtrl *m_resources_picker;
 
 	wxSpinCtrl *m_match_window_ctrl;
 

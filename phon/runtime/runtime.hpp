@@ -106,7 +106,7 @@ class Runtime final
 
 public:
 
-	explicit Runtime(intptr_t stack_size = 4096);
+	explicit Runtime(const char *prog_path, intptr_t stack_size = 4096);
 
 	~Runtime();
 
@@ -250,6 +250,8 @@ public:
 	void add_import_path(const String &path);
 
 	void remove_import_path(const String &path);
+
+	String program_path() const { return prog_path; }
 
 private:
 
@@ -414,6 +416,9 @@ private:
 
 	// Global initialization.
 	static bool initialized;
+
+	// Program path
+	String prog_path;
 
 public:
 	const String get_item_string, set_item_string;

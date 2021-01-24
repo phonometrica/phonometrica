@@ -23,10 +23,10 @@
 
 namespace phonometrica {
 
-Application::Application(Runtime &rt, const char *program) :
-		runtime(rt)
+Application::Application(Runtime &rt) :
+	wxApp(), runtime(rt)
 {
-	program_path = program;
+
 }
 
 bool Application::OnInit()

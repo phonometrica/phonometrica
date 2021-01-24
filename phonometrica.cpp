@@ -29,23 +29,31 @@ static void show_usage()
 static void initialize(Runtime &rt)
 {
 	rt["phon"] = make_handle<Module>(&rt, "phon");
+	Settings::initialize(&rt);
 
 #ifdef PHON_GUI
-	// On macOS, move old settings from ~/Applications/Phonometrica to ~/.phonometrica if the user had a version of
-	// Phonometrica prior to 0.8.
+	// On macOS, move old settings from ~/Applications/Phonometrica to ~/Library/Application Support/Phonometrica
+	// if the user had a version of Phonometrica < 0.8.
 #if PHON_MACOS
 	using namespace filesystem;
 	auto old_settings = join(user_directory(), "Applications", "Phonometrica");
-	if (!exists(Settings::settings_directory()) && exists(old_settings))
+	if (exists(old_settings))
 	{
-		std::system("mv ~/Applications/Phonometrica ~/.phonometrica");
+		// Previous Qt-based version may have put some junk in ~/Library/Application Support
+		auto qt_path = join(user_directory(), "Library", "Application Support", "phonometrica");
+		auto webengine_path = join(qt_path, "QtWebEngine");
+		if (exists(qt_path) && exists(webengine_path))
+		{
+			remove_directory(qt_path);
+		}
+		auto new_settings = Settings::settings_directory();
+		filesystem::rename(old_settings, new_settings);
 	}
-#endif
+#endif // PHON_MACOS
 
-	Settings::initialize(&rt);
 	Settings::read();
 	run_script(rt, initialize);
-#endif
+#endif // PHON_GUI
 }
 
 static void finalize(Runtime &)
@@ -61,7 +69,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 int main(int argc, char **argv)
 #endif
 {
-	Runtime runtime;
+	Runtime runtime(argv[0]);
 #if PHON_WINDOWS
 	int argc = 1;
 	char **argv = nullptr;
@@ -73,7 +81,7 @@ int main(int argc, char **argv)
 #if PHON_WINDOWS
     SetProcessDPIAware();
 #endif
-	wxApp *app = new Application(runtime, "");// argv[0]);
+	wxApp *app = new Application(runtime);
 	wxApp::SetInstance(app);
 #endif
 
