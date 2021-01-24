@@ -320,5 +320,17 @@ String Settings::get_icon_path(std::string_view name)
 	return filesystem::join(icon_directory(), name);
 }
 
+String Settings::get_documentation_page(String page)
+{
+	filesystem::nativize(page);
+	auto path = filesystem::join(Settings::get_string("resources_directory"), "html", page);
+	if (!path.ends_with(".html")) {
+		filesystem::append(path, "index.html");
+	}
+	path.prepend("file://");
+
+	return path;
+}
+
 
 } // namespace phonometrica

@@ -83,6 +83,8 @@ public:
     static void read();
 
     static void write();
+
+    static String get_documentation_page(String page);
     
 private:
 

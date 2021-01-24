@@ -59,11 +59,11 @@ void ScriptControl::SetSyntaxHighlighting()
     // Keywords from llex.c
 
 
-    SetKeyWords(0, "and as assert break class continue debug do downto else elsif end explicit field for foreach function "
-				   "if in inherits local method not option or pass print ref repeat return step super then throw "
-	                "to until while");
+    SetKeyWords(0, "and as assert break class continue debug do downto else elsif end false field for foreach function "
+				   "if in inherits local method nan not null option or pass print ref repeat return step super then this throw "
+	                "to true until while");
 
-    SetKeyWords(0, "false nan null this true");
+//    SetKeyWords(1, "false nan null this true");
 
     StyleSetForeground(wxSTC_P_STRING, wxColour(0, 102, 0));
     StyleSetForeground(wxSTC_P_NUMBER, wxColour(0, 0, 102));

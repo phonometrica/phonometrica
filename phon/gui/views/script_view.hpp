@@ -46,6 +46,11 @@ private:
 	void OnModification(wxStyledTextEvent &);
 	void OnCommentSelection(wxCommandEvent &);
 	void OnUncommentSelection(wxCommandEvent &);
+	void OnIndentSelection(wxCommandEvent &);
+	void OnUnindentSelection(wxCommandEvent &);
+	void AddStartCharacter(const wxString &s);
+	void RemoveStartCharacter(const wxString &s);
+	void OnOpenHelp(wxCommandEvent &);
 
 	ScriptControl *m_ctrl;
 

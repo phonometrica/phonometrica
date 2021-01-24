@@ -38,10 +38,10 @@ void StartView::SetupUi(MainWindow *win)
 	int vspace = 40;
 	auto sizer = new wxFlexGridSizer(5, 2, 0, 0);
 
-	auto add_btn  = MakeButton(wxBITMAP_PNG(new_folder));
-	auto open_btn = MakeButton(wxBITMAP_PNG(folder));
-	auto doc_btn  = MakeButton(wxBITMAP_PNG(help));
-	auto pref_btn = MakeButton(wxBITMAP_PNG(settings));
+	auto add_btn  = MakeButton(wxBITMAP_PNG(new_folder_large));
+	auto open_btn = MakeButton(wxBITMAP_PNG(folder_large));
+	auto doc_btn  = MakeButton(wxBITMAP_PNG(help_large));
+	auto pref_btn = MakeButton(wxBITMAP_PNG(settings_large));
 
 	int padding = 5;
 

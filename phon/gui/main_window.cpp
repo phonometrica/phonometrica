@@ -386,14 +386,7 @@ void MainWindow::OnOpenDocumentation(wxCommandEvent &)
 
 void MainWindow::OpenDocumentation(String page)
 {
-	String url("file://");
-	filesystem::nativize(page);
-	auto path = filesystem::join(Settings::get_string("resources_directory"), "html", page);
-	if (!path.ends_with(".html")) {
-		filesystem::append(path, "index.html");
-	}
-	// TODO: set proper path using settings for documentation
-	url.append(path);
+	auto url = Settings::get_documentation_page(std::move(page));
 	wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
 
 //	if (!result || !filesystem::exists(path)) {
