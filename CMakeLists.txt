@@ -292,13 +292,20 @@ if (WIN32)
     )
 elseif (APPLE)
     add_definitions(-D__MACOSX_CORE__=1)
+    include_directories(/opt/local/include)
+    link_directories(/opt/local/lib)
 
+    # Since we have a version of libiconv in /opt/local/lib, the linker will look for that version first and will
+    # fail. As a workaround, we pass the full path to the correct version we want to link against.
+    set(LIB_ICONV /usr/lib/libiconv.dylib)
     add_executable(${PROJECT_NAME} MACOSX_BUNDLE phonometrica.cpp ${APP_FILES})
     target_link_libraries(
-            ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 pthread dl sndfile
+            ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 pthread dl sndfile ${LIB_ICONV}
             ${wxWidgets_LIBRARIES}
             "-framework Foundation" "-framework Cocoa" "-framework CoreAudio" objc
     )
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "Phonometrica")
 else()
     add_definitions(-D__LINUX_ALSA__=1)
 
