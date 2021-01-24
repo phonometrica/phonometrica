@@ -38,10 +38,10 @@ void StartView::SetupUi(MainWindow *win)
 	int vspace = 40;
 	auto sizer = new wxFlexGridSizer(5, 2, 0, 0);
 
-	auto add_btn  = MakeButton(wxBITMAP_PNG(new_folder_large));
-	auto open_btn = MakeButton(wxBITMAP_PNG(folder_large));
-	auto doc_btn  = MakeButton(wxBITMAP_PNG(help_large));
-	auto pref_btn = MakeButton(wxBITMAP_PNG(settings_large));
+	auto add_btn  = MakeButton(wxBITMAP_PNG_FROM_DATA(new_folder_large));
+	auto open_btn = MakeButton(wxBITMAP_PNG_FROM_DATA(folder_large));
+	auto doc_btn  = MakeButton(wxBITMAP_PNG_FROM_DATA(help_large));
+	auto pref_btn = MakeButton(wxBITMAP_PNG_FROM_DATA(settings_large));
 
 	int padding = 5;
 
@@ -63,10 +63,10 @@ void StartView::SetupUi(MainWindow *win)
 #else
 	auto sizer = new wxFlexGridSizer(2, 2, 0, 0);
 
-	auto add_btn  = MakeButton(wxBITMAP_PNG(new_folder));
-	auto open_btn = MakeButton(wxBITMAP_PNG(folder));
-	auto doc_btn  = MakeButton(wxBITMAP_PNG(help));
-	auto pref_btn = MakeButton(wxBITMAP_PNG(settings));
+	auto add_btn  = MakeButton(wxBITMAP_PNG_FROM_DATA(new_folder_large), _("Add files to project"));
+	auto open_btn = MakeButton(wxBITMAP_PNG_FROM_DATA(folder_large), _("Open existing project"));
+	auto doc_btn  = MakeButton(wxBITMAP_PNG_FROM_DATA(help_large), _("Read documentation"));
+	auto pref_btn = MakeButton(wxBITMAP_PNG_FROM_DATA(settings_large), _("Edit preferences"));
 
 	int padding = 25;
 

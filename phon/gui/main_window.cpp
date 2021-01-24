@@ -30,6 +30,7 @@
 #include <phon/application/settings.hpp>
 #include <phon/utils/file_system.hpp>
 #include <phon/utils/helpers.hpp>
+#include <phon/include/icons.hpp>
 #include <phon/utils/zip.hpp>
 
 namespace phonometrica {
@@ -315,7 +316,9 @@ void MainWindow::OnNewScript(wxCommandEvent &)
 void MainWindow::SetupUi()
 {
 	long sash_flags = wxSP_THIN_SASH|wxSP_LIVE_UPDATE;
-	SetIcon(wxIcon(Settings::get_icon_path("sound_wave_small.png"), wxBITMAP_TYPE_PNG));
+	wxIcon icon;
+	icon.CopyFromBitmap(wxBITMAP_PNG_FROM_DATA(sound_wave_small));
+	SetIcon(icon);
 	// Split project manager on the left and the main area.
 	m_project_splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
 	m_project_manager = new ProjectManager(runtime, m_project_splitter);
@@ -354,6 +357,7 @@ void MainWindow::PostInitialize()
 	String user_dir = Settings::settings_directory();
 	LoadPluginsAndScripts(resources_dir);
 	LoadPluginsAndScripts(user_dir);
+	m_console->SetFocus();
 }
 
 void MainWindow::ShowAllPanels()
@@ -615,7 +619,9 @@ void MainWindow::OnAbout(wxCommandEvent &)
 {
 	wxAboutDialogInfo dlg;
 	dlg.SetName("Phonometrica");
-	dlg.SetIcon(wxIcon(Settings::get_icon_path("sound_wave_small.png"), wxBITMAP_TYPE_PNG));
+    wxIcon icon;
+    icon.CopyFromBitmap(wxBITMAP_PNG_FROM_DATA(sound_wave_small));
+	dlg.SetIcon(icon);
 	dlg.SetVersion(utils::get_version());
 	dlg.SetDescription(_("A program for speech annotation and analysis"));
 	dlg.SetCopyright("(C) 2019-2021");
@@ -653,7 +659,12 @@ void MainWindow::OnOpenProject(wxCommandEvent &)
 void MainWindow::OnEditPreferences(wxCommandEvent &)
 {
 	PreferencesEditor dlg(this);
-	dlg.SetSize(FromDIP(wxSize(450, 320)));
+#ifdef __WXGTK__
+    wxSize size(450, 320);
+#else
+    wxSize size(450, 300);
+#endif
+	dlg.SetSize(FromDIP(size));
 	dlg.ShowModal();
 }
 

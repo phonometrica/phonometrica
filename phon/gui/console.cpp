@@ -204,7 +204,10 @@ void Console::RunCode(const String &code)
 
 	try
 	{
-		runtime.do_string(code);
+		auto result = runtime.do_string(code);
+		if (!result.is_null()) {
+		    runtime.print(result.to_string(true));
+		}
 	}
 	catch (std::exception &e)
 	{

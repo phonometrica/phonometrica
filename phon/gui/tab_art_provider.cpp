@@ -73,8 +73,8 @@ static wxColour wxAuiGetBetterContrastColour(const wxColour& back_color,
 
 TabArtProvider::TabArtProvider() : wxAuiGenericTabArt()
 {
-	m_disabledCloseBmp = wxBitmap(wxBITMAP_PNG(close_tab));
-	m_activeCloseBmp = wxBitmap(wxBITMAP_PNG(close_tab2));
+	m_disabledCloseBmp = wxBitmap(wxBITMAP_PNG_FROM_DATA(close_tab));
+	m_activeCloseBmp = wxBitmap(wxBITMAP_PNG_FROM_DATA(close_tab2));
 }
 
 void TabArtProvider::DrawBackground(wxDC &dc, wxWindow *, const wxRect &rect)

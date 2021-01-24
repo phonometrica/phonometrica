@@ -51,28 +51,28 @@ void ScriptView::SetupUi()
 	auto toolbar = new wxToolBar(this, wxID_ANY);
 	toolbar->SetToolBitmapSize(wxSize(24, 24));
 
-	wxBitmap save_icon(wxBITMAP_PNG(save));
+	wxBitmap save_icon(wxBITMAP_PNG_FROM_DATA(save));
 	m_save_tool = toolbar->AddTool(wxID_SAVE, _("Save script\tctrl+s"), save_icon, _("Save script (" CTRL_KEY "S)"));
 	//m_save_tool->Enable(false);
 	toolbar->AddSeparator();
-	wxBitmap run_icon(wxBITMAP_PNG(start));
+	wxBitmap run_icon(wxBITMAP_PNG_FROM_DATA(start));
 	auto run_tool = toolbar->AddTool(-1, _("Run script\tctrl+r"), run_icon, _("Run script or selection (" CTRL_KEY "R)"));
 	sizer->Add(toolbar, 0, wxEXPAND | wxALL, 0);
 	toolbar->AddSeparator();
 
-	wxBitmap on_icon(wxBITMAP_PNG(toggle_on));
+	wxBitmap on_icon(wxBITMAP_PNG_FROM_DATA(toggle_on));
 	auto on_tool = toolbar->AddTool(-1, _("Comment selection"), on_icon, _("Comment line or selection"));
-	wxBitmap off_icon(wxBITMAP_PNG(toggle_off));
+	wxBitmap off_icon(wxBITMAP_PNG_FROM_DATA(toggle_off));
 	auto off_tool = toolbar->AddTool(-1, _("Uncomment selection"), off_icon, _("Uncomment line or selection"));
 	toolbar->AddSeparator();
 
-	wxBitmap ident_icon(wxBITMAP_PNG(double_right));
+	wxBitmap ident_icon(wxBITMAP_PNG_FROM_DATA(double_right));
 	auto ident_tool = toolbar->AddTool(-1, _("Indent selection"), ident_icon, _("Indent line or selection"));
-	wxBitmap unident_icon(wxBITMAP_PNG(double_left));
+	wxBitmap unident_icon(wxBITMAP_PNG_FROM_DATA(double_left));
 	auto unindent_tool = toolbar->AddTool(-1, _("Unindent selection"), unident_icon, _("Unindent line or selection"));
 	toolbar->AddStretchableSpace();
 
-	wxBitmap help_icon(wxBITMAP_PNG(question));
+	wxBitmap help_icon(wxBITMAP_PNG_FROM_DATA(question));
 	auto help_tool = toolbar->AddTool(-1, _("Help"), help_icon, _("Help"));
 
 	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Run(); }, run_tool->GetId());

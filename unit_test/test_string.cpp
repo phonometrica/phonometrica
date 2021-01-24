@@ -207,3 +207,10 @@ TEST_CASE("Test string dictionary", "[string]")
 	auto values = map.values();
 	REQUIRE(values.contains("world"));
 }
+
+TEST_CASE("Test trim in MSVC", "[string]")
+{
+    String s(u8"x°");
+    s.trim();
+    REQUIRE(s.size() == 2);
+}

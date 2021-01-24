@@ -17,7 +17,7 @@ TEST_CASE("Test regex", "[regex]")
 	String result(re.capture(1));
 
 	REQUIRE(result == "he");
-	REQUIRE(not re.match(bad));
+	REQUIRE(!re.match(bad));
 }
 
 TEST_CASE("Replace regex", "[regex]")

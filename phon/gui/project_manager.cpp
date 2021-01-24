@@ -46,12 +46,12 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	SetSizer(sizer);
 	auto images = new wxImageList(16, 16);
 //	m_corpus_img = images->Add(wxBitmap(Settings::get_icon_path("corpus.png"), wxBITMAP_TYPE_PNG));
-	m_corpus_img = images->Add(wxBITMAP_PNG(corpus));
-	m_query_img = images->Add(wxBITMAP_PNG(search));
-	m_data_img = images->Add(wxBITMAP_PNG(data));
-	m_script_img = images->Add(wxBITMAP_PNG(console));
-	m_bookmark_img = images->Add(wxBITMAP_PNG(favorite));
-	m_annot_img = images->Add(wxBITMAP_PNG(annotation));
+	m_corpus_img = images->Add(wxBITMAP_PNG_FROM_DATA(corpus));
+	m_query_img = images->Add(wxBITMAP_PNG_FROM_DATA(search));
+	m_data_img = images->Add(wxBITMAP_PNG_FROM_DATA(data));
+	m_script_img = images->Add(wxBITMAP_PNG_FROM_DATA(console));
+	m_bookmark_img = images->Add(wxBITMAP_PNG_FROM_DATA(favorite));
+	m_annot_img = images->Add(wxBITMAP_PNG_FROM_DATA(annotation));
 	m_tree->SetImageList(images);
 	m_root = m_tree->AddRoot(_("Untitled project"));
 #if PHON_LINUX
