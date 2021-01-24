@@ -747,7 +747,7 @@ String &String::trim(String::Option flag)
 	{
 		for (; first < len; first++)
 		{
-			if (!isspace(impl->data[first])) {
+			if (!isspace(static_cast<unsigned char>(impl->data[first]))) {
 				break;
 			}
 		}
@@ -757,7 +757,7 @@ String &String::trim(String::Option flag)
 	{
 		for (; last > first; --last)
 		{
-			if (!isspace(impl->data[last - 1])) {
+			if (!isspace(static_cast<unsigned char>(impl->data[last - 1]))) {
 				break;
 			}
 		}
