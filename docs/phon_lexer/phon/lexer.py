@@ -31,9 +31,9 @@ class PhonLexer(RegexLexer):
             (r'(?i)(true|false|null|undefined)\b', Keyword.Constant),
             (words((
                 'and', 'as', 'assert', 'break', 'class', 'continue', 'debug', 'do', 'downto', 'else', 'elsif', 
-                'end', 'for', 'foreach', 'function', 'get', 'if',
+                'end', 'for', 'foreach', 'function', 'if',
                 'in', 'inherits', 'local', 'method', 'not', 'or', 'option', 'pass', 'print', 'ref', 'repeat', 
-                'return', 'step', 'then', 'throw', 'to', 'until', 'var', 'while'), prefix=r'(?i)\b', suffix=r'\b'),
+                'return', 'step', 'then', 'throw', 'to', 'until', 'while'), prefix=r'(?i)\b', suffix=r'\b'),
              Keyword.Reserved),
             (r'"\[(([^\]%]|\n)|%(.|\n)|\][^"])*?\]"', String),
             (r'"([^"%\n]|%.)*?"', String),

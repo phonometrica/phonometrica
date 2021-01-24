@@ -5,7 +5,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>User dialogs &#8212; Phonometrica 0.7.6 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User dialogs &#8212; Phonometrica 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
@@ -14,13 +15,13 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Advanced notions" href="advanced.html" />
-    <link rel="prev" title="Getting started" href="getting_started.html" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="next" title="Annotations" href="../api/annotation.html" />
+    <link rel="prev" title="Modules" href="modules.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <!--[if lt IE 9]>
     <script src="_static/css3-mediaqueries.js"></script>
     <![endif]-->
@@ -32,58 +33,16 @@
           <a href="../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="advanced.html" title="Advanced notions"
+          <a href="../api/annotation.html" title="Annotations"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="getting_started.html" title="Getting started"
+          <a href="modules.html" title="Modules"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">User dialogs</a></li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../../index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">User dialogs</a><ul>
-<li><a class="reference internal" href="#creating-a-dialog">Creating a dialog</a></li>
-<li><a class="reference internal" href="#user-interface-components">User interface components</a><ul>
-<li><a class="reference internal" href="#label">Label</a></li>
-<li><a class="reference internal" href="#button">Button</a></li>
-<li><a class="reference internal" href="#file-selector">File selector</a></li>
-<li><a class="reference internal" href="#field">Field</a></li>
-<li><a class="reference internal" href="#check-box">Check box</a></li>
-<li><a class="reference internal" href="#check-list">Check list</a></li>
-<li><a class="reference internal" href="#radio-buttons">Radio buttons</a></li>
-<li><a class="reference internal" href="#combo-box">Combo box</a></li>
-<li><a class="reference internal" href="#container">Container</a></li>
-<li><a class="reference internal" href="#stretch">Stretch</a></li>
-<li><a class="reference internal" href="#spacing">Spacing</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#putting-it-all-together">Putting it all together</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="getting_started.html"
-                        title="previous chapter">Getting started</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="advanced.html"
-                        title="next chapter">Advanced notions</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -129,17 +88,17 @@ and <code class="docutils literal notranslate"><span class="pre">height</span></
 </div>
 <p>Once we have created a JSON object describing our dialog’s user interface, we can pass it
 to the <code class="docutils literal notranslate"><span class="pre">create_dialog()</span></code> function.</p>
-<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>var ui = {
-    &quot;title&quot;: &quot;My first dialog&quot;,
-    &quot;width&quot;: 300,
-    &quot;height&quot;: 100,
-    &quot;yes_no&quot;: true,
-    &quot;items&quot;: [
-        { &quot;type&quot;: &quot;label&quot;, &quot;text&quot;: &quot;My first label&quot; }
-    ]
-}
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="kr">local</span> <span class="n">ui</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&quot;title&quot;</span><span class="p">:</span> <span class="s">&quot;My first dialog&quot;</span><span class="p">,</span>
+    <span class="s">&quot;width&quot;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="s">&quot;height&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="s">&quot;yes_no&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="s">&quot;items&quot;</span><span class="p">:</span> <span class="o">[</span>
+        <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="s">&quot;text&quot;</span><span class="p">:</span> <span class="s">&quot;My first label&quot;</span> <span class="p">}</span>
+    <span class="o">]</span>
+<span class="p">}</span>
 
-create_dialog(ui)
+<span class="n">create_dialog</span><span class="p">(</span><span class="n">ui</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The resulting dialog will look something like that:</p>
@@ -221,7 +180,7 @@ In addition, you may specify a <code class="docutils literal notranslate"><span 
 </div>
 <div class="section" id="check-list">
 <h3>Check list<a class="headerlink" href="#check-list" title="Permalink to this headline">¶</a></h3>
-<p>A <strong>check list</strong> must have its <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute set to <cite>check_list`</cite>. It is used to display a list of values that can be checked. You must specify a
+<p>A <strong>check list</strong> must have its <code class="docutils literal notranslate"><span class="pre">type</span></code> attribute set to <code class="docutils literal notranslate"><span class="pre">check_list</span></code>. It is used to display a list of values that can be checked. You must specify a
 <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute, which is the key that will be used in the result object to retrieve the check list’s values. You must also provide a list of <code class="docutils literal notranslate"><span class="pre">values</span></code>
 as a JSON array of strings: all checked values will be stored in the return value (again, as a JSON array of strings). In addition to the list of values,
 you may specify a list of <code class="docutils literal notranslate"><span class="pre">labels</span></code>: in this case, labels will be displayed instead of values and values will be shown as tool tips when the user hovers
@@ -322,45 +281,45 @@ in the script. This has two advantages: it allows us to intersperse comments in 
 to surround keys with double quotes, since in Phonometrica, <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">&quot;key&quot;:</span> <span class="pre">&quot;value&quot;</span> <span class="pre">}</span></code> and <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">key:</span> <span class="pre">&quot;value&quot;</span> <span class="pre">}</span></code> are equivalent, as long as <code class="docutils literal notranslate"><span class="pre">key</span></code> doesn’t
 contain any space.</p>
 <p>Here is the part of the script that corresponds to the creation of the user interface:</p>
-<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span># Setup user interface as a JSON object.
-var ui = {
-    title: &quot;Transphon&quot;,
-    width: 300,
-    items: [
-        { type: &quot;label&quot;, text: &quot;Choose output file:&quot; },
-        { type: &quot;file_selector&quot;, name: &quot;path&quot;, title: &quot;Select text file...&quot; },
-        { type: &quot;label&quot;, text: &quot;Select layers separated by a comma, or leave empty to process all layers:&quot; },
-        { type: &quot;field&quot;, name: &quot;layers&quot;, default: &quot;1&quot;},
-        { type: &quot;label&quot;, text: &quot;Choose annotations:&quot;},
-        # Annotations will be inserted here
-        { type: &quot;label&quot;, text: &quot;Choose event separator:&quot;},
-        { type: &quot;radio_buttons&quot;, name: &quot;separator&quot;, values: [&quot;space&quot;, &quot;new line&quot;, &quot;none&quot;] }
-    ]
-}
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="c1"># Setup user interface as a JSON object.</span>
+<span class="kr">local</span> <span class="o">=</span> <span class="n">ui</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">title</span><span class="p">:</span> <span class="s">&quot;Transphon&quot;</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="n">items</span><span class="p">:</span> <span class="o">[</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Choose output file:&quot;</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;file_selector&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="s">&quot;path&quot;</span><span class="p">,</span> <span class="n">title</span><span class="p">:</span> <span class="s">&quot;Select text file...&quot;</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Select layers separated by a comma, or leave empty to process all layers:&quot;</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;field&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="s">&quot;layers&quot;</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="s">&quot;1&quot;</span><span class="p">},</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Choose annotations:&quot;</span><span class="p">},</span>
+        <span class="c1"># Annotations will be inserted here</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="s">&quot;Choose event separator:&quot;</span><span class="p">},</span>
+        <span class="p">{</span> <span class="n">type</span><span class="p">:</span> <span class="s">&quot;radio_buttons&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="s">&quot;separator&quot;</span><span class="p">,</span> <span class="n">values</span><span class="p">:</span> <span class="o">[</span><span class="s">&quot;space&quot;</span><span class="p">,</span> <span class="s">&quot;new line&quot;</span><span class="p">,</span> <span class="s">&quot;none&quot;</span><span class="o">]</span> <span class="p">}</span>
+    <span class="o">]</span>
+<span class="p">}</span>
 
-# Insert check list for annotations
-var labels = []
-var values = []
+<span class="c1"># Insert check list for annotations</span>
+<span class="kr">local</span> <span class="n">labels</span> <span class="o">=</span> <span class="o">[]</span>
+<span class="kr">local</span> <span class="n">values</span> <span class="o">=</span> <span class="o">[]</span>
 
-foreach var annot in get_annotations() do
-    var path = annot.path
-    # This is the real value we are interested in
-    values.append(path)
-    # This is the label that will be displayed
-    labels.append(system.get_base_name(path))
-end
+<span class="kr">foreach</span> <span class="n">annot</span> <span class="kr">in</span> <span class="n">get_annotations</span><span class="p">()</span> <span class="kr">do</span>
+    <span class="kr">local</span> <span class="n">path</span> <span class="o">=</span> <span class="n">annot</span><span class="p">.</span><span class="n">path</span>
+    <span class="c1"># This is the real value we are interested in</span>
+    <span class="n">values</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="c1"># This is the label that will be displayed</span>
+    <span class="n">labels</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">system</span><span class="p">.</span><span class="n">get_base_name</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+<span class="kr">end</span>
 
-# Create item and insert it at position 6 in the list of items
-var item = { &quot;type&quot;: &quot;check_list&quot;, &quot;name&quot;: &quot;annotations&quot;, &quot;labels&quot;: labels, &quot;values&quot;: values }
-ui.items.insert(6, item)
+<span class="c1"># Create item and insert it at position 6 in the list of items</span>
+<span class="kr">local</span> <span class="n">item</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;check_list&quot;</span><span class="p">,</span> <span class="s">&quot;name&quot;</span><span class="p">:</span> <span class="s">&quot;annotations&quot;</span><span class="p">,</span> <span class="s">&quot;labels&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span> <span class="s">&quot;values&quot;</span><span class="p">:</span> <span class="n">values</span> <span class="p">}</span>
+<span class="n">ui</span><span class="p">.</span><span class="n">items</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
 
-# `result` will contain a JSON object if the user pressed &quot;OK&quot;, or null otherwise.
-var result = create_dialog(ui)
+<span class="c1"># `result` will contain a JSON object if the user pressed &quot;OK&quot;, or null otherwise.</span>
+<span class="kr">local</span> <span class="n">result</span> <span class="o">=</span> <span class="n">create_dialog</span><span class="p">(</span><span class="n">ui</span><span class="p">)</span>
 
-if result then
-    # Process the result. Here we will simply print it.
-    print(json.stringify(result))
-end
+<span class="kr">if</span> <span class="n">result</span> <span class="kr">then</span>
+    <span class="c1"># Process the result. Here we will simply print it.</span>
+    <span class="kr">print</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">stringify</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+<span class="kr">end</span>
 </pre></div>
 </div>
 <p>And here is the dialog that appears when the script is run:</p>
@@ -371,7 +330,51 @@ end
 </div>
 
 
+            <div class="clearer"></div>
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">User dialogs</a><ul>
+<li><a class="reference internal" href="#creating-a-dialog">Creating a dialog</a></li>
+<li><a class="reference internal" href="#user-interface-components">User interface components</a><ul>
+<li><a class="reference internal" href="#label">Label</a></li>
+<li><a class="reference internal" href="#button">Button</a></li>
+<li><a class="reference internal" href="#file-selector">File selector</a></li>
+<li><a class="reference internal" href="#field">Field</a></li>
+<li><a class="reference internal" href="#check-box">Check box</a></li>
+<li><a class="reference internal" href="#check-list">Check list</a></li>
+<li><a class="reference internal" href="#radio-buttons">Radio buttons</a></li>
+<li><a class="reference internal" href="#combo-box">Combo box</a></li>
+<li><a class="reference internal" href="#container">Container</a></li>
+<li><a class="reference internal" href="#stretch">Stretch</a></li>
+<li><a class="reference internal" href="#spacing">Spacing</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#putting-it-all-together">Putting it all together</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="modules.html"
+                        title="previous chapter">Modules</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../api/annotation.html"
+                        title="next chapter">Annotations</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -383,18 +386,19 @@ end
           <a href="../../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="advanced.html" title="Advanced notions"
+          <a href="../api/annotation.html" title="Annotations"
              >next</a> |</li>
         <li class="right" >
-          <a href="getting_started.html" title="Getting started"
+          <a href="modules.html" title="Modules"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">User dialogs</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

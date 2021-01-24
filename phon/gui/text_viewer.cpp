@@ -13,55 +13,41 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 24/01/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: View for scripts.                                                                                          *
+ * purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SCRIPT_VIEW_HPP
-#define PHONOMETRICA_SCRIPT_VIEW_HPP
-
-#include <phon/gui/views/view.hpp>
-#include <phon/gui/script_ctrl.hpp>
-#include <phon/runtime.hpp>
-
-class wxToolBarToolBase;
+#include <wx/sizer.h>
+#include <wx/richtext/richtextctrl.h>
+#include <wx/button.h>
+#include <phon/gui/macros.hpp>
+#include <phon/gui/text_viewer.hpp>
 
 namespace phonometrica {
 
-class ScriptView final : public View
+TextViewer::TextViewer(wxWindow *parent, const wxString &title, const wxString &text) :
+	wxDialog(parent, wxID_ANY, title)
 {
-public:
-
-	ScriptView(Runtime &rt, wxWindow *parent);
-	ScriptView(Runtime &rt, const String &path, wxWindow *parent);
-	bool Finalize() override;
-	void Save() override;
-	void Run() override;
-
-private:
-
-	void SetupUi();
-	void OnModification(wxStyledTextEvent &);
-	void OnCommentSelection(wxCommandEvent &);
-	void OnUncommentSelection(wxCommandEvent &);
-	void OnIndentSelection(wxCommandEvent &);
-	void OnUnindentSelection(wxCommandEvent &);
-	void AddStartCharacter(const wxString &s);
-	void RemoveStartCharacter(const wxString &s);
-	void OnOpenHelp(wxCommandEvent &);
-	void OnViewBytecode(wxCommandEvent &);
-
-	ScriptControl *m_ctrl;
-
-	wxToolBarToolBase *m_save_tool;
-
-	String m_path; // temp
-
-	Runtime &runtime;
-};
-
+	auto sizer = new wxBoxSizer(wxVERTICAL);
+	auto ctrl = new wxRichTextCtrl(this);
+	ctrl->SetValue(text);
+	ctrl->SetEditable(false);
+	wxFont font = MONOSPACE_FONT;
+#if !PHON_WINDOWS
+	font.SetPointSize(12);
+#endif
+	ctrl->SetFont(font);
+	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
+	hsizer->AddStretchSpacer();
+	auto btn = new wxButton(this, wxID_ANY, _("Close"));
+	btn->SetMaxClientSize(wxSize(80, 50));
+	hsizer->Add(btn, 1, wxEXPAND, 0);
+	sizer->Add(ctrl, 1, wxEXPAND|wxALL, 10);
+	sizer->Add(hsizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
+	sizer->AddSpacer(10);
+	SetSizer(sizer);
+	btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &) { EndModal(wxID_OK); });
+}
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_SCRIPT_VIEW_HPP

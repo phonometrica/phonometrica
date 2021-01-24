@@ -5,7 +5,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Numeric arrays &#8212; Phonometrica 0.7.6 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Numeric arrays &#8212; Phonometrica 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
@@ -14,13 +15,13 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Event handling" href="event.html" />
     <link rel="prev" title="Annotations" href="annotation.html" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <!--[if lt IE 9]>
     <script src="_static/css3-mediaqueries.js"></script>
     <![endif]-->
@@ -37,41 +38,11 @@
         <li class="right" >
           <a href="annotation.html" title="Annotations"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Numeric arrays</a></li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../../index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Numeric arrays</a><ul>
-<li><a class="reference internal" href="#array-indexing">Array indexing</a></li>
-<li><a class="reference internal" href="#global-functions">Global functions</a></li>
-<li><a class="reference internal" href="#methods">Methods</a></li>
-<li><a class="reference internal" href="#fields">Fields</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="annotation.html"
-                        title="previous chapter">Annotations</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="event.html"
-                        title="next chapter">Event handling</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -80,7 +51,7 @@
             
   <div class="section" id="numeric-arrays">
 <h1>Numeric arrays<a class="headerlink" href="#numeric-arrays" title="Permalink to this headline">¶</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">Array</span></code> type represents a numeric array with one or two dimensions.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Array</span></code> type represents a numeric array with one or two dimensions. Array is <a class="reference internal" href="../tutorial/values_references.html#clonability"><span class="std std-ref">clonable</span></a>.</p>
 <div class="section" id="array-indexing">
 <h2>Array indexing<a class="headerlink" href="#array-indexing" title="Permalink to this headline">¶</a></h2>
 <p>To get or set an element in an array, use the index <code class="docutils literal notranslate"><span class="pre">[]</span></code> operator. Elements along each dimension start at 1 and can be negative.
@@ -88,9 +59,9 @@
 Two-dimensional arrays are accessed with a pair of indices noted <em>(i, j)</em>,
 where <em>i</em> represents the <em>i</em> th row and <em>j</em> represents the <em>j</em> th column. For example, index <em>(3, 2)</em> represents the item in the third
 row in the second column, whereas <em>(1, -1)</em> represents element in the first row and in the last column.</p>
-<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>var X = new Array(3, 4)
-X[1,4] = 10
-print(X[1,4])
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="nc">X</span> <span class="o">=</span> <span class="n">new</span> <span class="n">Array</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="nc">X</span><span class="o">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="o">]</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="kr">print</span><span class="p">(</span><span class="nc">X</span><span class="o">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="o">]</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -241,7 +212,39 @@ matrix that includes rows starting from row <code class="docutils literal notran
 </div>
 
 
+            <div class="clearer"></div>
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Numeric arrays</a><ul>
+<li><a class="reference internal" href="#array-indexing">Array indexing</a></li>
+<li><a class="reference internal" href="#global-functions">Global functions</a></li>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#fields">Fields</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="annotation.html"
+                        title="previous chapter">Annotations</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="event.html"
+                        title="next chapter">Event handling</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -258,13 +261,14 @@ matrix that includes rows starting from row <code class="docutils literal notran
         <li class="right" >
           <a href="annotation.html" title="Annotations"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Numeric arrays</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

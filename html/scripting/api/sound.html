@@ -5,7 +5,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Sounds &#8212; Phonometrica 0.7.6 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sounds &#8212; Phonometrica 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
@@ -14,13 +15,13 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Statistical functions" href="statistics.html" />
     <link rel="prev" title="Regular expressions" href="regex.html" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <!--[if lt IE 9]>
     <script src="_static/css3-mediaqueries.js"></script>
     <![endif]-->
@@ -37,40 +38,11 @@
         <li class="right" >
           <a href="regex.html" title="Regular expressions"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Sounds</a></li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../../index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Sounds</a><ul>
-<li><a class="reference internal" href="#global-functions">Global functions</a></li>
-<li><a class="reference internal" href="#methods">Methods</a></li>
-<li><a class="reference internal" href="#fields">Fields</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="regex.html"
-                        title="previous chapter">Regular expressions</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="statistics.html"
-                        title="next chapter">Statistical functions</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -111,6 +83,20 @@ sound. If the object exists but is not a sound, an error is thrown.</p>
 
 <p>Return the <code class="docutils literal notranslate"><span class="pre">Sound</span></code> object loaded in the current view, or <code class="docutils literal notranslate"><span class="pre">null</span></code> if the current view is neither an annotation view
 nor a sound view.</p>
+<hr class="docutils" />
+<dl class="lua function">
+<dt id="get_window_duration">
+<code class="sig-name descname">get_window_duration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_window_duration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Return the duration of the visible window in the current annotation or sound view.</p>
+<hr class="docutils" />
+<dl class="lua function">
+<dt id="get_selection_duration">
+<code class="sig-name descname">get_selection_duration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#get_selection_duration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Return the duration of the selection in the current annotation or sound view, or 0 if there is no selection.</p>
 <hr class="docutils" />
 <dl class="lua function">
 <dt id="report_intensity">
@@ -297,7 +283,38 @@ will be used instead.</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Sounds</a><ul>
+<li><a class="reference internal" href="#global-functions">Global functions</a></li>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#fields">Fields</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="regex.html"
+                        title="previous chapter">Regular expressions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="statistics.html"
+                        title="next chapter">Statistical functions</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -314,13 +331,14 @@ will be used instead.</p>
         <li class="right" >
           <a href="regex.html" title="Regular expressions"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Sounds</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

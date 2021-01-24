@@ -5,7 +5,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Regular expressions &#8212; Phonometrica 0.7.6 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Regular expressions &#8212; Phonometrica 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
@@ -14,13 +15,13 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Sounds" href="sound.html" />
     <link rel="prev" title="Mathematical functions and constants" href="math.html" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <!--[if lt IE 9]>
     <script src="_static/css3-mediaqueries.js"></script>
     <![endif]-->
@@ -37,43 +38,11 @@
         <li class="right" >
           <a href="math.html" title="Mathematical functions and constants"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Regular expressions</a></li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../../index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Regular expressions</a><ul>
-<li><a class="reference internal" href="#general-concepts">General concepts</a><ul>
-<li><a class="reference internal" href="#syntax">Syntax</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#functions">Functions</a></li>
-<li><a class="reference internal" href="#fields">Fields</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="math.html"
-                        title="previous chapter">Mathematical functions and constants</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="sound.html"
-                        title="next chapter">Sounds</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -82,7 +51,7 @@
             
   <div class="section" id="regular-expressions">
 <h1>Regular expressions<a class="headerlink" href="#regular-expressions" title="Permalink to this headline">¶</a></h1>
-<p>This page documents the <code class="docutils literal notranslate"><span class="pre">Regex</span></code> type.</p>
+<p>This page documents the <code class="docutils literal notranslate"><span class="pre">Regex</span></code> type. <code class="docutils literal notranslate"><span class="pre">Regex</span></code> is <a class="reference internal" href="../tutorial/values_references.html#clonability"><span class="std std-ref">non-clonable</span></a>.</p>
 <div class="section" id="general-concepts">
 <h2>General concepts<a class="headerlink" href="#general-concepts" title="Permalink to this headline">¶</a></h2>
 <p>Regular expressions are widely used in text processing to perform
@@ -142,74 +111,124 @@ expression. To enable non-greedy behavior, we must use the quantifier
 <code class="docutils literal notranslate"><span class="pre">?</span></code> after the star (in this case, <code class="docutils literal notranslate"><span class="pre">&quot;j.*?e&quot;</span></code>).</p>
 </div>
 </div>
-<div class="section" id="functions">
-<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
 <dl class="lua class">
 <dt id="Regex">
 <em class="property">class </em><code class="sig-name descname">Regex</code><a class="headerlink" href="#Regex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="lua method">
-<dt>
-<code class="sig-name descname">Regex</code><span class="sig-paren">(</span><em class="sig-param">pattern</em><span class="sig-paren">)</span></dt>
+<dt id="init">
+<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param">pattern as String</em><span class="sig-paren">)</span><a class="headerlink" href="#init" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Create a new regular expression from a string pattern. The regex can be matched against any string.</p>
-<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>var re = new Regex(&quot;^(..)&quot;)
-# Do something with re...
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">re</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="s">&quot;^(..)&quot;</span><span class="p">)</span>
+<span class="c1"># Do something with re...</span>
 </pre></div>
 </div>
 <p>See also: <a class="reference internal" href="#pattern" title="pattern"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">pattern()</span></code></a></p>
-<hr class="docutils" />
-<dl class="lua method">
-<dt id="match">
-<code class="sig-name descname">match</code><span class="sig-paren">(</span><em class="sig-param">subject</em><span class="sig-paren">)</span><a class="headerlink" href="#match" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<p>Match regular expression against string <code class="docutils literal notranslate"><span class="pre">subject</span></code>. Returns
-<code class="docutils literal notranslate"><span class="pre">true</span></code> if there was a match, <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
-<p>See also: <a class="reference internal" href="string.html#count" title="count"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">count()</span></code></a>, <a class="reference internal" href="#group" title="group"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">group()</span></code></a>, <code class="xref lua lua-func docutils literal notranslate"><span class="pre">has_match()</span></code></p>
-<hr class="docutils" />
 <dl class="lua method">
 <dt>
-<code class="sig-name descname">has\_match()</code></dt>
+<code class="sig-name descname">Regex</code><span class="sig-paren">(</span><em class="sig-param">pattern as String</em>, <em class="sig-param">flags as String</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<p>Create a new regular expression from a string pattern. The <code class="docutils literal notranslate"><span class="pre">flags</span></code> argument can contain any of the following
+options, separated by the character <code class="docutils literal notranslate"><span class="pre">|</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">caseless</span></code>: ignore case</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">multiline</span></code>: match expression on several lines</p></li>
+</ul>
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">re</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="s">&quot;^(..)&quot;</span><span class="p">,</span> <span class="s">&quot;caseless|multiline&quot;</span><span class="p">)</span>
+<span class="c1"># Do something with re...</span>
+</pre></div>
+</div>
+<p>See also: <a class="reference internal" href="#pattern" title="pattern"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">pattern()</span></code></a></p>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="lua function">
+<dt id="count">
+<code class="sig-name descname">count</code><span class="sig-paren">(</span><em class="sig-param">regex as Regex</em><span class="sig-paren">)</span><a class="headerlink" href="#count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the number of captures in the last match. This is equivalent to <code class="docutils literal notranslate"><span class="pre">len()</span></code>.</p>
+<hr class="docutils" />
+<dl class="lua function">
+<dt id="match">
+<code class="sig-name descname">match</code><span class="sig-paren">(</span><em class="sig-param">regex as Regex</em>, <em class="sig-param">subject as String</em><span class="sig-paren">)</span><a class="headerlink" href="#match" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Match <code class="docutils literal notranslate"><span class="pre">regex</span></code> against the string <code class="docutils literal notranslate"><span class="pre">subject</span></code>. Returns
+<code class="docutils literal notranslate"><span class="pre">true</span></code> if there was a match, and <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
+<p>See also: <a class="reference internal" href="string.html#count" title="count"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">count()</span></code></a>, <a class="reference internal" href="#group" title="group"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">group()</span></code></a>, <a class="reference internal" href="#has_match" title="has_match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">has_match()</span></code></a></p>
+<hr class="docutils" />
+<dl class="lua function">
+<dt>
+<code class="sig-name descname">match</code><span class="sig-paren">(</span><em class="sig-param">regex as Regex</em>, <em class="sig-param">subject as String</em>, <em class="sig-param">pos as Integer</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<p>Match <code class="docutils literal notranslate"><span class="pre">regex</span></code> against the string <code class="docutils literal notranslate"><span class="pre">subject</span></code>, starting at position <code class="docutils literal notranslate"><span class="pre">pos</span></code>. Returns
+<code class="docutils literal notranslate"><span class="pre">true</span></code> if there was a match, and <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
+<p>See also: <a class="reference internal" href="string.html#count" title="count"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">count()</span></code></a>, <a class="reference internal" href="#group" title="group"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">group()</span></code></a>, <a class="reference internal" href="#has_match" title="has_match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">has_match()</span></code></a></p>
+<hr class="docutils" />
+<dl class="lua function">
+<dt id="has_match">
+<code class="sig-name descname">has_match</code><span class="sig-paren">(</span><em class="sig-param">regex as Regex</em><span class="sig-paren">)</span><a class="headerlink" href="#has_match" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns <code class="docutils literal notranslate"><span class="pre">true</span></code> if the last call to <code class="docutils literal notranslate"><span class="pre">match</span></code> was sucessful, and
 <code class="docutils literal notranslate"><span class="pre">false</span></code> if it was unsuccessful or if <code class="docutils literal notranslate"><span class="pre">match</span></code> was not called.</p>
 <p>See also: <a class="reference internal" href="#match" title="match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">match()</span></code></a></p>
 <hr class="docutils" />
-<dl class="lua method">
+<dl class="lua function">
+<dt id="get_end">
+<code class="sig-name descname">get_end</code><span class="sig-paren">(</span><em class="sig-param">regex as Regex</em>, <em class="sig-param">nth as Intger</em><span class="sig-paren">)</span><a class="headerlink" href="#get_end" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the index of the last character of the <code class="docutils literal notranslate"><span class="pre">nth</span></code> capture in <code class="docutils literal notranslate"><span class="pre">regex</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">nth</span></code> equals <code class="docutils literal notranslate"><span class="pre">0</span></code>, it returns the index of the last character in the
+whole matched string.</p>
+<p>See also: <a class="reference internal" href="#match" title="match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">match()</span></code></a>, <a class="reference internal" href="#get_start" title="get_start"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">get_start()</span></code></a></p>
+<hr class="docutils" />
+<dl class="lua function">
+<dt id="get_start">
+<code class="sig-name descname">get_start</code><span class="sig-paren">(</span><em class="sig-param">regex as Regex</em>, <em class="sig-param">nth as Integer</em><span class="sig-paren">)</span><a class="headerlink" href="#get_start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Returns the index of the first character of the <code class="docutils literal notranslate"><span class="pre">nth</span></code> capture in <code class="docutils literal notranslate"><span class="pre">regex</span></code>. If
+<code class="docutils literal notranslate"><span class="pre">nth</span></code> equals <code class="docutils literal notranslate"><span class="pre">0</span></code>, it returns the index of the first character in the
+whole matched string.</p>
+<p>See also: <a class="reference internal" href="#group" title="group"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">group()</span></code></a>, <a class="reference internal" href="#get_end" title="get_end"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">get_end()</span></code></a></p>
+<hr class="docutils" />
+<dl class="lua function">
 <dt id="group">
-<code class="sig-name descname">group</code><span class="sig-paren">(</span><em class="sig-param">nth</em><span class="sig-paren">)</span><a class="headerlink" href="#group" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">group</code><span class="sig-paren">(</span><em class="sig-param">regex as Regex</em>, <em class="sig-param">nth as Integer</em><span class="sig-paren">)</span><a class="headerlink" href="#group" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Returns the <code class="docutils literal notranslate"><span class="pre">nth</span></code> captured sub-expression in the last successful call
 to <code class="docutils literal notranslate"><span class="pre">match</span></code>. If <code class="docutils literal notranslate"><span class="pre">nth</span></code> equals <code class="docutils literal notranslate"><span class="pre">0</span></code>, the whole matched string is
 returned, even if no sub-expression was captured.</p>
-<p><strong>Note:</strong> This function returns an empty string if <code class="docutils literal notranslate"><span class="pre">nth</span></code> is greater
-than the number returned by the <code class="docutils literal notranslate"><span class="pre">count</span></code> function.</p>
-<p>See also: <a class="reference internal" href="string.html#count" title="count"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">count()</span></code></a>, <a class="reference internal" href="#match" title="match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">match()</span></code></a>, <a class="reference internal" href="#first" title="first"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">first()</span></code></a>, <a class="reference internal" href="#last" title="last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">last()</span></code></a></p>
+<p>See also: <a class="reference internal" href="string.html#count" title="count"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">count()</span></code></a>, <a class="reference internal" href="#match" title="match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">match()</span></code></a>, <a class="reference internal" href="string.html#first" title="first"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">first()</span></code></a>, <a class="reference internal" href="string.html#last" title="last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">last()</span></code></a></p>
 <hr class="docutils" />
-<dl class="lua method">
-<dt id="first">
-<code class="sig-name descname">first</code><span class="sig-paren">(</span><em class="sig-param">nth</em><span class="sig-paren">)</span><a class="headerlink" href="#first" title="Permalink to this definition">¶</a></dt>
+<dl class="lua function">
+<dt id="len">
+<code class="sig-name descname">len</code><span class="sig-paren">(</span><em class="sig-param">regex as Regex</em><span class="sig-paren">)</span><a class="headerlink" href="#len" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Returns the index of the first character of the <code class="docutils literal notranslate"><span class="pre">nth</span></code> capture. If
-<code class="docutils literal notranslate"><span class="pre">nth</span></code> equals <code class="docutils literal notranslate"><span class="pre">0</span></code>, it returns the index of the first character in the
-whole matched string.</p>
-<p>See also: <a class="reference internal" href="#group" title="group"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">group()</span></code></a>, <a class="reference internal" href="#last" title="last"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">last()</span></code></a></p>
-<hr class="docutils" />
-<dl class="lua method">
-<dt id="last">
-<code class="sig-name descname">last</code><span class="sig-paren">(</span><em class="sig-param">nth</em><span class="sig-paren">)</span><a class="headerlink" href="#last" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<p>Returns the number of captures in the last match. This function returns 0 if there was no captured
+sub-expression, if there was no match or if <code class="docutils literal notranslate"><span class="pre">match</span></code> was not called. This is equivalent to <code class="docutils literal notranslate"><span class="pre">count()</span></code>.</p>
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">re</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="s">&quot;^a(...)(..)(..)&quot;</span><span class="p">)</span>
 
-<p>Returns the index of the last character of the <code class="docutils literal notranslate"><span class="pre">nth</span></code> capture. If
-<code class="docutils literal notranslate"><span class="pre">nth</span></code> equals <code class="docutils literal notranslate"><span class="pre">0</span></code>, it returns the index of the last character in the
-whole matched string.</p>
-<p>See also: <a class="reference internal" href="#match" title="match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">match()</span></code></a>, <a class="reference internal" href="#first" title="first"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">first()</span></code></a></p>
+<span class="c1"># Print &quot;bra&quot;, &quot;ca&quot;, &quot;da&quot;</span>
+<span class="kr">if</span> <span class="n">match</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="s">&quot;abracadabra&quot;</span><span class="p">)</span> <span class="kr">then</span>
+    <span class="kr">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span> <span class="kr">to</span> <span class="n">len</span><span class="p">(</span><span class="n">re</span><span class="p">)</span> <span class="kr">do</span>
+        <span class="kr">print</span> <span class="n">group</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+    <span class="kr">end</span>
+<span class="kr">end</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="fields">
 <h2>Fields<a class="headerlink" href="#fields" title="Permalink to this headline">¶</a></h2>
@@ -219,20 +238,20 @@ whole matched string.</p>
 <dd></dd></dl>
 
 <p>Returns the number of captured sub-expressions in the last call to
-<code class="docutils literal notranslate"><span class="pre">match</span></code>. This function returns 0 if there was no captured
+<code class="docutils literal notranslate"><span class="pre">match</span></code>. This field is equal to 0 if there was no captured
 sub-expression, if there was no match or if <code class="docutils literal notranslate"><span class="pre">match</span></code> was not called.</p>
-<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>var re = new Regex(&quot;^a(...)(..)(..)&quot;)
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">re</span> <span class="o">=</span> <span class="n">new</span> <span class="n">Regex</span><span class="p">(</span><span class="s">&quot;^a(...)(..)(..)&quot;</span><span class="p">)</span>
 
-# Print &quot;bra&quot;, &quot;ca&quot;, &quot;da&quot;
-if re.match(&quot;abracadabra&quot;) then
-    for var i = 1 to re.length do
-        var text = re.group(i)
-        print(text)
-    end
-end
+<span class="c1"># Print &quot;bra&quot;, &quot;ca&quot;, &quot;da&quot;</span>
+<span class="kr">if</span> <span class="n">re</span><span class="p">.</span><span class="n">match</span><span class="p">(</span><span class="s">&quot;abracadabra&quot;</span><span class="p">)</span> <span class="kr">then</span>
+    <span class="kr">for</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span> <span class="kr">to</span> <span class="n">re</span><span class="p">.</span><span class="n">length</span> <span class="kr">do</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">re</span><span class="p">.</span><span class="n">group</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="kr">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="kr">end</span>
+<span class="kr">end</span>
 </pre></div>
 </div>
-<p>See also: <a class="reference internal" href="#group" title="group"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">group()</span></code></a>, <a class="reference internal" href="#match" title="match"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">match()</span></code></a></p>
+<p>See also: <a class="reference internal" href="string.html#len" title="len"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">len()</span></code></a>, <a class="reference internal" href="string.html#count" title="count"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">count()</span></code></a></p>
 <hr class="docutils" />
 <dl class="lua attribute">
 <dt id="pattern">
@@ -245,7 +264,42 @@ expression was constructed.</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Regular expressions</a><ul>
+<li><a class="reference internal" href="#general-concepts">General concepts</a><ul>
+<li><a class="reference internal" href="#syntax">Syntax</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#fields">Fields</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="math.html"
+                        title="previous chapter">Mathematical functions and constants</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="sound.html"
+                        title="next chapter">Sounds</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -262,13 +316,14 @@ expression was constructed.</p>
         <li class="right" >
           <a href="math.html" title="Mathematical functions and constants"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Regular expressions</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

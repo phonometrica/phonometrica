@@ -118,9 +118,9 @@ int main(int argc, char **argv)
 
 
 #if PHON_WINDOWS
-            return wxEntry(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+            error_code = wxEntry(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 #else
-			return wxEntry(argc, argv);
+			error_code = wxEntry(argc, argv);
 #endif // PHON_WINDOWS
 #else
 			show_usage();

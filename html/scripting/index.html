@@ -5,7 +5,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Scripting &#8212; Phonometrica 0.7.6 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scripting &#8212; Phonometrica 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -14,13 +15,13 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Getting started" href="tutorial/getting_started.html" />
     <link rel="prev" title="Queries" href="../query.html" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <!--[if lt IE 9]>
     <script src="_static/css3-mediaqueries.js"></script>
     <![endif]-->
@@ -37,39 +38,10 @@
         <li class="right" >
           <a href="../query.html" title="Queries"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Scripting</a></li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Scripting</a><ul>
-<li><a class="reference internal" href="#overview">Overview</a></li>
-<li><a class="reference internal" href="#tutorials">Tutorials</a></li>
-<li><a class="reference internal" href="#modules-and-types">Modules and types</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="../query.html"
-                        title="previous chapter">Queries</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="tutorial/getting_started.html"
-                        title="next chapter">Getting started</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -94,14 +66,17 @@ language. Scripting can be used in three ways:</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/values_references.html">Values and references</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/classes.html">Classes and instances</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/modules.html">Modules</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/user_dialogs.html">User dialogs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/advanced.html">Advanced notions</a></li>
 </ul>
 </div>
 </div>
-<div class="section" id="modules-and-types">
-<h2>Modules and types<a class="headerlink" href="#modules-and-types" title="Permalink to this headline">¶</a></h2>
-<p>The following pages document Phonometrica’s modules and types. It is strongly recommended that you go
+<div class="section" id="types-and-functions">
+<h2>Types and functions<a class="headerlink" href="#types-and-functions" title="Permalink to this headline">¶</a></h2>
+<p>The following pages document the types and functions offered by Phonometrica’s scripting language. It is strongly recommended that you go
 through the tutorials before reading this material.</p>
 <div class="toctree-wrapper compound">
 <ul>
@@ -117,6 +92,7 @@ through the tutorials before reading this material.</p>
 <li class="toctree-l1"><a class="reference internal" href="api/statistics.html">Statistical functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/string.html">String processing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/system.html">Operating System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/table.html">Tables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/user_interaction.html">User interaction</a></li>
 </ul>
 </div>
@@ -124,7 +100,38 @@ through the tutorials before reading this material.</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Scripting</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#tutorials">Tutorials</a></li>
+<li><a class="reference internal" href="#types-and-functions">Types and functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../query.html"
+                        title="previous chapter">Queries</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tutorial/getting_started.html"
+                        title="next chapter">Getting started</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -141,12 +148,13 @@ through the tutorials before reading this material.</p>
         <li class="right" >
           <a href="../query.html" title="Queries"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Scripting</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

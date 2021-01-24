@@ -5,7 +5,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Sound visualization and analysis &#8212; Phonometrica 0.7.6 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sound visualization and analysis &#8212; Phonometrica 0.8.0 documentation</title>
     <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
@@ -14,13 +15,13 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Sound annotation" href="annotation.html" />
     <link rel="prev" title="Getting started" href="intro/start.html" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <!--[if lt IE 9]>
     <script src="_static/css3-mediaqueries.js"></script>
     <![endif]-->
@@ -37,53 +38,10 @@
         <li class="right" >
           <a href="intro/start.html" title="Getting started"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Sound visualization and analysis</a></li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Sound visualization and analysis</a><ul>
-<li><a class="reference internal" href="#structure-of-sound-views">Structure of sound views</a><ul>
-<li><a class="reference internal" href="#toolbar">ToolBar</a></li>
-<li><a class="reference internal" href="#wavebar">Wavebar</a></li>
-<li><a class="reference internal" href="#waveform">Waveform</a></li>
-<li><a class="reference internal" href="#spectrogram">Spectrogram</a></li>
-<li><a class="reference internal" href="#formant-tracks">Formant tracks</a></li>
-<li><a class="reference internal" href="#pitch-track">Pitch track</a></li>
-<li><a class="reference internal" href="#intensity-track">Intensity track</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#how-to-use-sound-views">How to use sound views</a><ul>
-<li><a class="reference internal" href="#playing-a-sound">Playing a sound</a></li>
-<li><a class="reference internal" href="#changing-the-current-window">Changing the current window</a></li>
-<li><a class="reference internal" href="#acoustic-measurements">Acoustic measurements</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#references">References</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="intro/start.html"
-                        title="previous chapter">Getting started</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="annotation.html"
-                        title="next chapter">Sound annotation</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -98,7 +56,7 @@ When it is opened, the sound view will display the first 10 seconds of the sound
 <div class="section" id="structure-of-sound-views">
 <h2>Structure of sound views<a class="headerlink" href="#structure-of-sound-views" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="toolbar">
-<h3>ToolBar<a class="headerlink" href="#toolbar" title="Permalink to this headline">¶</a></h3>
+<h3>Toolbar<a class="headerlink" href="#toolbar" title="Permalink to this headline">¶</a></h3>
 <p>The toolbar is located at the top of the sound view and provides a number of buttons which can execute actions or display menus.</p>
 </div>
 <div class="section" id="wavebar">
@@ -198,7 +156,7 @@ which allows you to pause (and then later resume) playing. You can also stop pla
 <p>First, you can select any part of the wavebar to display it as the current window. If you would like to keep the same window size and shift the sound left or right, you can hover
 the mouse over the wavebar and use the scroll wheel: scrolling down will shift the current window forward, and scrolling up will shift it backward.</p>
 <p>Once you have selected a portion of the file, you can change it using the toolbar’s buttons. The forward <a class="reference internal" href="_images/next.png"><img alt="forward" src="_images/next.png" style="width: 16px; height: 16px;" /></a> and backward <a class="reference internal" href="_images/back.png"><img alt="backward" src="_images/back.png" style="width: 16px; height: 16px;" /></a> buttons will shift the current window by
-a small amount, right or left, respectively. This has a similar effect to scrolling the mouse wheel over the wavebar. You can also zoom in <a class="reference internal" href="_images/zoom+.png"><img alt="zoomin" src="_images/zoom+.png" style="width: 16px; height: 16px;" /></a> or zoom out <a class="reference internal" href="_images/zoom-.png"><img alt="zoomout" src="_images/zoom-.png" style="width: 16px; height: 16px;" /></a> on the
+a small amount, right or left, respectively. This has a similar effect to scrolling the mouse wheel over the wavebar. You can also zoom in <a class="reference internal" href="../icons/zoom+.png"><img alt="zoomin" src="../icons/zoom+.png" style="width: 16px; height: 16px;" /></a> or zoom out <a class="reference internal" href="../icons/zoom-.png"><img alt="zoomout" src="../icons/zoom-.png" style="width: 16px; height: 16px;" /></a> on the
 current window, which allows you to view the sound file with varying degrees of detail. If you would like to zoom in on on a specific part of the current window, click where you would
 like your selection to start, and drag the mouse until the end of the selection. You can change the current window to this selection by clicking on the <code class="docutils literal notranslate"><span class="pre">Zoom</span> <span class="pre">to</span> <span class="pre">selection</span></code>
 button <a class="reference internal" href="_images/collapse.png"><img alt="zoomsel" src="_images/collapse.png" style="width: 16px; height: 16px;" /></a>, or by clicking on the middle button of the mouse (i.e. the scroll wheel).</p>
@@ -231,7 +189,52 @@ button.)</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Sound visualization and analysis</a><ul>
+<li><a class="reference internal" href="#structure-of-sound-views">Structure of sound views</a><ul>
+<li><a class="reference internal" href="#toolbar">Toolbar</a></li>
+<li><a class="reference internal" href="#wavebar">Wavebar</a></li>
+<li><a class="reference internal" href="#waveform">Waveform</a></li>
+<li><a class="reference internal" href="#spectrogram">Spectrogram</a></li>
+<li><a class="reference internal" href="#formant-tracks">Formant tracks</a></li>
+<li><a class="reference internal" href="#pitch-track">Pitch track</a></li>
+<li><a class="reference internal" href="#intensity-track">Intensity track</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#how-to-use-sound-views">How to use sound views</a><ul>
+<li><a class="reference internal" href="#playing-a-sound">Playing a sound</a></li>
+<li><a class="reference internal" href="#changing-the-current-window">Changing the current window</a></li>
+<li><a class="reference internal" href="#acoustic-measurements">Acoustic measurements</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="intro/start.html"
+                        title="previous chapter">Getting started</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="annotation.html"
+                        title="next chapter">Sound annotation</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -248,12 +251,13 @@ button.)</p>
         <li class="right" >
           <a href="intro/start.html" title="Getting started"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Sound visualization and analysis</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

@@ -5,7 +5,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Installation &#8212; Phonometrica 0.7.6 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Installation &#8212; Phonometrica 0.8.0 documentation</title>
     <link rel="stylesheet" href="../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
@@ -14,13 +15,13 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Getting started" href="start.html" />
     <link rel="prev" title="Phonometrica" href="../index.html" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <!--[if lt IE 9]>
     <script src="_static/css3-mediaqueries.js"></script>
     <![endif]-->
@@ -37,39 +38,10 @@
         <li class="right" >
           <a href="../index.html" title="Phonometrica"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Installation</a><ul>
-<li><a class="reference internal" href="#windows">Windows</a></li>
-<li><a class="reference internal" href="#mac-os">Mac OS</a></li>
-<li><a class="reference internal" href="#linux-debian-ubuntu">Linux (Debian/Ubuntu)</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="../index.html"
-                        title="previous chapter">Phonometrica</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="start.html"
-                        title="next chapter">Getting started</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -101,19 +73,50 @@ supported. It does not work on earlier versions.</p>
 <p>The official executable that is provided on the website is built on Debian 10 and is available for 64-bit architectures. On
 modern distributions, all dependencies should be installed. Assuming the <code class="docutils literal notranslate"><span class="pre">.deb</span></code> package is in your <code class="docutils literal notranslate"><span class="pre">Downloads</span></code> directory,
 you should be able to install it with the following command:</p>
-<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>sudo apt install ~/Downloads/phonometrica-X-X-X.deb
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="o">~/</span><span class="n">Downloads</span><span class="o">/</span><span class="n">phonometrica</span><span class="o">-</span><span class="nc">X</span><span class="o">-</span><span class="nc">X</span><span class="o">-</span><span class="nc">X</span><span class="p">.</span><span class="n">deb</span>
 </pre></div>
 </div>
 <p>replacing <code class="docutils literal notranslate"><span class="pre">X.X.X</span></code> with the correct version number. If this somehow fails, you can install Phonometrica’s dependencies with
 the following command:</p>
-<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>sudo apt install libasound2 libsndfile1 libgtk2.0-0 libqt5gui5 libqt5widgets5 fonts-noto-mono
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">libasound2</span> <span class="n">libsndfile1</span> <span class="n">libgtk2</span><span class="mf">.0</span><span class="o">-</span><span class="mi">0</span> <span class="n">libqt5gui5</span> <span class="n">libqt5widgets5</span> <span class="n">fonts</span><span class="o">-</span><span class="n">noto</span><span class="o">-</span><span class="n">mono</span>
 </pre></div>
 </div>
 </div>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#windows">Windows</a></li>
+<li><a class="reference internal" href="#mac-os">Mac OS</a></li>
+<li><a class="reference internal" href="#linux-debian-ubuntu">Linux (Debian/Ubuntu)</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../index.html"
+                        title="previous chapter">Phonometrica</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="start.html"
+                        title="next chapter">Getting started</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -130,12 +133,13 @@ the following command:</p>
         <li class="right" >
           <a href="../index.html" title="Phonometrica"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>

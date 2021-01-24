@@ -1,9 +1,9 @@
 /***********************************************************************************************************************
  *                                                                                                                     *
- * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
+ * Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                            *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
- * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any      *
  * later version.                                                                                                      *
  *                                                                                                                     *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied  *
@@ -13,55 +13,28 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 24/01/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: View for scripts.                                                                                          *
+ * Purpose: Display raw text.                                                                                          *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SCRIPT_VIEW_HPP
-#define PHONOMETRICA_SCRIPT_VIEW_HPP
+#ifndef PHONOMETRICA_TEXTVIEWER_HPP
+#define PHONOMETRICA_TEXTVIEWER_HPP
 
-#include <phon/gui/views/view.hpp>
-#include <phon/gui/script_ctrl.hpp>
-#include <phon/runtime.hpp>
-
-class wxToolBarToolBase;
+#include <wx/dialog.h>
 
 namespace phonometrica {
 
-class ScriptView final : public View
+class TextViewer final : public wxDialog
 {
 public:
 
-	ScriptView(Runtime &rt, wxWindow *parent);
-	ScriptView(Runtime &rt, const String &path, wxWindow *parent);
-	bool Finalize() override;
-	void Save() override;
-	void Run() override;
+	TextViewer(wxWindow *parent, const wxString &title, const wxString &text);
 
-private:
 
-	void SetupUi();
-	void OnModification(wxStyledTextEvent &);
-	void OnCommentSelection(wxCommandEvent &);
-	void OnUncommentSelection(wxCommandEvent &);
-	void OnIndentSelection(wxCommandEvent &);
-	void OnUnindentSelection(wxCommandEvent &);
-	void AddStartCharacter(const wxString &s);
-	void RemoveStartCharacter(const wxString &s);
-	void OnOpenHelp(wxCommandEvent &);
-	void OnViewBytecode(wxCommandEvent &);
-
-	ScriptControl *m_ctrl;
-
-	wxToolBarToolBase *m_save_tool;
-
-	String m_path; // temp
-
-	Runtime &runtime;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_SCRIPT_VIEW_HPP
+#endif // PHONOMETRICA_TEXTVIEWER_HPP

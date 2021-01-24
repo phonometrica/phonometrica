@@ -22,9 +22,11 @@
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
 #include <wx/artprov.h>
+#include <wx/msgdlg.h>
 #include <phon/gui/views/script_view.hpp>
 #include <phon/gui/macros.hpp>
 #include <phon/gui/console.hpp>
+#include <phon/gui/text_viewer.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/file.hpp>
 #include <phon/application/settings.hpp>
@@ -70,6 +72,10 @@ void ScriptView::SetupUi()
 	auto ident_tool = toolbar->AddTool(-1, _("Indent selection"), ident_icon, _("Indent line or selection"));
 	wxBitmap unident_icon(wxBITMAP_PNG_FROM_DATA(double_left));
 	auto unindent_tool = toolbar->AddTool(-1, _("Unindent selection"), unident_icon, _("Unindent line or selection"));
+	toolbar->AddSeparator();
+
+	wxBitmap bytecode_icon(wxBITMAP_PNG_FROM_DATA(eye));
+	auto bytecode_tool = toolbar->AddTool(-1, _("View bytecode"), bytecode_icon, _("View bytecode"));
 	toolbar->AddStretchableSpace();
 
 	wxBitmap help_icon(wxBITMAP_PNG_FROM_DATA(question));
@@ -82,6 +88,7 @@ void ScriptView::SetupUi()
 	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnIndentSelection, this, ident_tool->GetId());
 	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnUnindentSelection, this, unindent_tool->GetId());
 	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnOpenHelp, this, help_tool->GetId());
+	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnViewBytecode, this, bytecode_tool->GetId());
 
 	m_ctrl = new ScriptControl(this);
 	m_ctrl->SetSyntaxHighlighting();
@@ -189,6 +196,32 @@ void ScriptView::OnOpenHelp(wxCommandEvent &)
 {
 	auto url = Settings::get_documentation_page("scripting");
 	wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
+}
+
+void ScriptView::OnViewBytecode(wxCommandEvent &)
+{
+	auto old_print = runtime.print;
+
+	try
+	{
+		// Redirect stdout to string buffer
+		String buffer;
+		runtime.print = [&buffer](const String &s) {
+			buffer.append(s);
+		};
+
+		auto closure = runtime.compile_string(m_ctrl->GetValue());
+		runtime.disassemble(*closure, "main");
+		TextViewer viewer(this, _("Bytecode viewer"), buffer);
+		viewer.SetSize(FromDIP(wxSize(700, 400)));
+		viewer.ShowModal();
+	}
+	catch (std::exception &e)
+	{
+		wxMessageBox(e.what(), _("Syntax error"), wxICON_ERROR);
+	}
+
+	runtime.print = old_print;
 }
 
 

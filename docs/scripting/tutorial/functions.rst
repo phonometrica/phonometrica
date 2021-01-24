@@ -396,6 +396,7 @@ whether they are declared as local or not. Consider the following example:
 
 
 .. code:: phon
+
     # This function is global
     function outer1()
         print "I'm a global function"

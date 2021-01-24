@@ -5,7 +5,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Operating System &#8212; Phonometrica 0.7.6 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Operating System &#8212; Phonometrica 0.8.0 documentation</title>
     <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
@@ -14,13 +15,13 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="User interaction" href="user_interaction.html" />
+    <link rel="next" title="Tables" href="table.html" />
     <link rel="prev" title="String processing" href="string.html" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <!--[if lt IE 9]>
     <script src="_static/css3-mediaqueries.js"></script>
     <![endif]-->
@@ -32,44 +33,16 @@
           <a href="../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="user_interaction.html" title="User interaction"
+          <a href="table.html" title="Tables"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="string.html" title="String processing"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Scripting</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Operating System</a></li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../../index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Operating System</a><ul>
-<li><a class="reference internal" href="#general-concepts">General concepts</a></li>
-<li><a class="reference internal" href="#module-system">Functions</a></li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="string.html"
-                        title="previous chapter">String processing</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="user_interaction.html"
-                        title="next chapter">User interaction</a></p>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -107,8 +80,8 @@ or directory exists, extracting parts of a file name, etc.</p>
 <dd></dd></dl>
 
 <p>Get or set the current directory.</p>
-<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span>system.current_directory = &quot;/home/julien/Documents&quot;
-print(system.current_directory)
+<div class="highlight-phon notranslate"><div class="highlight"><pre><span></span><span class="n">system</span><span class="p">.</span><span class="n">current_directory</span> <span class="o">=</span> <span class="s">&quot;/home/julien/Documents&quot;</span>
+<span class="kr">print</span><span class="p">(</span><span class="n">system</span><span class="p">.</span><span class="n">current_directory</span><span class="p">)</span>
 </pre></div>
 </div>
 <hr class="docutils" />
@@ -253,7 +226,7 @@ hidden files are not included.</p>
 <code class="sig-prename descclassname">system.</code><code class="sig-name descname">nativize</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#system.nativize" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>On Windows, this function converts the generic path separator to the native separator``”&quot;. On platforms that use the generic separator, it does nothing.</p>
+<p>On Windows, this function converts the generic path separator to the native separator``”\”. On platforms that use the generic separator, it does nothing.</p>
 <hr class="docutils" />
 <dl class="lua function">
 <dt id="system.rename">
@@ -265,7 +238,37 @@ hidden files are not included.</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Operating System</a><ul>
+<li><a class="reference internal" href="#general-concepts">General concepts</a></li>
+<li><a class="reference internal" href="#module-system">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="string.html"
+                        title="previous chapter">String processing</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="table.html"
+                        title="next chapter">Tables</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -277,18 +280,19 @@ hidden files are not included.</p>
           <a href="../../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="user_interaction.html" title="User interaction"
+          <a href="table.html" title="Tables"
              >next</a> |</li>
         <li class="right" >
           <a href="string.html" title="String processing"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.7.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../index.html">Phonometrica 0.8.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Scripting</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Operating System</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.3.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
   </body>
 </html>
