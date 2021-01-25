@@ -2,6 +2,8 @@
 #ifdef PHON_GUI
 #include <phon/gui/application.hpp>
 #include <phon/application/settings.hpp>
+#include <phon/application/project.hpp>
+
 #else
 #include <phon/runtime.hpp>
 #endif
@@ -53,6 +55,8 @@ static void initialize(Runtime &rt)
 
 	Settings::read();
 	run_script(rt, initialize);
+	Project::create(rt);
+	Project::initialize(rt);
 #endif // PHON_GUI
 }
 

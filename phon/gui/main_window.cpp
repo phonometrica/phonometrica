@@ -28,6 +28,7 @@
 #include <phon/gui/main_window.hpp>
 #include <phon/gui/pref/preferences_editor.hpp>
 #include <phon/application/settings.hpp>
+#include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>
 #include <phon/utils/helpers.hpp>
 #include <phon/include/icons.hpp>
@@ -40,7 +41,6 @@ static const int ID_FILE_NEW_SCRIPT = wxNewId();
 static const int ID_FILE_OPEN_PROJECT = wxNewId();
 static const int ID_FILE_ADD_FILES = wxNewId();
 static const int ID_FILE_ADD_FOLDER = wxNewId();
-static const int ID_FILE_RECENT_SUBMENU = wxNewId();
 static const int ID_FILE_CLEAR_RECENT = wxNewId();
 static const int ID_FILE_OPEN_LAST = wxNewId();
 static const int ID_FILE_CLOSE_PROJECT = wxNewId();
@@ -88,12 +88,10 @@ MainWindow::MainWindow(Runtime &rt, const wxString &title) :
 	SetSize(size);
 	MakeMenus();
 	SetupUi();
-//	CreateStatusBar(1);
 	RestoreGeometry();
 	SetBindings();
 	SetAccelerators();
 	SetStartView();
-//	SetStatusText(_("Empty project"));
 }
 
 void MainWindow::MakeMenus()
@@ -168,10 +166,9 @@ wxMenu *MainWindow::MakeFileMenu()
 
 	menu->Append(ID_FILE_EXIT, _("Quit\tCtrl+q"));
 
-	EnableRecentProjects(false);
+	PopulateRecentProjects();
 	EnableSaveFile(false);
-
-//	SetRecentProjects();
+	m_file_menu = menu;
 
 	return menu;
 }
@@ -238,14 +235,14 @@ void MainWindow::SetBindings()
 {
 	// File menu
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnNewScript, this, ID_FILE_NEW_SCRIPT);
-//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenProject, this, ID_FILE_OPEN_PROJECT);
-//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenLastProject, this, ID_FILE_OPEN_LAST);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenProject, this, ID_FILE_OPEN_PROJECT);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenMostRecentProject, this, ID_FILE_OPEN_LAST);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExit, this, ID_FILE_EXIT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAddFilesToProject, this, ID_FILE_ADD_FILES);
 //	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAddFolderToProject, this, ID_FILE_ADD_FOLDER);
 //	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSaveProject, this, ID_FILE_SAVE);
 //	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSaveProjectAs, this, ID_FILE_SAVE_AS);
-//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseProject, this, ID_FILE_CLOSE_PROJECT);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseProject, this, ID_FILE_CLOSE_PROJECT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnEditPreferences, this, ID_FILE_PREFERENCES);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseCurrentView, this, ID_FILE_CLOSE_VIEW);
 
@@ -278,6 +275,19 @@ void MainWindow::SetBindings()
 	m_viewer_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnViewerSashMoved, this);
 	m_info_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnInfoSashMoved, this);
 
+	m_project_manager->view_file.connect(&Viewer::OnViewFile, m_viewer);
+
+	auto project = Project::get();
+	project->notify_update.connect(&ProjectManager::OnProjectUpdated, m_project_manager);
+
+//	connect(Project::instance(), &Project::notify_update, file_manager, &FileManager::refreshProject);
+//	connect(Project::instance(), &Project::notify_closed, viewer, &Viewer::closeAll);
+//	connect(Project::instance(), &Project::metadata_updated, file_manager, &FileManager::refreshLabel);
+//	connect(Project::instance(), &Project::metadata_updated, main_area->infoPanel(), &InfoPanel::reset);
+//	connect(Project::instance(), &Project::initialized, this, &MainWindow::setDatabaseConnection);
+//	connect(Project::instance(), &Project::request_save, viewer, &Viewer::saveViews);
+
+
 	Bind(wxEVT_CLOSE_WINDOW, &MainWindow::OnCloseRequest, this);
 }
 
@@ -306,6 +316,7 @@ void MainWindow::EnableSaveFile(bool value)
 void MainWindow::EnableRecentProjects(bool value)
 {
 	m_recent_item->Enable(value);
+	m_last_item->Enable(value);
 }
 
 void MainWindow::OnNewScript(wxCommandEvent &)
@@ -358,6 +369,11 @@ void MainWindow::PostInitialize()
 	LoadPluginsAndScripts(resources_dir);
 	LoadPluginsAndScripts(user_dir);
 	m_console->SetFocus();
+
+	if (Settings::get_boolean("autoload"))
+	{
+		OpenMostRecentProject();
+	}
 }
 
 void MainWindow::ShowAllPanels()
@@ -634,11 +650,21 @@ void MainWindow::OnAbout(wxCommandEvent &)
 
 void MainWindow::OnAddFilesToProject(wxCommandEvent &)
 {
-	wxFileDialog dlg(this, _("Add files to project..."), "", "", "Phonometrica scripts (*.phon)|*.phon", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+	wxFileDialog dlg(this, _("Add files to project..."), "", "", "Phonometrica files (*.*)|*.*",
+				  wxFD_OPEN|wxFD_MULTIPLE|wxFD_FILE_MUST_EXIST);
+
 	if (dlg.ShowModal() == wxID_CANCEL) {
 		return;
 	}
-	m_viewer->NewScript(dlg.GetPath());
+	wxArrayString paths;
+	dlg.GetPaths(paths);
+	auto project = Project::get();
+
+	for (auto &path : paths) {
+		project->import_file(path);
+	}
+	Project::updated();
+	EnableSaveFile(true);
 }
 
 void MainWindow::OnHelpScripting(wxCommandEvent &)
@@ -653,7 +679,12 @@ void MainWindow::OnCloseCurrentView(wxCommandEvent &)
 
 void MainWindow::OnOpenProject(wxCommandEvent &)
 {
-
+	wxFileDialog dlg(this, _("Open project..."), "", "", "Phonometrica projects (*.phon-project)|*.phon-project", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+	if (dlg.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	auto path = dlg.GetPath();
+	OpenProject(path);
 }
 
 void MainWindow::OnEditPreferences(wxCommandEvent &)
@@ -947,6 +978,98 @@ void MainWindow::UninstallPlugin(int index, bool verbose)
 		auto msg = utils::format("The plugin \"%\" has been uninstalled!", label);
 		wxMessageBox(_(msg), _("Success"), wxICON_INFORMATION);
 	}
+}
+
+void MainWindow::UpdateRecentProjects(const String &most_recent)
+{
+	try
+	{
+		auto &lst = Settings::get_list("recent_projects");
+		lst.remove(most_recent);
+		lst.append(most_recent);
+		PopulateRecentProjects();
+	}
+	catch (std::exception &e)
+	{
+		wxMessageBox(e.what(), _("Invalid recent project"), wxICON_ERROR);
+	}
+}
+
+void MainWindow::PopulateRecentProjects()
+{
+	try
+	{
+		auto &lst = Settings::get_list("recent_projects");
+
+		while (m_recent_submenu->GetMenuItemCount() != 0)
+		{
+			auto item = m_recent_submenu->FindItemByPosition(0);
+			m_recent_submenu->Destroy(item);
+		}
+
+		for (auto &item : lst)
+		{
+			auto &path = cast<String>(item);
+			auto id = wxNewId();
+			m_recent_submenu->Append(id, path);
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [this,path](wxCommandEvent &) { OpenProject(path); }, id);
+		}
+		m_recent_submenu->AppendSeparator();
+		m_recent_submenu->Append(ID_FILE_CLEAR_RECENT, _("Clear recent projects"));
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnClearRecentProjects, this, ID_FILE_CLEAR_RECENT);
+		EnableRecentProjects(!lst.empty());
+	}
+	catch (std::exception &e)
+	{
+		wxMessageBox(e.what(), _("Invalid recent project"), wxICON_ERROR);
+	}
+}
+
+void MainWindow::OnClearRecentProjects(wxCommandEvent &)
+{
+	try
+	{
+		Array<Variant> projects;
+		Settings::set_value("recent_projects", projects);
+		PopulateRecentProjects();
+	}
+	catch (std::exception &e)
+	{
+		wxMessageBox(e.what(), _("Invalid recent project"), wxICON_ERROR);
+	}
+}
+
+void MainWindow::OnOpenMostRecentProject(wxCommandEvent &)
+{
+	OpenMostRecentProject();
+}
+
+void MainWindow::OpenProject(const String &path)
+{
+	Project::get()->open(path);
+	UpdateRecentProjects(path);
+	EnableSaveFile(true);
+}
+
+void MainWindow::OpenMostRecentProject()
+{
+	try
+	{
+		auto &lst = Settings::get_list("recent_projects");
+		if (lst.empty()) return;
+		auto path = cast<String>(lst.last());
+		OpenProject(path);
+	}
+	catch (std::exception &e)
+	{
+		wxMessageBox(e.what(), _("Invalid recent project"), wxICON_ERROR);
+	}
+}
+
+void MainWindow::OnCloseProject(wxCommandEvent &)
+{
+	Project::get()->close();
+	EnableSaveFile(false);
 }
 
 } // namespace phonometrica

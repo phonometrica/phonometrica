@@ -21,11 +21,22 @@
 
 #include <wx/sizer.h>
 #include <wx/settings.h>
+#include <wx/artprov.h>
 #include <phon/gui/project_manager.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/application/settings.hpp>
 
 namespace phonometrica {
+
+struct ItemData final : public wxTreeItemData
+{
+	ItemData(VNode *n) :
+			wxTreeItemData(), node(n) { }
+
+	~ItemData() override = default;
+
+	VNode *node = nullptr;
+};
 
 ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	wxPanel(parent), runtime(rt)
@@ -47,11 +58,18 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	auto images = new wxImageList(16, 16);
 //	m_corpus_img = images->Add(wxBitmap(Settings::get_icon_path("corpus.png"), wxBITMAP_TYPE_PNG));
 	m_corpus_img = images->Add(wxBITMAP_PNG_FROM_DATA(corpus));
-	m_query_img = images->Add(wxBITMAP_PNG_FROM_DATA(search));
-	m_data_img = images->Add(wxBITMAP_PNG_FROM_DATA(data));
-	m_script_img = images->Add(wxBITMAP_PNG_FROM_DATA(console));
-	m_bookmark_img = images->Add(wxBITMAP_PNG_FROM_DATA(favorite));
+	m_queries_img = images->Add(wxBITMAP_PNG_FROM_DATA(search));
+	m_datasets_img = images->Add(wxBITMAP_PNG_FROM_DATA(data));
+	m_scripts_img = images->Add(wxBITMAP_PNG_FROM_DATA(console));
+	m_bookmarks_img = images->Add(wxBITMAP_PNG_FROM_DATA(favorite));
 	m_annot_img = images->Add(wxBITMAP_PNG_FROM_DATA(annotation));
+	m_folder_img = images->Add(wxArtProvider::GetIcon(wxART_FOLDER));
+	m_bookmark_img = images->Add(wxBITMAP_PNG_FROM_DATA(bookmark));
+	m_sound_img = images->Add(wxBITMAP_PNG_FROM_DATA(sound));
+	m_script_img = images->Add(wxBITMAP_PNG_FROM_DATA(script));
+	m_document_img = images->Add(wxBITMAP_PNG_FROM_DATA(document));
+	m_query_img = images->Add(wxBITMAP_PNG_FROM_DATA(query));
+	m_dataset_img = images->Add(wxBITMAP_PNG_FROM_DATA(dataset));
 	m_tree->SetImageList(images);
 	m_root = m_tree->AddRoot(_("Untitled project"));
 #if PHON_LINUX
@@ -65,16 +83,120 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 
 	m_root = m_tree->GetRootItem();
 	Populate();
+
+	Bind(wxEVT_TREE_SEL_CHANGED, &ProjectManager::OnItemSelected, this);
+	Bind(wxEVT_TREE_ITEM_ACTIVATED, &ProjectManager::OnItemDoubleClicked, this);
 }
 
 void ProjectManager::Populate()
 {
-	auto c = m_tree->AppendItem(m_root, _("Corpus"), m_corpus_img, m_corpus_img);
-	m_tree->AppendItem(c, "Test", m_annot_img, m_annot_img);
-	m_tree->AppendItem(m_root, _("Queries"), m_query_img, m_query_img);
-	m_tree->AppendItem(m_root, _("Datasets"), m_data_img, m_data_img);
-	m_tree->AppendItem(m_root, _("Scripts"), m_script_img, m_script_img);
-	m_tree->AppendItem(m_root, _("Bookmarks"), m_bookmark_img, m_bookmark_img);
+	m_corpus_item = m_tree->AppendItem(m_root, _("Corpus"), m_corpus_img, m_corpus_img);
+	m_query_item = m_tree->AppendItem(m_root, _("Queries"), m_queries_img, m_queries_img);
+	m_data_item = m_tree->AppendItem(m_root, _("Datasets"), m_datasets_img, m_datasets_img);
+	m_script_item = m_tree->AppendItem(m_root, _("Scripts"), m_scripts_img, m_scripts_img);
+	m_bookmark_item = m_tree->AppendItem(m_root, _("Bookmarks"), m_bookmarks_img, m_bookmarks_img);
+}
 
+void ProjectManager::OnProjectUpdated()
+{
+	ClearProject();
+	UpdateProject();
+}
+
+void ProjectManager::UpdateProject()
+{
+	auto project = Project::get();
+	if (project->empty()) {
+		return;
+	}
+
+	m_label->SetLabel(project->label());
+
+	FillFolder(m_corpus_item, *project->corpus());
+	FillFolder(m_data_item, *project->data());
+	FillFolder(m_query_item, *project->queries());
+	FillFolder(m_script_item, *project->scripts());
+	FillFolder(m_bookmark_item, *project->bookmarks());
+	m_tree->Expand(m_corpus_item);
+}
+
+void ProjectManager::ClearProject()
+{
+	m_tree->DeleteChildren(m_corpus_item);
+	m_tree->DeleteChildren(m_query_item);
+	m_tree->DeleteChildren(m_data_item);
+	m_tree->DeleteChildren(m_script_item);
+	m_tree->DeleteChildren(m_bookmark_item);
+}
+
+void ProjectManager::FillFolder(wxTreeItemId &item, VFolder &folder)
+{
+	for (int i = 1; i <= folder.size(); i++)
+	{
+		auto &node = folder.get(i);
+
+		if (node->is_folder())
+		{
+			auto &subfolder = dynamic_cast<VFolder&>(*node);
+			auto data = new ItemData(&subfolder);
+			auto child = m_tree->AppendItem(item, node->label(), m_folder_img, m_folder_img, data);
+			FillFolder(child, subfolder);
+		}
+		else if (node->is_bookmark())
+		{
+//			auto &bookmark = dynamic_cast<Bookmark&>(*node);
+			auto data = new ItemData(node.get());
+			m_tree->AppendItem(item, node->label(), m_bookmark_img, m_bookmark_img, data);
+		}
+		else
+		{
+			auto &vfile = dynamic_cast<VFile&>(*node);
+			int img;
+
+			if (vfile.is_annotation())
+			{
+				img = m_annot_img;
+			}
+			else if (vfile.is_sound())
+			{
+				img = m_sound_img;
+			}
+			else if (vfile.is_script())
+			{
+				img = m_script_img;
+			}
+			else if (vfile.is_dataset())
+			{
+				img = m_dataset_img;
+			}
+			else if (vfile.is_document())
+			{
+				img = m_document_img;
+			}
+			else
+			{
+				img = m_document_img;
+			}
+			auto data = new ItemData(node.get());
+			m_tree->AppendItem(item, node->label(), img, img, data);
+		}
+	}
+}
+
+void ProjectManager::OnItemSelected(wxTreeEvent &)
+{
+
+}
+
+void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
+{
+	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(e.GetItem()));
+	auto vnode = data->node;
+
+	if (vnode->is_file())
+	{
+		auto vf = downcast<VFile>(vnode->shared_from_this());
+		view_file(vf);
+	}
 }
 } // namespace phonometrica

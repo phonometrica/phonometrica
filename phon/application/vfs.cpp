@@ -440,7 +440,7 @@ void VFile::to_xml(xml_node root)
 	attr.set_value(class_name());
 	auto data = node.append_child(node_pcdata);
 	String path = m_path;
-	auto project = Project::instance();
+	auto project = Project::get();
 	Project::compress(path, project->directory());
 	data.set_value(path.data());
 }
@@ -490,7 +490,7 @@ void VFile::save_metadata()
 {
 	if (uses_external_metadata())
 	{
-		auto project = Project::instance();
+		auto project = Project::get();
 		auto &db = project->database();
 		db.save_file_metadata(*this);
 	}

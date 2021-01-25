@@ -28,6 +28,8 @@
 //#include <wx/treelist.h>
 #include <wx/imaglist.h>
 #include <phon/runtime.hpp>
+#include <phon/application/project.hpp>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
@@ -37,17 +39,35 @@ public:
 
 	ProjectManager(Runtime &rt, wxWindow *parent);
 
+	void OnProjectUpdated();
+
+//	void script_selected(std::shared_ptr<Script>);
+//
+//	void files_selected(VFileList);
+//
+//	void no_selection();
+//
+	Signal<const std::shared_ptr<VFile> &> view_file;
+
+//	void view_annotation(AutoAnnotation annot, intptr_t layer, double from, double to);
+
 private:
 
 	void Populate();
+	void ClearProject();
+	void UpdateProject();
+	void FillFolder(wxTreeItemId &item, VFolder &folder);
+	void OnItemSelected(wxTreeEvent &);
+	void OnItemDoubleClicked(wxTreeEvent &);
 
 	wxTreeCtrl *m_tree = nullptr;
 
 	wxStaticText *m_label = nullptr;
 
-	wxTreeItemId m_root;
-	//wxTreeListItem m_root;
-	int m_corpus_img, m_query_img, m_data_img, m_script_img, m_bookmark_img, m_annot_img;
+	wxTreeItemId m_root, m_corpus_item, m_query_item, m_script_item, m_data_item, m_bookmark_item;
+
+	int m_corpus_img, m_queries_img, m_datasets_img, m_scripts_img, m_bookmarks_img;
+	int m_annot_img, m_folder_img, m_bookmark_img, m_sound_img, m_document_img, m_query_img, m_script_img, m_dataset_img;
 
 	Runtime &runtime;
 };

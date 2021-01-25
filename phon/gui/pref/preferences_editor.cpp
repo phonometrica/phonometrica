@@ -46,6 +46,7 @@ wxPanel *PreferencesEditor::MakeGeneralPanel()
 	match_sizer->Add(new wxStaticText(panel, wxID_ANY, _("Match context length:"), wxDefaultPosition, wxDefaultSize, wxALIGN_BOTTOM), 0, wxEXPAND, 0);
 	match_sizer->AddSpacer(10);
 	match_sizer->Add(m_match_window_ctrl, 0, wxEXPAND, 0);
+	sizer->AddSpacer(10);
 	sizer->Add(match_sizer, 0, wxEXPAND|wxALL, 10);
 	m_autoload_checkbox = new wxCheckBox(panel, wxID_ANY, _("Load most recent project on startup"));
 	m_autoload_checkbox->SetValue(Settings::get_boolean("autoload"));

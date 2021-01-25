@@ -33,18 +33,15 @@
 
 namespace phonometrica {
 
-ScriptView::ScriptView(Runtime &rt, wxWindow *parent) :
-	View(parent), runtime(rt)
+ScriptView::ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent) :
+	View(parent), m_script(script), runtime(rt)
 {
 	SetupUi();
-}
-
-ScriptView::ScriptView(Runtime &rt, const String &path, wxWindow *parent) :
-	ScriptView(rt, parent)
-{
-	m_path = path;
-	auto content = File::read_all(path);
-	m_ctrl->SetText(content);
+	if (script->has_path())
+	{
+		auto content = File::read_all(script->path());
+		m_ctrl->SetText(content);
+	}
 }
 
 void ScriptView::SetupUi()
@@ -102,9 +99,9 @@ void ScriptView::SetupUi()
 
 void ScriptView::Save()
 {
-	if (m_path.empty()) return;
+	if (!m_script->has_path()) return;
 	String content = m_ctrl->GetText();
-	File file(m_path, "w");
+	File file(m_script->path(), "w");
 	file.write(content);
 	m_save_tool->Enable(false);
 	MakeTitleUnmodified();

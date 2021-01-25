@@ -754,11 +754,14 @@ public:
 	void clear()
 	{
 		assert(ndim() == 1);
-		auto ptr = m_data + m_size;
-		while (--ptr >= m_data) {
-			ptr->~value_type();
+		if (!this->empty())
+		{
+			auto ptr = m_data + m_size;
+			while (--ptr >= m_data) {
+				ptr->~value_type();
+			}
+			m_size = 0;
 		}
-		m_size = 0;
 	}
 
 	bool contains(const_reference value) const

@@ -32,7 +32,7 @@
 
 namespace phonometrica {
 
-AutoProject Project::the_instance;
+AutoProject Project::instance;
 
 static String event_module_name("event");
 static String emit_name("emit");
@@ -82,9 +82,9 @@ Project::~Project()
 	discard_database();
 }
 
-Project *Project::instance()
+Project *Project::get()
 {
-	return the_instance.get();
+	return instance.get();
 }
 
 bool Project::modified() const
@@ -833,9 +833,9 @@ void Project::bind_annotations()
 
 void Project::close()
 {
-	the_instance->clear();
-	the_instance->notify_update();
-	the_instance->notify_closed();
+	instance->clear();
+	instance->notify_update();
+	instance->notify_closed();
 }
 
 VFileList Project::get_corpus_files() const
@@ -869,31 +869,33 @@ void Project::remove_empty_script()
 
 void Project::initialize(Runtime &rt)
 {
+	initialize_types(rt);
+
 	auto open_project = [](Runtime &, std::span<Variant> args) -> Variant
 	{
 		auto &path = cast<String>(args[0]);
-		Project::instance()->open(path);
+		Project::get()->open(path);
 		return Variant();
 	};
 
 	auto close_project = [](Runtime &, std::span<Variant> args) -> Variant
 	{
-		Project::instance()->close();
-		Project::instance()->reinitialize();
+		Project::get()->close();
+		Project::get()->reinitialize();
 		return Variant();
 	};
 
 	auto add_folder = [](Runtime &, std::span<Variant> args) -> Variant
     {
 	    auto &path = cast<String>(args[0]);
-	    Project::instance()->import_folder(path);
+	    Project::get()->import_folder(path);
 	    return Variant();
     };
 
     auto add_file = [](Runtime &, std::span<Variant> args) -> Variant
     {
         auto &path = cast<String>(args[0]);
-        Project::instance()->import_file(path);
+	    Project::get()->import_file(path);
         return Variant();
     };
 
@@ -904,24 +906,24 @@ void Project::initialize(Runtime &rt)
 	};
 
     auto project_has_path = [](Runtime &, std::span<Variant>) -> Variant {
-       	return Project::instance()->has_path();
+       	return Project::get()->has_path();
     };
 
     auto save_project1 = [](Runtime &, std::span<Variant>) -> Variant {
-        Project::instance()->save();
+	    Project::get()->save();
         return Variant();
     };
 
     auto save_project2 = [](Runtime &, std::span<Variant> args) -> Variant {
     	auto &path = cast<String>(args[0]);
-        Project::instance()->save(path);
+	    Project::get()->save(path);
         return Variant();
     };
 
     auto get_annotations = [](Runtime &rt, std::span<Variant> args) -> Variant {
     	Array<Variant> result;
     	std::vector<AutoAnnotation> tmp;
-    	auto &files = Project::instance()->m_files;
+    	auto &files = Project::get()->m_files;
     	for (auto &pair : files)
 		{
     		if (pair.second->is_annotation())
@@ -940,7 +942,7 @@ void Project::initialize(Runtime &rt)
     };
 
     auto get_annotation = [](Runtime &rt, std::span<Variant> args) -> Variant {
-	    auto &files = Project::instance()->m_files;
+	    auto &files = Project::get()->m_files;
 	    auto &path = cast<String>(args[0]);
 	    auto file = files.find(path);
 
@@ -961,7 +963,7 @@ void Project::initialize(Runtime &rt)
     auto get_sounds = [](Runtime &rt, std::span<Variant> args) -> Variant {
     	Array<Variant> result;
     	std::vector<AutoSound> tmp;
-    	auto &files = Project::instance()->m_files;
+    	auto &files = Project::get()->m_files;
     	for (auto &pair : files)
 		{
     		if (pair.second->is_sound())
@@ -980,7 +982,7 @@ void Project::initialize(Runtime &rt)
     };
 
     auto get_sound = [](Runtime &rt, std::span<Variant> args) -> Variant {
-    	auto &files = Project::instance()->m_files;
+    	auto &files = Project::get()->m_files;
     	auto &path = cast<String>(args[0]);
 		auto file = files.find(path);
 
@@ -999,7 +1001,7 @@ void Project::initialize(Runtime &rt)
     };
 
     auto is_empty = [](Runtime &rt, std::span<Variant> args) -> Variant {
-        return Project::instance()->empty();
+        return Project::get()->empty();
     };
  #define CLS(T) get_class<T>()
 	rt.add_global("get_annotations", get_annotations, { });
@@ -1069,12 +1071,12 @@ void Project::modify()
 
 void Project::create(Runtime &rt)
 {
-    the_instance = std::make_unique<Project>(rt, String());
+	instance = std::make_unique<Project>(rt, String());
 }
 
 void Project::updated()
 {
-    instance()->notify_update();
+	get()->notify_update();
 }
 
 void Project::remove(std::shared_ptr<VFolder> &folder)
@@ -1114,17 +1116,17 @@ bool Project::is_root(const std::shared_ptr<VFolder> &folder) const
 
 void Project::trigger(const String &event, Variant value)
 {
-    rt.push(rt[emit_name]);
-    rt.push(event);
-    rt.push(std::move(value));
-    rt.call(2);
+//    rt.push(rt[emit_name]);
+//    rt.push(event);
+//    rt.push(std::move(value));
+//    rt.call(2);
 }
 
 void Project::trigger(const String &event)
 {
-    rt.push(rt[emit_name]);
-    rt.push(event);
-    rt.call(1);
+//    rt.push(rt[emit_name]);
+//    rt.push(event);
+//    rt.call(1);
 }
 
 void Project::import_metadata(const String &path, const String &separator)

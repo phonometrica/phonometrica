@@ -25,8 +25,6 @@ set(ENABLE_LOGGING ON)
 set(WITH_GUI ON)
 # Run unit tests for core types
 set(BUILD_UNIT_TEST OFF)
-# Cross-compile the Windows version on Linux
-set(CROSS_COMPILE_WINDOWS ON)
 
 
 if (WIN32)
@@ -79,12 +77,12 @@ add_definitions(-DPHON_VERSION_MINOR=8)
 # Revision release: incremented when bugs are fixed are small features are added
 add_definitions(-DPHON_VERSION_MICRO=0)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=4)
+add_definitions(-DPHON_VERSION_NANO=5)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2021)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=1)
-add_definitions(-DPHON_RELEASE_DATE_DAY=22)
+add_definitions(-DPHON_RELEASE_DATE_DAY=25)
 
 
 ########################
@@ -118,10 +116,6 @@ endif()
 #####################
 ##  BUILD RUNTIME  ##
 #####################
-
-if (CROSS_COMPILE_WINDOWS)
-    set(DCMAKE_TOOLCHAIN_FILE toolchain.cmake)
-endif(CROSS_COMPILE_WINDOWS)
 
 if (EMBED_SCRIPTS)
     add_definitions(-DPHON_EMBED_SCRIPTS=1)

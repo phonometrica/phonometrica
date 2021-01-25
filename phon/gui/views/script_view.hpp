@@ -25,6 +25,7 @@
 #include <phon/gui/views/view.hpp>
 #include <phon/gui/script_ctrl.hpp>
 #include <phon/runtime.hpp>
+#include <phon/application/script.hpp>
 
 class wxToolBarToolBase;
 
@@ -34,8 +35,7 @@ class ScriptView final : public View
 {
 public:
 
-	ScriptView(Runtime &rt, wxWindow *parent);
-	ScriptView(Runtime &rt, const String &path, wxWindow *parent);
+	ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent);
 	bool Finalize() override;
 	void Save() override;
 	void Run() override;
@@ -57,7 +57,7 @@ private:
 
 	wxToolBarToolBase *m_save_tool;
 
-	String m_path; // temp
+	AutoScript m_script;
 
 	Runtime &runtime;
 };

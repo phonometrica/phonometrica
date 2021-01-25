@@ -54,7 +54,7 @@ public:
 
 	static void initialize(Runtime &rt);
 
-	static Project* instance();
+	static Project* get();
 
 	Project(const Project &) = delete;
 	Project(Project &&) = delete;
@@ -152,7 +152,8 @@ public:
 	// Inform the UI that the project has been modified.
 	Signal<> notify_update;
 
-	// Infor the UI that the project has been closed.
+	// Inform the UI that the project has been closed.
+	// FIXME: should we now remove this signal?
 	Signal<> notify_closed;
 
 	// Send when only the metadata has been changed.
@@ -206,7 +207,7 @@ private:
 
     void set_default_bindings();
 
-    static AutoProject the_instance;
+    static AutoProject instance;
 
 	Runtime &rt;
 

@@ -76,7 +76,7 @@ void AnnotationStamp::to_xml(xml_node root)
 	attr.set_value(class_name());
 
 	String path(m_annot->path());
-	Project::compress(path, Project::instance()->directory());
+	Project::compress(path, Project::get()->directory());
 
 	add_data_node(node, "Title", m_title);
 	add_data_node(node, "Notes", m_notes);

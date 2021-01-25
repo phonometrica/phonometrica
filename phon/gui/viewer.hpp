@@ -27,6 +27,9 @@
 #include <phon/runtime.hpp>
 #include <phon/gui/views/script_view.hpp>
 #include <phon/gui/views/start_view.hpp>
+#include <phon/application/annotation.hpp>
+#include <phon/application/sound.hpp>
+#include <phon/application/script.hpp>
 
 
 namespace phonometrica {
@@ -40,9 +43,10 @@ public:
 	Viewer(Runtime &rt, wxWindow *parent, MainWindow *win);
 	void SetStartView();
 	void NewScript();
-	void NewScript(const String &path);
+	void NewScript(const AutoScript &script);
 	void CloseCurrentView();
 	View *GetCurrentView();
+	void OnViewFile(const std::shared_ptr<VFile> &file);
 
 private:
 

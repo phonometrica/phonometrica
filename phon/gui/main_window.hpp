@@ -102,6 +102,13 @@ private:
 	void OnInstallPlugin(wxCommandEvent &);
 	void OnUninstallPlugin(wxCommandEvent &);
 	void UninstallPlugin(int index, bool verbose);
+	void UpdateRecentProjects(const String &most_recent);
+	void PopulateRecentProjects();
+	void OnClearRecentProjects(wxCommandEvent &);
+	void OnOpenMostRecentProject(wxCommandEvent &);
+	void OpenMostRecentProject();
+	void OpenProject(const String &path);
+	void OnCloseProject(wxCommandEvent &);
 
 	// Project browser, on the left.
 	ProjectManager *m_project_manager;
@@ -132,7 +139,7 @@ private:
 
 
 	wxMenuBar *m_menubar = nullptr;
-	wxMenu *m_recent_submenu = nullptr, *m_tools_menu = nullptr;
+	wxMenu *m_file_menu = nullptr, *m_recent_submenu = nullptr, *m_tools_menu = nullptr;
 
 	wxMenuItem *m_recent_item = nullptr, *m_last_item = nullptr, *m_save_item = nullptr, *m_save_as_item = nullptr;
 	wxMenuItem *m_project_item = nullptr, *m_info_item = nullptr, *m_console_item = nullptr;

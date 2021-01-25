@@ -34,7 +34,8 @@ Viewer::Viewer(Runtime &rt, wxWindow *parent, MainWindow *win) :
 
 void Viewer::NewScript()
 {
-	AddView(new ScriptView(runtime, this), _("Untitled script"));
+	auto view = new ScriptView(runtime, std::make_shared<Script>(nullptr), this);
+	AddView(view, _("Untitled script"));
 }
 
 void Viewer::AddView(View *view, const wxString &title)
@@ -42,9 +43,9 @@ void Viewer::AddView(View *view, const wxString &title)
 	AddPage(view, title, true);
 }
 
-void Viewer::NewScript(const String &path)
+void Viewer::NewScript(const AutoScript &script)
 {
-	AddView(new ScriptView(runtime, path, this), filesystem::base_name(path));
+	AddView(new ScriptView(runtime, script, this), script->label());
 }
 
 void Viewer::CloseCurrentView()
@@ -74,5 +75,13 @@ void Viewer::SetStartView()
 View *Viewer::GetCurrentView()
 {
 	return GetView(GetSelection());
+}
+
+void Viewer::OnViewFile(const std::shared_ptr<VFile> &file)
+{
+	if (file->is_script())
+	{
+		NewScript(downcast<Script>(file));
+	}
 }
 } // namespace phonometrica

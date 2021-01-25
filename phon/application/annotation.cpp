@@ -206,7 +206,7 @@ void Annotation::initialize(Runtime &rt)
     auto bind_to_sound = [](Runtime &, std::span<Variant> args) -> Variant  {
     	auto &annot = cast<AutoAnnotation>(args[0]);
     	auto &path = cast<String>(args[1]);
-    	auto project = Project::instance();
+    	auto project = Project::get();
     	project->import_file(path);
     	auto snd = downcast<Sound>(project->get(path));
     	if (snd) annot->set_sound(snd);
@@ -418,7 +418,7 @@ void Annotation::metadata_to_xml(xml_node meta_node)
 {
 	VFile::metadata_to_xml(meta_node);
 	String snd = has_sound() ? sound()->path() : String();
-	auto project = Project::instance();
+	auto project = Project::get();
 	Project::compress(snd, project->directory());
 	add_data_node(meta_node, "Sound", snd);
 }
@@ -489,7 +489,7 @@ void Annotation::metadata_from_xml(xml_node meta_node)
 	{
 		if (node.name() == sound_tag)
 		{
-			auto project = Project::instance();
+			auto project = Project::get();
 			auto path = project->import_file(node.text().get());
 			auto sound = std::dynamic_pointer_cast<Sound>(project->get(path));
 			set_sound(sound, false);
