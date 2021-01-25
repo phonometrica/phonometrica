@@ -73,10 +73,15 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 int main(int argc, char **argv)
 #endif
 {
-	Runtime runtime(argv[0]);
 #if PHON_WINDOWS
 	int argc = 1;
 	char **argv = nullptr;
+    wchar_t prog_path[_MAX_PATH+1];
+    GetModuleFileName(nullptr, prog_path, _MAX_PATH);
+    auto arg = String::from_wide(prog_path);
+    Runtime runtime(arg);
+#else
+    Runtime runtime(argv[0]);
 #endif
 	runtime.set_text_mode(argc > 1);
 	initialize(runtime);

@@ -120,6 +120,7 @@ void ProjectManager::UpdateProject()
 	FillFolder(m_script_item, *project->scripts());
 	FillFolder(m_bookmark_item, *project->bookmarks());
 	m_tree->Expand(m_corpus_item);
+	m_tree->Refresh();
 }
 
 void ProjectManager::ClearProject()
@@ -193,6 +194,7 @@ void ProjectManager::OnItemSelected(wxTreeEvent &)
 void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 {
 	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(e.GetItem()));
+	if (!data) return;
 	auto vnode = data->node;
 
 	if (vnode->is_file())

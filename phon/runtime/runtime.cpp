@@ -44,9 +44,9 @@ namespace phonometrica {
 
 bool Runtime::initialized = false;
 
-Runtime::Runtime(const char *prog_path, intptr_t stack_size) :
+Runtime::Runtime(String prog_path, intptr_t stack_size) :
 		print([](const String &s) { utils::printf(s); }), stack(stack_size, Variant()), parser(this), compiler(this),
-		prog_path(prog_path), get_item_string(intern_string("get_item")), set_item_string(intern_string("set_item")),
+		prog_path(std::move(prog_path)), get_item_string(intern_string("get_item")), set_item_string(intern_string("set_item")),
 		get_field_string(intern_string("get_field")), set_field_string(intern_string("set_field")),
 		length_string(intern_string("length"))
 {

@@ -106,7 +106,7 @@ class Runtime final
 
 public:
 
-	explicit Runtime(const char *prog_path, intptr_t stack_size = 4096);
+	explicit Runtime(String prog_path, intptr_t stack_size = 4096);
 
 	~Runtime();
 
