@@ -109,6 +109,8 @@ private:
 	void OpenMostRecentProject();
 	void OpenProject(const String &path);
 	void OnCloseProject(wxCommandEvent &);
+	void OnSaveProject(wxCommandEvent &);
+	void OnSaveProjectAs(wxCommandEvent &);
 
 	// Project browser, on the left.
 	ProjectManager *m_project_manager;

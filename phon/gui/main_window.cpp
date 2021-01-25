@@ -240,8 +240,8 @@ void MainWindow::SetBindings()
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExit, this, ID_FILE_EXIT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAddFilesToProject, this, ID_FILE_ADD_FILES);
 //	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAddFolderToProject, this, ID_FILE_ADD_FOLDER);
-//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSaveProject, this, ID_FILE_SAVE);
-//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSaveProjectAs, this, ID_FILE_SAVE_AS);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSaveProject, this, ID_FILE_SAVE);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSaveProjectAs, this, ID_FILE_SAVE_AS);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseProject, this, ID_FILE_CLOSE_PROJECT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnEditPreferences, this, ID_FILE_PREFERENCES);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseCurrentView, this, ID_FILE_CLOSE_VIEW);
@@ -1070,6 +1070,29 @@ void MainWindow::OnCloseProject(wxCommandEvent &)
 {
 	Project::get()->close();
 	EnableSaveFile(false);
+}
+
+void MainWindow::OnSaveProject(wxCommandEvent &e)
+{
+	auto project = Project::get();
+	if (!project->has_path())
+	{
+		OnSaveProjectAs(e);
+	}
+	else
+	{
+		project->save();
+	}
+}
+
+void MainWindow::OnSaveProjectAs(wxCommandEvent &)
+{
+	wxFileDialog dlg(this, _("Save project as.."), "", "", "Phonometrica project (*.phon-projet)|*.phon-project",
+	                 wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+	if (dlg.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	Project::get()->save(dlg.GetPath());
 }
 
 } // namespace phonometrica

@@ -42,9 +42,6 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	wxPanel(parent), runtime(rt)
 {
 	m_tree = new wxTreeCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_HIDE_ROOT|wxTR_MULTIPLE|wxTR_NO_LINES|wxTR_DEFAULT_STYLE);
-	//m_tree = new wxTreeListCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-	//m_tree->AppendColumn("Project");
-
 	m_label = new wxStaticText(this, wxID_ANY, _("Project"), wxDefaultPosition, wxDefaultSize);
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(m_label, 0, wxEXPAND|wxTOP|wxLEFT, 7);
@@ -56,14 +53,19 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 
 	SetSizer(sizer);
 	auto images = new wxImageList(16, 16);
-//	m_corpus_img = images->Add(wxBitmap(Settings::get_icon_path("corpus.png"), wxBITMAP_TYPE_PNG));
 	m_corpus_img = images->Add(wxBITMAP_PNG_FROM_DATA(corpus));
 	m_queries_img = images->Add(wxBITMAP_PNG_FROM_DATA(search));
 	m_datasets_img = images->Add(wxBITMAP_PNG_FROM_DATA(data));
 	m_scripts_img = images->Add(wxBITMAP_PNG_FROM_DATA(console));
 	m_bookmarks_img = images->Add(wxBITMAP_PNG_FROM_DATA(favorite));
 	m_annot_img = images->Add(wxBITMAP_PNG_FROM_DATA(annotation));
+#ifdef __WXMSW__
+	m_folder_img = images->Add(wxBITMAP_PNG_FROM_DATA(folder));
+#elif defined(__WXMAC__)
+	m_folder_img = images->Add(wxBITMAP_PNG_FROM_DATA(folder_mac));
+#else
 	m_folder_img = images->Add(wxArtProvider::GetIcon(wxART_FOLDER));
+#endif
 	m_bookmark_img = images->Add(wxBITMAP_PNG_FROM_DATA(bookmark));
 	m_sound_img = images->Add(wxBITMAP_PNG_FROM_DATA(sound));
 	m_script_img = images->Add(wxBITMAP_PNG_FROM_DATA(script));
@@ -71,7 +73,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	m_query_img = images->Add(wxBITMAP_PNG_FROM_DATA(query));
 	m_dataset_img = images->Add(wxBITMAP_PNG_FROM_DATA(dataset));
 	m_tree->SetImageList(images);
-	m_root = m_tree->AddRoot(_("Untitled project"));
+	m_root = m_tree->AddRoot(_("Project"));
 #if PHON_LINUX
 	auto col = m_label->GetBackgroundColour();
 #else

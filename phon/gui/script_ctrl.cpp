@@ -44,6 +44,9 @@ ScriptControl::ScriptControl(wxWindow *parent) :
 void ScriptControl::InitFont()
 {
     wxFont font = MONOSPACE_FONT;
+#ifdef __WXGTK__
+    font.SetPointSize(13);
+#endif
     SetFont(font);
     StyleSetFont(wxSTC_STYLE_DEFAULT, font);
     SetTabWidth(TAB_WIDTH);
