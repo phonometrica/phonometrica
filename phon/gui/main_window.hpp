@@ -40,76 +40,143 @@ class MainWindow final : public wxFrame
 public:
 
 	MainWindow(Runtime &rt, const wxString &title);
+
 	void OnOpenDocumentation(wxCommandEvent &);
+
 	void OnAddFilesToProject(wxCommandEvent &);
+
 	void OnOpenProject(wxCommandEvent &);
+
 	void OnEditPreferences(wxCommandEvent &);
+
 	void PostInitialize();
+
 	void OnResize(wxSizeEvent &e);
 
 private:
 
 	void MakeMenus();
+
 	wxMenu *MakeFileMenu();
+
 	wxMenu *MakeAnalysisMenu();
+
 	wxMenu *MakeWindowMenu();
+
 	wxMenu *MakeToolsMenu();
+
 	wxMenu *MakeHelpMenu();
+
 	void PopulateWindowMenu(wxMenu *menu);
+
 	void SetBindings();
+
 	void OnExit(wxCommandEvent &);
+
 	void OnCloseRequest(wxCloseEvent &);
+
 	void OnNewScript(wxCommandEvent &);
+
 	void Finalize();
+
 	void SetupUi();
+
 	void EnableSaveFile(bool value);
+
 	void EnableRecentProjects(bool value);
+
 	void ShowAllPanels();
+
 	void SetStartView();
+
 	void UpdateLayout();
+
 	void UpdateProjectLayout();
+
 	void UpdateViewerLayout();
+
 	void UpdateInfoLayout();
+
 	void OnGoToWebsite(wxCommandEvent &);
+
 	void OnOpenLicense(wxCommandEvent &);
+
 	void OnOpenAcknowledgements(wxCommandEvent &);
+
 	void OnAbout(wxCommandEvent &);
+
 	void OpenDocumentation(String page);
+
 	int GetMainAreaHeight() const;
+
 	int GetMainAreaWidth() const;
+
 	void OnFileManagerSashMoved(wxSplitterEvent &);
+
 	void OnInfoSashMoved(wxSplitterEvent &);
+
 	void OnViewerSashMoved(wxSplitterEvent &);
+
 	void SaveGeometry();
+
 	void RestoreGeometry();
+
 	void OnRestoreDefaultLayout(wxCommandEvent &);
+
 	void OnHideProject(wxCommandEvent &);
+
 	void OnHideInfo(wxCommandEvent &);
+
 	void OnHideConsole(wxCommandEvent &);
+
 	void OnMaximizeViewer(wxCommandEvent &);
+
 	void OnHelpScripting(wxCommandEvent &);
+
 	double GetProjectRatio() const;
+
 	double GetInfoRatio() const;
+
 	double GetConsoleRatio() const;
+
 	void OnCloseCurrentView(wxCommandEvent &);
+
 	void SetAccelerators();
+
 	void OnRun(wxCommandEvent &);
+
 	void OnSave(wxCommandEvent &);
+
 	void LoadPluginsAndScripts(const String &root);
+
 	void LoadPlugin(const String &path);
+
 	void OnRunScript(wxCommandEvent &);
+
 	void OnExtendTools(wxCommandEvent &);
+
 	void OnInstallPlugin(wxCommandEvent &);
+
 	void OnUninstallPlugin(wxCommandEvent &);
+
 	void UninstallPlugin(int index, bool verbose);
+
 	void UpdateRecentProjects(const String &most_recent);
+
 	void PopulateRecentProjects();
+
 	void OnClearRecentProjects(wxCommandEvent &);
+
 	void OnOpenMostRecentProject(wxCommandEvent &);
+
 	void OpenMostRecentProject();
+
 	void OpenProject(const String &path);
+
 	void OnCloseProject(wxCommandEvent &);
+
 	void OnSaveProject(wxCommandEvent &);
+
 	void OnSaveProjectAs(wxCommandEvent &);
 
 	// Project browser, on the left.

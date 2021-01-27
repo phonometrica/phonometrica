@@ -39,6 +39,7 @@ public:
 private:
 
 	void DoOk() override;
+
 	void DoReset() override;
 
 	wxPanel *MakeGeneralPanel();

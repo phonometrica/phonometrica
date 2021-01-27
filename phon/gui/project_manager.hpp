@@ -43,7 +43,7 @@ public:
 
 //	void script_selected(std::shared_ptr<Script>);
 //
-//	void files_selected(VFileList);
+	Signal<VFileList> files_selected;
 //
 //	void no_selection();
 //
@@ -54,11 +54,20 @@ public:
 private:
 
 	void Populate();
+
 	void ClearProject();
+
 	void UpdateProject();
+
 	void FillFolder(wxTreeItemId &item, VFolder &folder);
+
 	void OnItemSelected(wxTreeEvent &);
+
 	void OnItemDoubleClicked(wxTreeEvent &);
+
+	void OnRightClick(wxTreeEvent &);
+
+	VNodeList GetSelectedItems() const;
 
 	wxTreeCtrl *m_tree = nullptr;
 

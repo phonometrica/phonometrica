@@ -36,21 +36,33 @@ class ScriptView final : public View
 public:
 
 	ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent);
+
 	bool Finalize() override;
+
 	void Save() override;
+
 	void Run() override;
 
 private:
 
 	void SetupUi();
+
 	void OnModification(wxStyledTextEvent &);
+
 	void OnCommentSelection(wxCommandEvent &);
+
 	void OnUncommentSelection(wxCommandEvent &);
+
 	void OnIndentSelection(wxCommandEvent &);
+
 	void OnUnindentSelection(wxCommandEvent &);
+
 	void AddStartCharacter(const wxString &s);
+
 	void RemoveStartCharacter(const wxString &s);
+
 	void OnOpenHelp(wxCommandEvent &);
+
 	void OnViewBytecode(wxCommandEvent &);
 
 	ScriptControl *m_ctrl;

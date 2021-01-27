@@ -2,20 +2,25 @@
 Version 0.8.0:
 
 - new scripting engine
-- updating a plugin now cleanly removes the previous version
 - new user interface based on wxWidgets
+- properties are now directly edited from the information panel
 - improved shortcuts to show/hide the panels of the main window (see the Window menu)
+- updating a plugin now cleanly removes the previous version
+- the description file for plugins is now ``description.phon`` (instead of ``description.json``)
 - plugins can now display documentation (stored in a folder named "Documentation")
 - "Search annotations" is now "Find in annotations" 
+- resources directory is now determined automatically based on the executable's path
+- bug fixes
 
 TODO:
 - option for font size
 - priorité : refactoriser les vues spreadsheet / séraliser les données
+- PRIORITE : différence/fusion entre deux résultats de query
 - bug décalage: décalage proportionnel à la taille du zoom. Si on fait glisser la fenêtre d'un côté ou de l'autre, le décalage sera tantôt à gauche ou à droite.
 Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers. 
 - serialize queries, improve Dataset
 - std::bad_alloc: ouvre un fichier son -> catch and rethrow
-- PRIORITE : différence/fusion entre deux résultats de query
+
 - raccourcis play/pause stop, ajout/suppression d'ancres
 
 - Export to plain text, lorsque l’on sélectionne un autre chemin d’accès il n’y a pas l’extension .txt

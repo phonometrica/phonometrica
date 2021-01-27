@@ -88,15 +88,17 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 
 	Bind(wxEVT_TREE_SEL_CHANGED, &ProjectManager::OnItemSelected, this);
 	Bind(wxEVT_TREE_ITEM_ACTIVATED, &ProjectManager::OnItemDoubleClicked, this);
+	Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &ProjectManager::OnRightClick, this);
 }
 
 void ProjectManager::Populate()
 {
-	m_corpus_item = m_tree->AppendItem(m_root, _("Corpus"), m_corpus_img, m_corpus_img);
-	m_query_item = m_tree->AppendItem(m_root, _("Queries"), m_queries_img, m_queries_img);
-	m_data_item = m_tree->AppendItem(m_root, _("Datasets"), m_datasets_img, m_datasets_img);
-	m_script_item = m_tree->AppendItem(m_root, _("Scripts"), m_scripts_img, m_scripts_img);
-	m_bookmark_item = m_tree->AppendItem(m_root, _("Bookmarks"), m_bookmarks_img, m_bookmarks_img);
+	auto p = Project::get();
+	m_corpus_item = m_tree->AppendItem(m_root, _("Corpus"), m_corpus_img, m_corpus_img, new ItemData(p->corpus().get()));
+	m_query_item = m_tree->AppendItem(m_root, _("Queries"), m_queries_img, m_queries_img, new ItemData(p->queries().get()));
+	m_data_item = m_tree->AppendItem(m_root, _("Datasets"), m_datasets_img, m_datasets_img, new ItemData(p->data().get()));
+	m_script_item = m_tree->AppendItem(m_root, _("Scripts"), m_scripts_img, m_scripts_img, new ItemData(p->scripts().get()));
+	m_bookmark_item = m_tree->AppendItem(m_root, _("Bookmarks"), m_bookmarks_img, m_bookmarks_img, new ItemData(p->bookmarks().get()));
 }
 
 void ProjectManager::OnProjectUpdated()
@@ -119,7 +121,8 @@ void ProjectManager::UpdateProject()
 	FillFolder(m_query_item, *project->queries());
 	FillFolder(m_script_item, *project->scripts());
 	FillFolder(m_bookmark_item, *project->bookmarks());
-	m_tree->Expand(m_corpus_item);
+//	m_tree->Expand(m_corpus_item);
+	m_tree->ExpandAll();
 	m_tree->Refresh();
 }
 
@@ -188,19 +191,77 @@ void ProjectManager::FillFolder(wxTreeItemId &item, VFolder &folder)
 
 void ProjectManager::OnItemSelected(wxTreeEvent &)
 {
+	wxArrayTreeItemIds items;
+	m_tree->GetSelections(items);
+	VFileList files;
 
+	for (auto &item : items)
+	{
+		auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(item));
+		if (!data) return; // should never happen
+		auto vnode = data->node;
+		assert(vnode);
+
+		if (vnode->is_file())
+		{
+			auto vf = downcast<VFile>(vnode->shared_from_this());
+			files.append(std::move(vf));
+		}
+	}
+	files_selected(std::move(files));
 }
 
 void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 {
 	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(e.GetItem()));
-	if (!data) return;
+	if (!data) return; // should never happen
 	auto vnode = data->node;
+	auto id = data->GetId();
+	assert(vnode);
 
-	if (vnode->is_file())
+	if (vnode->is_folder())
+	{
+		if (m_tree->IsExpanded(id))
+		{
+			m_tree->Collapse(id);
+		}
+		else
+		{
+			m_tree->Expand(id);
+		}
+	}
+	else
 	{
 		auto vf = downcast<VFile>(vnode->shared_from_this());
 		view_file(vf);
 	}
+}
+
+void ProjectManager::OnRightClick(wxTreeEvent &)
+{
+	auto files = GetSelectedItems();
+
+	if (files.size() == 1)
+	{
+
+	}
+	// TODO....
+}
+
+VNodeList ProjectManager::GetSelectedItems() const
+{
+	wxArrayTreeItemIds items;
+	m_tree->GetSelections(items);
+	VNodeList files;
+
+	for (auto &item : items)
+	{
+		auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(item));
+		if (!data) return files; // should never happen
+		auto vnode = data->node;
+		files.append(vnode->shared_from_this());
+	}
+
+	return files;
 }
 } // namespace phonometrica

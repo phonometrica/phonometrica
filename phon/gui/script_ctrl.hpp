@@ -45,6 +45,7 @@ public:
 private:
 
 	void InitFont();
+
 	void OnChange(wxStyledTextEvent &);
 };
 

@@ -276,6 +276,7 @@ void MainWindow::SetBindings()
 	m_info_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnInfoSashMoved, this);
 
 	m_project_manager->view_file.connect(&Viewer::OnViewFile, m_viewer);
+	m_project_manager->files_selected.connect(&InfoPanel::OnSetFileSelection, m_info_panel);
 
 	auto project = Project::get();
 	project->notify_update.connect(&ProjectManager::OnProjectUpdated, m_project_manager);
@@ -986,7 +987,7 @@ void MainWindow::UpdateRecentProjects(const String &most_recent)
 	{
 		auto &lst = Settings::get_list("recent_projects");
 		lst.remove(most_recent);
-		lst.append(most_recent);
+		lst.prepend(most_recent);
 		PopulateRecentProjects();
 	}
 	catch (std::exception &e)
@@ -1057,7 +1058,7 @@ void MainWindow::OpenMostRecentProject()
 	{
 		auto &lst = Settings::get_list("recent_projects");
 		if (lst.empty()) return;
-		auto path = cast<String>(lst.last());
+		auto path = cast<String>(lst.first());
 		OpenProject(path);
 	}
 	catch (std::exception &e)

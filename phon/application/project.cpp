@@ -120,6 +120,9 @@ bool Project::has_path() const
 
 void Project::set_path(String value)
 {
+	if (!value.ends_with(".phon-project")) {
+		value.append(".phon-project");
+	}
 	filesystem::nativize(value);
 	m_directory = filesystem::directory_name(value);
 	m_path = std::move(value);
@@ -717,7 +720,7 @@ void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent)
 		start_import("Import folder", count);
 	}
 
-	for (size_t counter = 1; counter <= count; ++counter)
+	for (intptr_t counter = 1; counter <= count; ++counter)
 	{
 		auto &name = content[counter];
 		auto file = filesystem::join(path, name);
@@ -741,14 +744,12 @@ void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent)
 
 std::set<Property> Project::get_shared_properties(const VFileList &files)
 {
-	std::set<Property> properties;
-
-	std::set<Property> temp_result;
-	properties = files.front()->properties();
+	auto properties = files.front()->properties();
 	auto count = files.size();
 
-	for (size_t i = 1; i < count; ++i)
+	for (intptr_t i = 2; i <= count; ++i)
 	{
+		std::set<Property> temp_result;
 		auto &file_properties = files[i]->properties();
 		std::set_intersection(properties.begin(), properties.end(), file_properties.begin(), file_properties.end(),
 							  std::inserter(temp_result, temp_result.end()));
@@ -1058,8 +1059,9 @@ String Project::label() const
 std::shared_ptr<VFile> Project::get(const String &path)
 {
     auto it = m_files.find(path);
-    if (it != m_files.end())
-    	return it->second;
+    if (it != m_files.end()) {
+	    return it->second;
+    }
 
     return nullptr;
 }

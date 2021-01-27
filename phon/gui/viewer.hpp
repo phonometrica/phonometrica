@@ -41,17 +41,25 @@ class Viewer final : public wxAuiNotebook
 public:
 
 	Viewer(Runtime &rt, wxWindow *parent, MainWindow *win);
+
 	void SetStartView();
+
 	void NewScript();
+
 	void NewScript(const AutoScript &script);
+
 	void CloseCurrentView();
+
 	View *GetCurrentView();
+
 	void OnViewFile(const std::shared_ptr<VFile> &file);
 
 private:
 
 	void AddView(View *view, const wxString &title);
+
 	void CloseView(int index);
+
 	View *GetView(int i) { return dynamic_cast<View*>(GetPage(i)); }
 
 	// Used to set bindings.

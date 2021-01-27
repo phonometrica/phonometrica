@@ -184,7 +184,6 @@ _description TEXT NOT NULL DEFAULT "");)__");
 void MetaDatabase::add_file(VFile &file)
 {
 	String type = file.class_name();
-	auto &path = file.path();
 	String sound_ref = get_sound_path_if_exists(file);
 
 	Array<String> columns, values;
@@ -257,7 +256,7 @@ void MetaDatabase::save_file_metadata(VFile &file)
 		String col, val;
 		Array<String> stmts;
 
-		for (size_t i = 1; i <= values.size(); i++)
+		for (intptr_t i = 1; i <= values.size(); i++)
 		{
 			col = columns[i];
 			val = values[i];
@@ -306,14 +305,14 @@ void MetaDatabase::add_metadata_to_file(std::shared_ptr<VFile> &file)
 			{
 				Property p;
 				bool ok = false;
-				double num = std::nan("");
+				double num;
 
 				// Boolean
 				if (field == Property::true_string())
 				{
 					p = Property(name, true);
 				}
-				if (field == Property::false_string())
+				else if (field == Property::false_string())
 				{
 					p = Property(name, false);
 				}

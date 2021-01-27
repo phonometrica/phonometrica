@@ -77,7 +77,7 @@ add_definitions(-DPHON_VERSION_MINOR=8)
 # Revision release: incremented when bugs are fixed are small features are added
 add_definitions(-DPHON_VERSION_MICRO=0)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=5)
+add_definitions(-DPHON_VERSION_NANO=6)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2021)
@@ -208,7 +208,7 @@ if (WITH_GUI)
         add_definitions(-DwxUSE_OWNER_DRAWN=1)
 
         set(WX_LIBS
-                #wxmsw31u_propgrid${SUFFIX}.lib
+                wxmsw31u_propgrid${SUFFIX}.lib
                 #wxmsw31u_ribbon${SUFFIX}.lib
                 wxmsw31u${SUFFIX}_stc.lib
                 #wxmsw31u${SUFFIX}_webview.lib
@@ -234,7 +234,7 @@ if (WITH_GUI)
 
     else(WIN32)
         # XML is needed by richtext
-        find_package(wxWidgets COMPONENTS aui html adv stc richtext xml ${EXTRA_COMPONENTS} core base REQUIRED)
+        find_package(wxWidgets COMPONENTS aui html adv stc richtext xml propgrid ${EXTRA_COMPONENTS} core base REQUIRED)
         #find_package(wxWidgets 3.1 REQUIRED)
         include("${wxWidgets_USE_FILE}")
     endif(WIN32)

@@ -43,7 +43,8 @@ wxPanel *PreferencesEditor::MakeGeneralPanel()
 	// Main sizer.
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	auto match_sizer = new wxBoxSizer(wxHORIZONTAL);
-	match_sizer->Add(new wxStaticText(panel, wxID_ANY, _("Match context length:"), wxDefaultPosition, wxDefaultSize, wxALIGN_BOTTOM), 0, wxEXPAND, 0);
+	// Note: wxALIGN_CENTER gets the static text centered vertically in the horizontal sizer
+	match_sizer->Add(new wxStaticText(panel, wxID_ANY, _("Match context length:"), wxDefaultPosition, wxDefaultSize), 0, wxALIGN_CENTER, 0);
 	match_sizer->AddSpacer(10);
 	match_sizer->Add(m_match_window_ctrl, 0, wxEXPAND, 0);
 	sizer->AddSpacer(10);

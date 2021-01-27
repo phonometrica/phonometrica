@@ -16,13 +16,10 @@ public:
 	TabArtProvider();
 
 	wxAuiTabArt* Clone() override;
+
 	void DrawBackground(wxDC &dc, wxWindow * WXUNUSED(wnd), const wxRect &rect) override;
+
 	void DrawTab(wxDC& dc, wxWindow* wnd, const wxAuiNotebookPage& page, const wxRect& in_rect, int close_button_state, wxRect* out_tab_rect, wxRect* out_button_rect, int* x_extent) override;
-
-
-
-private:
-
 };
 
-#endif //PHONOMETRICA_TAB_ART_PROVIDER_HPP
+#endif // PHONOMETRICA_TAB_ART_PROVIDER_HPP

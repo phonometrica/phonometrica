@@ -35,21 +35,33 @@ class Console final : public wxPanel
 public:
 
 	Console(Runtime &rt, wxWindow *parent);
+
 	void ShowErrorMessage(const wxString &msg);
+
 	void AddPrompt();
+
 	void AppendNewLine() { static wxString eol("\n"); m_ctrl->WriteText(eol); }
+
 	void ChopNewLine();
+
 	void RunScript(const String &path);
 
 private:
 
 	void SetIO();
+
 	void OnKeyDown(wxKeyEvent &e);
+
 	void GrabLine();
+
 	void Clear();
+
 	void ResetLastLine(wxString text);
+
 	void GoToEnd() { m_ctrl->SetInsertionPointEnd(); }
+
 	void Append(const wxString &text) { m_ctrl->WriteText(text); }
+
 	void RunCode(const String &code);
 
 	wxRichTextCtrl *m_ctrl;

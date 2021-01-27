@@ -41,20 +41,8 @@ Property::Property(String category, std::any value) :
 	{
 		the_property_types[this->category()] = &this->type();
 	}
-	// Otherwise, we ensure that all properties from the same category have the same type
-	else
-	{
-		auto it = the_property_types.find(this->category());
-
-		if (it == the_property_types.end() || *it->second != this->type())
-		{
-			// Roll back, since the property is invalid.
-			the_known_properties.erase(*this);
-
-			throw error("Property \"%\" has a type which differs from previous properties in the same category",
-						this->value());
-		}
-	}
+	// We don't need to check for inconsistent types since operator<() will have thrown when trying to insert
+	// the property into the_known_properties.
 }
 
 void Property::swap(Property &other) noexcept
@@ -77,6 +65,11 @@ bool Property::operator<(const Property &other) const
 	}
 
 	auto &type = impl->value.type();
+
+	if (type != other.impl->value.type()) {
+		throw error("Inconsistent type for property \"%\": "
+			  "you probably created a property whose type differs from previous properties in the same category", cat1);
+	}
 
 	if (type == typeid(String))
 	{

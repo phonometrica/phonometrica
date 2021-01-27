@@ -13,47 +13,102 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 26/01/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: Start view.                                                                                                *
+ * purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_START_VIEW_HPP
-#define PHONOMETRICA_START_VIEW_HPP
-
-#include <wx/button.h>
-#include <wx/sizer.h>
-#include <phon/gui/views/view.hpp>
-
-
+#include <wx/textctrl.h>
+#include <phon/gui/property_grid.hpp>
 
 namespace phonometrica {
 
-class MainWindow;
-
-class StartView final : public View
+class CellEditor : public wxGridCellTextEditor
 {
 public:
 
-	StartView(wxWindow *parent, MainWindow *win);
+	CellEditor() = default;
 
-	bool Finalize() override { return true; }
-
-private:
-
-	void SetupUi(MainWindow *win);
-
-#ifdef __WXGTK__
-	wxButton *MakeButton(const wxBitmap &img);
-
-	wxBoxSizer * MakeLabel(const char *label);
-#else
-	wxButton *MakeButton(const wxBitmap &img, const wxString &description);
-#endif
+	wxTextCtrl *GetTextCtrl() const { return Text(); }
 };
 
 
-} // namespace phonometrica
+PropertyGrid::PropertyGrid(wxWindow *parent) : wxGrid(parent, wxID_ANY)
+{
+	CreateGrid(0, 3);
+	HideRowLabels();
+	SetColLabelValue(0, _("Type"));
+	SetColLabelValue(1, _("Key"));
+	SetColLabelValue(2, _("Value"));
+	SetColLabelAlignment(wxALIGN_LEFT, wxALIGN_CENTRE);
+	Bind(wxEVT_SIZE, &PropertyGrid::OnResize, this);
+}
 
-#endif // PHONOMETRICA_START_VIEW_HPP
+void PropertyGrid::OnResize(wxSizeEvent &)
+{
+	int w = GetClientSize().GetWidth();
+//	SetDefaultColSize(w/3);
+//	SetColSize(0, w/5);
+//	w = w - w/5;
+//	SetColSize(1, w/2);
+//	SetColSize(2, w/2);
+//
+	SetColSize(0, w/3);
+	SetColSize(1, w/3);
+	SetColSize(2, w/3);
+}
+
+void PropertyGrid::AppendProperties(const std::set<Property> &properties)
+{
+	AppendRows((int)properties.size());
+	int i = 0;
+
+	for (auto &p : properties)
+	{
+		SetCellValue(i, 1, p.category());
+
+
+		wxArrayString choices;
+		for (auto &value : Property::get_values(p.category())) {
+			choices.Add(value);
+		}
+
+		SetCellValue(i, 2, p.value());
+		SetReadOnly(i, 1, true);
+		wxString type;
+
+		if (p.is_text())
+		{
+			type = "Text";
+		}
+		else if (p.is_boolean())
+		{
+			type = "Boolean";
+		}
+		else if (p.is_numeric())
+		{
+			type = "Number";
+		}
+		SetCellValue(i, 0, type);
+
+		i++;
+	}
+
+}
+
+void PropertyGrid::SetEditingMode(int row, bool value)
+{
+	wxColour color = value ? *wxRED : GetDefaultCellTextColour();
+	auto font = GetDefaultCellFont();
+	if (value) {
+		font.MakeBold();
+	}
+
+	for (int col = 0; col <= 2; col++)
+	{
+		SetCellTextColour(row, col, color);
+		SetCellFont(row, col, font);
+	}
+}
+} // namespace phonometrica

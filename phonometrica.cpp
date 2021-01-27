@@ -9,6 +9,7 @@
 #endif
 #ifdef PHON_EMBED_SCRIPTS
 #include <phon/include/initialize_phon.hpp>
+//#include <phon/include/event_phon.hpp>
 #endif
 
 #if PHON_MACOS
@@ -55,9 +56,11 @@ static void initialize(Runtime &rt)
 
 	Settings::read();
 	run_script(rt, initialize);
+//	run_script(rt, event);
 	Project::create(rt);
 	Project::initialize(rt);
 #endif // PHON_GUI
+	Sound::set_sound_formats();
 }
 
 static void finalize(Runtime &)

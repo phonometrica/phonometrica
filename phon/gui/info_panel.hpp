@@ -15,37 +15,98 @@
  *                                                                                                                     *
  * Created: 13/01/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: Information panel. This panel is located on the right in the main window and displays information about    *
- * the file(s) that is/are currently selected.                                                                         *
+ * purpose: Information panel. This panel is located on the right in the main window and displays contextual           *
+ * information about the file(s) that is/are currently selected.                                                       *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
 #ifndef PHONOMETRICA_INFO_PANEL_HPP
 #define PHONOMETRICA_INFO_PANEL_HPP
 
-#include <wx/panel.h>
-#include <wx/stattext.h>
-#include <wx/sizer.h>
 #include <wx/simplebook.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/richtext/richtextctrl.h>
+#include <phon/gui/property_grid.hpp>
 #include <phon/runtime.hpp>
+#include <phon/application/vfs.hpp>
 
 namespace phonometrica {
+
 
 class InfoPanel final : public wxPanel
 {
 public:
 
-	InfoPanel(Runtime &rt, wxWindow *parent);
+	explicit InfoPanel(Runtime &rt, wxWindow *parent);
+
+	void OnSetFileSelection(VFileList files);
 
 private:
 
-	void SetupUi();
+	void SetupBook();
+
+	void SetEmptyPage();
+
+	void SetSingleFilePage();
+
+	void SetMultipleFilesPage();
+
+	void UpdateInformation();
+
+	void DisplaySingleFile();
+
+	void DisplayMultipleFiles();
+
+	void ClearPanel(wxPanel *panel);
+
+	void OnDescriptionEdited(wxCommandEvent &);
+
+	void OnAddProperty(wxCommandEvent &);
+
+	void OnRemoveProperty(wxCommandEvent &);
+
+	void OnImportMetadata(wxCommandEvent &);
+
+	void AddDescription(const wxString &desc);
+
+	void AddPropertyButtons(wxPanel *panel);
+
+	void AddSectionHeading(wxPanel *panel, const wxString &header, bool add_space);
+
+	void AddLabel(wxPanel *panel, const wxString &label, const wxString &tooltip = wxString());
+
+	void AddSoundLabel(wxPanel *panel, const wxString &label, const wxString &path);
+
+	void AddProperties(wxPanel *panel, bool shared);
+
+	void OnSaveDescription(wxCommandEvent &);
+
+	void OnBindSound(wxCommandEvent &);
+
+	void OnPropertySelected(wxGridEvent &);
+
+	void OnChangePropertyValue(wxGridEvent &);
+
+	void OnCellChanged(wxGridEvent &);
+
+	Runtime &runtime;
+
+	VFileList m_files;
 
 	wxSimplebook *m_book;
 
-	Runtime &runtime;
+	wxPanel *empty_page, *single_page, *multiple_page;
+
+	wxButton *prop_rm_btn, *save_desc_btn;
+
+	wxRichTextCtrl *ctrl_desc;
+
+	PropertyGrid *grid = nullptr;
 };
 
 } // namespace phonometrica
 
 #endif // PHONOMETRICA_INFO_PANEL_HPP
+
+

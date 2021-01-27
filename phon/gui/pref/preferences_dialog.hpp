@@ -37,15 +37,21 @@ public:
 protected:
 
 	void AddPage(wxWindow *page, const wxString &title);
+
 	void CreateButtons();
+
 	void OnReset(wxCommandEvent &);
+
 	void OnOk(wxCommandEvent &);
+
 	void OnCancel(wxCommandEvent &);
 
 	// Override these functions in subclasses to implement custom behavior. These will be called
 	// automatically when the buttons are clicked.
 	virtual void DoReset() = 0;
+
 	virtual void DoOk() = 0;
+
 	virtual void DoCancel() { }
 
 	wxNotebook *m_book;

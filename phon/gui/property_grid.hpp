@@ -13,47 +13,35 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 26/01/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: Start view.                                                                                                *
+ * Purpose: Property editor in the information panel.                                                                  *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_START_VIEW_HPP
-#define PHONOMETRICA_START_VIEW_HPP
+#ifndef PHONOMETRICA_PROPERTY_GRID_HPP
+#define PHONOMETRICA_PROPERTY_GRID_HPP
 
-#include <wx/button.h>
-#include <wx/sizer.h>
-#include <phon/gui/views/view.hpp>
-
-
+#include <wx/grid.h>
+#include <phon/application/property.hpp>
 
 namespace phonometrica {
 
-class MainWindow;
-
-class StartView final : public View
+class PropertyGrid final : public wxGrid
 {
 public:
 
-	StartView(wxWindow *parent, MainWindow *win);
+	PropertyGrid(wxWindow *parent);
 
-	bool Finalize() override { return true; }
+	void AppendProperties(const std::set<Property> &properties);
+
+	void SetEditingMode(int row, bool value);
 
 private:
 
-	void SetupUi(MainWindow *win);
-
-#ifdef __WXGTK__
-	wxButton *MakeButton(const wxBitmap &img);
-
-	wxBoxSizer * MakeLabel(const char *label);
-#else
-	wxButton *MakeButton(const wxBitmap &img, const wxString &description);
-#endif
+	void OnResize(wxSizeEvent &e);
 };
-
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_START_VIEW_HPP
+#endif // PHONOMETRICA_PROPERTY_GRID_HPP
