@@ -45,6 +45,8 @@ public:
 
 	void OnAddFilesToProject(wxCommandEvent &);
 
+	void OnAddDirectoryToProject(wxCommandEvent &);
+
 	void OnOpenProject(wxCommandEvent &);
 
 	void OnEditPreferences(wxCommandEvent &);
@@ -178,6 +180,10 @@ private:
 	void OnSaveProject(wxCommandEvent &);
 
 	void OnSaveProjectAs(wxCommandEvent &);
+
+	void OnImportMetadata(wxCommandEvent &);
+
+	void OnExportMetadata(wxCommandEvent &);
 
 	// Project browser, on the left.
 	ProjectManager *m_project_manager;

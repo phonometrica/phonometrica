@@ -13,108 +13,44 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 13/01/2021                                                                                                 *
+ * Created: 28/01/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: Information panel. This panel is located on the right in the main window and displays contextual           *
- * information about the file(s) that is/are currently selected.                                                       *
+ * purpose: Import/export CSV files.                                                                                   *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_INFO_PANEL_HPP
-#define PHONOMETRICA_INFO_PANEL_HPP
+#ifndef PHONOMETRICA_CSV_DIALOG_HPP
+#define PHONOMETRICA_CSV_DIALOG_HPP
 
-#include <wx/simplebook.h>
-#include <wx/panel.h>
-#include <wx/sizer.h>
-#include <wx/richtext/richtextctrl.h>
-#include <phon/gui/property_grid.hpp>
-#include <phon/runtime.hpp>
-#include <phon/application/vfs.hpp>
+#include <wx/dialog.h>
+#include <wx/filepicker.h>
+#include <wx/choice.h>
+#include <wx/radiobox.h>
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
-
-class InfoPanel final : public wxPanel
+class CsvDialog final : public wxDialog
 {
 public:
 
-	explicit InfoPanel(Runtime &rt, wxWindow *parent);
+	CsvDialog(wxWindow *parent, const wxString &title, bool read);
 
-	void OnSetFileSelection(VFileList files);
+	String GetPath() const;
 
-	void ImportMetadata();
-
-	void ExportMetadata();
+	String GetSeparator() const;
 
 private:
 
-	void SetupBook();
+	void OnOk(wxCommandEvent &);
 
-	void SetEmptyPage();
+	void OnCancel(wxCommandEvent &);
 
-	void SetSingleFilePage();
+	wxFilePickerCtrl *file_picker;
 
-	void SetMultipleFilesPage();
-
-	void UpdateInformation();
-
-	void DisplaySingleFile();
-
-	void DisplayMultipleFiles();
-
-	void ClearPanel(wxPanel *panel);
-
-	void OnDescriptionEdited(wxCommandEvent &);
-
-	void OnAddProperty(wxCommandEvent &);
-
-	void OnRemoveProperty(wxCommandEvent &);
-
-	void OnImportMetadata(wxCommandEvent &);
-
-	void OnExportMetadata(wxCommandEvent &);
-
-	void AddDescription(const wxString &desc);
-
-	void AddPropertyButtons(wxPanel *panel);
-
-	void AddSectionHeading(wxPanel *panel, const wxString &header, bool add_space);
-
-	void AddLabel(wxPanel *panel, const wxString &label, const wxString &tooltip = wxString());
-
-	void AddSoundLabel(wxPanel *panel, const wxString &label, const wxString &path);
-
-	void AddProperties(wxPanel *panel, bool shared);
-
-	void AddMetadataButtons(wxPanel *panel);
-
-	void OnSaveDescription(wxCommandEvent &);
-
-	void OnBindSound(wxCommandEvent &);
-
-	void OnPropertySelected(wxGridEvent &);
-
-	void OnChangePropertyValue(wxGridEvent &);
-
-	void OnCellChanged(wxGridEvent &);
-
-	Runtime &runtime;
-
-	VFileList m_files;
-
-	wxSimplebook *m_book;
-
-	wxPanel *empty_page, *single_page, *multiple_page;
-
-	wxButton *prop_rm_btn, *save_desc_btn;
-
-	wxRichTextCtrl *ctrl_desc;
-
-	PropertyGrid *grid = nullptr;
+	wxRadioBox *sep_box;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_INFO_PANEL_HPP
-
-
+#endif // PHONOMETRICA_CSV_DIALOG_HPP

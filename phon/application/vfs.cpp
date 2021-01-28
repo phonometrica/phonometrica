@@ -308,6 +308,18 @@ void VFolder::set_modified(bool value)
     m_expanded |= value;
 }
 
+bool VFolder::contains(const VNode *node) const
+{
+	for (auto &item : m_content)
+	{
+		if (item.get() == node) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -614,5 +626,6 @@ void VFile::reload()
 	discard_changes();
 	load();
 }
+
 
 } // namespace phonometrica

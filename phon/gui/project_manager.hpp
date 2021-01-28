@@ -41,12 +41,12 @@ public:
 
 	void OnProjectUpdated();
 
-//	void script_selected(std::shared_ptr<Script>);
-//
+	void UpdateLabel();
+
+	static void CheckProjectImport();
+
 	Signal<VFileList> files_selected;
-//
-//	void no_selection();
-//
+
 	Signal<const std::shared_ptr<VFile> &> view_file;
 
 //	void view_annotation(AutoAnnotation annot, intptr_t layer, double from, double to);
@@ -59,7 +59,7 @@ private:
 
 	void UpdateProject();
 
-	void FillFolder(wxTreeItemId &item, VFolder &folder);
+	void FillFolder(wxTreeItemId item, VFolder &folder);
 
 	void OnItemSelected(wxTreeEvent &);
 
@@ -67,7 +67,37 @@ private:
 
 	void OnRightClick(wxTreeEvent &);
 
+	void RemoveDirectory(std::shared_ptr<VFolder> &folder);
+
+	void RemoveFile(std::shared_ptr<VFile> &file);
+
+	void RenameDirectory(const std::shared_ptr<VFolder> &folder);
+
+	void CreateSubdirectory(const std::shared_ptr<VFolder> &folder);
+
+	void OnExpandDirectory(wxCommandEvent &);
+
+	void OnAddFilesToDirectory(wxCommandEvent &);
+
+	void OnCollapseDirectory(wxCommandEvent &);
+
 	VNodeList GetSelectedItems() const;
+
+	std::shared_ptr<VFolder> GetSelectedFolder() const;
+
+	std::shared_ptr<VFile> GetSelectedFile() const;
+
+	void ExpandNode(wxTreeItemId node);
+
+	void CollapseNode(wxTreeItemId node);
+
+	void SetExpansionFlag(wxTreeItemId node);
+
+	wxTreeItemId GetParentDirectory(wxTreeItemId item) const;
+
+	void OnDragItem(wxTreeEvent &);
+
+	void OnDropItem(wxTreeEvent &);
 
 	wxTreeCtrl *m_tree = nullptr;
 
@@ -77,6 +107,8 @@ private:
 
 	int m_corpus_img, m_queries_img, m_datasets_img, m_scripts_img, m_bookmarks_img;
 	int m_annot_img, m_folder_img, m_bookmark_img, m_sound_img, m_document_img, m_query_img, m_script_img, m_dataset_img;
+
+	wxArrayTreeItemIds m_dragged_items;
 
 	Runtime &runtime;
 };

@@ -90,7 +90,7 @@ public:
 
 	const String &directory() const;
 
-	void import_folder(String path);
+	void import_directory(String path);
 
 	String import_file(String path);
 
@@ -122,7 +122,7 @@ public:
 
     static void updated();
 
-    bool is_root(const std::shared_ptr<VFolder> &folder) const;
+    bool is_root(const VFolder *folder) const;
 
     void import_metadata(const String &path, const String &separator);
 
@@ -142,6 +142,11 @@ public:
 
 	void bind_annotation(const AutoAnnotation &annot, const String &sound_file);
 
+	bool add_file(String path, const std::shared_ptr<VFolder> &parent, FileType type);
+
+	void clear_import_flag() { m_import_flag = false; }
+
+	bool import_flag() const { return m_import_flag; }
 
 	// Start import progress dialog.
 	Signal<const String&, int> start_import;
@@ -184,7 +189,6 @@ private:
 	void write_scripts(xml_node root);
 	void write_data(xml_node root);
 
-	bool add_file(String path, const std::shared_ptr<VFolder> &parent);
 	void add_folder(String path, const std::shared_ptr<VFolder> &parent);
 
 	void bind_annotations();
@@ -206,6 +210,8 @@ private:
     void tag_file(std::shared_ptr<VFile> &file, const String &category, const String &value);
 
     void set_default_bindings();
+
+    bool set_import_flag() { m_import_flag = true; return false; }
 
     static AutoProject instance;
 
@@ -249,6 +255,9 @@ private:
 
 	// Register modifications.
 	bool m_modified = false;
+
+	// Used to indicate that some files could not be imported.
+	bool m_import_flag = false;
 
 };
 

@@ -22,6 +22,7 @@
 #include <wx/log.h>
 #include <wx/aboutdlg.h>
 #include <wx/filedlg.h>
+#include <wx/dirdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/choicdlg.h>
 #include <phon/gui/macros.hpp>
@@ -84,8 +85,7 @@ MainWindow::MainWindow(Runtime &rt, const wxString &title) :
 		wxFrame(nullptr, wxNewId(), title), runtime(rt)
 {
 	wxSize size(1200, 800);
-	SetMinSize(FromDIP(size));
-	SetSize(size);
+	SetSize(FromDIP(size));
 	MakeMenus();
 	SetupUi();
 	RestoreGeometry();
@@ -134,8 +134,8 @@ wxMenu *MainWindow::MakeFileMenu()
 	menu->Append(ID_FILE_OPEN_PROJECT, _("Open project...\tCtrl+o"));
 	menu->Append(ID_FILE_ADD_FILES, _("Add files to project...\tCtrl+Shift+a"),
 	             _("Add one or more file(s) to the current project"));
-	menu->Append(ID_FILE_ADD_FOLDER, _("Add content of folder to project..."),
-	             _("Recursively import the content of a folder"));
+	menu->Append(ID_FILE_ADD_FOLDER, _("Add content of directory to project..."),
+	             _("Recursively import the content of a directory"));
 	menu->Append(ID_FILE_CLOSE_PROJECT, _("Close current project"), _("Close the current project"));
 	menu->AppendSeparator();
 
@@ -239,12 +239,15 @@ void MainWindow::SetBindings()
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenMostRecentProject, this, ID_FILE_OPEN_LAST);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExit, this, ID_FILE_EXIT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAddFilesToProject, this, ID_FILE_ADD_FILES);
-//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAddFolderToProject, this, ID_FILE_ADD_FOLDER);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAddDirectoryToProject, this, ID_FILE_ADD_FOLDER);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSaveProject, this, ID_FILE_SAVE);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSaveProjectAs, this, ID_FILE_SAVE_AS);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseProject, this, ID_FILE_CLOSE_PROJECT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnEditPreferences, this, ID_FILE_PREFERENCES);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnImportMetadata, this, ID_FILE_IMPORT_METADATA);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExportMetadata, this, ID_FILE_EXPORT_METADATA);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseCurrentView, this, ID_FILE_CLOSE_VIEW);
+
 
 	// Tools menu
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnRunScript, this, ID_TOOLS_RUN);
@@ -280,12 +283,9 @@ void MainWindow::SetBindings()
 
 	auto project = Project::get();
 	project->notify_update.connect(&ProjectManager::OnProjectUpdated, m_project_manager);
+	project->metadata_updated.connect(&ProjectManager::UpdateLabel, m_project_manager);
 
-//	connect(Project::instance(), &Project::notify_update, file_manager, &FileManager::refreshProject);
 //	connect(Project::instance(), &Project::notify_closed, viewer, &Viewer::closeAll);
-//	connect(Project::instance(), &Project::metadata_updated, file_manager, &FileManager::refreshLabel);
-//	connect(Project::instance(), &Project::metadata_updated, main_area->infoPanel(), &InfoPanel::reset);
-//	connect(Project::instance(), &Project::initialized, this, &MainWindow::setDatabaseConnection);
 //	connect(Project::instance(), &Project::request_save, viewer, &Viewer::saveViews);
 
 
@@ -660,12 +660,28 @@ void MainWindow::OnAddFilesToProject(wxCommandEvent &)
 	wxArrayString paths;
 	dlg.GetPaths(paths);
 	auto project = Project::get();
+	project->clear_import_flag();
 
 	for (auto &path : paths) {
 		project->import_file(path);
 	}
+	ProjectManager::CheckProjectImport();
 	Project::updated();
 	EnableSaveFile(true);
+}
+
+void MainWindow::OnAddDirectoryToProject(wxCommandEvent &)
+{
+	wxDirDialog dlg(this, _("Add content of directory..."), "", wxDD_DEFAULT_STYLE|wxDD_DIR_MUST_EXIST);
+
+	if (dlg.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	auto project = Project::get();
+	project->clear_import_flag();
+	project->import_directory(dlg.GetPath());
+	ProjectManager::CheckProjectImport();
+	Project::updated();
 }
 
 void MainWindow::OnHelpScripting(wxCommandEvent &)
@@ -1094,6 +1110,16 @@ void MainWindow::OnSaveProjectAs(wxCommandEvent &)
 		return;
 	}
 	Project::get()->save(dlg.GetPath());
+}
+
+void MainWindow::OnImportMetadata(wxCommandEvent &)
+{
+	m_info_panel->ImportMetadata();
+}
+
+void MainWindow::OnExportMetadata(wxCommandEvent &)
+{
+	m_info_panel->ExportMetadata();
 }
 
 } // namespace phonometrica

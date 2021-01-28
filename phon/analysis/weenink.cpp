@@ -95,7 +95,7 @@ WeeninkModel model_segment(const Matrix<double> &F, const Matrix<double> &B, uns
 
 		for (int i = 0; i < ndata; ++i)
 		{
-			for (int j = 0; j < p; ++j)
+			for (int j = 0; j < (int)p; ++j)
 			{
 				auto index = time_index[i];
 				// Evaluate Legendre polynomial L(j) at time i
@@ -127,11 +127,11 @@ WeeninkModel model_segment(const Matrix<double> &F, const Matrix<double> &B, uns
 		auto S = svd.singularValues();
 		auto V = svd.matrixV();
 
-		for (int j = 0; j < p; ++j)
+		for (int j = 0; j < (int)p; ++j)
 		{
 			double value = 0.0;
 
-			for (int i = 0; i < p; ++i)
+			for (int i = 0; i < (int)p; ++i)
 			{
 				auto tmp = V(j,i) / S(i);
 				value +=  tmp * tmp;

@@ -21,7 +21,11 @@
 
 #include <wx/sizer.h>
 #include <wx/settings.h>
+#include <wx/menu.h>
 #include <wx/artprov.h>
+#include <wx/msgdlg.h>
+#include <wx/textdlg.h>
+#include <wx/filedlg.h>
 #include <phon/gui/project_manager.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/application/settings.hpp>
@@ -86,6 +90,8 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	m_root = m_tree->GetRootItem();
 	Populate();
 
+	m_tree->Bind(wxEVT_TREE_BEGIN_DRAG, &ProjectManager::OnDragItem, this);
+	m_tree->Bind(wxEVT_TREE_END_DRAG, &ProjectManager::OnDropItem, this);
 	Bind(wxEVT_TREE_SEL_CHANGED, &ProjectManager::OnItemSelected, this);
 	Bind(wxEVT_TREE_ITEM_ACTIVATED, &ProjectManager::OnItemDoubleClicked, this);
 	Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &ProjectManager::OnRightClick, this);
@@ -114,20 +120,29 @@ void ProjectManager::UpdateProject()
 		return;
 	}
 
-	m_label->SetLabel(project->label());
+	UpdateLabel();
 
 	FillFolder(m_corpus_item, *project->corpus());
 	FillFolder(m_data_item, *project->data());
 	FillFolder(m_query_item, *project->queries());
 	FillFolder(m_script_item, *project->scripts());
 	FillFolder(m_bookmark_item, *project->bookmarks());
-//	m_tree->Expand(m_corpus_item);
-	m_tree->ExpandAll();
-	m_tree->Refresh();
+
+	m_tree->Expand(m_corpus_item);
+	m_tree->Expand(m_query_item);
+	m_tree->Expand(m_data_item);
+	m_tree->Expand(m_script_item);
+	m_tree->Expand(m_bookmark_item);
 }
 
 void ProjectManager::ClearProject()
 {
+	SetExpansionFlag(m_corpus_item);
+	SetExpansionFlag(m_query_item);
+	SetExpansionFlag(m_data_item);
+	SetExpansionFlag(m_script_item);
+	SetExpansionFlag(m_bookmark_item);
+
 	m_tree->DeleteChildren(m_corpus_item);
 	m_tree->DeleteChildren(m_query_item);
 	m_tree->DeleteChildren(m_data_item);
@@ -135,7 +150,7 @@ void ProjectManager::ClearProject()
 	m_tree->DeleteChildren(m_bookmark_item);
 }
 
-void ProjectManager::FillFolder(wxTreeItemId &item, VFolder &folder)
+void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
 {
 	for (int i = 1; i <= folder.size(); i++)
 	{
@@ -186,6 +201,10 @@ void ProjectManager::FillFolder(wxTreeItemId &item, VFolder &folder)
 			auto data = new ItemData(node.get());
 			m_tree->AppendItem(item, node->label(), img, img, data);
 		}
+	}
+
+	if (folder.expanded()) {
+		m_tree->Expand(item);
 	}
 }
 
@@ -239,13 +258,67 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 
 void ProjectManager::OnRightClick(wxTreeEvent &)
 {
-	auto files = GetSelectedItems();
+	auto items = GetSelectedItems();
+	auto menu = new wxMenu;
+	auto project = Project::get();
 
-	if (files.size() == 1)
+	if (items.size() == 1)
 	{
+		auto &item = items.front();
 
+		if (item->is_folder())
+		{
+			auto folder = downcast<VFolder>(item);
+			wxArrayTreeItemIds ids;
+			m_tree->GetSelections(ids);
+			auto tree_item = ids.front();
+
+			auto expand_id = wxNewId();
+			menu->Append(expand_id, _("Expand content"));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnExpandDirectory, this, expand_id);
+			auto collapse_id = wxNewId();
+			menu->Append(collapse_id, _("Collapse content"));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnCollapseDirectory, this, collapse_id);
+			menu->AppendSeparator();
+
+			if (GetParentDirectory(tree_item) != m_bookmark_item)
+			{
+				auto add_files_id = wxNewId();
+				menu->Append(add_files_id, _("Add files to directory..."));
+				Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnAddFilesToDirectory, this, add_files_id);
+				menu->AppendSeparator();
+			}
+
+			auto subfolder_id = wxNewId();
+			menu->Append(subfolder_id, _("Create subdirectory..."));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [this,folder](wxCommandEvent &) { CreateSubdirectory(folder); }, subfolder_id);
+
+			if (!project->is_root(folder.get()))
+			{
+				auto rename_id = wxNewId();
+				menu->Append(rename_id, _("Rename directory..."));
+				auto remove_id = wxNewId();
+				menu->AppendSeparator();
+				menu->Append(remove_id, _("Remove directory"));
+
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,folder](wxCommandEvent &) mutable { RemoveDirectory(folder); }, remove_id);
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,folder](wxCommandEvent &) { RenameDirectory(folder); }, rename_id);
+			}
+		}
+		else
+		{
+			auto file = downcast<VFile>(item);
+			auto view_id = wxNewId();
+			menu->Append(view_id, _("View file"));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [this,file](wxCommandEvent &) { view_file(file); }, view_id);
+
+			auto remove_id = wxNewId();
+			menu->Append(remove_id, _("Remove file"));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [this,file](wxCommandEvent &) mutable { RemoveFile(file); }, remove_id);
+		}
 	}
-	// TODO....
+
+	PopupMenu(menu);
 }
 
 VNodeList ProjectManager::GetSelectedItems() const
@@ -257,11 +330,235 @@ VNodeList ProjectManager::GetSelectedItems() const
 	for (auto &item : items)
 	{
 		auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(item));
-		if (!data) return files; // should never happen
+		if (!data) {
+			wxMessageBox(_("Null tree item data"), _("Internal error"), wxICON_ERROR);
+			return files;
+		}
 		auto vnode = data->node;
 		files.append(vnode->shared_from_this());
 	}
 
 	return files;
 }
+
+std::shared_ptr<VFolder> ProjectManager::GetSelectedFolder() const
+{
+	wxArrayTreeItemIds ids;
+	m_tree->GetSelections(ids);
+	auto id = ids.front();
+	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(id));
+	if (!data) {
+		wxMessageBox(_("Null tree item data"), _("Internal error"), wxICON_ERROR);
+		return nullptr;
+	}
+	auto vnode = data->node;
+
+	return downcast<VFolder>(vnode->shared_from_this());
+}
+
+std::shared_ptr<VFile> ProjectManager::GetSelectedFile() const
+{
+	wxArrayTreeItemIds ids;
+	m_tree->GetSelections(ids);
+	auto id = ids.front();
+	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(id));
+	if (!data) {
+		wxMessageBox(_("Null tree item data"), _("Internal error"), wxICON_ERROR);
+		return nullptr;
+	}
+	auto vnode = data->node;
+
+	return downcast<VFile>(vnode->shared_from_this());
+}
+
+void ProjectManager::RemoveDirectory(std::shared_ptr<VFolder> &folder)
+{
+	Project::get()->remove(folder);
+	Project::updated();
+}
+
+void ProjectManager::RemoveFile(std::shared_ptr<VFile> &file)
+{
+	Project::get()->remove(file);
+	Project::updated();
+}
+
+void ProjectManager::RenameDirectory(const std::shared_ptr<VFolder> &folder)
+{
+	String name = wxGetTextFromUser(_("New directory name:"), _("Rename directory..."));
+
+	if (!name.empty())
+	{
+		folder->set_label(name);
+		Project::updated();
+	}
+}
+
+void ProjectManager::CreateSubdirectory(const std::shared_ptr<VFolder> &folder)
+{
+	String name = wxGetTextFromUser(_("Directory name:"), _("New directory..."));
+
+	if (!name.empty())
+	{
+		folder->add_subfolder(name);
+		Project::updated();
+	}
+}
+
+void ProjectManager::UpdateLabel()
+{
+	auto label = Project::get()->label();
+	if (Project::get()->modified()) {
+		label.append('*');
+	}
+	m_label->SetLabel(label);
+}
+
+void ProjectManager::OnExpandDirectory(wxCommandEvent &e)
+{
+	wxArrayTreeItemIds ids;
+	m_tree->GetSelections(ids);
+	auto id = ids.front();
+	ExpandNode(id);
+}
+
+void ProjectManager::OnCollapseDirectory(wxCommandEvent &)
+{
+	wxArrayTreeItemIds ids;
+	m_tree->GetSelections(ids);
+	auto id = ids.front();
+	CollapseNode(id);
+}
+
+void ProjectManager::ExpandNode(wxTreeItemId node)
+{
+	m_tree->Expand(node);
+	wxTreeItemIdValue cookie;
+	wxTreeItemId child = m_tree->GetFirstChild(node, cookie);
+
+	while (child.IsOk())
+	{
+		ExpandNode(child);
+		child = m_tree->GetNextChild(node, cookie);
+	}
+}
+
+void ProjectManager::CollapseNode(wxTreeItemId node)
+{
+	m_tree->Collapse(node);
+	wxTreeItemIdValue cookie;
+	wxTreeItemId child = m_tree->GetFirstChild(node, cookie);
+
+	while (child.IsOk())
+	{
+		CollapseNode(child);
+		child = m_tree->GetNextChild(node, cookie);
+	}
+}
+
+void ProjectManager::SetExpansionFlag(wxTreeItemId node)
+{
+	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(node));
+	assert(data);
+	auto vnode = data->node;
+	assert(node);
+
+	if (vnode->is_folder())
+	{
+		auto vfolder = dynamic_cast<VFolder*>(vnode);
+		vfolder->set_expanded(m_tree->IsExpanded(node));
+		wxTreeItemIdValue cookie;
+		wxTreeItemId child = m_tree->GetFirstChild(node, cookie);
+
+		while (child.IsOk())
+		{
+			SetExpansionFlag(child);
+			child = m_tree->GetNextChild(node, cookie);
+		}
+	}
+}
+
+void ProjectManager::OnAddFilesToDirectory(wxCommandEvent &)
+{
+	wxFileDialog dlg(this, _("Add files to directory..."), "", "", "Phonometrica files (*.*)|*.*",
+				  wxFD_OPEN|wxFD_MULTIPLE|wxFD_FILE_MUST_EXIST);
+
+	if (dlg.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	wxArrayString paths;
+	dlg.GetPaths(paths);
+	auto project = Project::get();
+	auto folder = GetSelectedFolder();
+
+	// Only allow adding files of a relevant type. Other files are ignored.
+	FileType type = FileType::Any;
+	auto root = folder->toplevel();
+
+	if (root == project->corpus().get()) {
+		type = FileType::CorpusFile;
+	}
+	else if (root == project->scripts().get()) {
+		type = FileType::Script;
+	}
+	else if (root == project->data().get()) {
+		type = FileType::Dataset;
+	}
+	else if (root == project->queries().get()) {
+		type = FileType::Query;
+	}
+
+	for (auto &path : paths)
+	{
+		project->add_file(path, folder, type);
+	}
+	folder->set_expanded(true);
+	CheckProjectImport();
+
+	// Files are added silently, so we need to explicitly modify the project
+	project->modify();
+	Project::updated();
+}
+
+wxTreeItemId ProjectManager::GetParentDirectory(wxTreeItemId item) const
+{
+	while (true)
+	{
+		auto tmp = m_tree->GetItemParent(item);
+		if (tmp == m_root) {
+			return item;
+		}
+		item = tmp;
+	}
+}
+
+void ProjectManager::OnDragItem(wxTreeEvent &e)
+{
+	auto items = GetSelectedItems();
+
+	for (auto &item : items)
+	{
+		if (Project::get()->is_root(item->toplevel())) {
+			return;
+		}
+	}
+
+	m_dragged_items.Clear();
+	m_tree->GetSelections(m_dragged_items);
+	e.Allow();
+}
+
+void ProjectManager::OnDropItem(wxTreeEvent &e)
+{
+
+}
+
+void ProjectManager::CheckProjectImport()
+{
+	if (Project::get()->import_flag()) {
+		wxMessageBox(_("Some files were ignored or already present in the corpus."), _("Files ignored"), wxICON_INFORMATION);
+	}
+	Project::get()->clear_import_flag();
+}
+
 } // namespace phonometrica

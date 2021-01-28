@@ -21,11 +21,11 @@ Corpus management
 ~~~~~~~~~~~~~~~~~
 
 Several functions from the ``File`` menu let the user important files
-into a project, either individually or by importing a folder
+into a project, either individually or by importing a directory
 recursively. The logical structure of a project is independent from the
 physical organization of the files on the user's computer: once files
 have been added to a project, they can be moved around, merged into new
-folders or removed without affecting the files on disk. Phonometrica supports
+directories or removed without affecting the files on disk. Phonometrica supports
 several annotation formats, including TextGrid (Praat) and LAB
 (WaveSurfer). It also supports a number of audio formats, including WAV,
 AIFF and FLAC (the exact number of supported formats depends on the

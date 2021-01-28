@@ -24,6 +24,7 @@
 #include <wx/button.h>
 #include <wx/filedlg.h>
 #include <phon/gui/info_panel.hpp>
+#include <phon/gui/csv_dialog.hpp>
 #include <phon/application/project.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/utils/file_system.hpp>
@@ -144,6 +145,7 @@ void InfoPanel::DisplaySingleFile()
 
 	AddProperties(single_page, false);
 	AddDescription(file->description());
+	AddMetadataButtons(single_page);
 }
 
 void InfoPanel::DisplayMultipleFiles()
@@ -155,6 +157,8 @@ void InfoPanel::DisplayMultipleFiles()
 	}
 
 	AddProperties(multiple_page, true);
+	multiple_page->GetSizer()->AddStretchSpacer();
+	AddMetadataButtons(multiple_page);
 }
 
 void InfoPanel::AddDescription(const wxString &desc)
@@ -164,6 +168,7 @@ void InfoPanel::AddDescription(const wxString &desc)
 	single_page->GetSizer()->Add(ctrl_desc, 1, wxEXPAND|wxRIGHT|wxLEFT, SIDE_PADDING);
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	auto btn = new wxButton(single_page, wxID_ANY, _("Save description"));
+	btn->SetToolTip(_("Set file description"));
 	btn->Enable(false);
 	hsizer->Add(btn, 1, wxEXPAND, 0);
 	single_page->GetSizer()->Add(hsizer, 0, wxEXPAND|wxALL, SIDE_PADDING);
@@ -216,6 +221,7 @@ void InfoPanel::AddSoundLabel(wxPanel *panel, const wxString &label, const wxStr
 	// Note: wxALIGN_CENTER gets the static text centered vertically in the horizontal sizer
 	hsizer->Add(txt, 1, wxALIGN_CENTER|wxLEFT, SIDE_PADDING);
 	auto btn = new wxButton(panel, wxID_ANY, _("Bind..."));
+	btn->SetToolTip(_("Bind annotation to sound file"));
 	hsizer->Add(btn, 0, wxRIGHT, SIDE_PADDING);
 	panel->GetSizer()->Add(hsizer, 0, wxEXPAND, 0);
 
@@ -245,24 +251,23 @@ void InfoPanel::AddPropertyButtons(wxPanel *panel)
 {
 	auto add_btn = new wxButton(panel, wxID_ANY, wxEmptyString);
 	auto rm_btn = new wxButton(panel, wxID_ANY, wxEmptyString);
-	auto import_btn = new wxButton(panel, wxID_ANY, _("Import metadata..."));
 	add_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(plus));
 	rm_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(minus));
 	rm_btn->Enable(false);
 	add_btn->SetMaxClientSize(wxSize(40, -1));
 	rm_btn->SetMaxClientSize(wxSize(40, -1));
+	add_btn->SetToolTip(_("Add property"));
+	rm_btn->SetToolTip(_("Remove property"));
 	prop_rm_btn = rm_btn;
 
 	add_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnAddProperty, this);
 	rm_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnRemoveProperty, this);
-	import_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnImportMetadata, this);
 
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	hsizer->Add(add_btn, 0, 0, 0);
 	hsizer->AddSpacer(5);
 	hsizer->Add(rm_btn, 0, 0, 0);
 	hsizer->AddStretchSpacer();
-	hsizer->Add(import_btn, 0, 0, 0);
 
 	auto sizer = panel->GetSizer();
 	sizer->Add(hsizer, 0, wxEXPAND|wxLEFT|wxRIGHT, SIDE_PADDING);
@@ -348,7 +353,7 @@ void InfoPanel::OnRemoveProperty(wxCommandEvent &e)
 
 void InfoPanel::OnImportMetadata(wxCommandEvent &)
 {
-
+	ImportMetadata();
 }
 
 void InfoPanel::OnPropertySelected(wxGridEvent &e)
@@ -444,5 +449,53 @@ void InfoPanel::OnDescriptionEdited(wxCommandEvent &)
 {
 	save_desc_btn->Enable(true);
 }
+
+void InfoPanel::ImportMetadata()
+{
+	CsvDialog dlg(this, _("Import metadata..."), true);
+
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		auto path = dlg.GetPath();
+		auto sep = dlg.GetSeparator();
+		Project::get()->import_metadata(path, sep);
+		UpdateInformation();
+		wxMessageBox(_("Metadata successfully imported!"), _("Success"), wxICON_INFORMATION);
+	}
+}
+
+void InfoPanel::OnExportMetadata(wxCommandEvent &)
+{
+	ExportMetadata();
+}
+
+void InfoPanel::ExportMetadata()
+{
+	CsvDialog dlg(this, _("Export metadata..."), false);
+
+	if (dlg.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	Project::get()->export_metadata(dlg.GetPath());
+	wxMessageBox(_("Metadata sucessfully exported!"), _("Success"), wxICON_INFORMATION);
+}
+
+void InfoPanel::AddMetadataButtons(wxPanel *panel)
+{
+	auto sizer = panel->GetSizer();
+	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
+	auto import_btn = new wxButton(panel, wxID_ANY, _("Import metadata..."));
+	auto export_btn = new wxButton(panel, wxID_ANY, _("Export metadata..."));
+	import_btn->SetToolTip(_("Import metadata from CSV file"));
+	export_btn->SetToolTip(_("Export project metadata to CSV file"));
+	hsizer->Add(import_btn, 1, wxEXPAND, 0);
+	hsizer->AddSpacer(5);
+	hsizer->Add(export_btn, 1, wxEXPAND, 0);
+	sizer->Add(hsizer, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, SIDE_PADDING);
+
+	import_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnImportMetadata, this);
+	export_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnExportMetadata, this);
+}
+
 
 } // namespace phonometrica

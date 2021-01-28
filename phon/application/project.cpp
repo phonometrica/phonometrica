@@ -618,24 +618,25 @@ void Project::write()
 	write_xml(doc, m_path);
 }
 
-bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent)
+bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, FileType type)
 {
-	if (m_files.find(path) != m_files.end()) {
-		return false;
+	if (m_files.find(path) != m_files.end())
+	{
+		return set_import_flag();
 	}
 
 	auto ext = filesystem::ext(path, true);
 
 	std::shared_ptr<VFile> vfile;
 
-	if (ext == PHON_EXT_ANNOTATION || ext == ".textgrid")
+	if ((ext == PHON_EXT_ANNOTATION || ext == ".textgrid") && (static_cast<int>(type)&static_cast<int>(FileType::Annotation)))
 	{
 	    auto annot = std::make_shared<Annotation>(parent.get(), std::move(path));
 		vfile = upcast<VFile>(annot);
 		parent->append(vfile);
         trigger(annotation_loaded, make_handle<AutoAnnotation>(annot));
 	}
-	else if (Sound::supports_format(ext))
+	else if (Sound::supports_format(ext) && (static_cast<int>(type)&static_cast<int>(FileType::Sound)))
 	{
 	    auto sound = std::make_shared<Sound>(parent.get(), std::move(path));
 		vfile = upcast<VFile>(sound);
@@ -644,18 +645,42 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent)
 	}
 	else if (ext == ".csv")
 	{
-		// Datasets are added to the data folder.
-		auto dataset = std::make_shared<Spreadsheet>(m_data.get(), std::move(path));
+		VFolder *p = m_data.get();
+
+		if (static_cast<int>(type) & static_cast<int>(FileType::Dataset))
+		{
+			if (parent->toplevel() == p) {
+				p = parent.get();
+			}
+		}
+		else
+		{
+			return set_import_flag();
+		}
+
+		auto dataset = std::make_shared<Spreadsheet>(p, std::move(path));
 		vfile = upcast<VFile>(dataset);
-		m_data->append(vfile);
+		p->append(vfile);
 //		trigger(dataset_loaded, dataset->class_name(), dataset);
 	}
-	else if (ext == ".phon" || ext == ".phon-script")
+	else if ((ext == ".phon" || ext == ".phon-script"))
 	{
-		// Scripts are not added to the parent folder, but to the scripts folder.
-        auto script = std::make_shared<Script>(m_scripts.get(), std::move(path));
+		VFolder *p = m_scripts.get();
+
+		if (static_cast<int>(type) & static_cast<int>(FileType::Script))
+		{
+			if (parent->toplevel() == p) {
+				p = parent.get();
+			}
+		}
+		else
+		{
+			return set_import_flag();
+		}
+
+        auto script = std::make_shared<Script>(p, std::move(path));
 		vfile = upcast<VFile>(script);
-		m_scripts->append(vfile);
+		p->append(vfile);
 //		trigger(script_loaded, dataset->class_name(), script);
 	}
 //	else if (ext == ".txt")
@@ -667,7 +692,7 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent)
 //	}
 	else
 	{
-		return false; // Ignore unknown files
+		return set_import_flag(); // Ignore unknown files
 	}
 
 	register_file(vfile->path(), vfile);
@@ -685,7 +710,7 @@ const String &Project::uuid() const
 	return m_uuid;
 }
 
-void Project::import_folder(String path)
+void Project::import_directory(String path)
 {
 	filesystem::nativize(path);
 	add_folder(std::move(path), m_corpus);
@@ -701,7 +726,7 @@ String Project::import_file(String path)
 	filesystem::nativize(path);
 
 	// Assume that the file will be added to the corpus. add_file() will change the parent if necessary.
-	if (add_file(path, m_corpus)) {
+	if (add_file(path, m_corpus, FileType::Any)) {
         m_modified = true;
 	}
 	// Try to find a sound that matches the annotation's name.
@@ -733,7 +758,7 @@ void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent)
 		}
 		else
 		{
-			add_file(file, parent);
+			add_file(file, parent, FileType::Any);
 		}
 
 		if (toplevel) {
@@ -889,7 +914,7 @@ void Project::initialize(Runtime &rt)
 	auto add_folder = [](Runtime &, std::span<Variant> args) -> Variant
     {
 	    auto &path = cast<String>(args[0]);
-	    Project::get()->import_folder(path);
+	    Project::get()->import_directory(path);
 	    return Variant();
     };
 
@@ -1111,9 +1136,9 @@ void Project::remove(std::shared_ptr<VFile> &file)
     m_modified = true;
 }
 
-bool Project::is_root(const std::shared_ptr<VFolder> &folder) const
+bool Project::is_root(const VFolder *folder) const
 {
-    return folder == m_corpus || folder == m_scripts || folder == m_data || folder == m_bookmarks;
+    return folder == m_corpus.get() || folder == m_scripts.get() || folder == m_queries.get() || folder == m_data.get() || folder == m_bookmarks.get();
 }
 
 void Project::trigger(const String &event, Variant value)
@@ -1308,7 +1333,7 @@ void Project::set_default_bindings()
 					path.append('.').append(ext);
 					if (filesystem::exists(path))
 					{
-						add_file(path, m_corpus);
+						add_file(path, m_corpus, FileType::Any);
 						auto sound = std::dynamic_pointer_cast<Sound>(m_files[path]);
 						// Mutate the annotation, so that its metadata are saved.
 						annot->set_sound(sound, true);

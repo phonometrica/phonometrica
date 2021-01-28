@@ -33,6 +33,18 @@
 
 namespace phonometrica {
 
+enum class FileType
+{
+	Annotation = 1,
+	Sound = 2,
+	Query = 4,
+	Script = 8,
+	Dataset = 16,
+	CorpusFile = Annotation|Sound,
+	Any = Annotation|Sound|Query|Script|Dataset
+};
+
+
 class VFolder;
 
 class VNode : public std::enable_shared_from_this<VNode>
@@ -78,6 +90,8 @@ public:
 	virtual const VFolder *toplevel() const;
 
 	virtual void discard_changes();
+
+	virtual bool contains(const VNode *node) const { return false; }
 
 protected:
 
@@ -155,6 +169,8 @@ public:
     const VFolder *toplevel() const override;
 
     void add_subfolder(const String &name);
+
+	bool contains(const VNode *node) const override;
 
 protected:
 
