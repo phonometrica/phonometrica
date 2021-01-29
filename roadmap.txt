@@ -1,15 +1,17 @@
 
 Version 0.8.0:
 
-- new scripting engine
 - new user interface based on wxWidgets
+- new scripting engine
+- License is now GPL2 or later (instead of GPL3 or later)
 - properties are now directly edited from the information panel
 - improved shortcuts to show/hide the panels of the main window (see the Window menu)
 - updating a plugin now cleanly removes the previous version
 - the description file for plugins is now ``description.phon`` (instead of ``description.json``)
-- plugins can now display documentation (stored in a folder named "Documentation")
+- plugins can now display documentation (stored in a directory named "Documentation")
 - "Search annotations" is now "Find in annotations" 
 - resources directory is now determined automatically based on the executable's path
+- usability improvements across the board
 - bug fixes
 
 TODO:
@@ -28,7 +30,7 @@ Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers
 - mac : vérifier settings / edit preferences
 - mac : bug aléatoire quand on clique play
 - espace pour jouer une occurrence
-- License is now GPL2 or later (instead of GPL3 or later)
+
 - complex queries (if possible, otherwise 0.9)
 
 Version 0.9.0:

@@ -105,6 +105,8 @@ private:
 
 	void OnOpenAcknowledgements(wxCommandEvent &);
 
+	void OnSoundInfo(wxCommandEvent &);
+
 	void OnAbout(wxCommandEvent &);
 
 	void OpenDocumentation(String page);

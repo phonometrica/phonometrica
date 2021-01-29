@@ -22,7 +22,7 @@
 #include <wx/stattext.h>
 #include <wx/msgdlg.h>
 #include <wx/button.h>
-#include <wx/filedlg.h>
+#include <phon/gui/dialog.hpp>
 #include <phon/gui/info_panel.hpp>
 #include <phon/gui/csv_dialog.hpp>
 #include <phon/application/project.hpp>
@@ -284,7 +284,7 @@ void InfoPanel::OnSaveDescription(wxCommandEvent &)
 
 void InfoPanel::OnBindSound(wxCommandEvent &)
 {
-	wxFileDialog dlg(this, _("Bind annotation to sound file..."), "", "", "Sound file (*.*)|*.*",
+	FileDialog dlg(this, _("Bind annotation to sound file..."), "", "Sound file (*.*)|*.*",
 	                 wxFD_OPEN|wxFD_FILE_MUST_EXIST);
 
 	if (dlg.ShowModal() == wxID_OK)
@@ -366,7 +366,16 @@ void InfoPanel::OnPropertySelected(wxGridEvent &e)
 void InfoPanel::OnChangePropertyValue(wxGridEvent &e)
 {
 	grid->SetGridCursor(e.GetRow(), e.GetCol());
-	grid->EnableCellEditControl();
+
+	if (grid->CanEnableCellControl())
+	{
+		grid->EnableCellEditControl();
+	}
+	else
+	{
+		wxMessageBox(_("Cannot modify property type or category once it is assigned\n"
+				 "Hint: remove this property and create a new one."), _("Error"), wxICON_ERROR);
+	}
 }
 
 void InfoPanel::OnCellChanged(wxGridEvent &event)
@@ -436,6 +445,8 @@ void InfoPanel::OnCellChanged(wxGridEvent &event)
 			file->add_property(prop);
 		}
 		grid->SetEditingMode(row, false);
+		grid->SetReadOnly(row, 0, true);
+		grid->SetReadOnly(row, 1, true);
 		Project::get()->metadata_updated();
 	}
 	catch (std::exception &e)

@@ -49,7 +49,7 @@ public:
 
 	Signal<const std::shared_ptr<VFile> &> view_file;
 
-//	void view_annotation(AutoAnnotation annot, intptr_t layer, double from, double to);
+	Signal<const String &> execute_script;
 
 private:
 
@@ -100,6 +100,18 @@ private:
 	void OnDragItem(wxTreeEvent &);
 
 	void OnDropItem(wxTreeEvent &);
+
+	void ConvertAnnotationToTextGrid(const AutoAnnotation &annot);
+
+	void ConvertTextGridToAnnotation(const AutoAnnotation &annot);
+
+	void OpenAnnotationInPraat(const AutoAnnotation &annot);
+
+	void AskImportFile(const String &path);
+
+	void CopyTextToClipboard(const wxString &text);
+
+	void RemoveItems(const VNodeList &items);
 
 	void SetScriptingFunctions();
 

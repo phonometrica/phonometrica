@@ -21,14 +21,13 @@
 
 #include <wx/log.h>
 #include <wx/aboutdlg.h>
-#include <wx/filedlg.h>
-#include <wx/dirdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/choicdlg.h>
 #include <wx/textdlg.h>
 #include <phon/gui/macros.hpp>
 #include <phon/gui/main_window.hpp>
 #include <phon/gui/pref/preferences_editor.hpp>
+#include <phon/gui/dialog.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>
@@ -227,6 +226,8 @@ wxMenu *MainWindow::MakeHelpMenu()
 	menu->Append(ID_HELP_WEBSITE, _("Go to website"));
 	menu->Append(ID_HELP_ACKNOWLEDGEMENTS, _("Acknowledgements"));
 	menu->AppendSeparator();
+	menu->Append(ID_HELP_SOUND_INFO, _("Sound information"));
+	menu->AppendSeparator();
 	menu->Append(ID_HELP_ABOUT, _("About Phonometrica"));
 
 	return menu;
@@ -271,7 +272,7 @@ void MainWindow::SetBindings()
 //	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCitation, this, ID_HELP_CITE);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenLicense, this, ID_HELP_LICENSE);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnOpenAcknowledgements, this, ID_HELP_ACKNOWLEDGEMENTS);
-//	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSoundInfo, this, ID_HELP_SOUND_INFO);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnSoundInfo, this, ID_HELP_SOUND_INFO);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAbout, this, ID_HELP_ABOUT);
 
 	// Sashes
@@ -281,6 +282,7 @@ void MainWindow::SetBindings()
 
 	m_project_manager->view_file.connect(&Viewer::OnViewFile, m_viewer);
 	m_project_manager->files_selected.connect(&InfoPanel::OnSetFileSelection, m_info_panel);
+	m_project_manager->execute_script.connect(&Console::RunScript, m_console);
 
 	auto project = Project::get();
 	project->notify_update.connect(&ProjectManager::OnProjectUpdated, m_project_manager);
@@ -653,7 +655,7 @@ void MainWindow::OnAbout(wxCommandEvent &)
 
 void MainWindow::OnAddFilesToProject(wxCommandEvent &)
 {
-	wxFileDialog dlg(this, _("Add files to project..."), "", "", "Phonometrica files (*.*)|*.*",
+	FileDialog dlg(this, _("Add files to project..."), "", "Phonometrica files (*.*)|*.*",
 				  wxFD_OPEN|wxFD_MULTIPLE|wxFD_FILE_MUST_EXIST);
 
 	if (dlg.ShowModal() == wxID_CANCEL) {
@@ -674,7 +676,7 @@ void MainWindow::OnAddFilesToProject(wxCommandEvent &)
 
 void MainWindow::OnAddDirectoryToProject(wxCommandEvent &)
 {
-	wxDirDialog dlg(this, _("Add content of directory..."), "", wxDD_DEFAULT_STYLE|wxDD_DIR_MUST_EXIST);
+	DirDialog dlg(this, _("Add content of directory..."), wxDD_DEFAULT_STYLE|wxDD_DIR_MUST_EXIST);
 
 	if (dlg.ShowModal() == wxID_CANCEL) {
 		return;
@@ -698,7 +700,7 @@ void MainWindow::OnCloseCurrentView(wxCommandEvent &)
 
 void MainWindow::OnOpenProject(wxCommandEvent &)
 {
-	wxFileDialog dlg(this, _("Open project..."), "", "", "Phonometrica projects (*.phon-project)|*.phon-project", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+	FileDialog dlg(this, _("Open project..."), "", "Phonometrica projects (*.phon-project)|*.phon-project", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
 	if (dlg.ShowModal() == wxID_CANCEL) {
 		return;
 	}
@@ -888,7 +890,7 @@ void MainWindow::LoadPlugin(const String &path)
 
 void MainWindow::OnRunScript(wxCommandEvent &)
 {
-	wxFileDialog dlg(this, _("Run script..."), "", "", "Phonometrica scripts (*.phon)|*.phon", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+	FileDialog dlg(this, _("Run script..."), "", "Phonometrica scripts (*.phon)|*.phon", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
 	if (dlg.ShowModal() == wxID_CANCEL) {
 		return;
 	}
@@ -904,7 +906,7 @@ void MainWindow::OnExtendTools(wxCommandEvent &)
 void MainWindow::OnInstallPlugin(wxCommandEvent &)
 {
 	String dir = Settings::get_last_directory();
-	wxFileDialog dlg(this, _("Select plugin..."), "", "", "Zip file (*.zip)|*.zip", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
+	FileDialog dlg(this, _("Select plugin..."), "", "Zip file (*.zip)|*.zip", wxFD_OPEN|wxFD_FILE_MUST_EXIST);
 	if (dlg.ShowModal() == wxID_CANCEL) {
 		return;
 	}
@@ -1106,7 +1108,7 @@ void MainWindow::OnSaveProject(wxCommandEvent &e)
 
 void MainWindow::OnSaveProjectAs(wxCommandEvent &)
 {
-	wxFileDialog dlg(this, _("Save project as.."), "", "", "Phonometrica project (*.phon-projet)|*.phon-project",
+	FileDialog dlg(this, _("Save project as.."), "", "Phonometrica project (*.phon-projet)|*.phon-project",
 	                 wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 	if (dlg.ShowModal() == wxID_CANCEL) {
 		return;
@@ -1167,20 +1169,20 @@ void MainWindow::SetShellFunctions()
 
 	auto ask1 = [this](Runtime &, std::span<Variant> args) -> Variant {
 		auto &msg = cast<String>(args[0]);
-		wxMessageDialog dlg(this, msg, _("Question"), wxNO_DEFAULT|wxYES_NO|wxICON_INFORMATION);
+		wxMessageDialog dlg(this, msg, _("Question"), wxNO_DEFAULT|wxYES_NO|wxICON_QUESTION);
 		return (dlg.ShowModal() == wxID_YES);
 	};
 
 	auto ask2 = [this](Runtime &, std::span<Variant> args) -> Variant {
 		auto &msg = cast<String>(args[0]);
 		auto &title = cast<String>(args[1]);
-		wxMessageDialog dlg(this, msg, title, wxNO_DEFAULT|wxYES_NO|wxICON_INFORMATION);
+		wxMessageDialog dlg(this, msg, title, wxNO_DEFAULT|wxYES_NO|wxICON_QUESTION);
 		return (dlg.ShowModal() == wxID_YES);
 	};
 
 	auto open_file_dialog = [=](Runtime &, std::span<Variant> args) -> Variant {
 		auto &msg = cast<String>(args[0]);
-		wxFileDialog dlg(this, msg);
+		FileDialog dlg(this, msg);
 		if (dlg.ShowModal() != wxID_OK) {
 			return Variant();
 		}
@@ -1189,7 +1191,7 @@ void MainWindow::SetShellFunctions()
 
 	auto open_files_dialog = [=](Runtime &rt, std::span<Variant> args) -> Variant {
 		auto &msg = cast<String>(args[0]);
-		wxFileDialog dlg(this, msg, wxEmptyString, wxEmptyString, wxString::FromAscii(wxFileSelectorDefaultWildcardStr),
+		FileDialog dlg(this, msg, wxEmptyString, wxString::FromAscii(wxFileSelectorDefaultWildcardStr),
 				   wxFD_DEFAULT_STYLE|wxFD_MULTIPLE);
 		if (dlg.ShowModal() != wxID_OK) {
 			return Variant();
@@ -1207,7 +1209,7 @@ void MainWindow::SetShellFunctions()
 
 	auto open_directory_dialog = [=](Runtime &, std::span<Variant> args) -> Variant {
 		auto &s = cast<String>(args[0]);
-		wxDirDialog dlg(this, s, wxEmptyString, wxDD_DEFAULT_STYLE);
+		DirDialog dlg(this, s, wxDD_DEFAULT_STYLE);
 
 		if (dlg.ShowModal() != wxID_OK) {
 			return Variant();
@@ -1217,7 +1219,7 @@ void MainWindow::SetShellFunctions()
 
 	auto save_file_dialog = [=](Runtime &, std::span<Variant> args) -> Variant {
 		auto &s = cast<String>(args[0]);
-		wxFileDialog dlg(this, s, wxEmptyString, wxEmptyString, wxString::FromAscii(wxFileSelectorDefaultWildcardStr), wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+		FileDialog dlg(this, s, wxEmptyString, wxString::FromAscii(wxFileSelectorDefaultWildcardStr), wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 		if (dlg.ShowModal() != wxID_OK) {
 			return Variant();
 		}
@@ -1445,6 +1447,20 @@ Plugin *MainWindow::FindPlugin(const String &name)
 	}
 
 	return nullptr;
+}
+
+void MainWindow::OnSoundInfo(wxCommandEvent &)
+{
+	auto msg = _("Supported sound formats on this platform:\n");
+	msg.Append(String::join(Sound::supported_sound_format_names(), ", "));
+	msg.Append("\n\n");
+	msg.Append(_("libsndfile version: "));
+	msg.Append(Sound::libsndfile_version());
+	msg.Append("\n\n");
+	msg.Append(_("RTAudio version: "));
+	msg.Append(Sound::rtaudio_version());
+
+	wxMessageBox(msg, _("Sound information"), wxICON_INFORMATION);
 }
 
 

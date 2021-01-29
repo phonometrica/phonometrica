@@ -13,103 +13,64 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 26/01/2021                                                                                                 *
+ * Created: 29/01/2021                                                                                                 *
  *                                                                                                                     *
  * purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/textctrl.h>
-#include <phon/gui/property_grid.hpp>
+#include <phon/gui/dialog.hpp>
+#include <phon/application/settings.hpp>
+#include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
 
-class CellEditor : public wxGridCellTextEditor
+FileDialog::FileDialog(wxWindow *parent, const wxString &message, const wxString &default_file, const wxString &wildcard, long style) :
+	wxFileDialog(parent, message, Settings::get_string("last_directory"), default_file, wildcard, style)
 {
-public:
 
-	CellEditor() = default;
-
-	wxTextCtrl *GetTextCtrl() const { return Text(); }
-};
-
-
-PropertyGrid::PropertyGrid(wxWindow *parent) : wxGrid(parent, wxID_ANY)
-{
-	CreateGrid(0, 3);
-	HideRowLabels();
-	SetColLabelValue(0, _("Type"));
-	SetColLabelValue(1, _("Key"));
-	SetColLabelValue(2, _("Value"));
-	SetColLabelAlignment(wxALIGN_LEFT, wxALIGN_CENTRE);
-	Bind(wxEVT_SIZE, &PropertyGrid::OnResize, this);
 }
 
-void PropertyGrid::OnResize(wxSizeEvent &)
+wxString FileDialog::GetPath() const
 {
-	int w = GetClientSize().GetWidth();
-//	SetDefaultColSize(w/3);
-//	SetColSize(0, w/5);
-//	w = w - w/5;
-//	SetColSize(1, w/2);
-//	SetColSize(2, w/2);
-//
-	SetColSize(0, w/3);
-	SetColSize(1, w/3);
-	SetColSize(2, w/3);
+	String path = wxFileDialog::GetPath();
+	Settings::set_value("last_directory", filesystem::directory_name(path));
+
+	return wxFileDialog::GetPath();
 }
 
-void PropertyGrid::AppendProperties(const std::set<Property> &properties)
+void FileDialog::GetPaths(wxArrayString &paths) const
 {
-	AppendRows((int)properties.size());
-	int i = 0;
+	wxFileDialog::GetPaths(paths);
 
-	for (auto &p : properties)
+	if (!paths.IsEmpty())
 	{
-		SetCellValue(i, 1, p.category());
-
-
-		wxArrayString choices;
-		for (auto &value : Property::get_values(p.category())) {
-			choices.Add(value);
-		}
-
-		SetCellValue(i, 2, p.value());
-		SetReadOnly(i, 0, true);
-		SetReadOnly(i, 1, true);
-		wxString type;
-
-		if (p.is_text())
-		{
-			type = "Text";
-		}
-		else if (p.is_boolean())
-		{
-			type = "Boolean";
-		}
-		else if (p.is_numeric())
-		{
-			type = "Number";
-		}
-		SetCellValue(i, 0, type);
-
-		i++;
+		String path = paths.front();
+		Settings::set_value("last_directory", filesystem::directory_name(path));
 	}
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+DirDialog::DirDialog(wxWindow *parent, const wxString &message, long style) :
+	wxDirDialog(parent, message, Settings::get_string("last_directory"), style)
+{
 
 }
 
-void PropertyGrid::SetEditingMode(int row, bool value)
+wxString DirDialog::GetPath() const
 {
-	wxColour color = value ? *wxRED : GetDefaultCellTextColour();
-	auto font = GetDefaultCellFont();
-	if (value) {
-		font.MakeBold();
-	}
+	Settings::set_value("last_directory", String(wxDirDialog::GetPath()));
+	return wxDirDialog::GetPath();
+}
 
-	for (int col = 0; col <= 2; col++)
-	{
-		SetCellTextColour(row, col, color);
-		SetCellFont(row, col, font);
+void DirDialog::GetPaths(wxArrayString &paths) const
+{
+	wxDirDialog::GetPaths(paths);
+
+	if (!paths.IsEmpty()) {
+		Settings::set_value("last_directory", String(paths.front()));
 	}
 }
 } // namespace phonometrica

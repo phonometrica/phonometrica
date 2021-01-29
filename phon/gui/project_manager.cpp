@@ -25,10 +25,13 @@
 #include <wx/artprov.h>
 #include <wx/msgdlg.h>
 #include <wx/textdlg.h>
-#include <wx/filedlg.h>
+#include <wx/clipbrd.h>
+#include <phon/gui/dialog.hpp>
 #include <phon/gui/project_manager.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/application/settings.hpp>
+#include <phon/application/praat.hpp>
+#include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
 
@@ -300,24 +303,99 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 				auto rename_id = wxNewId();
 				menu->Append(rename_id, _("Rename directory..."));
 				auto remove_id = wxNewId();
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,folder](wxCommandEvent &) { RenameDirectory(folder); }, rename_id);
+
 				menu->AppendSeparator();
 				menu->Append(remove_id, _("Remove directory"));
-
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,folder](wxCommandEvent &) mutable { RemoveDirectory(folder); }, remove_id);
-				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,folder](wxCommandEvent &) { RenameDirectory(folder); }, rename_id);
 			}
 		}
-		else
+		else if (item->is_file())
 		{
 			auto file = downcast<VFile>(item);
 			auto view_id = wxNewId();
 			menu->Append(view_id, _("View file"));
 			Bind(wxEVT_COMMAND_MENU_SELECTED, [this,file](wxCommandEvent &) { view_file(file); }, view_id);
 
+			if (file->is_annotation())
+			{
+				auto annot = downcast<Annotation>(file);
+				auto convert_id = wxNewId();
+				if (annot->is_native())
+				{
+					menu->AppendSeparator();
+					menu->Append(convert_id, _("Save as Praat TextGrid..."));
+					Bind(wxEVT_COMMAND_MENU_SELECTED, [this,annot](wxCommandEvent &) { ConvertAnnotationToTextGrid(annot); }, convert_id);
+				}
+				else if (annot->is_textgrid())
+				{
+					auto praat_id = wxNewId();
+					menu->Append(praat_id, _("Open annotation in Praat"));
+					Bind(wxEVT_COMMAND_MENU_SELECTED, [this,annot](wxCommandEvent &) { OpenAnnotationInPraat(annot); }, praat_id);
+					menu->AppendSeparator();
+
+					menu->Append(convert_id, _("Save as Phonometrica annotation..."));
+					Bind(wxEVT_COMMAND_MENU_SELECTED, [this,annot](wxCommandEvent &) { ConvertTextGridToAnnotation(annot); }, convert_id);
+				}
+			}
+			else if (file->is_script())
+			{
+				auto script = downcast<Script>(file);
+				auto run_id = wxNewId();
+				menu->Append(run_id, _("Run"));
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { execute_script(script->path()); }, run_id);
+				menu->AppendSeparator();
+			}
+
+			auto save_id = wxNewId();
+			menu->Append(save_id, _("Save file"));
+			menu->Enable(save_id, file->modified());
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { file->save(); Project::updated(); }, save_id);
+			menu->AppendSeparator();
+
+			auto clip_id = wxNewId();
+			menu->Append(clip_id, _("Copy path to clipboard"));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [this,file](wxCommandEvent &) { CopyTextToClipboard(file->path()); }, clip_id);
+			menu->AppendSeparator();
+
 			auto remove_id = wxNewId();
-			menu->Append(remove_id, _("Remove file"));
+			menu->Append(remove_id, _("Remove file from project"));
 			Bind(wxEVT_COMMAND_MENU_SELECTED, [this,file](wxCommandEvent &) mutable { RemoveFile(file); }, remove_id);
 		}
+	}
+	else if (items.size() == 2)
+	{
+		AutoAnnotation annot;
+		AutoSound sound;
+
+		if (items[1]->is_annotation() && items[2]->is_sound())
+		{
+			annot = downcast<Annotation>(items[1]);
+			sound = downcast<Sound>(items[2]);
+		}
+		else if (items[1]->is_sound() && items[2]->is_annotation())
+		{
+			sound = downcast<Sound>(items[1]);
+			annot = downcast<Annotation>(items[2]);
+		}
+
+		if (annot)
+		{
+			auto bind_id = wxNewId();
+			menu->Append(bind_id, _("Bind annotation to sound file"));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) {
+				annot->set_sound(sound);
+				Project::updated();
+			}, bind_id);
+			menu->AppendSeparator();
+		}
+	}
+
+	if (items.size() > 1)
+	{
+		auto remove_id = wxNewId();
+		menu->Append(remove_id, _("Remove files from project"));
+		Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { RemoveItems(items); }, remove_id);
 	}
 
 	PopupMenu(menu);
@@ -387,12 +465,26 @@ std::shared_ptr<VFile> ProjectManager::GetSelectedFile() const
 
 void ProjectManager::RemoveDirectory(std::shared_ptr<VFolder> &folder)
 {
+	auto result = ask_question(_("Are you sure you want to remove this directory from the current project?\n"
+	                             "(Its content won't be deleted from your hard drive.)"), _("Confirm"));
+
+	if (result != wxYES) {
+		return;
+	}
+
 	Project::get()->remove(folder);
 	Project::updated();
 }
 
 void ProjectManager::RemoveFile(std::shared_ptr<VFile> &file)
 {
+	auto result = ask_question(_("Are you sure you want to remove this file from the current project?\n"
+	                             "(It won't be deleted from your hard drive.)"), _("Confirm"));
+
+	if (result != wxYES) {
+		return;
+	}
+
 	Project::get()->remove(file);
 	Project::updated();
 }
@@ -494,7 +586,7 @@ void ProjectManager::SetExpansionFlag(wxTreeItemId node)
 
 void ProjectManager::OnAddFilesToDirectory(wxCommandEvent &e)
 {
-	wxFileDialog dlg(this, _("Add files to directory..."), "", "", "Phonometrica files (*.*)|*.*",
+	FileDialog dlg(this, _("Add files to directory..."), "", "Phonometrica files (*.*)|*.*",
 				  wxFD_OPEN|wxFD_MULTIPLE|wxFD_FILE_MUST_EXIST);
 
 	if (dlg.ShowModal() == wxID_CANCEL) {
@@ -628,8 +720,10 @@ void ProjectManager::OnDropItem(wxTreeEvent &e)
 
 void ProjectManager::CheckProjectImport()
 {
-	if (Project::get()->import_flag()) {
-		wxMessageBox(_("Some files were ignored or already present in the corpus."), _("Files ignored"), wxICON_INFORMATION);
+	if (Project::get()->import_flag())
+	{
+		wxMessageBox(_("Some files were ignored:\n their type was inadequate or they were already present in the corpus."),
+			   _("Files ignored"), wxICON_INFORMATION);
 	}
 	Project::get()->clear_import_flag();
 }
@@ -638,5 +732,106 @@ void ProjectManager::SetScriptingFunctions()
 {
 
 }
+
+void ProjectManager::ConvertAnnotationToTextGrid(const AutoAnnotation &annot)
+{
+	String name = filesystem::base_name(annot->path());
+	name.replace_last(PHON_EXT_ANNOTATION, ".TextGrid");
+	FileDialog dlg(this, _("Save as TextGrid..."), name, "TextGrid (*.TextGrid)|*.TextGrid",
+	                 wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+	if (dlg.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	auto path = dlg.GetPath();
+	annot->write_as_textgrid(path);
+	AskImportFile(path);
+}
+
+void ProjectManager::ConvertTextGridToAnnotation(const AutoAnnotation &annot)
+{
+	String name = filesystem::base_name(annot->path());
+	name.replace_last(".TextGrid", PHON_EXT_ANNOTATION);
+	FileDialog dlg(this, _("Save as annotation..."), name, "Annotation (*.phon-annot)|*.phon-annot",
+	                 wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+	if (dlg.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	auto path = dlg.GetPath();
+	if (!path.ends_with(PHON_EXT_ANNOTATION)) {
+		path.append(PHON_EXT_ANNOTATION);
+	}
+	annot->write_as_native(path);
+	AskImportFile(path);
+}
+
+void ProjectManager::OpenAnnotationInPraat(const AutoAnnotation &annot)
+{
+	try
+	{
+		if (annot->has_sound())
+		{
+			praat::open_textgrid(annot->path(), annot->sound()->path());
+		}
+		else
+		{
+			praat::open_textgrid(annot->path());
+		}
+	}
+	catch (std::exception &e)
+	{
+		wxString msg = _("Cannot open TextGrid in Praat: ");
+		msg.Append(wxString::FromUTF8(e.what()));
+		wxMessageBox(msg, _("Praat error"), wxICON_ERROR);
+	}
+}
+
+void ProjectManager::AskImportFile(const String &path)
+{
+	auto reply = ask_question(_("Would you like to import this annotation into the current project?"), _("Import file?"));
+
+	if (reply == wxYES)
+	{
+		auto project = Project::get();
+		project->import_file(path);
+		project->notify_update();
+	}
+}
+
+void ProjectManager::CopyTextToClipboard(const wxString &text)
+{
+	if (wxTheClipboard->Open())
+	{
+		wxTheClipboard->SetData(new wxTextDataObject(text));
+		wxTheClipboard->Close();
+	}
+}
+
+void ProjectManager::RemoveItems(const VNodeList &items)
+{
+	auto result = ask_question(_("Are you sure you want to remove these files from the current project?\n"
+							  "(They won't be deleted from your hard drive.)"), _("Confirm"));
+
+	if (result != wxYES) {
+		return;
+	}
+
+	auto project = Project::get();
+
+	for (auto &item : items)
+	{
+		if (item->is_file())
+		{
+			auto file = downcast<VFile>(item->shared_from_this());
+			project->remove(file);
+		}
+		else
+		{
+			auto folder = downcast<VFolder>(item->shared_from_this());
+			project->remove(folder);
+		}
+	}
+	Project::updated();
+}
+
 
 } // namespace phonometrica

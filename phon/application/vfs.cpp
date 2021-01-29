@@ -86,8 +86,11 @@ void VNode::discard_changes()
 
 void VNode::detach()
 {
-	m_parent->remove(this->shared_from_this(), true);
-	set_parent(nullptr);
+	if (m_parent)
+	{
+		m_parent->remove(this->shared_from_this(), true);
+		set_parent(nullptr);
+	}
 }
 
 bool VNode::is_dataset() const

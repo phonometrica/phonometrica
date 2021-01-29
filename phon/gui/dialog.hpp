@@ -13,103 +13,56 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 26/01/2021                                                                                                 *
+ * Created: 29/01/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: see header.                                                                                                *
+ * purpose: File and directory dialogs.                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/textctrl.h>
-#include <phon/gui/property_grid.hpp>
+#ifndef PHONOMETRICA_DIALOG_HPP
+#define PHONOMETRICA_DIALOG_HPP
+
+#include <wx/filedlg.h>
+#include <wx/dirdlg.h>
+#include <wx/msgdlg.h>
 
 namespace phonometrica {
 
-class CellEditor : public wxGridCellTextEditor
+class FileDialog final : public wxFileDialog
 {
 public:
 
-	CellEditor() = default;
+	FileDialog(wxWindow *parent, const wxString &message, const wxString &default_file = wxEmptyString,
+			const wxString &wildcard = wxString::FromAscii(wxFileSelectorDefaultWildcardStr), long style = wxFD_OPEN);
 
-	wxTextCtrl *GetTextCtrl() const { return Text(); }
+	wxString GetPath() const override;
+
+	void GetPaths(wxArrayString &paths) const override;
 };
 
 
-PropertyGrid::PropertyGrid(wxWindow *parent) : wxGrid(parent, wxID_ANY)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class DirDialog final : public wxDirDialog
 {
-	CreateGrid(0, 3);
-	HideRowLabels();
-	SetColLabelValue(0, _("Type"));
-	SetColLabelValue(1, _("Key"));
-	SetColLabelValue(2, _("Value"));
-	SetColLabelAlignment(wxALIGN_LEFT, wxALIGN_CENTRE);
-	Bind(wxEVT_SIZE, &PropertyGrid::OnResize, this);
+public:
+
+	DirDialog(wxWindow *parent, const wxString &message, long style = wxDD_DEFAULT_STYLE);
+
+	wxString GetPath() const override;
+
+	void GetPaths(wxArrayString &paths) const override;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static inline
+int ask_question(const wxString &message, const wxString &caption)
+{
+	return wxMessageBox(message, caption, wxYES|wxNO|wxNO_DEFAULT|wxICON_QUESTION);
 }
 
-void PropertyGrid::OnResize(wxSizeEvent &)
-{
-	int w = GetClientSize().GetWidth();
-//	SetDefaultColSize(w/3);
-//	SetColSize(0, w/5);
-//	w = w - w/5;
-//	SetColSize(1, w/2);
-//	SetColSize(2, w/2);
-//
-	SetColSize(0, w/3);
-	SetColSize(1, w/3);
-	SetColSize(2, w/3);
-}
-
-void PropertyGrid::AppendProperties(const std::set<Property> &properties)
-{
-	AppendRows((int)properties.size());
-	int i = 0;
-
-	for (auto &p : properties)
-	{
-		SetCellValue(i, 1, p.category());
-
-
-		wxArrayString choices;
-		for (auto &value : Property::get_values(p.category())) {
-			choices.Add(value);
-		}
-
-		SetCellValue(i, 2, p.value());
-		SetReadOnly(i, 0, true);
-		SetReadOnly(i, 1, true);
-		wxString type;
-
-		if (p.is_text())
-		{
-			type = "Text";
-		}
-		else if (p.is_boolean())
-		{
-			type = "Boolean";
-		}
-		else if (p.is_numeric())
-		{
-			type = "Number";
-		}
-		SetCellValue(i, 0, type);
-
-		i++;
-	}
-
-}
-
-void PropertyGrid::SetEditingMode(int row, bool value)
-{
-	wxColour color = value ? *wxRED : GetDefaultCellTextColour();
-	auto font = GetDefaultCellFont();
-	if (value) {
-		font.MakeBold();
-	}
-
-	for (int col = 0; col <= 2; col++)
-	{
-		SetCellTextColour(row, col, color);
-		SetCellFont(row, col, font);
-	}
-}
 } // namespace phonometrica
+
+#endif // PHONOMETRICA_DIALOG_HPP
