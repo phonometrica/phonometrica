@@ -83,6 +83,8 @@ private:
 
 	VNodeList GetSelectedItems() const;
 
+	wxTreeItemId GetSelectedId() const;
+
 	std::shared_ptr<VFolder> GetSelectedFolder() const;
 
 	std::shared_ptr<VFile> GetSelectedFile() const;
@@ -99,6 +101,8 @@ private:
 
 	void OnDropItem(wxTreeEvent &);
 
+	void SetScriptingFunctions();
+
 	wxTreeCtrl *m_tree = nullptr;
 
 	wxStaticText *m_label = nullptr;
@@ -108,7 +112,7 @@ private:
 	int m_corpus_img, m_queries_img, m_datasets_img, m_scripts_img, m_bookmarks_img;
 	int m_annot_img, m_folder_img, m_bookmark_img, m_sound_img, m_document_img, m_query_img, m_script_img, m_dataset_img;
 
-	wxArrayTreeItemIds m_dragged_items;
+	VNodeList m_dragged_files;
 
 	Runtime &runtime;
 };

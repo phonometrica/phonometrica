@@ -185,6 +185,10 @@ private:
 
 	void OnExportMetadata(wxCommandEvent &);
 
+	void SetShellFunctions();
+
+	Plugin *FindPlugin(const String &name);
+
 	// Project browser, on the left.
 	ProjectManager *m_project_manager;
 

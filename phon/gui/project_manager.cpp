@@ -95,6 +95,8 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	Bind(wxEVT_TREE_SEL_CHANGED, &ProjectManager::OnItemSelected, this);
 	Bind(wxEVT_TREE_ITEM_ACTIVATED, &ProjectManager::OnItemDoubleClicked, this);
 	Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &ProjectManager::OnRightClick, this);
+
+	SetScriptingFunctions();
 }
 
 void ProjectManager::Populate()
@@ -341,6 +343,18 @@ VNodeList ProjectManager::GetSelectedItems() const
 	return files;
 }
 
+wxTreeItemId ProjectManager::GetSelectedId() const
+{
+	wxArrayTreeItemIds items;
+	m_tree->GetSelections(items);
+	if (items.IsEmpty()) {
+		return wxTreeItemId();
+	}
+
+	return items.front();
+}
+
+
 std::shared_ptr<VFolder> ProjectManager::GetSelectedFolder() const
 {
 	wxArrayTreeItemIds ids;
@@ -478,7 +492,7 @@ void ProjectManager::SetExpansionFlag(wxTreeItemId node)
 	}
 }
 
-void ProjectManager::OnAddFilesToDirectory(wxCommandEvent &)
+void ProjectManager::OnAddFilesToDirectory(wxCommandEvent &e)
 {
 	wxFileDialog dlg(this, _("Add files to directory..."), "", "", "Phonometrica files (*.*)|*.*",
 				  wxFD_OPEN|wxFD_MULTIPLE|wxFD_FILE_MUST_EXIST);
@@ -512,7 +526,7 @@ void ProjectManager::OnAddFilesToDirectory(wxCommandEvent &)
 	{
 		project->add_file(path, folder, type);
 	}
-	folder->set_expanded(true);
+	m_tree->Expand(GetSelectedId());
 	CheckProjectImport();
 
 	// Files are added silently, so we need to explicitly modify the project
@@ -534,23 +548,82 @@ wxTreeItemId ProjectManager::GetParentDirectory(wxTreeItemId item) const
 
 void ProjectManager::OnDragItem(wxTreeEvent &e)
 {
-	auto items = GetSelectedItems();
+	m_dragged_files = GetSelectedItems();
+	auto project = Project::get();
 
-	for (auto &item : items)
+	for (auto &item : m_dragged_files)
 	{
-		if (Project::get()->is_root(item->toplevel())) {
+		if (item->is_folder() && project->is_root(dynamic_cast<VFolder*>(item.get())))
+		{
+			m_dragged_files.clear();
 			return;
 		}
 	}
 
-	m_dragged_items.Clear();
-	m_tree->GetSelections(m_dragged_items);
 	e.Allow();
 }
 
 void ProjectManager::OnDropItem(wxTreeEvent &e)
 {
+	auto dest_item = e.GetItem();
+	if (!dest_item.IsOk()) {
+		return;
+	}
 
+	auto dest_data = dynamic_cast<ItemData*>(m_tree->GetItemData(dest_item));
+	assert(dest_data);
+	auto dest_node = dest_data->node;
+
+	// Ensure that the dragged items and the drop target have the same root
+	// and that the drop target is not lower than the dragged items in the tree
+	auto toplevel = dest_node->toplevel();
+
+	for (auto &file : m_dragged_files)
+	{
+		if (file->toplevel() != toplevel || file->contains(dest_node))
+		{
+			m_dragged_files.clear();
+			return;
+		}
+	}
+
+	// If the target is a folder, append at the end
+	if (dest_node->is_folder())
+	{
+		auto folder = dynamic_cast<VFolder*>(dest_node);
+		m_tree->Expand(dest_item);
+
+		for (auto &file : m_dragged_files) {
+			file->move_to(folder, -1);
+		}
+	}
+	else
+	{
+		auto parent_item = m_tree->GetItemParent(dest_item);
+		int i = 1;
+		wxTreeItemIdValue cookie;
+		wxTreeItemId child = m_tree->GetFirstChild(parent_item, cookie);
+
+		while (child.IsOk())
+		{
+			if (child == dest_item)
+			{
+				auto parent_data = dynamic_cast<ItemData*>(m_tree->GetItemData(parent_item));
+				auto folder = dynamic_cast<VFolder*>(parent_data->node);
+
+				for (auto &file : m_dragged_files) {
+					file->move_to(folder, i+1);
+				}
+				break;
+			}
+			child = m_tree->GetNextChild(parent_item, cookie);
+			i++;
+		}
+	}
+
+	e.Allow();
+	m_dragged_files.clear();
+	Project::updated();
 }
 
 void ProjectManager::CheckProjectImport()
@@ -559,6 +632,11 @@ void ProjectManager::CheckProjectImport()
 		wxMessageBox(_("Some files were ignored or already present in the corpus."), _("Files ignored"), wxICON_INFORMATION);
 	}
 	Project::get()->clear_import_flag();
+}
+
+void ProjectManager::SetScriptingFunctions()
+{
+
 }
 
 } // namespace phonometrica

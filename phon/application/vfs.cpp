@@ -185,7 +185,12 @@ void VFolder::append(std::shared_ptr<VNode> node, bool mutate)
 void VFolder::insert(intptr_t pos, std::shared_ptr<VNode> node)
 {
 	node->set_parent(this);
-	m_content.insert(pos, std::move(node));
+	if (pos < 0) {
+		m_content.append(std::move(node));
+	}
+	else {
+		m_content.insert(pos, std::move(node));
+	}
 	// insertion is always triggered by the user, so it always mutates the folder.
 	set_modified(true);
 }

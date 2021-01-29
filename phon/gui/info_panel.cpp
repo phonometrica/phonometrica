@@ -345,10 +345,11 @@ void InfoPanel::OnRemoveProperty(wxCommandEvent &e)
 		for (auto &file : m_files)
 		{
 			file->remove_property(category);
-			grid->DeleteRows(i, 1);
 		}
+		grid->DeleteRows(i, 1);
 	}
 	prop_rm_btn->Enable(false);
+	Project::get()->metadata_updated();
 }
 
 void InfoPanel::OnImportMetadata(wxCommandEvent &)
@@ -435,6 +436,7 @@ void InfoPanel::OnCellChanged(wxGridEvent &event)
 			file->add_property(prop);
 		}
 		grid->SetEditingMode(row, false);
+		Project::get()->metadata_updated();
 	}
 	catch (std::exception &e)
 	{

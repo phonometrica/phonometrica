@@ -25,6 +25,7 @@
 #include <wx/dirdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/choicdlg.h>
+#include <wx/textdlg.h>
 #include <phon/gui/macros.hpp>
 #include <phon/gui/main_window.hpp>
 #include <phon/gui/pref/preferences_editor.hpp>
@@ -363,7 +364,8 @@ void MainWindow::SetupUi()
 void MainWindow::PostInitialize()
 {
 	ShowAllPanels();
-
+	SetShellFunctions();
+	
 	// Load system plugins and scripts, and then the user's plugins and scripts.
 	String resources_dir = Settings::resources_directory();
 	String user_dir = Settings::settings_directory();
@@ -1121,5 +1123,329 @@ void MainWindow::OnExportMetadata(wxCommandEvent &)
 {
 	m_info_panel->ExportMetadata();
 }
+
+void MainWindow::SetShellFunctions()
+{
+	auto warning2 = [](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		auto &title = cast<String>(args[1]);
+		wxMessageBox(msg, title, wxICON_WARNING);
+		return Variant();
+	};
+
+	auto warning1 = [](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		wxMessageBox(msg, _("Warning"), wxICON_WARNING);
+		return Variant();
+	};
+
+	auto alert2 = [](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		auto &title = cast<String>(args[1]);
+		wxMessageBox(msg, title, wxICON_ERROR);
+		return Variant();
+	};
+
+	auto alert1 = [](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+		return Variant();
+	};
+
+	auto info2 = [](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		auto &title = cast<String>(args[1]);
+		wxMessageBox(msg, title, wxICON_INFORMATION);
+		return Variant();
+	};
+
+	auto info1 = [](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		wxMessageBox(msg, _("Information"), wxICON_INFORMATION);
+		return Variant();
+	};
+
+	auto ask1 = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		wxMessageDialog dlg(this, msg, _("Question"), wxNO_DEFAULT|wxYES_NO|wxICON_INFORMATION);
+		return (dlg.ShowModal() == wxID_YES);
+	};
+
+	auto ask2 = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		auto &title = cast<String>(args[1]);
+		wxMessageDialog dlg(this, msg, title, wxNO_DEFAULT|wxYES_NO|wxICON_INFORMATION);
+		return (dlg.ShowModal() == wxID_YES);
+	};
+
+	auto open_file_dialog = [=](Runtime &, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		wxFileDialog dlg(this, msg);
+		if (dlg.ShowModal() != wxID_OK) {
+			return Variant();
+		}
+		return String(dlg.GetPath());
+	};
+
+	auto open_files_dialog = [=](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		wxFileDialog dlg(this, msg, wxEmptyString, wxEmptyString, wxString::FromAscii(wxFileSelectorDefaultWildcardStr),
+				   wxFD_DEFAULT_STYLE|wxFD_MULTIPLE);
+		if (dlg.ShowModal() != wxID_OK) {
+			return Variant();
+		}
+		Array<Variant> result;
+		wxArrayString paths;
+		dlg.GetPaths(paths);
+
+		for (auto &path : paths) {
+			result.append(String(path));
+		}
+		std::sort(result.begin(), result.end());
+		return make_handle<List>(&rt, std::move(result));
+	};
+
+	auto open_directory_dialog = [=](Runtime &, std::span<Variant> args) -> Variant {
+		auto &s = cast<String>(args[0]);
+		wxDirDialog dlg(this, s, wxEmptyString, wxDD_DEFAULT_STYLE);
+
+		if (dlg.ShowModal() != wxID_OK) {
+			return Variant();
+		}
+		return String(dlg.GetPath());
+	};
+
+	auto save_file_dialog = [=](Runtime &, std::span<Variant> args) -> Variant {
+		auto &s = cast<String>(args[0]);
+		wxFileDialog dlg(this, s, wxEmptyString, wxEmptyString, wxString::FromAscii(wxFileSelectorDefaultWildcardStr), wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+		if (dlg.ShowModal() != wxID_OK) {
+			return Variant();
+		}
+		return String(dlg.GetPath());
+	};
+
+	auto input = [=](Runtime &, std::span<Variant> args) -> Variant {
+		auto &label = cast<String>(args[0]);
+		auto &title = cast<String>(args[1]);
+		auto &value = cast<String>(args[2]);
+		wxTextEntryDialog dlg(this, label, title, value);
+		if (dlg.ShowModal() != wxID_OK) {
+			return Variant();
+		}
+		return String(dlg.GetValue());
+	};
+
+	auto get_version = [](Runtime &, std::span<Variant> args) -> Variant {
+		return String(utils::get_version());
+	};
+
+	auto get_date = [](Runtime &, std::span<Variant> args) -> Variant {
+		return String(utils::get_date());
+	};
+
+	auto get_supported_sound_formats = [](Runtime &rt, std::span<Variant> args) -> Variant {
+		Array<Variant> sounds;
+		for (auto &s : Sound::supported_sound_format_names()) {
+			sounds.append(s);
+		}
+		return make_handle<List>(&rt, std::move(sounds));
+	};
+
+	auto get_plugin_version = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &name = cast<String>(args[0]);
+		auto plugin = FindPlugin(name);
+		if (plugin) return plugin->version();
+		return Variant();
+	};
+
+	auto get_plugin_resource = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &plugin = cast<String>(args[0]);
+		auto &name = cast<String>(args[1]);
+		auto resource = filesystem::join(Settings::plugin_directory(), plugin, "Resources", name);
+		return std::move(resource);
+	};
+
+	auto close_current_view = [this](Runtime &, std::span<Variant> args) -> Variant {
+		m_viewer->CloseCurrentView();
+		return Variant();
+	};
+
+#if 0
+	auto view_annotation1 = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &annot = cast<AutoAnnotation>(args[0]);
+		m_viewer->editAnnotation(std::move(annot), 1, 0.0, 10.0);
+		return Variant();
+	};
+
+	auto view_annotation2 = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &annot = cast<AutoAnnotation>(args[0]);
+		intptr_t layer = cast<intptr_t>(args[1]);
+		double from = args[2].resolve().get_number();
+		double to = args[3].resolve().get_number();
+		m_viewer->editAnnotation(std::move(annot), layer, from, to);
+		return Variant();
+	};
+
+	auto import_metadata = [this](Runtime &, std::span<Variant> args) -> Variant {
+		m_info_panel->ImportMetadata();
+		return Variant();
+	};
+
+	auto export_metadata = [this](Runtime &, std::span<Variant> args) -> Variant {
+		m_info_panel->ExportMetadata();
+		return Variant();
+	};
+
+	// TODO: avoid using third-party json library to create dialogs
+	auto create_dialog1 = [this](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto &s = cast<String>(args[0]);
+		UserDialog dlg(rt, s, this);
+		if (dlg.exec() == QDialog::Accepted) {
+			return rt.do_string(dlg.get());
+		}
+		return Variant();
+	};
+
+	auto create_dialog2 = [this](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto s = args[0].to_string();
+		UserDialog dlg(rt, s, this);
+		if (dlg.exec() == QDialog::Accepted) {
+			return rt.do_string(dlg.get());
+		}
+		return Variant();
+	};
+
+	auto set_status1 = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		statusBar()->showMessage(msg, 2000);
+		return Variant();
+	};
+
+	auto set_status2 = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		auto time = cast<intptr_t>(args[1]);
+		statusBar()->showMessage(msg, time);
+		return Variant();
+	};
+
+	auto transphon = [=](Runtime &rt, std::span<Variant> args) -> Variant {
+		run_script(rt, transphon);
+		return Variant();
+	};
+
+	auto get_plugin_list = [this](Runtime &rt, std::span<Variant> args) -> Variant {
+		Array<Variant> names;
+		for (auto &plugin : plugins) {
+			names.append(plugin->label());
+		}
+		return make_handle<List>(&rt, std::move(names));
+	};
+
+	auto view_text1 = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &path = cast<String>(args[0]);
+		auto &title = cast<String>(args[1]);
+		TextViewer viewer(path, title, this);
+		viewer.exec();
+		return Variant();
+	};
+
+	auto view_text2 = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &path = cast<String>(args[0]);
+		auto &title = cast<String>(args[1]);
+		auto w = cast<intptr_t>(args[2]);
+		auto h = cast<intptr_t>(args[3]);
+		TextViewer viewer(path, title, this);
+		viewer.setMinimumWidth(w);
+		viewer.setMinimumHeight(h);
+		viewer.exec();
+		return Variant();
+	};
+
+	auto get_current_sound = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto viewer = m_viewer;
+		auto sound = viewer->getCurrentSound();
+		if (sound) {
+			return make_handle<AutoSound>(std::move(sound));
+		}
+		return Variant();
+	};
+
+	auto get_current_annot = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto viewer = m_viewer;
+		auto annot = viewer->getCurrentAnnotation();
+		if (annot) {
+			return make_handle<AutoAnnotation>(std::move(annot));
+		}
+		return Variant();
+	};
+
+	auto get_window_duration = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto viewer = m_viewer;
+		return viewer->getWindowDuration();
+	};
+
+	auto get_selection_duration = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto viewer = m_viewer;
+		return viewer->getSelectionDuration();
+	};
+#endif
+
+#define CLS(T) get_class<T>()
+//	runtime.add_global("view_text", view_text1, { CLS(String), CLS(String) });
+//	runtime.add_global("view_text", view_text2, { CLS(String), CLS(String), CLS(intptr_t), CLS(intptr_t) });
+	runtime.add_global("warning", warning1, { CLS(String) });
+	runtime.add_global("warning", warning2, { CLS(String), CLS(String) });
+	runtime.add_global("alert", alert1, { CLS(String) });
+	runtime.add_global("alert", alert2, { CLS(String), CLS(String) });
+	runtime.add_global("info", info1, { CLS(String) });
+	runtime.add_global("info", info2, { CLS(String), CLS(String) });
+	runtime.add_global("ask", ask1, { CLS(String) });
+	runtime.add_global("ask", ask2, { CLS(String), CLS(String) });
+	runtime.add_global("open_file_dialog", open_file_dialog, { CLS(String) });
+	runtime.add_global("open_files_dialog", open_files_dialog, { CLS(String) });
+	runtime.add_global("open_directory_dialog", open_directory_dialog, { CLS(String) });
+	runtime.add_global("save_file_dialog", save_file_dialog, { CLS(String) });
+	runtime.add_global("get_input", input, { CLS(String), CLS(String), CLS(String) });
+	runtime.add_global("get_plugin_version", get_plugin_version, { CLS(String) });
+	runtime.add_global("get_plugin_resource", get_plugin_resource, { CLS(String), CLS(String) });
+//	runtime.add_global("set_status", set_status1, { CLS(String) });
+//	runtime.add_global("set_status", set_status2, { CLS(String), CLS(intptr_t) });
+//	runtime.add_global("get_current_sound", get_current_sound, { });
+//	runtime.add_global("get_current_annotation", get_current_annot, { });
+//	runtime.add_global("get_window_duration", get_window_duration,  { });
+//	runtime.add_global("get_selection_duration", get_selection_duration, { });
+
+	auto rt = &runtime;
+	auto &phon = cast<Module>(runtime["phon"]);
+	phon.define(rt, "get_version", get_version, { });
+	phon.define(rt, "get_date", get_date, { });
+	phon.define(rt, "get_supported_sound_formats", get_supported_sound_formats, { });
+//	phon.define(rt, "view_script", view_script, { });
+//	phon.define(rt, "view_script", view_script2, { CLS(String) });
+//	phon.define(rt, "run_script", run_script, { CLS(String) });
+	phon.define(rt, "close_current_view", close_current_view, { });
+//	phon.define(rt, "view_annotation", view_annotation1, { CLS(AutoAnnotation) });
+//	phon.define(rt, "view_annotation", view_annotation2, { CLS(AutoAnnotation), CLS(intptr_t), CLS(double), CLS(double) });
+//	phon.define(rt, "import_metadata", import_metadata, { });
+//	phon.define(rt, "export_metadata", export_metadata, { });
+//	phon.define(rt, "create_dialog", create_dialog1, { CLS(String) });
+//	phon.define(rt, "create_dialog", create_dialog2, { CLS(Table) });
+//	phon.define(rt, "get_plugin_list", get_plugin_list, { });
+//	phon.define(rt, "transphon", transphon, { });
+#undef CLS
+}
+
+Plugin *MainWindow::FindPlugin(const String &name)
+{
+	for (auto &plugin : m_plugins)
+	{
+		if (plugin->label() == name) {
+			return plugin.get();
+		}
+	}
+
+	return nullptr;
+}
+
 
 } // namespace phonometrica
