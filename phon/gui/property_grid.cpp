@@ -24,13 +24,39 @@
 
 namespace phonometrica {
 
-class CellEditor : public wxGridCellTextEditor
+/*
+ * This cell editor provides autocompletion for property values. Figuring out how to get it to work wasn't trivial due to
+ * the lack of documentation, I'll lay out the solution here. We must first create a custom cell editor that derives from
+ * wxGridCellTextEditor. When we create the row, we must install this custom editor on the value's cell. The key is to
+ * override its Create() method, to get a pointer to its wxTextCtrl (which is a protected member) and to set autocompletion
+ * choices there.
+ */
+class PropertyValueEditor final : public wxGridCellTextEditor
 {
 public:
 
-	CellEditor() = default;
+	PropertyValueEditor(const String &cat) : category(cat) { }
 
-	wxTextCtrl *GetTextCtrl() const { return Text(); }
+	void OnTextEnter(wxCommandEvent &)
+	{
+		bool b = 1;
+	}
+
+	void Create(wxWindow *parent, wxWindowID id, wxEvtHandler *handler) override
+	{
+		wxGridCellTextEditor::Create(parent, id, handler);
+		wxTextCtrl *txt = Text();
+		assert(txt);
+		wxArrayString choices;
+		for (auto &value : Property::get_values(category)) {
+			choices.Add(value);
+		}
+		txt->SetExtraStyle(wxTE_PROCESS_ENTER);
+		txt->AutoComplete(choices);
+		txt->Bind(wxEVT_TEXT_ENTER, &PropertyValueEditor::OnTextEnter, this);
+	}
+
+	String category;
 };
 
 
@@ -48,12 +74,6 @@ PropertyGrid::PropertyGrid(wxWindow *parent) : wxGrid(parent, wxID_ANY)
 void PropertyGrid::OnResize(wxSizeEvent &)
 {
 	int w = GetClientSize().GetWidth();
-//	SetDefaultColSize(w/3);
-//	SetColSize(0, w/5);
-//	w = w - w/5;
-//	SetColSize(1, w/2);
-//	SetColSize(2, w/2);
-//
 	SetColSize(0, w/3);
 	SetColSize(1, w/3);
 	SetColSize(2, w/3);
@@ -72,22 +92,19 @@ void PropertyGrid::AppendProperties(const std::set<Property> &properties)
 		if (p.is_text())
 		{
 			type = "Text";
-			SetPropertyChoices(row, p.category());
+			SetPropertyEditor(row, p.category());
 			value = p.value();
 		}
 		else if (p.is_boolean())
 		{
 			type = "Boolean";
-			value = p.boolean_value() ? "1" : "0";
+			value = p.boolean_value() ? "1" : "";
 			SetCellRenderer(row, 2, new wxGridCellBoolRenderer);
 			SetCellEditor(row, 2, new wxGridCellBoolEditor);
 		}
 		else if (p.is_numeric())
 		{
-			type = "Number";
 			value = p.value();
-//			SetCellRenderer(row, 2, new wxGridCellFloatRenderer);
-			SetCellEditor(row, 2, new wxGridCellFloatEditor);
 		}
 		SetCellValue(row, 0, type);
 		SetCellValue(row, 1, p.category());
@@ -114,13 +131,9 @@ void PropertyGrid::SetEditingMode(int row, bool value)
 	}
 }
 
-void PropertyGrid::SetPropertyChoices(int row, const String &category)
+void PropertyGrid::SetPropertyEditor(int row, const String &category)
 {
-	wxArrayString choices;
-	for (auto &value : Property::get_values(category)) {
-		choices.Add(value);
-	}
-	choices.Add(_("New value..."));
-	SetCellEditor(row, 2, new wxGridCellChoiceEditor(choices));
+	auto editor = new PropertyValueEditor(category);
+	SetCellEditor(row, 2, editor);
 }
 } // namespace phonometrica

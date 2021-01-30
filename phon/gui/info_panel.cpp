@@ -238,7 +238,7 @@ void InfoPanel::AddProperties(wxPanel *panel, bool shared)
 	grid = new PropertyGrid(panel);
 	grid->SetMinClientSize(FromDIP(size));
 	grid->Bind(wxEVT_GRID_CELL_CHANGED, &InfoPanel::OnCellChanged, this);
-//	grid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &InfoPanel::OnPropertySelected, this);
+	grid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &InfoPanel::OnPropertySelected, this);
 	grid->Bind(wxEVT_GRID_CELL_LEFT_DCLICK, &InfoPanel::OnChangePropertyValue, this);
 
 	auto properties = shared ? Project::get_shared_properties(m_files) : m_files.front()->properties();
@@ -395,25 +395,16 @@ void InfoPanel::OnCellChanged(wxGridEvent &event)
 	{
 		auto type = grid->GetCellValue(row, 0);
 		grid->SetReadOnly(0, 2, false);
+
 		if (type == "Boolean")
 		{
 			grid->SetCellRenderer(row, 2, new wxGridCellBoolRenderer);
 			grid->SetCellEditor(row, 2, new wxGridCellBoolEditor);
 		}
-		else if (type == "Number")
+		else if (type == "Text")
 		{
-//			grid->SetCellRenderer(row, 2, new wxGridCellFloatRenderer);
-			grid->SetCellEditor(row, 2, new wxGridCellFloatEditor);
-		}
-		else
-		{
-			wxArrayString choices;
-			String category = grid->GetCellValue(row, 1);
-			for (auto &value : Property::get_values(category)) {
-				choices.Add(value);
-			}
-			choices.Add(_("New value..."));
-			grid->SetCellEditor(row, 2, new wxGridCellChoiceEditor(choices));
+			auto category = grid->GetCellValue(row, 1);
+			grid->SetPropertyEditor(row, category);
 		}
 		grid->GoToCell(row, 2);
 		grid->EnableCellEditControl();
@@ -423,17 +414,6 @@ void InfoPanel::OnCellChanged(wxGridEvent &event)
 		auto type = grid->GetCellValue(row, 0);
 		auto category = grid->GetCellValue(row, 1);
 		auto value = grid->GetCellValue(row, 2);
-		bool update_values = false;
-
-		if (value == "New value...")
-		{
-			wxTextEntryDialog dlg(this, _("New value:"), _("Edit property"), wxEmptyString, wxTextEntryDialogStyle, wxGetMousePosition());
-			if (dlg.ShowModal() != wxID_OK) {
-				return;
-			}
-			value = dlg.GetValue();
-			update_values = true;
-		}
 
 		Property prop;
 		try
@@ -450,95 +430,12 @@ void InfoPanel::OnCellChanged(wxGridEvent &event)
 			file->add_property(prop);
 		}
 
-		if (update_values)
-		{
-			grid->SetPropertyChoices(row, category);
-			grid->SetCellValue(row, 2, value);
-		}
-
 		grid->SetEditingMode(row, false);
 		grid->SetReadOnly(row, 0, true);
 		grid->SetReadOnly(row, 1, true);
 		Project::get()->metadata_updated();
+		event.Skip();
 	}
-
-#if 0
-	String category = grid->GetCellValue(row, 1);
-	String value = grid->GetCellValue(row, 2);
-	Property prop;
-
-	// Update property when we have a valid category and value.
-	if (category.empty() || value.empty()) return;
-
-	try
-	{
-		// Check whether the category already exists
-		int nrow = grid->GetNumberRows();
-
-		for (int i = 0; i < nrow; i++)
-		{
-			if (i == row) continue;
-			String candidate = grid->GetCellValue(i, 1);
-			if (candidate == category)
-			{
-				wxMessageBox(_("This category already exists"), _("Invalid property"), wxICON_ERROR);
-				grid->SetCellValue(row, 1, wxString());
-				event.Veto();
-				return;
-			}
-		}
-
-		String type = grid->GetCellValue(row, 0);
-
-		if (value == "true" || value == "false")
-		{
-			if (type != "Boolean")
-			{
-				wxMessageBox(_("'true' and 'false' are only valid for Boolean properties"), _("Invalid property"), wxICON_ERROR);
-				event.Veto();
-				return;
-			}
-			prop = Property(category, (value == "true"));
-		}
-		else if (type == "Boolean")
-		{
-			wxMessageBox(_("Boolean value can only be \"true\" or \"false\""), _("Invalid property"), wxICON_ERROR);
-			event.Veto();
-			return;
-		}
-		else if (type == "Number")
-		{
-			bool ok;
-			double result = value.to_float(&ok);
-			if (!ok) {
-				wxMessageBox(_("Invalid numeric value"), _("Invalid property"), wxICON_ERROR);
-				event.Veto();
-				return;
-			}
-			prop = Property(category, result);
-		}
-		else
-		{
-			prop = Property(category, value);
-		}
-
-		// All good
-		for (auto &file : m_files) {
-			file->add_property(prop);
-		}
-		grid->SetEditingMode(row, false);
-		grid->SetReadOnly(row, 0, true);
-		grid->SetReadOnly(row, 1, true);
-		Project::get()->metadata_updated();
-	}
-	catch (std::exception &e)
-	{
-		wxMessageBox(e.what(), _("Invalid property"), wxICON_ERROR);
-		grid->SetGridCursor(row, 0);
-		grid->EnableCellEditControl();
-		event.Veto();
-	}
-#endif
 }
 
 void InfoPanel::OnDescriptionEdited(wxCommandEvent &)

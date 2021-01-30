@@ -374,7 +374,7 @@ Property Property::parse(const String &type, const String &category, const Strin
 		if (value == "1" || value == "true") {
 			return Property(category, true);
 		}
-		else if (value == "0" || value == "false") {
+		else if (value == "" || value == "0" || value == "false") {
 			return Property(category, false);
 		}
 
