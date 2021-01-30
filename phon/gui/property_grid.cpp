@@ -39,7 +39,7 @@ public:
 
 	void OnTextEnter(wxCommandEvent &)
 	{
-		bool b = 1;
+		bool b = true;
 	}
 
 	void Create(wxWindow *parent, wxWindowID id, wxEvtHandler *handler) override
@@ -51,9 +51,9 @@ public:
 		for (auto &value : Property::get_values(category)) {
 			choices.Add(value);
 		}
-		txt->SetExtraStyle(wxTE_PROCESS_ENTER);
 		txt->AutoComplete(choices);
-		txt->Bind(wxEVT_TEXT_ENTER, &PropertyValueEditor::OnTextEnter, this);
+//		txt->SetExtraStyle(wxTE_PROCESS_ENTER);
+//		txt->Bind(wxEVT_TEXT_ENTER, &PropertyValueEditor::OnTextEnter, this);
 	}
 
 	String category;
@@ -129,6 +129,7 @@ void PropertyGrid::SetEditingMode(int row, bool value)
 		SetCellTextColour(row, col, color);
 		SetCellFont(row, col, font);
 	}
+	Refresh();
 }
 
 void PropertyGrid::SetPropertyEditor(int row, const String &category)

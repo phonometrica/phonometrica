@@ -98,6 +98,8 @@ private:
 
 	void OnCellChanged(wxGridEvent &);
 
+	void OnKeyPressed(wxKeyEvent &);
+
 	Runtime &runtime;
 
 	VFileList m_files;

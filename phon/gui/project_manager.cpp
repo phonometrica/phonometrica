@@ -69,6 +69,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 #ifdef __WXMSW__
 	m_folder_img = images->Add(wxBITMAP_PNG_FROM_DATA(folder));
 #elif defined(__WXMAC__)
+//	m_folder_img = images->Add(wxArtProvider::GetIcon(wxART_FOLDER, wxART_OTHER, wxSize(16, 16)));
 	m_folder_img = images->Add(wxBITMAP_PNG_FROM_DATA(folder_mac));
 #else
 	m_folder_img = images->Add(wxArtProvider::GetIcon(wxART_FOLDER));

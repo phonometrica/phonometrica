@@ -72,7 +72,15 @@ wxPanel *PreferencesEditor::MakeScriptingPanel()
 	hsizer->AddSpacer(10);
 	m_font_size_ctrl = new wxSpinCtrl(panel, wxID_ANY);
 	m_font_size_ctrl->SetRange(10, 24);
-	m_font_size_ctrl->SetValue((int)Settings::get_int("mono_font_size"));
+	try
+	{
+		m_font_size_ctrl->SetValue((int)Settings::get_int("mono_font_size"));
+	}
+	catch (...)
+	{
+		Settings::set_value("mono_font_size", intptr_t(12));
+		m_font_size_ctrl->SetValue(12);
+	}
 	hsizer->Add(m_font_size_ctrl);
 	sizer->Add(hsizer, 0, wxEXPAND|wxALL, 10);
 	sizer->AddStretchSpacer();

@@ -161,7 +161,7 @@ wxMenu *MainWindow::MakeFileMenu()
 	menu->AppendSubMenu(export_menu, _("Export"));
 	menu->AppendSeparator();
 
-	menu->Append(ID_FILE_CLOSE_VIEW, _("Close current view"));
+	menu->Append(ID_FILE_CLOSE_VIEW, _("Close current view\tctrl+w"));
 	menu->AppendSeparator();
 
 	menu->Append(ID_FILE_EXIT, _("Quit\tCtrl+q"));
@@ -1139,7 +1139,9 @@ void MainWindow::OnSaveProjectAs(wxCommandEvent &)
 	if (dlg.ShowModal() == wxID_CANCEL) {
 		return;
 	}
-	Project::get()->save(dlg.GetPath());
+	String path = dlg.GetPath();
+	Project::get()->save(path);
+	UpdateRecentProjects(path);
 }
 
 void MainWindow::OnImportMetadata(wxCommandEvent &)

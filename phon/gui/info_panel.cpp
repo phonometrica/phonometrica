@@ -240,20 +240,34 @@ void InfoPanel::AddProperties(wxPanel *panel, bool shared)
 	grid->Bind(wxEVT_GRID_CELL_CHANGED, &InfoPanel::OnCellChanged, this);
 	grid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &InfoPanel::OnPropertySelected, this);
 	grid->Bind(wxEVT_GRID_CELL_LEFT_DCLICK, &InfoPanel::OnChangePropertyValue, this);
+	grid->Bind(wxEVT_KEY_DOWN, &InfoPanel::OnKeyPressed, this);
 
 	auto properties = shared ? Project::get_shared_properties(m_files) : m_files.front()->properties();
 	grid->AppendProperties(properties);
 
 	panel->GetSizer()->Add(grid, 0, wxEXPAND|wxALL, SIDE_PADDING);
 	AddPropertyButtons(panel);
+
+	// Test autocomplete
+	wxArrayString choices;
+	choices.Add("11AAL1");
+	choices.Add("11ADP1");
+	auto test = new wxTextCtrl(panel, wxID_ANY);
+	test->AutoComplete(choices);
+	panel->GetSizer()->Add(test, 0, wxEXPAND|wxALL, 10);
 }
 
 void InfoPanel::AddPropertyButtons(wxPanel *panel)
 {
+#ifdef __WXMAC__
+	auto add_btn = new wxButton(panel, wxID_ANY, "+");
+	auto rm_btn = new wxButton(panel, wxID_ANY, "-");
+#else
 	auto add_btn = new wxButton(panel, wxID_ANY, wxEmptyString);
 	auto rm_btn = new wxButton(panel, wxID_ANY, wxEmptyString);
-	add_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(plus));
+	add_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(plus), wxTOP);
 	rm_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(minus));
+#endif
 	rm_btn->Enable(false);
 	add_btn->SetMaxClientSize(wxSize(40, -1));
 	rm_btn->SetMaxClientSize(wxSize(40, -1));
@@ -329,8 +343,8 @@ void InfoPanel::OnAddProperty(wxCommandEvent &)
 	types.Add("Boolean");
 	auto ed = new wxGridCellChoiceEditor(types);
 	grid->SetCellEditor(row, 0, ed);
-	grid->SetGridCursor(row, 0);
 	grid->SetEditingMode(row, true);
+	grid->SetGridCursor(row, 0);
 	grid->EnableCellEditControl(true);
 	prop_rm_btn->Enable(true);
 }
@@ -387,14 +401,18 @@ void InfoPanel::OnCellChanged(wxGridEvent &event)
 	// Only possible when adding a new property
 	if (col == 0)
 	{
-		grid->SetReadOnly(0, 1, false);
+		// On macOS, the first choice in the list is automatically generated and this event is emitted, which would
+		// cause the selection to move to the category before the user has a change to change the type.
+#ifndef __WXMAC__
 		grid->GoToCell(row, 1);
 		grid->EnableCellEditControl();
+#endif
 	}
 	else if (col == 1)
 	{
+		// Lock type
+		grid->SetReadOnly(row, 0, true);
 		auto type = grid->GetCellValue(row, 0);
-		grid->SetReadOnly(0, 2, false);
 
 		if (type == "Boolean")
 		{
@@ -488,6 +506,31 @@ void InfoPanel::AddMetadataButtons(wxPanel *panel)
 
 	import_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnImportMetadata, this);
 	export_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnExportMetadata, this);
+}
+
+void InfoPanel::OnKeyPressed(wxKeyEvent &e)
+{
+	if (e.GetKeyCode() == WXK_RETURN || e.GetKeyCode() == WXK_NUMPAD_ENTER)
+	{
+		if (grid->CanEnableCellControl())
+		{
+			if (!grid->IsCellEditControlEnabled())
+			{
+				grid->EnableCellEditControl();
+				return;
+			}
+		}
+		else
+		{
+			int col = grid->GetGridCursorCol();
+			if (col != 2)
+			{
+				wxMessageBox(_("Cannot modify property type or category once it is assigned.\n"
+							   "Hint: remove this property and create a new one."), _("Error"), wxICON_ERROR);
+			}
+		}
+	}
+	e.Skip();
 }
 
 
