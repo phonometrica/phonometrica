@@ -177,7 +177,7 @@ wxMenu *MainWindow::MakeAnalysisMenu()
 {
 	auto menu = new wxMenu;
 	menu->Append(ID_ANALYSIS_FIND, _("Find in annotations...\tctrl+shift+f"));
-	menu->Append(ID_ANALYSIS_FORMANTS, _("Measure formants"));
+	menu->Append(ID_ANALYSIS_FORMANTS, _("Measure formants..."));
 
 	return menu;
 }
