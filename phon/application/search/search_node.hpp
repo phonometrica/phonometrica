@@ -97,7 +97,7 @@ public:
 	};
 
 	explicit SearchOperator(Opcode op, AutoSearchNode lhs, AutoSearchNode rhs = nullptr) :
-		opcode(op), lhs(std::move(lhs)), rhs(std::move(rhs)) { }
+		lhs(std::move(lhs)), rhs(std::move(rhs)), opcode(op) { }
 
 	QueryMatchSet filter(Settings *settings, const AutoAnnotation &annot, const QueryMatchSet &matches) override;
 

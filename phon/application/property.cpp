@@ -27,14 +27,14 @@
 namespace phonometrica {
 
 std::set<Property> Property::the_known_properties;
-std::set<String> Property::the_known_categories;
+std::set<String> Property::known_categories;
 std::unordered_map<String, const std::type_info*> Property::the_property_types;
 
 Property::Property(String category, std::any value) :
 		impl(std::move(category), std::move(value))
 {
 	the_known_properties.insert(*this);
-	auto result = the_known_categories.insert(this->category());
+	auto result = known_categories.insert(this->category());
 
 	// If insertion was successful, we have a new category, so we register its type
 	if (result.second)
@@ -154,7 +154,7 @@ String Property::category() const
 
 const std::set<String> & Property::get_categories()
 {
-	return the_known_categories;
+	return known_categories;
 }
 
 const std::type_info &Property::type() const
@@ -222,7 +222,11 @@ std::set<String> Property::get_values(const String &category)
 {
 	std::set<String> result;
 
-	if (is_boolean(category))
+	// The category may not exist if we are creating a new category in the information panel.
+	if (!has_category(category)) {
+		return result;
+	}
+	else if (is_boolean(category))
 	{
 		result.insert(true_string());
 		result.insert(false_string());
@@ -326,7 +330,7 @@ bool Property::is_text(const String &category)
 	return get_type(category) == typeid(String);
 }
 
-const char *Property::type_name() const
+const char *Property::xml_type_name() const
 {
 	if (type() == typeid(bool))
 		return "boolean";
@@ -336,7 +340,7 @@ const char *Property::type_name() const
 	return "text";
 }
 
-const std::type_info &Property::parse_type_name(std::string_view name)
+const std::type_info &Property::parse_xml_type_name(std::string_view name)
 {
 	if (name == "text")
 		return typeid(String);
@@ -346,6 +350,53 @@ const std::type_info &Property::parse_type_name(std::string_view name)
 		return typeid(bool);
 
 	throw error("Invalid property type name \"%\"", name);
+}
+
+Property Property::parse(const String &type, const String &category, const String &value)
+{
+	if (type == "Text")
+	{
+		return Property(category, value);
+	}
+	else if (type == "Number")
+	{
+		bool ok;
+		double num = value.to_float(&ok);
+
+		if (!ok)
+		{
+			throw error("Invalid numeric value for property: %", value);
+		}
+		return Property(category, num);
+	}
+	else if (type == "Boolean")
+	{
+		if (value == "1" || value == "true") {
+			return Property(category, true);
+		}
+		else if (value == "0" || value == "false") {
+			return Property(category, false);
+		}
+
+		throw error("Invalid Boolean value for property: %", value);
+	}
+
+	throw error("Invalid property type: %", type);
+}
+
+String Property::type_name() const
+{
+	if (type() == typeid(bool))
+		return "Boolean";
+	if (type() == typeid(double))
+		return "Number";
+
+	return "Text";
+}
+
+bool Property::has_category(const String &category)
+{
+	return known_categories.find(category) != known_categories.end();
 }
 
 } // namespace phonometrica

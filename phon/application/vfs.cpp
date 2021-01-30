@@ -558,7 +558,7 @@ void VFile::metadata_to_xml(xml_node meta_node)
 	{
 		auto prop_node = properties_node.append_child("Property");
 		auto attr = prop_node.append_attribute("type");
-		attr.set_value(prop.type_name());
+		attr.set_value(prop.xml_type_name());
 		add_data_node(prop_node, "Category", prop.category());
 		add_data_node(prop_node, "Value", prop.value());
 	}
@@ -583,7 +583,7 @@ void VFile::metadata_from_xml(xml_node meta_node)
 				if (subnode.name() == property_tag)
 				{
 					auto attr = subnode.attribute("type");
-					auto &type = Property::parse_type_name(attr.value());
+					auto &type = Property::parse_xml_type_name(attr.value());
 					auto prop = parse_property(subnode, type);
 					add_property(std::move(prop), false);
 				}
@@ -634,6 +634,5 @@ void VFile::reload()
 	discard_changes();
 	load();
 }
-
 
 } // namespace phonometrica

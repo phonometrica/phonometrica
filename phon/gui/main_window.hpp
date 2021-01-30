@@ -79,7 +79,7 @@ private:
 
 	void OnNewScript(wxCommandEvent &);
 
-	void Finalize();
+	bool Finalize();
 
 	void SetupUi();
 

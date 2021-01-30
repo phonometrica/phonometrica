@@ -21,6 +21,8 @@
 
 #include <phon/gui/views/view.hpp>
 #include <phon/gui/viewer.hpp>
+#include <phon/gui/dialog.hpp>
+#include <phon/application/project.hpp>
 
 namespace phonometrica {
 
@@ -58,4 +60,17 @@ void View::MakeTitleUnmodified()
 		SetTitle(title.Left(title.size() - 1));
 	}
 }
+
+void View::AskImportFile(const String &path)
+{
+	auto reply = ask_question(_("Would you like to import this annotation into the current project?"), _("Import file?"));
+
+	if (reply == wxYES)
+	{
+		auto project = Project::get();
+		project->import_file(path);
+		project->notify_update();
+	}
+}
+
 } // namespace phonometrica

@@ -48,6 +48,7 @@ void PreferencesDialog::CreateButtons()
 	ok_btn->SetMaxSize(btn_size);
 	cancel_btn->SetMaxSize(btn_size);
 	reset_btn->SetMaxSize(btn_size);
+	reset_btn->Enable(false);
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	hsizer->Add(reset_btn, 1, 0, 0);
 	hsizer->AddStretchSpacer(1);

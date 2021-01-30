@@ -23,6 +23,7 @@
 #define PHONOMETRICA_VIEW_HPP
 
 #include <wx/panel.h>
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
@@ -38,15 +39,23 @@ public:
 
 	// These methods can be overriden to respond to accelerators such as ctrl+s (save) or ctrl+r (run)
 	virtual void Save() { }
+
 	virtual void Run() { }
+
+	virtual void AdjustFontSize() { }
 
 protected:
 
 	// These functions assume that the view is selected.
 	wxString GetTitle() const;
+
 	void SetTitle(const wxString &title);
+
 	void MakeTitleModified();
+
 	void MakeTitleUnmodified();
+
+	void AskImportFile(const String &path);
 
 };
 

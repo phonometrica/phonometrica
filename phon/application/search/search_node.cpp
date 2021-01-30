@@ -85,9 +85,10 @@ String SearchOperator::to_string() const
 
 SearchConstraint::SearchConstraint(AutoProtocol p, int context_length, int index, int layer_index, const String &layer_name,
 		bool case_sensitive, SearchConstraint::Opcode op, SearchConstraint::Relation rel, String value) :
-		m_protocol(std::move(p)), index(index), layer_index(layer_index),
+		m_protocol(std::move(p)),
 		value_pattern(op == Opcode::Matches ? Regex(value, case_sensitive ? Regex::None : Regex::Caseless) : Regex()),
 		layer_pattern(layer_name.empty() ? nullptr : std::make_unique<Regex>(layer_name)),
+		layer_index(layer_index), index(index),
 		case_sensitive(case_sensitive), op(op), relation(rel), value(std::move(value))
 {
 	this->context_length = context_length;

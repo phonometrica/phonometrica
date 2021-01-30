@@ -22,6 +22,7 @@
 #include <wx/settings.h>
 #include <phon/gui/macros.hpp>
 #include <phon/gui/script_ctrl.hpp>
+#include <phon/application/settings.hpp>
 
 namespace phonometrica {
 
@@ -36,20 +37,34 @@ enum
 ScriptControl::ScriptControl(wxWindow *parent) :
         wxStyledTextCtrl(parent, wxNewId(), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_RICH2|wxTE_PROCESS_ENTER)
 {
-    InitFont();
+	InitializeFont();
     StyleClearAll();
+	SetTabWidth(TAB_WIDTH);
 	Bind(wxEVT_STC_CHARADDED, &ScriptControl::OnChange, this);
 }
 
-void ScriptControl::InitFont()
+void ScriptControl::InitializeFont()
 {
     wxFont font = MONOSPACE_FONT;
+
+    try
+    {
+    	auto value = int(Settings::get_int("mono_font_size"));
+    	font.SetPointSize(value);
+    }
+    catch (...)
+    {
 #ifdef __WXGTK__
-    font.SetPointSize(13);
+	    int value = 13;
+#else
+	    int value = 12;
 #endif
+	    font.SetPointSize(value);
+	    Settings::set_value("mono_font_size", intptr_t(value));
+    }
+
     SetFont(font);
     StyleSetFont(wxSTC_STYLE_DEFAULT, font);
-    SetTabWidth(TAB_WIDTH);
 }
 
 
@@ -104,6 +119,7 @@ void ScriptControl::OnChange(wxStyledTextEvent &event)
 {
 	constexpr int NEW_LINE = 10;
 	static wxString then(" then"), do_(" do"), func("function "), func2("local function "), else_("else"), elsif("elsif"), tab("\t");
+	notify_modification();
 
 	// Add the same level of indentation as the previous line.
 	if (event.GetKey() == NEW_LINE)

@@ -30,6 +30,8 @@ Viewer::Viewer(Runtime &rt, wxWindow *parent, MainWindow *win) :
 {
 	main_window = win;
 	SetArtProvider(new TabArtProvider());
+	Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSE, &Viewer::OnCloseView, this);
+	Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSED, &Viewer::OnViewClosed, this);
 }
 
 void Viewer::NewScript()
@@ -50,15 +52,13 @@ void Viewer::NewScript(const AutoScript &script)
 
 void Viewer::CloseCurrentView()
 {
-	CloseView(GetSelection());
-	SetStartView();
+	CloseView(GetSelection(), true);
 }
 
-void Viewer::CloseView(int index)
+void Viewer::CloseView(int index, bool remove)
 {
-	auto view = GetView(index);
-
-	if (view->Finalize()) {
+	GetView(index)->Close();
+	if (remove) {
 		DeletePage(index);
 	}
 }
@@ -84,4 +84,37 @@ void Viewer::OnViewFile(const std::shared_ptr<VFile> &file)
 		NewScript(downcast<Script>(file));
 	}
 }
+
+void Viewer::AdjustFontSize()
+{
+	for (int i = 0; i < (int)GetPageCount(); i++)
+	{
+		GetView(i)->AdjustFontSize();
+	}
+}
+
+void Viewer::OnCloseView(wxAuiNotebookEvent &e)
+{
+	if (!GetCurrentView()->Finalize()) {
+		e.Veto();
+	}
+}
+
+void Viewer::OnViewClosed(wxAuiNotebookEvent &)
+{
+	SetStartView();
+}
+
+bool Viewer::Finalize()
+{
+	for (int i = 0; i < (int)GetPageCount(); i++)
+	{
+		if (!GetView(i)->Finalize()) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 } // namespace phonometrica

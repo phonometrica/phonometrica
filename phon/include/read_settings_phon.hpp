@@ -29,6 +29,8 @@ phon.settings = {
 
 "autoload": false,
 
+"mono_font_size": 12,
+
 "enable_mouse_tracking": true,
 
 "sound_plots": {

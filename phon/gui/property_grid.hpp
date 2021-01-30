@@ -37,6 +37,8 @@ public:
 
 	void SetEditingMode(int row, bool value);
 
+	void SetPropertyChoices(int row, const String &category);
+
 private:
 
 	void OnResize(wxSizeEvent &e);

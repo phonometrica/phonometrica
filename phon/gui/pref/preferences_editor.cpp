@@ -29,7 +29,7 @@ PreferencesEditor::PreferencesEditor(wxWindow *parent) :
 	PreferencesDialog(parent, _("Preferences"))
 {
 	AddPage(MakeGeneralPanel(), _("General"));
-	AddPage(MakeSoundPanel(), _("Sound"));
+	AddPage(MakeScriptingPanel(), _("Scripting"));
 }
 
 wxPanel *PreferencesEditor::MakeGeneralPanel()
@@ -63,19 +63,22 @@ wxPanel *PreferencesEditor::MakeGeneralPanel()
 	return panel;
 }
 
-wxPanel *PreferencesEditor::MakeSoundPanel()
+wxPanel *PreferencesEditor::MakeScriptingPanel()
 {
 	auto panel = new wxPanel(m_book);
-
-	// Main sizer.
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-
-
+	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
+	hsizer->Add(new wxStaticText(panel, wxID_ANY, _("Font size in script views (needs reopening):"), wxDefaultPosition, wxDefaultSize), 0, wxALIGN_CENTER, 0);
+	hsizer->AddSpacer(10);
+	m_font_size_ctrl = new wxSpinCtrl(panel, wxID_ANY);
+	m_font_size_ctrl->SetRange(10, 24);
+	m_font_size_ctrl->SetValue((int)Settings::get_int("mono_font_size"));
+	hsizer->Add(m_font_size_ctrl);
+	sizer->Add(hsizer, 0, wxEXPAND|wxALL, 10);
+	sizer->AddStretchSpacer();
 	panel->SetSizer(sizer);
 
-
 	return panel;
-
 }
 
 void PreferencesEditor::DoOk()
@@ -84,6 +87,9 @@ void PreferencesEditor::DoOk()
 	Settings::set_value("match_window_length", (intptr_t)m_match_window_ctrl->GetValue());
 	Settings::set_value("autoload", m_autoload_checkbox->GetValue());
 	Settings::set_value("autosave", m_autosave_checkbox->GetValue());
+
+	// Scripting panel
+	Settings::set_value("mono_font_size", intptr_t(m_font_size_ctrl->GetValue()));
 }
 
 void PreferencesEditor::DoReset()

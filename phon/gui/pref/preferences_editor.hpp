@@ -44,9 +44,9 @@ private:
 
 	wxPanel *MakeGeneralPanel();
 
-	wxPanel *MakeSoundPanel();
+	wxPanel *MakeScriptingPanel();
 
-	wxSpinCtrl *m_match_window_ctrl;
+	wxSpinCtrl *m_match_window_ctrl, *m_font_size_ctrl;
 
 	wxCheckBox *m_autosave_checkbox, *m_autoload_checkbox;
 };

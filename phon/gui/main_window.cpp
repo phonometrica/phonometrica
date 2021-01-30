@@ -38,24 +38,24 @@
 namespace phonometrica {
 
 // File menu
-static const int ID_FILE_NEW_SCRIPT = wxNewId();
-static const int ID_FILE_OPEN_PROJECT = wxNewId();
+static const int ID_FILE_NEW_SCRIPT = wxID_NEW;
+static const int ID_FILE_OPEN_PROJECT = wxID_OPEN;
 static const int ID_FILE_ADD_FILES = wxNewId();
 static const int ID_FILE_ADD_FOLDER = wxNewId();
 static const int ID_FILE_CLEAR_RECENT = wxNewId();
 static const int ID_FILE_OPEN_LAST = wxNewId();
 static const int ID_FILE_CLOSE_PROJECT = wxNewId();
-static const int ID_FILE_SAVE = wxNewId();
-static const int ID_FILE_SAVE_AS = wxNewId();
+static const int ID_FILE_SAVE = wxID_SAVE;
+static const int ID_FILE_SAVE_AS = wxID_SAVEAS;
 static const int ID_FILE_PREFERENCES = wxID_PREFERENCES;
 static const int ID_FILE_IMPORT_METADATA = wxNewId();
 static const int ID_FILE_EXPORT_ANNOTATIONS = wxNewId();
 static const int ID_FILE_EXPORT_METADATA = wxNewId();
-static const int ID_FILE_CLOSE_VIEW = wxNewId();
+static const int ID_FILE_CLOSE_VIEW = wxID_CLOSE;
 static const int ID_FILE_EXIT = wxID_EXIT;
 
 // Analysis menu
-static const int ID_ANALYSIS_FIND = wxNewId();
+static const int ID_ANALYSIS_FIND = wxID_FIND;
 static const int ID_ANALYSIS_FORMANTS = wxNewId();
 
 // Tools menu
@@ -161,7 +161,7 @@ wxMenu *MainWindow::MakeFileMenu()
 	menu->AppendSubMenu(export_menu, _("Export"));
 	menu->AppendSeparator();
 
-	menu->Append(ID_FILE_CLOSE_VIEW, _("Close current view\tCtrl+w"));
+	menu->Append(ID_FILE_CLOSE_VIEW, _("Close current view"));
 	menu->AppendSeparator();
 
 	menu->Append(ID_FILE_EXIT, _("Quit\tCtrl+q"));
@@ -300,15 +300,37 @@ void MainWindow::OnExit(wxCommandEvent &)
 	Finalize();
 }
 
-void MainWindow::OnCloseRequest(wxCloseEvent &)
+void MainWindow::OnCloseRequest(wxCloseEvent &e)
 {
-	Finalize();
+	if (!Finalize()) {
+		e.Veto();
+	}
 }
 
-void MainWindow::Finalize()
+bool MainWindow::Finalize()
 {
+	auto project = Project::get();
+	if (!m_viewer->Finalize()) {
+		return false;
+	}
+	if (project->modified())
+	{
+		 auto reply = wxMessageBox(_("The project has been modified. Would you like to save it?"),
+							 _("Save project?"), wxCANCEL|wxYES|wxNO|wxYES_DEFAULT|wxICON_QUESTION);
+
+		 if (reply == wxCANCEL) {
+		 	return false;
+		 }
+		 if (reply == wxYES)
+		 {
+		 	wxCommandEvent dummy;
+		 	OnSaveProject(dummy);
+		 }
+	}
 	SaveGeometry();
 	Destroy();
+
+	return true;
 }
 
 void MainWindow::EnableSaveFile(bool value)
@@ -717,7 +739,10 @@ void MainWindow::OnEditPreferences(wxCommandEvent &)
     wxSize size(450, 250);
 #endif
 	dlg.SetSize(FromDIP(size));
-	dlg.ShowModal();
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		m_viewer->AdjustFontSize();
+	}
 }
 
 void MainWindow::SetAccelerators()
@@ -727,6 +752,7 @@ void MainWindow::SetAccelerators()
 	auto id_save = wxNewId();
 	entries[0].Set(wxACCEL_CTRL, (int) 'R', id_run);
 	entries[1].Set(wxACCEL_CTRL, (int) 'S', id_save);
+//	entries[2].Set(wxACCEL_CTRL, (int) 'K', wxID_CLOSE);
 //	entries[2].Set(wxACCEL_SHIFT, (int) 'A', ID_ABOUT);
 //	entries[3].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_CUT);
 	wxAcceleratorTable accel(2, entries);
@@ -1089,7 +1115,7 @@ void MainWindow::OpenMostRecentProject()
 
 void MainWindow::OnCloseProject(wxCommandEvent &)
 {
-	Project::get()->close();
+	Project::close();
 	EnableSaveFile(false);
 }
 

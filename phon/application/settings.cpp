@@ -123,38 +123,66 @@ String Settings::config_path()
 
 String Settings::get_string(const String &name)
 {
-	// Get "phon.settings.name"
-	auto &phon = cast<Module>((*runtime)[phon_key]);
-	auto &settings = cast<Table>(phon.get(settings_key));
+	try
+	{
+		// Get "phon.settings.name"
+		auto &phon = cast<Module>((*runtime)[phon_key]);
+		auto &settings = cast<Table>(phon.get(settings_key));
 
-	return cast<String>(settings.get(name));
+		return cast<String>(settings.get(name));
+	}
+	catch (std::runtime_error &e)
+	{
+		throw error("Invalid setting \"%\": %", name, e.what());
+	}
 }
 
 bool Settings::get_boolean(const String &name)
 {
-	// Get "phon.settings.name"
-	auto &phon = cast<Module>((*runtime)[phon_key]);
-	auto &settings = cast<Table>(phon.get(settings_key));
+	try
+	{
+		// Get "phon.settings.name"
+		auto &phon = cast<Module>((*runtime)[phon_key]);
+		auto &settings = cast<Table>(phon.get(settings_key));
 
-	return cast<bool>(settings.get(name));
+		return cast<bool>(settings.get(name));
+	}
+	catch (std::runtime_error &e)
+	{
+		throw error("Invalid setting \"%\": %", name, e.what());
+	}
 }
 
 double Settings::get_number(const String &name)
 {
-	// Get "phon.settings.name"
-	auto &phon = cast<Module>((*runtime)[phon_key]);
-	auto &settings = cast<Table>(phon.get(settings_key));
+	try
+	{
+		// Get "phon.settings.name"
+		auto &phon = cast<Module>((*runtime)[phon_key]);
+		auto &settings = cast<Table>(phon.get(settings_key));
 
-	return settings.get(name).get_number();
+		return settings.get(name).get_number();
+	}
+	catch (std::runtime_error &e)
+	{
+		throw error("Invalid setting \"%\": %", name, e.what());
+	}
 }
 
 Array<Variant> &Settings::get_list(const String &name)
 {
-	// Get "phon.settings.name"
-	auto &phon = cast<Module>((*runtime)[phon_key]);
-	auto &settings = cast<Table>(phon.get(settings_key));
+	try
+	{
+		// Get "phon.settings.name"
+		auto &phon = cast<Module>((*runtime)[phon_key]);
+		auto &settings = cast<Table>(phon.get(settings_key));
 
-	return cast<List>(settings.get(name)).items();
+		return cast<List>(settings.get(name)).items();
+	}
+	catch (std::runtime_error &e)
+	{
+		throw error("Invalid setting \"%\": %", name, e.what());
+	}
 }
 
 String Settings::get_std_script(String name)

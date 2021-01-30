@@ -22,12 +22,11 @@
 #ifndef PHONOMETRICA_SCRIPT_VIEW_HPP
 #define PHONOMETRICA_SCRIPT_VIEW_HPP
 
+#include <wx/toolbar.h>
 #include <phon/gui/views/view.hpp>
 #include <phon/gui/script_ctrl.hpp>
 #include <phon/runtime.hpp>
 #include <phon/application/script.hpp>
-
-class wxToolBarToolBase;
 
 namespace phonometrica {
 
@@ -43,11 +42,13 @@ public:
 
 	void Run() override;
 
+	void AdjustFontSize() override;
+
 private:
 
 	void SetupUi();
 
-	void OnModification(wxStyledTextEvent &);
+	void OnModification();
 
 	void OnCommentSelection(wxCommandEvent &);
 
@@ -66,6 +67,8 @@ private:
 	void OnViewBytecode(wxCommandEvent &);
 
 	ScriptControl *m_ctrl;
+
+	wxToolBar *m_toolbar;
 
 	wxToolBarToolBase *m_save_tool;
 

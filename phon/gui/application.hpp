@@ -36,6 +36,8 @@ public:
 
     int OnExit() override;
 
+    bool OnExceptionInMainLoop() override;
+
 #ifdef __WXMAC__
 	void MacOpenFile(const wxString &fileName) override;
 #endif

@@ -83,9 +83,11 @@ public:
 
 	const std::type_info &type() const;
 
-	const char *type_name() const;
+	const char *xml_type_name() const;
 
-	static const std::type_info &parse_type_name(std::string_view name);
+	String type_name() const; // as displayed in the information panel
+
+	static const std::type_info &parse_xml_type_name(std::string_view name);
 
 	static void remove(const Property &p);
 
@@ -105,10 +107,14 @@ public:
 
 	bool valid() const { return bool(impl); }
 
+	static Property parse(const String &type, const String &category, const String &value);
+
+	static bool has_category(const String &category);
+
 private:
 
 	static std::set<Property> the_known_properties;
-	static std::set<String> the_known_categories;
+	static std::set<String> known_categories;
 	static std::unordered_map<String, const std::type_info*> the_property_types;
 
 	struct Data : public Countable<Data>

@@ -62,40 +62,41 @@ void PropertyGrid::OnResize(wxSizeEvent &)
 void PropertyGrid::AppendProperties(const std::set<Property> &properties)
 {
 	AppendRows((int)properties.size());
-	int i = 0;
+	int row = 0;
 
 	for (auto &p : properties)
 	{
-		SetCellValue(i, 1, p.category());
-
-
-		wxArrayString choices;
-		for (auto &value : Property::get_values(p.category())) {
-			choices.Add(value);
-		}
-
-		SetCellValue(i, 2, p.value());
-		SetReadOnly(i, 0, true);
-		SetReadOnly(i, 1, true);
 		wxString type;
+		wxString value;
 
 		if (p.is_text())
 		{
 			type = "Text";
+			SetPropertyChoices(row, p.category());
+			value = p.value();
 		}
 		else if (p.is_boolean())
 		{
 			type = "Boolean";
+			value = p.boolean_value() ? "1" : "0";
+			SetCellRenderer(row, 2, new wxGridCellBoolRenderer);
+			SetCellEditor(row, 2, new wxGridCellBoolEditor);
 		}
 		else if (p.is_numeric())
 		{
 			type = "Number";
+			value = p.value();
+//			SetCellRenderer(row, 2, new wxGridCellFloatRenderer);
+			SetCellEditor(row, 2, new wxGridCellFloatEditor);
 		}
-		SetCellValue(i, 0, type);
+		SetCellValue(row, 0, type);
+		SetCellValue(row, 1, p.category());
+		SetCellValue(row, 2, value);
+		SetReadOnly(row, 0, true);
+		SetReadOnly(row, 1, true);
 
-		i++;
+		row++;
 	}
-
 }
 
 void PropertyGrid::SetEditingMode(int row, bool value)
@@ -111,5 +112,15 @@ void PropertyGrid::SetEditingMode(int row, bool value)
 		SetCellTextColour(row, col, color);
 		SetCellFont(row, col, font);
 	}
+}
+
+void PropertyGrid::SetPropertyChoices(int row, const String &category)
+{
+	wxArrayString choices;
+	for (auto &value : Property::get_values(category)) {
+		choices.Add(value);
+	}
+	choices.Add(_("New value..."));
+	SetCellEditor(row, 2, new wxGridCellChoiceEditor(choices));
 }
 } // namespace phonometrica

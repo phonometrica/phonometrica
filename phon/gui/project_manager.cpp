@@ -98,6 +98,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	Bind(wxEVT_TREE_SEL_CHANGED, &ProjectManager::OnItemSelected, this);
 	Bind(wxEVT_TREE_ITEM_ACTIVATED, &ProjectManager::OnItemDoubleClicked, this);
 	Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &ProjectManager::OnRightClick, this);
+	Bind(wxEVT_TREE_ITEM_MIDDLE_CLICK, &ProjectManager::OnMiddleClick, this);
 
 	SetScriptingFunctions();
 }
@@ -258,6 +259,27 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 	{
 		auto vf = downcast<VFile>(vnode->shared_from_this());
 		view_file(vf);
+	}
+}
+
+void ProjectManager::OnMiddleClick(wxTreeEvent &e)
+{
+	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(e.GetItem()));
+	if (!data) return; // should never happen
+	auto vnode = data->node;
+	auto id = data->GetId();
+	assert(vnode);
+
+	if (vnode->is_folder())
+	{
+		if (m_tree->IsExpanded(id))
+		{
+			CollapseNode(id);
+		}
+		else
+		{
+			ExpandNode(id);
+		}
 	}
 }
 
@@ -832,6 +854,5 @@ void ProjectManager::RemoveItems(const VNodeList &items)
 	}
 	Project::updated();
 }
-
 
 } // namespace phonometrica

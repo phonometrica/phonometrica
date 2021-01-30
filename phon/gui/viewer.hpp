@@ -54,13 +54,21 @@ public:
 
 	void OnViewFile(const std::shared_ptr<VFile> &file);
 
+	void AdjustFontSize();
+
+	bool Finalize();
+
 private:
 
 	void AddView(View *view, const wxString &title);
 
-	void CloseView(int index);
+	void CloseView(int index, bool remove);
 
 	View *GetView(int i) { return dynamic_cast<View*>(GetPage(i)); }
+
+	void OnCloseView(wxAuiNotebookEvent &);
+
+	void OnViewClosed(wxAuiNotebookEvent &);
 
 	// Used to set bindings.
 	MainWindow *main_window = nullptr;

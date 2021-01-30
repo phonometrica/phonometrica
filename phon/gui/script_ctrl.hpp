@@ -23,6 +23,7 @@
 #define PHONOMETRICA_SCRIPT_CONTROL_HPP
 
 #include <wx/stc/stc.h>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
@@ -42,9 +43,11 @@ public:
 
 	std::pair<int,int> GetSelectedLines() const;
 
-private:
+	void InitializeFont();
 
-	void InitFont();
+	Signal<> notify_modification;
+
+private:
 
 	void OnChange(wxStyledTextEvent &);
 };

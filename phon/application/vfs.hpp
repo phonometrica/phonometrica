@@ -47,6 +47,7 @@ enum class FileType
 
 class VFolder;
 
+
 class VNode : public std::enable_shared_from_this<VNode>
 {
 public:

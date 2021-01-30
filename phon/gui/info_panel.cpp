@@ -22,6 +22,7 @@
 #include <wx/stattext.h>
 #include <wx/msgdlg.h>
 #include <wx/button.h>
+#include <wx/textdlg.h>
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/info_panel.hpp>
 #include <phon/gui/csv_dialog.hpp>
@@ -222,8 +223,8 @@ void InfoPanel::AddSoundLabel(wxPanel *panel, const wxString &label, const wxStr
 	hsizer->Add(txt, 1, wxALIGN_CENTER|wxLEFT, SIDE_PADDING);
 	auto btn = new wxButton(panel, wxID_ANY, _("Bind..."));
 	btn->SetToolTip(_("Bind annotation to sound file"));
-	hsizer->Add(btn, 0, wxRIGHT, SIDE_PADDING);
-	panel->GetSizer()->Add(hsizer, 0, wxEXPAND, 0);
+	hsizer->Add(btn);
+	panel->GetSizer()->Add(hsizer, 0, wxEXPAND|wxRIGHT, SIDE_PADDING);
 
 	btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnBindSound, this);
 }
@@ -237,7 +238,7 @@ void InfoPanel::AddProperties(wxPanel *panel, bool shared)
 	grid = new PropertyGrid(panel);
 	grid->SetMinClientSize(FromDIP(size));
 	grid->Bind(wxEVT_GRID_CELL_CHANGED, &InfoPanel::OnCellChanged, this);
-	grid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &InfoPanel::OnPropertySelected, this);
+//	grid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &InfoPanel::OnPropertySelected, this);
 	grid->Bind(wxEVT_GRID_CELL_LEFT_DCLICK, &InfoPanel::OnChangePropertyValue, this);
 
 	auto properties = shared ? Project::get_shared_properties(m_files) : m_files.front()->properties();
@@ -373,7 +374,7 @@ void InfoPanel::OnChangePropertyValue(wxGridEvent &e)
 	}
 	else
 	{
-		wxMessageBox(_("Cannot modify property type or category once it is assigned\n"
+		wxMessageBox(_("Cannot modify property type or category once it is assigned.\n"
 				 "Hint: remove this property and create a new one."), _("Error"), wxICON_ERROR);
 	}
 }
@@ -381,6 +382,87 @@ void InfoPanel::OnChangePropertyValue(wxGridEvent &e)
 void InfoPanel::OnCellChanged(wxGridEvent &event)
 {
 	auto row = event.GetRow();
+	auto col = event.GetCol();
+
+	// Only possible when adding a new property
+	if (col == 0)
+	{
+		grid->SetReadOnly(0, 1, false);
+		grid->GoToCell(row, 1);
+		grid->EnableCellEditControl();
+	}
+	else if (col == 1)
+	{
+		auto type = grid->GetCellValue(row, 0);
+		grid->SetReadOnly(0, 2, false);
+		if (type == "Boolean")
+		{
+			grid->SetCellRenderer(row, 2, new wxGridCellBoolRenderer);
+			grid->SetCellEditor(row, 2, new wxGridCellBoolEditor);
+		}
+		else if (type == "Number")
+		{
+//			grid->SetCellRenderer(row, 2, new wxGridCellFloatRenderer);
+			grid->SetCellEditor(row, 2, new wxGridCellFloatEditor);
+		}
+		else
+		{
+			wxArrayString choices;
+			String category = grid->GetCellValue(row, 1);
+			for (auto &value : Property::get_values(category)) {
+				choices.Add(value);
+			}
+			choices.Add(_("New value..."));
+			grid->SetCellEditor(row, 2, new wxGridCellChoiceEditor(choices));
+		}
+		grid->GoToCell(row, 2);
+		grid->EnableCellEditControl();
+	}
+	else
+	{
+		auto type = grid->GetCellValue(row, 0);
+		auto category = grid->GetCellValue(row, 1);
+		auto value = grid->GetCellValue(row, 2);
+		bool update_values = false;
+
+		if (value == "New value...")
+		{
+			wxTextEntryDialog dlg(this, _("New value:"), _("Edit property"), wxEmptyString, wxTextEntryDialogStyle, wxGetMousePosition());
+			if (dlg.ShowModal() != wxID_OK) {
+				return;
+			}
+			value = dlg.GetValue();
+			update_values = true;
+		}
+
+		Property prop;
+		try
+		{
+			prop = Property::parse(type, category, value);
+		}
+		catch (std::exception &e)
+		{
+			wxMessageBox(e.what(), _("Invalid property"), wxICON_ERROR);
+			return;
+		}
+
+		for (auto &file : m_files) {
+			file->add_property(prop);
+		}
+
+		if (update_values)
+		{
+			grid->SetPropertyChoices(row, category);
+			grid->SetCellValue(row, 2, value);
+		}
+
+		grid->SetEditingMode(row, false);
+		grid->SetReadOnly(row, 0, true);
+		grid->SetReadOnly(row, 1, true);
+		Project::get()->metadata_updated();
+	}
+
+#if 0
 	String category = grid->GetCellValue(row, 1);
 	String value = grid->GetCellValue(row, 2);
 	Property prop;
@@ -456,6 +538,7 @@ void InfoPanel::OnCellChanged(wxGridEvent &event)
 		grid->EnableCellEditControl();
 		event.Veto();
 	}
+#endif
 }
 
 void InfoPanel::OnDescriptionEdited(wxCommandEvent &)

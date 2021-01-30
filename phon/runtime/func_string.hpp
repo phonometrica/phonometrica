@@ -317,7 +317,7 @@ static Variant string_replace_at(Runtime &, std::span<Variant> args)
 	auto &s1 = cast<String>(args[0]);
 	intptr_t pos = cast<intptr_t>(args[1]);
 	intptr_t count = cast<intptr_t>(args[2]);
-	auto &s2 = cast<String>(args[0]);
+	auto &s2 = cast<String>(args[3]);
 	s1.replace(pos, count, s2);
 
 	return Variant();

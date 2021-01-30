@@ -20,16 +20,17 @@
  ***********************************************************************************************************************/
 
 #include <wx/sizer.h>
-#include <wx/toolbar.h>
 #include <wx/artprov.h>
 #include <wx/msgdlg.h>
 #include <phon/gui/views/script_view.hpp>
 #include <phon/gui/macros.hpp>
 #include <phon/gui/console.hpp>
+#include <phon/gui/dialog.hpp>
 #include <phon/gui/text_viewer.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/file.hpp>
 #include <phon/application/settings.hpp>
+#include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
 
@@ -37,8 +38,17 @@ ScriptView::ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent) 
 	View(parent), m_script(script), runtime(rt)
 {
 	SetupUi();
+
 	if (script->has_path())
 	{
+		if (!filesystem::is_file(script->path()))
+		{
+			wxString msg = _("This file doesn't exist: ");
+			msg.Append(script->path());
+			wxMessageBox(msg, _("Invalid script"), wxICON_ERROR);
+			return;
+		}
+
 		auto content = File::read_all(script->path());
 		m_ctrl->SetText(content);
 	}
@@ -47,75 +57,107 @@ ScriptView::ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent) 
 void ScriptView::SetupUi()
 {
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	auto toolbar = new wxToolBar(this, wxID_ANY);
-	toolbar->SetToolBitmapSize(wxSize(24, 24));
+	m_toolbar = new wxToolBar(this, wxID_ANY);
+	m_toolbar->SetToolBitmapSize(wxSize(24, 24));
 
 	wxBitmap save_icon(wxBITMAP_PNG_FROM_DATA(save));
-	m_save_tool = toolbar->AddTool(wxID_SAVE, _("Save script\tctrl+s"), save_icon, _("Save script (" CTRL_KEY "S)"));
-	//m_save_tool->Enable(false);
-	toolbar->AddSeparator();
+	m_save_tool = m_toolbar->AddTool(wxID_ANY, _("Save script\tctrl+s"), save_icon, _("Save script (" CTRL_KEY "S)"));
+	m_toolbar->EnableTool(m_save_tool->GetId(), false);
+	m_toolbar->AddSeparator();
 	wxBitmap run_icon(wxBITMAP_PNG_FROM_DATA(start));
-	auto run_tool = toolbar->AddTool(-1, _("Run script\tctrl+r"), run_icon, _("Run script or selection (" CTRL_KEY "R)"));
-	sizer->Add(toolbar, 0, wxEXPAND | wxALL, 0);
-	toolbar->AddSeparator();
+	auto run_tool = m_toolbar->AddTool(-1, _("Run script\tctrl+r"), run_icon, _("Run script or selection (" CTRL_KEY "R)"));
+	sizer->Add(m_toolbar, 0, wxEXPAND | wxALL, 0);
+	m_toolbar->AddSeparator();
 
 	wxBitmap on_icon(wxBITMAP_PNG_FROM_DATA(toggle_on));
-	auto on_tool = toolbar->AddTool(-1, _("Comment selection"), on_icon, _("Comment line or selection"));
+	auto on_tool = m_toolbar->AddTool(-1, _("Comment selection"), on_icon, _("Comment line or selection"));
 	wxBitmap off_icon(wxBITMAP_PNG_FROM_DATA(toggle_off));
-	auto off_tool = toolbar->AddTool(-1, _("Uncomment selection"), off_icon, _("Uncomment line or selection"));
-	toolbar->AddSeparator();
+	auto off_tool = m_toolbar->AddTool(-1, _("Uncomment selection"), off_icon, _("Uncomment line or selection"));
+	m_toolbar->AddSeparator();
 
 	wxBitmap ident_icon(wxBITMAP_PNG_FROM_DATA(double_right));
-	auto ident_tool = toolbar->AddTool(-1, _("Indent selection"), ident_icon, _("Indent line or selection"));
+	auto ident_tool = m_toolbar->AddTool(-1, _("Indent selection"), ident_icon, _("Indent line or selection"));
 	wxBitmap unident_icon(wxBITMAP_PNG_FROM_DATA(double_left));
-	auto unindent_tool = toolbar->AddTool(-1, _("Unindent selection"), unident_icon, _("Unindent line or selection"));
-	toolbar->AddSeparator();
+	auto unindent_tool = m_toolbar->AddTool(-1, _("Unindent selection"), unident_icon, _("Unindent line or selection"));
+	m_toolbar->AddSeparator();
 
 	wxBitmap bytecode_icon(wxBITMAP_PNG_FROM_DATA(eye));
-	auto bytecode_tool = toolbar->AddTool(-1, _("View bytecode"), bytecode_icon, _("View bytecode"));
-	toolbar->AddStretchableSpace();
+	auto bytecode_tool = m_toolbar->AddTool(-1, _("View bytecode"), bytecode_icon, _("View bytecode"));
+	m_toolbar->AddStretchableSpace();
 
 	wxBitmap help_icon(wxBITMAP_PNG_FROM_DATA(question));
-	auto help_tool = toolbar->AddTool(-1, _("Help"), help_icon, _("Help"));
+	auto help_tool = m_toolbar->AddTool(-1, _("Help"), help_icon, _("Help"));
 
-	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Run(); }, run_tool->GetId());
-	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Save(); }, m_save_tool->GetId());
-	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnCommentSelection, this, on_tool->GetId());
-	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnUncommentSelection, this, off_tool->GetId());
-	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnIndentSelection, this, ident_tool->GetId());
-	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnUnindentSelection, this, unindent_tool->GetId());
-	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnOpenHelp, this, help_tool->GetId());
-	toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnViewBytecode, this, bytecode_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Run(); }, run_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Save(); }, m_save_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnCommentSelection, this, on_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnUncommentSelection, this, off_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnIndentSelection, this, ident_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnUnindentSelection, this, unindent_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnOpenHelp, this, help_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnViewBytecode, this, bytecode_tool->GetId());
 
 	m_ctrl = new ScriptControl(this);
 	m_ctrl->SetSyntaxHighlighting();
 	m_ctrl->SetLineNumbering();
 	sizer->Add(m_ctrl, 1, wxEXPAND, 0);
 	SetSizer(sizer);
-	toolbar->Realize();
+	m_toolbar->Realize();
     m_ctrl->SetSTCFocus(true);
-    m_ctrl->Bind(wxEVT_STC_MODIFIED, &ScriptView::OnModification, this);
+    m_ctrl->notify_modification.connect(&ScriptView::OnModification, this);
 }
 
 void ScriptView::Save()
 {
-	if (!m_script->has_path()) return;
-	String content = m_ctrl->GetText();
-	File file(m_script->path(), "w");
-	file.write(content);
-	m_save_tool->Enable(false);
+	if (!m_script->has_path())
+	{
+		FileDialog dlg(this, _("Save script as..."), "untitled.phon", "Phonometrica scripts (*.phon)|*.phon", wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+		if (dlg.ShowModal() != wxID_OK) {
+			return;
+		}
+		m_script->set_path(dlg.GetPath(), false);
+	}
+	m_script->set_content(m_ctrl->GetText(), true);
+	m_script->save();
+	m_toolbar->EnableTool(m_save_tool->GetId(), false);
 	MakeTitleUnmodified();
+
+	if (m_script->parent() == nullptr) {
+		AskImportFile(m_script->path());
+	}
 }
 
 bool ScriptView::Finalize()
 {
+	if (m_script->modified() && !m_ctrl->IsEmpty())
+	{
+
+		auto reply =  wxMessageBox(_("The current script has unsaved modifications. Would you like to save it?"), _("Save script?"),
+							 wxCANCEL|wxYES|wxNO|wxYES_DEFAULT|wxICON_QUESTION);
+
+		if (reply == wxCANCEL) {
+			return false;
+		}
+		if (reply == wxYES) {
+			Save();
+		}
+		else if (reply == wxNO) {
+			m_script->discard_changes();
+			bool b = m_script->modified();
+			bool b2 = !b;
+		}
+	}
 	return true;
 }
 
-void ScriptView::OnModification(wxStyledTextEvent &)
+void ScriptView::OnModification()
 {
-	//MakeTitleModified();
-	m_save_tool->Enable(true);
+	if (!m_script->modified())
+	{
+		m_script->set_pending_modifications();
+		MakeTitleModified();
+		m_toolbar->EnableTool(m_save_tool->GetId(), true);
+	}
 }
 
 void ScriptView::Run()
@@ -219,6 +261,13 @@ void ScriptView::OnViewBytecode(wxCommandEvent &)
 	}
 
 	runtime.print = old_print;
+}
+
+void ScriptView::AdjustFontSize()
+{
+	// FIXME: this doesn't see to work properly, at least on linux.
+	m_ctrl->InitializeFont();
+	m_ctrl->Layout();
 }
 
 

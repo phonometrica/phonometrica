@@ -67,6 +67,8 @@ private:
 
 	void OnRightClick(wxTreeEvent &);
 
+	void OnMiddleClick(wxTreeEvent &);
+
 	void RemoveDirectory(std::shared_ptr<VFolder> &folder);
 
 	void RemoveFile(std::shared_ptr<VFile> &file);

@@ -57,6 +57,30 @@ int Application::OnExit()
 	return 0;
 }
 
+bool Application::OnExceptionInMainLoop()
+{
+	try
+	{
+		return wxAppConsoleBase::OnExceptionInMainLoop();
+	}
+	catch (std::exception &e)
+	{
+		auto msg = utils::format("Phonometrica generated a critical error with the following message:\n%\n\n"
+						   "The application will try to recover but may no longer work correctly. Please contact the developers about this problem.", e.what());
+		wxMessageBox(msg, _("Critical error"), wxICON_ERROR);
+
+		return true;
+	}
+	catch (...)
+	{
+		auto msg = _("Phonometrica generated an unxpected error."
+			   "It is unable to recover from such errors and is going to crash :-(\n"
+	            "Please contact the developers about this problem.");
+		wxMessageBox(msg, _("Unhandled error"), wxICON_ERROR);
+		return false;
+	}
+}
+
 #ifdef __WXMAC__
 void Application::MacOpenFile(const wxString &fileName)
 {
