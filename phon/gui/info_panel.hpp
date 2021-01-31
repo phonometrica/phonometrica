@@ -136,7 +136,7 @@ private:
 
 	wxPanel *empty_page, *single_page, *multiple_page;
 
-	wxButton *prop_rm_btn, *save_desc_btn, *validate_btn, *clear_btn;
+	wxButton *prop_rm_btn, *save_desc_btn, *validate_btn, *clear_btn, *help_btn;
 
 	wxRichTextCtrl *ctrl_desc;
 

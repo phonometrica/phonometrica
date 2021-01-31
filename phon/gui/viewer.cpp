@@ -104,7 +104,7 @@ void Viewer::AdjustFontSize()
 
 void Viewer::OnCloseView(wxAuiNotebookEvent &e)
 {
-	if (!GetCurrentView()->Finalize()) {
+	if (!GetCurrentView()->Finalize(false)) {
 		e.Veto();
 	}
 }
@@ -114,16 +114,24 @@ void Viewer::OnViewClosed(wxAuiNotebookEvent &)
 	SetStartView();
 }
 
-bool Viewer::Finalize()
+bool Viewer::SaveViews(bool autosave)
 {
+	bool result = true;
+
 	for (size_t i = 0; i < GetPageCount(); i++)
 	{
-		if (!GetView(i)->Finalize()) {
-			return false;
+		auto view = GetView(i);
+
+		// In autosave mode, we save everything without switching to each view
+		if (view->IsModified() && !autosave) {
+			SetSelection(i);
+		}
+		if (!view->Finalize(autosave)) {
+			result = false;
 		}
 	}
 
-	return true;
+	return result;
 }
 
 } // namespace phonometrica

@@ -48,6 +48,8 @@ public:
     // be saved via the save button in the script view.
     void set_pending_modifications() { m_content_modified = true; }
 
+	String label() const override;
+
 private:
 
 	void load() override;

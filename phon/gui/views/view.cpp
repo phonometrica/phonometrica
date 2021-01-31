@@ -37,30 +37,6 @@ void View::SetTitle(const wxString &title)
 	viewer->SetPageText(viewer->GetSelection(), title);
 }
 
-wxString View::GetTitle() const
-{
-	auto viewer = dynamic_cast<Viewer*>(GetParent());
-	return viewer->GetPageText(viewer->GetSelection());
-}
-
-void View::MakeTitleModified()
-{
-	auto title = GetTitle();
-	if (!title.EndsWith("*"))
-	{
-		title.Append('*');
-		SetTitle(title);
-	}
-}
-
-void View::MakeTitleUnmodified()
-{
-	auto title = GetTitle();
-	if (title.EndsWith("*")) {
-		SetTitle(title.Left(title.size() - 1));
-	}
-}
-
 void View::AskImportFile(const String &path)
 {
 	auto reply = ask_question(_("Would you like to import this annotation into the current project?"), _("Import file?"));
@@ -73,4 +49,40 @@ void View::AskImportFile(const String &path)
 	}
 }
 
+bool View::Finalize(bool autosave)
+{
+	if (this->IsModified())
+	{
+		if (autosave)
+		{
+			this->Save();
+		}
+		else
+		{
+			auto reply =  wxMessageBox(_("The current script has unsaved modifications. Would you like to save it?"), _("Save script?"),
+			                           wxCANCEL|wxYES|wxNO|wxYES_DEFAULT|wxICON_QUESTION);
+
+			if (reply == wxCANCEL) {
+				return false;
+			}
+			if (reply == wxYES) {
+				this->Save();
+			}
+			else if (reply == wxNO) {
+				this->DiscardChanges();
+			}
+		}
+	}
+	return true;
+}
+
+void View::UpdateTitle()
+{
+	auto title = GetLabel();
+
+	if (this->IsModified()) {
+		title.Append('*');
+	}
+	SetTitle(title);
+}
 } // namespace phonometrica

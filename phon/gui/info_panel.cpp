@@ -53,9 +53,9 @@ InfoPanel::InfoPanel(Runtime &rt, wxWindow *parent) :
 
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 #if __WXMAC__
-    auto help_btn = new wxButton(this, wxID_HELP);
+    help_btn = new wxButton(this, wxID_HELP);
 #else
-    auto help_btn = new wxButton(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+    help_btn = new wxButton(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
     help_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(question));
     help_btn->SetMaxClientSize(wxSize(40, 100));
 #endif
@@ -127,6 +127,8 @@ void InfoPanel::UpdateInformation()
 {
 	auto id = std::min<intptr_t>(m_files.size(), 2);
 	has_unsaved_property = false;
+	help_btn->Show(id != 0);
+	Layout(); // needed to keep the help button where it belongs
 
 	if (id == 1)
 	{

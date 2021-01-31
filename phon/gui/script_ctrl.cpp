@@ -40,7 +40,8 @@ ScriptControl::ScriptControl(wxWindow *parent) :
 	InitializeFont();
     StyleClearAll();
 	SetTabWidth(TAB_WIDTH);
-	Bind(wxEVT_STC_CHARADDED, &ScriptControl::OnChange, this);
+	Bind(wxEVT_STC_CHARADDED, &ScriptControl::OnCharAdded, this);
+	Bind(wxEVT_STC_CHANGE, &ScriptControl::OnChange, this);
 }
 
 void ScriptControl::InitializeFont()
@@ -115,11 +116,15 @@ void ScriptControl::HideMargin()
 	this->SetMarginWidth(1, 0);
 }
 
-void ScriptControl::OnChange(wxStyledTextEvent &event)
+void ScriptControl::OnChange(wxStyledTextEvent &)
+{
+	notify_modification();
+}
+
+void ScriptControl::OnCharAdded(wxStyledTextEvent &event)
 {
 	constexpr int NEW_LINE = 10;
 	static wxString then(" then"), do_(" do"), func("function "), func2("local function "), else_("else"), elsif("elsif"), tab("\t");
-	notify_modification();
 
 	// Add the same level of indentation as the previous line.
 	if (event.GetKey() == NEW_LINE)

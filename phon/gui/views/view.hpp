@@ -35,7 +35,7 @@ public:
 
 	// This method is called before the view is destroyed. It returns true
 	// if the view can be closed, false if it must be kept open.
-	virtual bool Finalize() = 0;
+	bool Finalize(bool autosave);
 
 	// These methods can be overriden to respond to accelerators such as ctrl+s (save) or ctrl+r (run)
 	virtual void Save() { }
@@ -46,12 +46,17 @@ public:
 
 	virtual String path() const { return String(); }
 
+	virtual bool IsModified() const = 0;
+
+	virtual void DiscardChanges() = 0;
+
+	virtual wxString GetLabel() const = 0;
+
 protected:
 
-	// These functions assume that the view is selected.
-	wxString GetTitle() const;
-
 	void SetTitle(const wxString &title);
+
+	void UpdateTitle();
 
 	void MakeTitleModified();
 

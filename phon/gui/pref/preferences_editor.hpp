@@ -22,6 +22,7 @@
 #ifndef PHONOMETRICA_PREFERENCES_EDITOR_HPP
 #define PHONOMETRICA_PREFERENCES_EDITOR_HPP
 
+#include <wx/panel.h>
 #include <wx/checkbox.h>
 #include <wx/simplebook.h>
 #include <wx/spinctrl.h>

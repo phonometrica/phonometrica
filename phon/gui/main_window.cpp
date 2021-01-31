@@ -309,13 +309,15 @@ void MainWindow::OnCloseRequest(wxCloseEvent &e)
 
 bool MainWindow::Finalize()
 {
+	bool autosave = Settings::get_boolean("autosave");
 	auto project = Project::get();
-	if (!m_viewer->Finalize()) {
+
+	if (!m_viewer->SaveViews(autosave)) {
 		return false;
 	}
 	if (project->modified())
 	{
-		if (Settings::get_boolean("autosave"))
+		if (autosave)
 		{
 			SaveProject();
 		}
@@ -1127,11 +1129,13 @@ void MainWindow::OnCloseProject(wxCommandEvent &)
 
 void MainWindow::OnSaveProject(wxCommandEvent &)
 {
+	m_viewer->SaveViews(false);
 	SaveProject();
 }
 
 void MainWindow::OnSaveProjectAs(wxCommandEvent &)
 {
+	m_viewer->SaveViews(false);
 	SaveProjectAs();
 }
 

@@ -53,7 +53,7 @@ public:
 
 	void AdjustFontSize();
 
-	bool Finalize();
+	bool SaveViews(bool autosave);
 
 private:
 

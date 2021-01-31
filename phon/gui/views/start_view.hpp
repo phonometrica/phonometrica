@@ -38,7 +38,11 @@ public:
 
 	StartView(wxWindow *parent, MainWindow *win);
 
-	bool Finalize() override { return true; }
+	bool IsModified() const override { return false; }
+
+	void DiscardChanges() override { }
+
+	wxString GetLabel() const override { return _("Start"); }
 
 private:
 

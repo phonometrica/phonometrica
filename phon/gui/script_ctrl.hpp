@@ -49,6 +49,8 @@ public:
 
 private:
 
+	void OnCharAdded(wxStyledTextEvent &);
+
 	void OnChange(wxStyledTextEvent &);
 };
 

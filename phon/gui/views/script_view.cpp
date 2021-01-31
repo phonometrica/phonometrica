@@ -52,6 +52,7 @@ ScriptView::ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent) 
 		auto content = File::read_all(script->path());
 		m_ctrl->SetText(content);
 	}
+	m_ctrl->notify_modification.connect(&ScriptView::OnModification, this);
 }
 
 void ScriptView::SetupUi()
@@ -104,7 +105,6 @@ void ScriptView::SetupUi()
 	SetSizer(sizer);
 	m_toolbar->Realize();
     m_ctrl->SetSTCFocus(true);
-    m_ctrl->notify_modification.connect(&ScriptView::OnModification, this);
 }
 
 void ScriptView::Save()
@@ -120,32 +120,11 @@ void ScriptView::Save()
 	m_script->set_content(m_ctrl->GetText(), true);
 	m_script->save();
 	m_toolbar->EnableTool(m_save_tool->GetId(), false);
-	MakeTitleUnmodified();
+	UpdateTitle();
 
 	if (m_script->parent() == nullptr) {
 		AskImportFile(m_script->path());
 	}
-}
-
-bool ScriptView::Finalize()
-{
-	if (m_script->modified() && !m_ctrl->IsEmpty())
-	{
-
-		auto reply =  wxMessageBox(_("The current script has unsaved modifications. Would you like to save it?"), _("Save script?"),
-							 wxCANCEL|wxYES|wxNO|wxYES_DEFAULT|wxICON_QUESTION);
-
-		if (reply == wxCANCEL) {
-			return false;
-		}
-		if (reply == wxYES) {
-			Save();
-		}
-		else if (reply == wxNO) {
-			m_script->discard_changes();
-		}
-	}
-	return true;
 }
 
 void ScriptView::OnModification()
@@ -153,7 +132,7 @@ void ScriptView::OnModification()
 	if (!m_script->modified())
 	{
 		m_script->set_pending_modifications();
-		MakeTitleModified();
+		UpdateTitle();
 		m_toolbar->EnableTool(m_save_tool->GetId(), true);
 	}
 }
@@ -271,6 +250,21 @@ void ScriptView::AdjustFontSize()
 String ScriptView::path() const
 {
 	return m_script->path();
+}
+
+bool ScriptView::IsModified() const
+{
+	return m_script->modified() && !m_ctrl->IsEmpty();
+}
+
+void ScriptView::DiscardChanges()
+{
+	m_script->discard_changes();
+}
+
+wxString ScriptView::GetLabel() const
+{
+	return m_script->label();
 }
 
 

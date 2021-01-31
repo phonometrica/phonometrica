@@ -36,8 +36,6 @@ public:
 
 	ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent);
 
-	bool Finalize() override;
-
 	void Save() override;
 
 	void Run() override;
@@ -45,6 +43,12 @@ public:
 	void AdjustFontSize() override;
 
 	String path() const override;
+
+	bool IsModified() const override;
+
+	void DiscardChanges() override;
+
+	wxString GetLabel() const override;
 
 private:
 
