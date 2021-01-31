@@ -44,6 +44,8 @@ public:
 
 	virtual void AdjustFontSize() { }
 
+	virtual String path() const { return String(); }
+
 protected:
 
 	// These functions assume that the view is selected.

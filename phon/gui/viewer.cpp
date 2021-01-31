@@ -79,6 +79,15 @@ View *Viewer::GetCurrentView()
 
 void Viewer::OnViewFile(const std::shared_ptr<VFile> &file)
 {
+	for (size_t i = 0; i < GetPageCount(); i++)
+	{
+		if (GetView(i)->path() == file->path())
+		{
+			SetSelection(i);
+			return;
+		}
+	}
+
 	if (file->is_script())
 	{
 		NewScript(downcast<Script>(file));
@@ -87,7 +96,7 @@ void Viewer::OnViewFile(const std::shared_ptr<VFile> &file)
 
 void Viewer::AdjustFontSize()
 {
-	for (int i = 0; i < (int)GetPageCount(); i++)
+	for (size_t i = 0; i < GetPageCount(); i++)
 	{
 		GetView(i)->AdjustFontSize();
 	}
@@ -107,7 +116,7 @@ void Viewer::OnViewClosed(wxAuiNotebookEvent &)
 
 bool Viewer::Finalize()
 {
-	for (int i = 0; i < (int)GetPageCount(); i++)
+	for (size_t i = 0; i < GetPageCount(); i++)
 	{
 		if (!GetView(i)->Finalize()) {
 			return false;

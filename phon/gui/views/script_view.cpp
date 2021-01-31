@@ -143,8 +143,6 @@ bool ScriptView::Finalize()
 		}
 		else if (reply == wxNO) {
 			m_script->discard_changes();
-			bool b = m_script->modified();
-			bool b2 = !b;
 		}
 	}
 	return true;
@@ -268,6 +266,11 @@ void ScriptView::AdjustFontSize()
 	// FIXME: this doesn't see to work properly, at least on linux.
 	m_ctrl->InitializeFont();
 	m_ctrl->Layout();
+}
+
+String ScriptView::path() const
+{
+	return m_script->path();
 }
 
 

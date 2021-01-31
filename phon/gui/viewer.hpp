@@ -46,8 +46,6 @@ public:
 
 	void NewScript();
 
-	void NewScript(const AutoScript &script);
-
 	void CloseCurrentView();
 
 	View *GetCurrentView();
@@ -64,11 +62,13 @@ private:
 
 	void CloseView(int index, bool remove);
 
-	View *GetView(int i) { return dynamic_cast<View*>(GetPage(i)); }
+	View *GetView(size_t i) { return dynamic_cast<View*>(GetPage(i)); }
 
 	void OnCloseView(wxAuiNotebookEvent &);
 
 	void OnViewClosed(wxAuiNotebookEvent &);
+
+	void NewScript(const AutoScript &script);
 
 	// Used to set bindings.
 	MainWindow *main_window = nullptr;

@@ -53,7 +53,7 @@ InfoPanel::InfoPanel(Runtime &rt, wxWindow *parent) :
 
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 #if __WXGTK__
-	auto help_btn = new wxButton(this, wxID_ANY);
+	auto help_btn = new wxButton(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
 	help_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(question));
 	help_btn->SetMaxClientSize(wxSize(40, 100));
 #else
@@ -215,7 +215,7 @@ void InfoPanel::ClearPanel(wxPanel *panel)
 void InfoPanel::AddSectionHeading(wxPanel *panel, const wxString &header, bool add_space)
 {
 	auto sizer = panel->GetSizer();
-	auto label = new wxStaticText(panel, -1, header);
+	auto label = new wxStaticText(panel, wxID_ANY, header);
 	label->SetFont(MakeBold(label->GetFont()));
 
 	if (add_space)
@@ -230,7 +230,7 @@ void InfoPanel::AddSectionHeading(wxPanel *panel, const wxString &header, bool a
 void InfoPanel::AddLabel(wxPanel *panel, const wxString &label, const wxString &tooltip)
 {
 	auto sizer = panel->GetSizer();
-	auto txt = new wxStaticText(panel, -1, label);
+	auto txt = new wxStaticText(panel, wxID_ANY, label);
 	if (!tooltip.IsEmpty()) {
 		txt->SetToolTip(tooltip);
 	}

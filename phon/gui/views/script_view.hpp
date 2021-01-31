@@ -44,6 +44,8 @@ public:
 
 	void AdjustFontSize() override;
 
+	String path() const override;
+
 private:
 
 	void SetupUi();
