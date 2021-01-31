@@ -71,6 +71,8 @@ public:
 
 	static const std::set<String> & get_categories();
 
+	static std::set<String> get_categories_by_type(const std::type_info &type);
+
 	static std::set<String> get_values(const String &category);
 
 	static const std::type_info &get_type(const String &category);
@@ -113,7 +115,7 @@ public:
 
 private:
 
-	static std::set<Property> the_known_properties;
+	static std::set<Property> known_properties;
 	static std::set<String> known_categories;
 	static std::unordered_map<String, const std::type_info*> the_property_types;
 

@@ -21,14 +21,13 @@
 
 #include <wx/stattext.h>
 #include <wx/msgdlg.h>
-#include <wx/button.h>
-#include <wx/textdlg.h>
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/info_panel.hpp>
 #include <phon/gui/csv_dialog.hpp>
 #include <phon/application/project.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/utils/file_system.hpp>
+#include <phon/application/settings.hpp>
 
 namespace phonometrica {
 
@@ -109,6 +108,7 @@ void InfoPanel::OnSetFileSelection(VFileList files)
 void InfoPanel::UpdateInformation()
 {
 	auto id = std::min<intptr_t>(m_files.size(), 2);
+	has_unsaved_property = false;
 
 	if (id == 1)
 	{
@@ -166,6 +166,7 @@ void InfoPanel::AddDescription(const wxString &desc)
 {
 	ctrl_desc = new wxRichTextCtrl(single_page, -1, desc, wxDefaultPosition, wxDefaultSize, wxRE_MULTILINE);
 	AddSectionHeading(single_page, "Description:", false);
+	single_page->GetSizer()->AddSpacer(5);
 	single_page->GetSizer()->Add(ctrl_desc, 1, wxEXPAND|wxRIGHT|wxLEFT, SIDE_PADDING);
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	auto btn = new wxButton(single_page, wxID_ANY, _("Save description"));
@@ -180,13 +181,17 @@ void InfoPanel::AddDescription(const wxString &desc)
 
 void InfoPanel::ClearPanel(wxPanel *panel)
 {
+	if (prop_ctrl) {
+		prop_ctrl->Unbind(wxEVT_SIZE, &InfoPanel::OnResizeProperties, this);
+	}
+
 	wxWindowList children = panel->GetChildren();
 
 	for (size_t i = 0; i < children.GetCount(); ++i) {
 		delete children[i];
 	}
 	panel->GetSizer()->Clear();
-	grid = nullptr;
+	prop_ctrl = nullptr;
 }
 
 void InfoPanel::AddSectionHeading(wxPanel *panel, const wxString &header, bool add_space)
@@ -233,28 +238,16 @@ void InfoPanel::AddProperties(wxPanel *panel, bool shared)
 {
 	auto label = shared ? _("Shared properties:") : _("Properties:");
 	AddSectionHeading(panel, label, false);
-	wxSize size(50, 150);
 
-	grid = new PropertyGrid(panel);
-	grid->SetMinClientSize(FromDIP(size));
-	grid->Bind(wxEVT_GRID_CELL_CHANGED, &InfoPanel::OnCellChanged, this);
-	grid->Bind(wxEVT_GRID_CELL_LEFT_CLICK, &InfoPanel::OnPropertySelected, this);
-	grid->Bind(wxEVT_GRID_CELL_LEFT_DCLICK, &InfoPanel::OnChangePropertyValue, this);
-	grid->Bind(wxEVT_KEY_DOWN, &InfoPanel::OnKeyPressed, this);
 
-	auto properties = shared ? Project::get_shared_properties(m_files) : m_files.front()->properties();
-	grid->AppendProperties(properties);
+	prop_ctrl = new wxListCtrl(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_VRULES);
+	SetMinClientSize(FromDIP(wxSize(50, 150)));
+	SetProperties(wxString());
+	prop_ctrl->Bind(wxEVT_SIZE, &InfoPanel::OnResizeProperties, this);
+	prop_ctrl->Bind(wxEVT_LIST_ITEM_SELECTED, &InfoPanel::OnPropertySelected, this);
 
-	panel->GetSizer()->Add(grid, 0, wxEXPAND|wxALL, SIDE_PADDING);
+	panel->GetSizer()->Add(prop_ctrl, 0, wxEXPAND|wxALL, SIDE_PADDING);
 	AddPropertyButtons(panel);
-
-	// Test autocomplete
-	wxArrayString choices;
-	choices.Add("11AAL1");
-	choices.Add("11ADP1");
-	auto test = new wxTextCtrl(panel, wxID_ANY);
-	test->AutoComplete(choices);
-	panel->GetSizer()->Add(test, 0, wxEXPAND|wxALL, 10);
 }
 
 void InfoPanel::AddPropertyButtons(wxPanel *panel)
@@ -278,15 +271,58 @@ void InfoPanel::AddPropertyButtons(wxPanel *panel)
 	add_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnAddProperty, this);
 	rm_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnRemoveProperty, this);
 
-	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
-	hsizer->Add(add_btn, 0, 0, 0);
-	hsizer->AddSpacer(5);
-	hsizer->Add(rm_btn, 0, 0, 0);
-	hsizer->AddStretchSpacer();
+	// Merge the type_choice static text with the +/- buttons to save vertical space
+	auto type_sizer = new wxBoxSizer(wxHORIZONTAL);
+	type_sizer->Add(new wxStaticText(panel, wxID_ANY, _("Edit type:")), 0, wxALIGN_BOTTOM, 0);
+	type_sizer->AddStretchSpacer();
+	type_sizer->Add(add_btn, 0, 0, 0);
+	type_sizer->AddSpacer(5);
+	type_sizer->Add(rm_btn, 0, 0, 0);
 
 	auto sizer = panel->GetSizer();
-	sizer->Add(hsizer, 0, wxEXPAND|wxLEFT|wxRIGHT, SIDE_PADDING);
+	sizer->Add(type_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, SIDE_PADDING);
 	sizer->AddSpacer(5);
+
+	wxArrayString types;
+	types.Add("Text");
+	types.Add("Number");
+	types.Add("Boolean");
+	type_choice = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, types);
+	type_choice->SetToolTip(_("Set property type"));
+	sizer->Add(type_choice, 0, wxEXPAND | wxALL, SIDE_PADDING);
+	sizer->Add(new wxStaticText(panel, wxID_ANY, _("Edit category:")),  0, wxEXPAND|wxEXPAND|wxLEFT|wxRIGHT, SIDE_PADDING);
+	category_combo = new wxComboBox(panel, wxID_ANY, _(""), wxDefaultPosition, wxDefaultSize, wxArrayString(), wxTE_PROCESS_ENTER);
+	category_combo->SetToolTip(_("Set property category"));
+	sizer->Add(category_combo, 0, wxEXPAND|wxALL, SIDE_PADDING);
+	sizer->Add(new wxStaticText(panel, wxID_ANY, _("Edit value:")),  0, wxEXPAND|wxLEFT|wxRIGHT, SIDE_PADDING);
+	value_combo = new wxComboBox(panel, wxID_ANY, _(""), wxDefaultPosition, wxDefaultSize);
+	value_combo->SetToolTip(_("Set property value"));
+
+	category_combo->Bind(wxEVT_KEY_DOWN, &InfoPanel::OnCategoryComboKeyPressed, this);
+	value_combo->Bind(wxEVT_SET_FOCUS, &InfoPanel::OnValueComboActivated, this);
+	value_combo->Bind(wxEVT_KEY_DOWN, &InfoPanel::OnValueComboKeyPressed, this);
+
+	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
+	validate_btn = new wxButton(panel, wxID_ANY, _("Validate"));
+	validate_btn->SetToolTip(_("Validate property"));
+	clear_btn = new wxButton(panel, wxID_ANY, _("Clear"));
+	clear_btn->SetToolTip(_("Clear property"));
+	sizer->Add(value_combo, 0, wxEXPAND | wxALL, SIDE_PADDING);
+
+	hsizer->Add(validate_btn, 0, wxEXPAND, 0);
+	hsizer->AddSpacer(5);
+	hsizer->Add(clear_btn, 0, wxEXPAND, 0);
+	hsizer->AddStretchSpacer();
+	sizer->Add(hsizer, 0, wxEXPAND|wxALL, SIDE_PADDING);
+
+	EnablePropertyEditing(false);
+
+	type_choice->Bind(wxEVT_CHOICE, &InfoPanel::OnTypeChosen, this);
+	category_combo->Bind(wxEVT_TEXT_ENTER, &InfoPanel::OnCategoryPressEnter, this);
+	category_combo->Bind(wxEVT_COMBOBOX, &InfoPanel::OnCategoryChanged, this);
+
+	validate_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnValidateProperty, this);
+	clear_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnClearProperty, this);
 }
 
 void InfoPanel::OnSaveDescription(wxCommandEvent &)
@@ -334,36 +370,45 @@ void InfoPanel::OnBindSound(wxCommandEvent &)
 
 void InfoPanel::OnAddProperty(wxCommandEvent &)
 {
-	int row = grid->GetNumberRows();
-	grid->AppendRows(1);
+	EnablePropertyEditing(true);
+	auto new_row = prop_ctrl->InsertItem(prop_ctrl->GetItemCount(), _("undefined"));
+	prop_ctrl->SetItem(new_row, 1, _("undefined"));
+	prop_ctrl->SetItem(new_row, 2, _("undefined"));
+	auto font = prop_ctrl->GetItemFont(new_row);
+	font.MakeItalic();
+	prop_ctrl->SetItemFont(new_row, font);
+	prop_ctrl->SetItemTextColour(new_row, *wxRED);
 
-	wxArrayString types;
-	types.Add("Text");
-	types.Add("Number");
-	types.Add("Boolean");
-	auto ed = new wxGridCellChoiceEditor(types);
-	grid->SetCellEditor(row, 0, ed);
-	grid->SetEditingMode(row, true);
-	grid->SetGridCursor(row, 0);
-	grid->EnableCellEditControl(true);
+	long item = -1;
+	while (true)
+	{
+		item = prop_ctrl->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+		if (item == -1) {
+			break;
+		}
+
+		prop_ctrl->SetItemState(item, 0, wxLIST_STATE_SELECTED);
+	}
+	prop_ctrl->SetItemState(new_row, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+	has_unsaved_property = true;
 	prop_rm_btn->Enable(true);
 }
 
 void InfoPanel::OnRemoveProperty(wxCommandEvent &e)
 {
-	auto indices = grid->GetSelectedRows();
-	std::reverse(indices.begin(), indices.end());
-
-	for (int i : indices)
-	{
-		String category = grid->GetCellValue(i, 0);
-		for (auto &file : m_files)
-		{
-			file->remove_property(category);
-		}
-		grid->DeleteRows(i, 1);
+	long row = prop_ctrl->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	if (row == -1) {
+		return;
 	}
+	String category = prop_ctrl->GetItemText(row, 1);
+	for (auto &file : m_files)
+	{
+		file->remove_property(category);
+	}
+	prop_ctrl->DeleteItem(row);
 	prop_rm_btn->Enable(false);
+	has_unsaved_property = false;
+	EnablePropertyEditing(false);
 	Project::get()->metadata_updated();
 }
 
@@ -372,88 +417,19 @@ void InfoPanel::OnImportMetadata(wxCommandEvent &)
 	ImportMetadata();
 }
 
-void InfoPanel::OnPropertySelected(wxGridEvent &e)
+void InfoPanel::OnPropertySelected(wxListEvent &)
 {
-	grid->SelectRow(e.GetRow());
-	prop_rm_btn->Enable(true);
-}
-
-void InfoPanel::OnChangePropertyValue(wxGridEvent &e)
-{
-	grid->SetGridCursor(e.GetRow(), e.GetCol());
-
-	if (grid->CanEnableCellControl())
+	if (has_unsaved_property)
 	{
-		grid->EnableCellEditControl();
-	}
-	else
-	{
-		wxMessageBox(_("Cannot modify property type or category once it is assigned.\n"
-				 "Hint: remove this property and create a new one."), _("Error"), wxICON_ERROR);
-	}
-}
-
-void InfoPanel::OnCellChanged(wxGridEvent &event)
-{
-	auto row = event.GetRow();
-	auto col = event.GetCol();
-
-	// Only possible when adding a new property
-	if (col == 0)
-	{
-		// On macOS, the first choice in the list is automatically generated and this event is emitted, which would
-		// cause the selection to move to the category before the user has a change to change the type.
-#ifndef __WXMAC__
-		grid->GoToCell(row, 1);
-		grid->EnableCellEditControl();
-#endif
-	}
-	else if (col == 1)
-	{
-		// Lock type
-		grid->SetReadOnly(row, 0, true);
-		auto type = grid->GetCellValue(row, 0);
-
-		if (type == "Boolean")
+		auto reply = ask_question(_("Discard unsaved property?"), _("Edit properties"));
+		if (reply != wxYES)
 		{
-			grid->SetCellRenderer(row, 2, new wxGridCellBoolRenderer);
-			grid->SetCellEditor(row, 2, new wxGridCellBoolEditor);
-		}
-		else if (type == "Text")
-		{
-			auto category = grid->GetCellValue(row, 1);
-			grid->SetPropertyEditor(row, category);
-		}
-		grid->GoToCell(row, 2);
-		grid->EnableCellEditControl();
-	}
-	else
-	{
-		auto type = grid->GetCellValue(row, 0);
-		auto category = grid->GetCellValue(row, 1);
-		auto value = grid->GetCellValue(row, 2);
-
-		Property prop;
-		try
-		{
-			prop = Property::parse(type, category, value);
-		}
-		catch (std::exception &e)
-		{
-			wxMessageBox(e.what(), _("Invalid property"), wxICON_ERROR);
 			return;
 		}
-
-		for (auto &file : m_files) {
-			file->add_property(prop);
-		}
-
-		grid->SetEditingMode(row, false);
-		grid->SetReadOnly(row, 0, true);
-		grid->SetReadOnly(row, 1, true);
-		Project::get()->metadata_updated();
-		event.Skip();
+		prop_ctrl->DeleteItem(prop_ctrl->GetItemCount() - 1);
+		has_unsaved_property = false;
 	}
+	prop_rm_btn->Enable(true);
 }
 
 void InfoPanel::OnDescriptionEdited(wxCommandEvent &)
@@ -497,40 +473,227 @@ void InfoPanel::AddMetadataButtons(wxPanel *panel)
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	auto import_btn = new wxButton(panel, wxID_ANY, _("Import metadata..."));
 	auto export_btn = new wxButton(panel, wxID_ANY, _("Export metadata..."));
+#if __WXGTK__
+	auto help_btn = new wxButton(panel, wxID_ANY);
+	help_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(question));
+	help_btn->SetMaxClientSize(wxSize(40, 100));
+#else
+	auto help_btn = new wxButton(panel, wxID_HELP);
+#endif
 	import_btn->SetToolTip(_("Import metadata from CSV file"));
 	export_btn->SetToolTip(_("Export project metadata to CSV file"));
 	hsizer->Add(import_btn, 1, wxEXPAND, 0);
 	hsizer->AddSpacer(5);
 	hsizer->Add(export_btn, 1, wxEXPAND, 0);
+	hsizer->AddSpacer(5);
+	hsizer->Add(help_btn);
 	sizer->Add(hsizer, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, SIDE_PADDING);
 
 	import_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnImportMetadata, this);
 	export_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnExportMetadata, this);
+	help_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnOpenHelp, this);
 }
 
-void InfoPanel::OnKeyPressed(wxKeyEvent &e)
+void InfoPanel::OnResizeProperties(wxSizeEvent &e)
+{
+	// We need to check the number of columns because a resize event might happen when we clear
+	// the properties to refresh them.
+	if (prop_ctrl->GetColumnCount() == 3)
+	{
+		ResizeProperties();
+	}
+	e.Skip();
+}
+
+void InfoPanel::ResizeProperties()
+{
+	int w = prop_ctrl->GetClientSize().GetWidth();
+	prop_ctrl->SetColumnWidth(0, w/3);
+	prop_ctrl->SetColumnWidth(1, w/3);
+	prop_ctrl->SetColumnWidth(2, w/3);
+}
+
+void InfoPanel::EnablePropertyEditing(bool value)
+{
+	if (!value)
+	{
+		type_choice->SetSelection(wxNOT_FOUND);
+		category_combo->Clear();
+		value_combo->Clear();
+	}
+	type_choice->Enable(value);
+	category_combo->Enable(value);
+	value_combo->Enable(value);
+	validate_btn->Enable(value);
+	clear_btn->Enable(value);
+}
+
+void InfoPanel::OnOpenHelp(wxCommandEvent &)
+{
+	auto url = Settings::get_documentation_page("intro/start.html");
+	wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
+}
+
+void InfoPanel::OnTypeChosen(wxCommandEvent &)
+{
+	std::set<String> categories;
+	category_combo->Clear();
+	value_combo->Clear();
+
+	if (type_choice->GetSelection() == 0) // Text
+	{
+		categories = Property::get_categories_by_type(typeid(String));
+	}
+	else if (type_choice->GetSelection() == 1) // Number
+	{
+		categories = Property::get_categories_by_type(typeid(double));
+	}
+	else // Boolean
+	{
+		categories = Property::get_categories_by_type(typeid(bool));
+		value_combo->Append("true");
+		value_combo->Append("false");
+	}
+
+	for (auto &cat : categories) {
+		category_combo->Append(cat);
+	}
+	category_combo->SetFocus();
+}
+
+void InfoPanel::OnCategoryPressEnter(wxCommandEvent &)
+{
+	value_combo->SetFocus();
+}
+
+void InfoPanel::UpdateValues()
+{
+	value_combo->Clear();
+	if (type_choice->GetSelection() == 0) // Text
+	{
+		String category = category_combo->GetValue();
+		for (auto &cat : Property::get_values(category)) {
+			value_combo->Append(cat);
+		}
+	}
+	else if (type_choice->GetSelection() == 2) // Boolean
+	{
+		value_combo->Append("true");
+		value_combo->Append("false");
+	}
+}
+
+void InfoPanel::OnCategoryChanged(wxCommandEvent &)
+{
+	UpdateValues();
+}
+
+void InfoPanel::OnValidateProperty(wxCommandEvent &)
+{
+	ValidateProperty();
+}
+
+void InfoPanel::ValidateProperty()
+{
+	String type;
+	switch (type_choice->GetSelection())
+	{
+		case 0:
+			type = "Text";
+			break;
+		case 1:
+			type = "Number";
+			break;
+		default:
+			type = "Boolean";
+	}
+	String category = category_combo->GetValue();
+	String value = value_combo->GetValue();
+	Property prop;
+
+	try
+	{
+		if (category.empty()) {
+			throw error("Empty category");
+		}
+		prop = Property::parse(type, category, value);
+	}
+	catch (std::exception &e)
+	{
+		wxMessageBox(e.what(), _("Invalid property"), wxICON_ERROR);
+		return;
+	}
+
+	for (auto &file : m_files) {
+		file->add_property(prop);
+	}
+	EnablePropertyEditing(false);
+	prop_ctrl->ClearAll();
+	has_unsaved_property = false;
+	SetProperties(category);
+	Project::get()->metadata_updated();
+}
+
+void InfoPanel::OnClearProperty(wxCommandEvent &)
+{
+	category_combo->SetValue(wxString());
+	value_combo->SetValue(wxString());
+}
+
+void InfoPanel::SetProperties(const wxString &selected)
+{
+	prop_ctrl->AppendColumn(_("Type"));
+	prop_ctrl->AppendColumn(_("Key"));
+	prop_ctrl->AppendColumn(_("Value"));
+
+	for (auto &prop : Project::get_shared_properties(m_files))
+	{
+		long row = prop_ctrl->InsertItem(prop_ctrl->GetItemCount(), prop.type_name());
+		prop_ctrl->SetItem(row, 1, prop.category());
+		prop_ctrl->SetItem(row, 2, prop.value());
+
+	}
+
+	for (int i = 0; i < prop_ctrl->GetItemCount(); i++)
+	{
+		if (prop_ctrl->GetItemText(i, 1) == selected)
+		{
+			prop_ctrl->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+			break;
+		}
+	}
+
+	ResizeProperties();
+}
+
+void InfoPanel::OnValueComboActivated(wxFocusEvent &)
+{
+	UpdateValues();
+}
+
+void InfoPanel::OnCategoryComboKeyPressed(wxKeyEvent &e)
+{
+	if (e.GetKeyCode() == WXK_TAB)
+	{
+		UpdateValues();
+		value_combo->SetFocus();
+	}
+	else
+	{
+		e.Skip();
+	}
+}
+
+void InfoPanel::OnValueComboKeyPressed(wxKeyEvent &e)
 {
 	if (e.GetKeyCode() == WXK_RETURN || e.GetKeyCode() == WXK_NUMPAD_ENTER)
 	{
-		if (grid->CanEnableCellControl())
-		{
-			if (!grid->IsCellEditControlEnabled())
-			{
-				grid->EnableCellEditControl();
-				return;
-			}
-		}
-		else
-		{
-			int col = grid->GetGridCursorCol();
-			if (col != 2)
-			{
-				wxMessageBox(_("Cannot modify property type or category once it is assigned.\n"
-							   "Hint: remove this property and create a new one."), _("Error"), wxICON_ERROR);
-			}
-		}
+		ValidateProperty();
 	}
-	e.Skip();
+	else
+	{
+		e.Skip();
+	}
 }
 
 

@@ -189,6 +189,10 @@ private:
 
 	void SetShellFunctions();
 
+	void SaveProject();
+
+	void SaveProjectAs();
+
 	Plugin *FindPlugin(const String &name);
 
 	// Project browser, on the left.

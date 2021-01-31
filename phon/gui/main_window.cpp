@@ -315,17 +315,23 @@ bool MainWindow::Finalize()
 	}
 	if (project->modified())
 	{
-		 auto reply = wxMessageBox(_("The project has been modified. Would you like to save it?"),
-							 _("Save project?"), wxCANCEL|wxYES|wxNO|wxYES_DEFAULT|wxICON_QUESTION);
+		if (Settings::get_boolean("autosave"))
+		{
+			SaveProject();
+		}
+		else
+		{
+			auto reply = wxMessageBox(_("The project has been modified. Would you like to save it?"),
+			                          _("Save project?"), wxCANCEL|wxYES|wxNO|wxYES_DEFAULT|wxICON_QUESTION);
 
-		 if (reply == wxCANCEL) {
-		 	return false;
-		 }
-		 if (reply == wxYES)
-		 {
-		 	wxCommandEvent dummy;
-		 	OnSaveProject(dummy);
-		 }
+			if (reply == wxCANCEL) {
+				return false;
+			}
+			if (reply == wxYES)
+			{
+				SaveProject();
+			}
+		}
 	}
 	SaveGeometry();
 	Destroy();
@@ -1119,29 +1125,14 @@ void MainWindow::OnCloseProject(wxCommandEvent &)
 	EnableSaveFile(false);
 }
 
-void MainWindow::OnSaveProject(wxCommandEvent &e)
+void MainWindow::OnSaveProject(wxCommandEvent &)
 {
-	auto project = Project::get();
-	if (!project->has_path())
-	{
-		OnSaveProjectAs(e);
-	}
-	else
-	{
-		project->save();
-	}
+	SaveProject();
 }
 
 void MainWindow::OnSaveProjectAs(wxCommandEvent &)
 {
-	FileDialog dlg(this, _("Save project as.."), "", "Phonometrica project (*.phon-projet)|*.phon-project",
-	                 wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
-	if (dlg.ShowModal() == wxID_CANCEL) {
-		return;
-	}
-	String path = dlg.GetPath();
-	Project::get()->save(path);
-	UpdateRecentProjects(path);
+	SaveProjectAs();
 }
 
 void MainWindow::OnImportMetadata(wxCommandEvent &)
@@ -1489,6 +1480,31 @@ void MainWindow::OnSoundInfo(wxCommandEvent &)
 	msg.Append(Sound::rtaudio_version());
 
 	wxMessageBox(msg, _("Sound information"), wxICON_INFORMATION);
+}
+
+void MainWindow::SaveProject()
+{
+	auto project = Project::get();
+	if (!project->has_path())
+	{
+		SaveProjectAs();
+	}
+	else
+	{
+		project->save();
+	}
+}
+
+void MainWindow::SaveProjectAs()
+{
+	FileDialog dlg(this, _("Save project as.."), "", "Phonometrica project (*.phon-projet)|*.phon-project",
+	               wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+	if (dlg.ShowModal() == wxID_CANCEL) {
+		return;
+	}
+	String path = dlg.GetPath();
+	Project::get()->save(path);
+	UpdateRecentProjects(path);
 }
 
 

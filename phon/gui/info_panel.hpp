@@ -26,8 +26,11 @@
 #include <wx/simplebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/button.h>
+#include <wx/choice.h>
+#include <wx/combobox.h>
+#include <wx/listctrl.h>
 #include <wx/richtext/richtextctrl.h>
-#include <phon/gui/property_grid.hpp>
 #include <phon/runtime.hpp>
 #include <phon/application/vfs.hpp>
 
@@ -92,13 +95,38 @@ private:
 
 	void OnBindSound(wxCommandEvent &);
 
-	void OnPropertySelected(wxGridEvent &);
+	void OnPropertySelected(wxListEvent &);
 
-	void OnChangePropertyValue(wxGridEvent &);
+	void OnResizeProperties(wxSizeEvent &);
 
-	void OnCellChanged(wxGridEvent &);
+	void ResizeProperties();
 
-	void OnKeyPressed(wxKeyEvent &);
+	void EnablePropertyEditing(bool value);
+
+	void OnOpenHelp(wxCommandEvent &);
+
+	void OnTypeChosen(wxCommandEvent &);
+
+	void OnCategoryPressEnter(wxCommandEvent &);
+
+	void OnCategoryChanged(wxCommandEvent &);
+
+	void OnValidateProperty(wxCommandEvent &);
+
+	void ValidateProperty();
+
+	void OnClearProperty(wxCommandEvent &);
+
+	void UpdateValues();
+
+	void SetProperties(const wxString &selected);
+
+	void OnValueComboActivated(wxFocusEvent &);
+
+	void OnCategoryComboKeyPressed(wxKeyEvent &);
+
+	void OnValueComboKeyPressed(wxKeyEvent &);
+
 
 	Runtime &runtime;
 
@@ -108,11 +136,17 @@ private:
 
 	wxPanel *empty_page, *single_page, *multiple_page;
 
-	wxButton *prop_rm_btn, *save_desc_btn;
+	wxButton *prop_rm_btn, *save_desc_btn, *validate_btn, *clear_btn;
 
 	wxRichTextCtrl *ctrl_desc;
 
-	PropertyGrid *grid = nullptr;
+	wxListCtrl *prop_ctrl = nullptr;
+
+	wxChoice *type_choice;
+
+	wxComboBox *category_combo, *value_combo;
+
+	bool has_unsaved_property = false;
 };
 
 } // namespace phonometrica

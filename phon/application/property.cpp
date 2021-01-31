@@ -26,14 +26,14 @@
 
 namespace phonometrica {
 
-std::set<Property> Property::the_known_properties;
+std::set<Property> Property::known_properties;
 std::set<String> Property::known_categories;
 std::unordered_map<String, const std::type_info*> Property::the_property_types;
 
 Property::Property(String category, std::any value) :
 		impl(std::move(category), std::move(value))
 {
-	the_known_properties.insert(*this);
+	known_properties.insert(*this);
 	auto result = known_categories.insert(this->category());
 
 	// If insertion was successful, we have a new category, so we register its type
@@ -42,7 +42,7 @@ Property::Property(String category, std::any value) :
 		the_property_types[this->category()] = &this->type();
 	}
 	// We don't need to check for inconsistent types since operator<() will have thrown when trying to insert
-	// the property into the_known_properties.
+	// the property into known_properties.
 }
 
 void Property::swap(Property &other) noexcept
@@ -157,6 +157,20 @@ const std::set<String> & Property::get_categories()
 	return known_categories;
 }
 
+std::set<String> Property::get_categories_by_type(const std::type_info &type)
+{
+	std::set<String> categories;
+
+	for (auto &p : known_properties)
+	{
+		if (p.type() == type) {
+			categories.insert(p.category());
+		}
+	}
+
+	return categories;
+}
+
 const std::type_info &Property::type() const
 {
 	return impl->value.type();
@@ -178,7 +192,7 @@ Property &Property::operator=(Property &&other) noexcept
 
 void Property::remove(const Property &p)
 {
-	the_known_properties.erase(p);
+	known_properties.erase(p);
 }
 
 String Property::to_string() const
@@ -233,7 +247,7 @@ std::set<String> Property::get_values(const String &category)
 	}
 	else
 	{
-		for (auto &p : the_known_properties)
+		for (auto &p : known_properties)
 		{
 			if (p.category() == category)
 			{
