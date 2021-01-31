@@ -52,12 +52,12 @@ InfoPanel::InfoPanel(Runtime &rt, wxWindow *parent) :
 	header->SetFont(font);
 
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
-#if __WXGTK__
-	auto help_btn = new wxButton(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
-	help_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(question));
-	help_btn->SetMaxClientSize(wxSize(40, 100));
+#if __WXMAC__
+    auto help_btn = new wxButton(this, wxID_HELP);
 #else
-	auto help_btn = new wxButton(this, wxID_HELP);
+    auto help_btn = new wxButton(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+    help_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(question));
+    help_btn->SetMaxClientSize(wxSize(40, 100));
 #endif
 	help_btn->SetToolTip(_("Display help about metadata"));
 	help_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnOpenHelp, this);

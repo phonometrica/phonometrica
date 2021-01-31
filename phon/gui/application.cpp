@@ -19,6 +19,7 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <wx/msgdlg.h>
 #include <phon/gui/application.hpp>
 
 namespace phonometrica {

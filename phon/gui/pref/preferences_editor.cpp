@@ -19,7 +19,7 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/wx.h>
+#include <wx/stattext.h>
 #include <phon/gui/pref/preferences_editor.hpp>
 #include <phon/application/settings.hpp>
 

@@ -31,7 +31,6 @@
 #include <phon/application/sound.hpp>
 #include <phon/application/script.hpp>
 
-
 namespace phonometrica {
 
 class MainWindow;

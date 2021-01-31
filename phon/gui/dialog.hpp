@@ -22,6 +22,13 @@
 #ifndef PHONOMETRICA_DIALOG_HPP
 #define PHONOMETRICA_DIALOG_HPP
 
+#if PHON_WINDOWS
+// wxWidgets includes an old header, winsock.h, wich defines symbols
+// later redefined by winsock2.h. We include that file before including
+// any wxWidgets header to avoid compiler errors.
+#include <WinSock2.h>
+#include <wx/msw/winundef.h>
+#endif
 #include <wx/filedlg.h>
 #include <wx/dirdlg.h>
 #include <wx/msgdlg.h>

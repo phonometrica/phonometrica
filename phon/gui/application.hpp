@@ -21,7 +21,7 @@
 #ifndef PHONOMETRICA_APPLICATION_HPP
 #define PHONOMETRICA_APPLICATION_HPP
 
-#include <wx/wx.h>
+#include <wx/app.h>
 #include <phon/gui/main_window.hpp>
 
 namespace phonometrica {

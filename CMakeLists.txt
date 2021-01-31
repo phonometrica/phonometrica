@@ -130,6 +130,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 add_definitions(-DPHON_WITH_WX=1)
 
 if(WIN32)
+    add_definitions(-DWIN32_LEAN_AND_MEAN=1)
     # Must be defined before including cmath with MSVC to get M_PI
     add_definitions(-D_USE_MATH_DEFINES)
 	add_definitions(-DUTF8PROC_STATIC)
@@ -208,8 +209,8 @@ if (WITH_GUI)
         add_definitions(-DwxUSE_OWNER_DRAWN=1)
 
         set(WX_LIBS
-                wxmsw31u_propgrid${SUFFIX}.lib
-                #wxmsw31u_ribbon${SUFFIX}.lib
+                #wxmsw31u${SUFFIX}_propgrid.lib
+                #wxmsw31u${SUFFIX}_ribbon.lib
                 wxmsw31u${SUFFIX}_stc.lib
                 #wxmsw31u${SUFFIX}_webview.lib
                 #wxmsw31u${SUFFIX}_gl.lib
@@ -229,12 +230,12 @@ if (WITH_GUI)
                 wxzlib${SUFFIX}.lib
                 wxregexu${SUFFIX}.lib
                 wxexpat${SUFFIX}.lib
-#                wxmsw31u_media${SUFFIX}.lib
+#                wxmsw31u${SUFFIX}_media.lib
         )
 
     else(WIN32)
         # XML is needed by richtext
-        find_package(wxWidgets COMPONENTS aui html adv stc richtext xml propgrid ${EXTRA_COMPONENTS} core base REQUIRED)
+        find_package(wxWidgets COMPONENTS aui html adv stc richtext xml ${EXTRA_COMPONENTS} core base REQUIRED)
         #find_package(wxWidgets 3.1 REQUIRED)
         include("${wxWidgets_USE_FILE}")
     endif(WIN32)
