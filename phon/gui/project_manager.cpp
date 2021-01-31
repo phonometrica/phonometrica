@@ -51,7 +51,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	m_tree = new wxTreeCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_HIDE_ROOT|wxTR_MULTIPLE|wxTR_NO_LINES|wxTR_DEFAULT_STYLE);
 	m_label = new wxStaticText(this, wxID_ANY, _("Project"), wxDefaultPosition, wxDefaultSize);
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(m_label, 0, wxEXPAND|wxTOP|wxLEFT, 7);
+	sizer->Add(m_label, 0, wxEXPAND|wxTOP|wxLEFT, 8);
 	sizer->Add(m_tree, 10, wxEXPAND|wxTOP, 5);
 	auto font = m_label->GetFont();
 	font.MakeBold();

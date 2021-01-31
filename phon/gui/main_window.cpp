@@ -1473,10 +1473,10 @@ void MainWindow::OnSoundInfo(wxCommandEvent &)
 	auto msg = _("Supported sound formats on this platform:\n");
 	msg.Append(String::join(Sound::supported_sound_format_names(), ", "));
 	msg.Append("\n\n");
-	msg.Append(_("libsndfile version: "));
+	msg.Append(_("libsndfile: version "));
 	msg.Append(Sound::libsndfile_version());
 	msg.Append("\n\n");
-	msg.Append(_("RTAudio version: "));
+	msg.Append(_("RTAudio: version "));
 	msg.Append(Sound::rtaudio_version());
 
 	wxMessageBox(msg, _("Sound information"), wxICON_INFORMATION);

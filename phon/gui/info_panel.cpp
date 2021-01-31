@@ -50,9 +50,27 @@ InfoPanel::InfoPanel(Runtime &rt, wxWindow *parent) :
 	auto font = header->GetFont();
 	font.MakeBold();
 	header->SetFont(font);
+
+	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
+#if __WXGTK__
+	auto help_btn = new wxButton(this, wxID_ANY);
+	help_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(question));
+	help_btn->SetMaxClientSize(wxSize(40, 100));
+#else
+	auto help_btn = new wxButton(this, wxID_HELP);
+#endif
+	help_btn->SetToolTip(_("Display help about metadata"));
+	help_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnOpenHelp, this);
+
+	hsizer->Add(header, 1, wxALIGN_CENTER, 0);
+	hsizer->AddStretchSpacer();
+	hsizer->Add(help_btn);
+	hsizer->AddSpacer(SIDE_PADDING);
+
 	m_book = new wxSimplebook(this);
 	SetupBook();
-	sizer->Add(header, 0, wxTOP|wxLEFT, 7);
+	sizer->AddSpacer(5);
+	sizer->Add(hsizer, 0, wxEXPAND|wxLEFT, 7);
 	sizer->Add(m_book, 1,wxEXPAND, 0);
 	SetSizer(sizer);
 }
@@ -473,25 +491,15 @@ void InfoPanel::AddMetadataButtons(wxPanel *panel)
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	auto import_btn = new wxButton(panel, wxID_ANY, _("Import metadata..."));
 	auto export_btn = new wxButton(panel, wxID_ANY, _("Export metadata..."));
-#if __WXGTK__
-	auto help_btn = new wxButton(panel, wxID_ANY);
-	help_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(question));
-	help_btn->SetMaxClientSize(wxSize(40, 100));
-#else
-	auto help_btn = new wxButton(panel, wxID_HELP);
-#endif
 	import_btn->SetToolTip(_("Import metadata from CSV file"));
 	export_btn->SetToolTip(_("Export project metadata to CSV file"));
 	hsizer->Add(import_btn, 1, wxEXPAND, 0);
 	hsizer->AddSpacer(5);
 	hsizer->Add(export_btn, 1, wxEXPAND, 0);
-	hsizer->AddSpacer(5);
-	hsizer->Add(help_btn);
 	sizer->Add(hsizer, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, SIDE_PADDING);
 
 	import_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnImportMetadata, this);
 	export_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnExportMetadata, this);
-	help_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnOpenHelp, this);
 }
 
 void InfoPanel::OnResizeProperties(wxSizeEvent &e)
