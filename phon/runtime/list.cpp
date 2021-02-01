@@ -79,7 +79,7 @@ String List::to_json(int spacing) const
 		for (int c = 0; c < spacing; c++) {
 			s.append('\t');
 		}
-		s.append(_items[i].to_string(true));
+		s.append(_items[i].to_json(spacing+1));
 		if (i < _items.size()) {
 			s.append(',');
 		}

@@ -343,8 +343,12 @@ void Settings::read()
 void Settings::write()
 {
 #if PHON_GUI
-	String desc = mono_font.GetNativeFontInfoUserDesc();
-	set_value("mono_font", desc);
+    // FIXME: wxFont::SetNativeFontInfo() doesn't seem to work on Windows, and it crashes on Linux,
+    //  so we serialize the font ourselves
+	Settings::set_value("font_size", intptr_t(mono_font.GetPointSize()));
+	Settings::set_value("font_family", intptr_t(mono_font.GetFamily()));
+	Settings::set_value("font_style", intptr_t(mono_font.GetStyle()));
+	Settings::set_value("font_name", String(mono_font.GetFaceName()));
 #endif
 	run_script((*runtime), write_settings);
 }
@@ -385,12 +389,11 @@ void Settings::post_initialize()
 	// Ensure we have a valid Monospace font
 	try
 	{
-		wxString desc = Settings::get_string("mono_font");
-		wxFont font;
-		if (!font.SetNativeFontInfo(desc)) {
-			throw std::runtime_error("");
-		}
-		mono_font = font;
+        auto size = int(Settings::get_int("font_size"));
+        auto family = wxFontFamily(Settings::get_int("font_family"));
+        auto style = wxFontStyle(Settings::get_int("font_style"));
+        auto name = wxString(Settings::get_string("font_name"));
+		mono_font = wxFont(size, family, style, wxFONTWEIGHT_NORMAL, false, name);
 	}
 	catch (...)
 	{
