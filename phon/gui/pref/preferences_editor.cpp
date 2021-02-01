@@ -71,7 +71,7 @@ wxPanel *PreferencesEditor::MakeScriptingPanel()
 	hsizer->Add(new wxStaticText(panel, wxID_ANY, _("Font size in script views (needs reopening):"), wxDefaultPosition, wxDefaultSize), 0, wxALIGN_CENTER, 0);
 	hsizer->AddSpacer(10);
 	m_font_picker = new wxFontPickerCtrl(panel, wxID_ANY, Settings::get_mono_font());
-	hsizer->Add(m_font_picker);
+	hsizer->Add(m_font_picker, 1, wxEXPAND, 0);
 	sizer->Add(hsizer, 0, wxEXPAND|wxALL, 10);
 	sizer->AddStretchSpacer();
 	panel->SetSizer(sizer);

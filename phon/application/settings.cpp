@@ -191,6 +191,21 @@ Array<Variant> &Settings::get_list(const String &name)
 	}
 }
 
+Hashmap<Variant, Variant> &Settings::get_table(const String &name)
+{
+    try
+    {
+        auto &phon = cast<Module>((*runtime)[phon_key]);
+        auto &settings = cast<Table>(phon.get(settings_key));
+
+        return cast<Table>(settings.get(name)).data();
+    }
+    catch (std::runtime_error &e)
+    {
+        throw error("Invalid setting \"%\": %", name, e.what());
+    }
+}
+
 String Settings::get_std_script(String name)
 {
 	auto path = Settings::resources_directory();
@@ -345,10 +360,14 @@ void Settings::write()
 #if PHON_GUI
     // FIXME: wxFont::SetNativeFontInfo() doesn't seem to work on Windows, and it crashes on Linux,
     //  so we serialize the font ourselves
-	Settings::set_value("font_size", intptr_t(mono_font.GetPointSize()));
-	Settings::set_value("font_family", intptr_t(mono_font.GetFamily()));
-	Settings::set_value("font_style", intptr_t(mono_font.GetStyle()));
-	Settings::set_value("font_name", String(mono_font.GetFaceName()));
+    auto table = make_handle<Table>(runtime);
+    auto &map = table->data();
+
+	map["size"] = intptr_t(mono_font.GetPointSize());
+	map["family"] = intptr_t(mono_font.GetFamily());
+	map["style"] = intptr_t(mono_font.GetStyle());
+	map["name"] = String(mono_font.GetFaceName());
+	Settings::set_value("font", std::move(table));
 #endif
 	run_script((*runtime), write_settings);
 }
@@ -389,10 +408,11 @@ void Settings::post_initialize()
 	// Ensure we have a valid Monospace font
 	try
 	{
-        auto size = int(Settings::get_int("font_size"));
-        auto family = wxFontFamily(Settings::get_int("font_family"));
-        auto style = wxFontStyle(Settings::get_int("font_style"));
-        auto name = wxString(Settings::get_string("font_name"));
+        auto &map = get_table("font");
+        auto size = int(cast<intptr_t>(map["size"]));
+        auto family = wxFontFamily(cast<intptr_t>(map["family"]));
+        auto style = wxFontStyle(cast<intptr_t>(map["style"]));
+        auto name = wxString(cast<String>(map["name"]));
 		mono_font = wxFont(size, family, style, wxFONTWEIGHT_NORMAL, false, name);
 	}
 	catch (...)
@@ -401,6 +421,5 @@ void Settings::post_initialize()
 	}
 #endif
 }
-
 
 } // namespace phonometrica

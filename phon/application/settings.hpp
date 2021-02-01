@@ -65,6 +65,8 @@ public:
 
 	static Array<Variant> &get_list(const String &name);
 
+	static Hashmap<Variant,Variant> &get_table(const String &name);
+
 	static void set_value(const String &key, Variant value);
 
 	static void set_value(const String &key, Array<Variant> value);
