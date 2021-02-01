@@ -352,7 +352,7 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 
 	int count = 0;
 	const double max_freq = Fs / 2 - 50;
-	for (int k = 0; k < freqs.size(); k++)
+	for (size_t k = 0; k < freqs.size(); k++)
 	{
 		auto freq = freqs[k];
 		if (freq > 50 && freq < max_freq && bw[k] < max_bandwidth)

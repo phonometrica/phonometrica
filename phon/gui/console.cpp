@@ -20,7 +20,7 @@
  ***********************************************************************************************************************/
 
 #include <wx/msgdlg.h>
-#include <phon/gui/macros.hpp>
+#include <phon/application/macros.hpp>
 #include <phon/gui/console.hpp>
 #include <phon/file.hpp>
 

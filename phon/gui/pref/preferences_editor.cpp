@@ -70,18 +70,8 @@ wxPanel *PreferencesEditor::MakeScriptingPanel()
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	hsizer->Add(new wxStaticText(panel, wxID_ANY, _("Font size in script views (needs reopening):"), wxDefaultPosition, wxDefaultSize), 0, wxALIGN_CENTER, 0);
 	hsizer->AddSpacer(10);
-	m_font_size_ctrl = new wxSpinCtrl(panel, wxID_ANY);
-	m_font_size_ctrl->SetRange(10, 24);
-	try
-	{
-		m_font_size_ctrl->SetValue((int)Settings::get_int("mono_font_size"));
-	}
-	catch (...)
-	{
-		Settings::set_value("mono_font_size", intptr_t(12));
-		m_font_size_ctrl->SetValue(12);
-	}
-	hsizer->Add(m_font_size_ctrl);
+	m_font_picker = new wxFontPickerCtrl(panel, wxID_ANY, Settings::get_mono_font());
+	hsizer->Add(m_font_picker);
 	sizer->Add(hsizer, 0, wxEXPAND|wxALL, 10);
 	sizer->AddStretchSpacer();
 	panel->SetSizer(sizer);
@@ -97,7 +87,7 @@ void PreferencesEditor::DoOk()
 	Settings::set_value("autosave", m_autosave_checkbox->GetValue());
 
 	// Scripting panel
-	Settings::set_value("mono_font_size", intptr_t(m_font_size_ctrl->GetValue()));
+	Settings::set_mono_font(m_font_picker->GetSelectedFont());
 }
 
 void PreferencesEditor::DoReset()

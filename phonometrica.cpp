@@ -95,6 +95,7 @@ int main(int argc, char **argv)
 #endif
 	wxApp *app = new Application(runtime);
 	wxApp::SetInstance(app);
+	Settings::post_initialize();
 #endif
 
 	int error_code = 0;

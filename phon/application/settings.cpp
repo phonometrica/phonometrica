@@ -23,6 +23,9 @@
 #include <phon/utils/file_system.hpp>
 #include <phon/runtime/file.hpp>
 #include <phon/include/read_settings_phon.hpp>
+#ifdef PHON_GUI
+#include <phon/application/macros.hpp>
+#endif
 
 //#ifdef PHON_EMBED_SCRIPTS
 #include <phon/include/write_settings_phon.hpp>
@@ -34,6 +37,9 @@ namespace phonometrica {
 
 Runtime *Settings::runtime = nullptr;
 String Settings::std_resource_path;
+#ifdef PHON_GUI
+wxFont Settings::mono_font;
+#endif
 static String phon_key("phon"), settings_key("settings");
 static String last_dir_key("last_directory");
 
@@ -336,6 +342,10 @@ void Settings::read()
 
 void Settings::write()
 {
+#if PHON_GUI
+	String desc = mono_font.GetNativeFontInfoUserDesc();
+	set_value("mono_font", desc);
+#endif
 	run_script((*runtime), write_settings);
 }
 
@@ -354,6 +364,39 @@ String Settings::get_documentation_page(String page)
 String Settings::resources_directory()
 {
 	return std_resource_path;
+}
+
+#ifdef PHON_GUI
+wxFont Settings::get_mono_font()
+{
+	assert(mono_font.IsOk());
+	return mono_font;
+}
+
+void Settings::set_mono_font(const wxFont &font)
+{
+	mono_font = font;
+}
+#endif // PHON_GUI
+
+void Settings::post_initialize()
+{
+#ifdef PHON_GUI
+	// Ensure we have a valid Monospace font
+	try
+	{
+		wxString desc = Settings::get_string("mono_font");
+		wxFont font;
+		if (!font.SetNativeFontInfo(desc)) {
+			throw std::runtime_error("");
+		}
+		mono_font = font;
+	}
+	catch (...)
+	{
+		mono_font = MONOSPACE_FONT;
+	}
+#endif
 }
 
 

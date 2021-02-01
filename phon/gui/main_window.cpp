@@ -24,7 +24,7 @@
 #include <wx/msgdlg.h>
 #include <wx/choicdlg.h>
 #include <wx/textdlg.h>
-#include <phon/gui/macros.hpp>
+#include <phon/application/macros.hpp>
 #include <phon/gui/main_window.hpp>
 #include <phon/gui/pref/preferences_editor.hpp>
 #include <phon/gui/dialog.hpp>
@@ -742,9 +742,9 @@ void MainWindow::OnEditPreferences(wxCommandEvent &)
 {
 	PreferencesEditor dlg(this);
 #ifdef __WXGTK__
-    wxSize size(450, 270);
+    wxSize size(480, 270);
 #else
-    wxSize size(450, 250);
+    wxSize size(480, 250);
 #endif
 	dlg.SetSize(FromDIP(size));
 	if (dlg.ShowModal() == wxID_OK)

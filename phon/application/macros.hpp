@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
  *                                                                                                                     *
- * Copyright (C) 2019-2021 Julien Eychenne <jeychenne@gmail.com>                                                       *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
  * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
@@ -13,81 +13,37 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 10/09/2019                                                                                                 *
+ * Created: 13/01/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Parse a stream of token (produced by the query editor) into a abstract syntax tree which can be consumed   *
- * by a query object.                                                                                                  *
+ * purpose: A bunch of macros related to the user interface.                                                           *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_QUERY_PARSER_HPP
-#define PHONOMETRICA_QUERY_PARSER_HPP
+#ifndef PHONOMETRICA_MACROS_HPP
+#define PHONOMETRICA_MACROS_HPP
 
-#include <phon/array.hpp>
-#include <phon/application/search/search_node.hpp>
+#include <wx/settings.h>
 
-namespace phonometrica {
+// Monospace font
+#if __WXMAC__
+#define MONOSPACE_FONT wxFont(wxFontInfo(13).FaceName("Monaco"))
+#elif defined(__WXMSW__)
+#define MONOSPACE_FONT wxFont(wxFontInfo(10).FaceName("Consolas"))
+#else
+#define MONOSPACE_FONT wxFont(wxFontInfo(12).FaceName("Monospace"))
+#endif
 
-class QueryParser final
-{
-public:
+// Control key as displayed in tooltips.
+#ifdef __WXMAC__
+#define CTRL_KEY u8"⌘"
+#else
+#define CTRL_KEY "ctrl+"
+#endif
 
-	enum class Type
-	{
-		Null,
-		LParen,
-		Rparen,
-		And,
-		Or,
-		Not,
-		Constraint
-	};
+// Default ratios for the main window
+#define DEFAULT_PROJECT_RATIO 0.17
+#define DEFAULT_INFO_RATIO 0.8
+#define DEFAULT_CONSOLE_RATIO 0.8
 
-	struct Token
-	{
-		Type type;
-		AutoSearchNode node;
-	};
 
-	explicit QueryParser(Array<Token> tokens) : tokens(std::move(tokens)) { }
-
-	~QueryParser() = default;
-
-	AutoSearchNode parse();
-
-private:
-
-	/*
-	 * Grammar:
-	 * expression := or_expression
-	 * or_expression := and_expression ( 'OR' and_expression ) *
-	 * and_expression := primary ( 'AND' primary ) *
-	 * primary = '(' expression ')' | constraint | 'NOT' primary
-	 */
-
-	AutoSearchNode parse_expression();
-
-	AutoSearchNode parse_or_expression();
-
-	AutoSearchNode parse_and_expression();
-
-	AutoSearchNode parse_primary();
-
-	Token *nextToken();
-
-	void accept() { readToken(); }
-
-	void accept(Type t, const char *msg);
-
-	void readToken() { the_token = nextToken(); }
-
-	Array<Token> tokens;
-
-	Token *the_token = nullptr;
-
-	int token_index = 0;
-};
-
-} // namespace phonometrica
-
-#endif // PHONOMETRICA_QUERY_PARSER_HPP
+#endif // PHONOMETRICA_MACROS_HPP

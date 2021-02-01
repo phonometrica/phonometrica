@@ -322,7 +322,7 @@ bool remove_directory(const String &dir, bool recursive)
 
         if (is_directory(path))
         {
-            remove_directory(path);
+            remove_directory(path, recursive);
         }
         else
         {

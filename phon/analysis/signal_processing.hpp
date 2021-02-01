@@ -65,7 +65,7 @@ void pre_emphasis(Container &data, double Fs, double threshold)
 
 	x[0] = x[0] * (1.0 - alpha);
 
-	for (intptr_t k = 1; k < data.size(); k++)
+	for (intptr_t k = 1; k < (intptr_t)data.size(); k++)
 	{
 		x[k] = x[k] - alpha * x[k-1];
 	}

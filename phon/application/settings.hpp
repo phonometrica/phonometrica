@@ -22,6 +22,9 @@
 #ifndef PHONOMETRICA_SETTINGS_HPP
 #define PHONOMETRICA_SETTINGS_HPP
 
+#ifdef PHON_GUI
+#include <wx/font.h>
+#endif
 #include <phon/runtime.hpp>
 
 namespace phonometrica {
@@ -31,6 +34,8 @@ class Settings final
 public:
 
 	static void initialize(Runtime *rt);
+
+	static void post_initialize();
 
     static String settings_directory();
 
@@ -83,11 +88,22 @@ public:
     static void write();
 
     static String get_documentation_page(String page);
-    
+
+#ifdef PHON_GUI
+    static wxFont get_mono_font();
+
+    static void set_mono_font(const wxFont &font);
+#endif
+
 private:
 
 	static Runtime *runtime;
+
 	static String std_resource_path;
+
+#ifdef PHON_GUI
+	static wxFont mono_font;
+#endif
 };
 
 } // namespace phonometrica

@@ -23,7 +23,7 @@
 #include <wx/artprov.h>
 #include <wx/msgdlg.h>
 #include <phon/gui/views/script_view.hpp>
-#include <phon/gui/macros.hpp>
+#include <phon/application/macros.hpp>
 #include <phon/gui/console.hpp>
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/text_viewer.hpp>

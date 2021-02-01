@@ -74,7 +74,7 @@ void Version::add_author(Author author)
 
 void Version::remove_author(const String &name)
 {
-	for (size_t i = 0; i < m_authors.size(); i++)
+	for (intptr_t i = 0; i < m_authors.size(); i++)
 	{
 		if (m_authors[i].name == name)
 		{

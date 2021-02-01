@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
  *                                                                                                                     *
- * Copyright (C) 2019-2021 Julien Eychenne <jeychenne@gmail.com>                                                       *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
  * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
@@ -13,104 +13,91 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 10/09/2019                                                                                                 *
+ * Created: 01/02/2021                                                                                                 *
  *                                                                                                                     *
  * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/application/search/query_parser.hpp>
+#include <wx/sizer.h>
+#include <wx/scrolwin.h>
+#include <wx/button.h>
+#include <phon/gui/conc/query_editor.hpp>
+#include <phon/runtime.hpp>
 
 namespace phonometrica {
 
-AutoSearchNode QueryParser::parse()
+intptr_t QueryEditor::id = 0;
+
+
+QueryEditor::QueryEditor(wxWindow *parent, const wxString &title) :
+	wxDialog(parent, wxID_ANY, title)
 {
-	readToken();
-	return parse_expression();
+
 }
 
-AutoSearchNode QueryParser::parse_expression()
+QueryEditor::QueryEditor(wxWindow *parent, const wxString &title, const AutoQuery &query) :
+	wxDialog(parent, wxID_ANY, title), m_query(query)
 {
-	return parse_or_expression();
+
 }
 
-AutoSearchNode QueryParser::parse_or_expression()
+void QueryEditor::SetHeader()
 {
-	auto lhs = parse_and_expression();
 
-	while (the_token->type == Type::Or)
-	{
-		accept();
-		auto rhs = parse_and_expression();
-		lhs = std::make_shared<SearchOperator>(SearchOperator::Opcode::Or, std::move(lhs), std::move(rhs));
-	}
-
-	return lhs;
 }
 
-AutoSearchNode QueryParser::parse_and_expression()
+void QueryEditor::SetMetadata()
 {
-	auto lhs = parse_primary();
 
-	while (the_token->type == Type::And)
-	{
-		accept();
-		auto rhs = parse_primary();
-		lhs = std::make_shared<SearchOperator>(SearchOperator::Opcode::And, std::move(lhs), std::move(rhs));
-	}
-
-	return lhs;
 }
 
-AutoSearchNode QueryParser::parse_primary()
+wxBoxSizer *QueryEditor::MakeButtons(wxWindow *parent)
 {
-	if (the_token->type == Type::LParen)
-	{
-		accept();
-		auto e = parse_expression();
-		accept(Type::Rparen, "closing parenthesis");
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	auto save_btn = new wxButton(parent, wxID_ANY, _("Save"));
+	save_btn->SetToolTip(_("Save query"));
+	auto cancel_btn = new wxButton(parent, wxID_ANY, _("Cancel"));
+	auto ok_btn = new wxButton(parent, wxID_ANY, _("OK"));
+	sizer->Add(save_btn);
+	sizer->AddStretchSpacer();
+	sizer->Add(cancel_btn);
+	sizer->AddSpacer(5);
+	sizer->Add(ok_btn);
 
-		return e;
-	}
-	else if (the_token->type == Type::Not)
-	{
-		accept();
-		return std::make_shared<SearchOperator>(SearchOperator::Opcode::Not, parse_primary());
-	}
-	else if (the_token->type == Type::Constraint)
-	{
-		auto node = std::move(the_token->node);
-		accept();
-
-		return node;
-	}
-
-	throw error("[Internal error] Invalid primary expression in query parser");
+	return sizer;
 }
 
-QueryParser::Token *QueryParser::nextToken()
+void QueryEditor::Prepare()
 {
-	static Token invalid = { Type::Null, nullptr };
+	// Since we can't call virtual functions in the constructor, we setup the UI after the object is set up.
+	this->SetSize(1000, 700);
+	this->SetPosition(wxPoint(100, 70));
 
-	if (token_index < tokens.size())
-	{
-		return &tokens[++token_index];
-	}
+	auto scrolled_window = new wxScrolledWindow(this);
+	auto scrolled_sizer = new wxBoxSizer(wxVERTICAL);
 
-	return &invalid;
+	SetHeader();
+	SetSearchPanel();
+	SetMetadata();
+	auto buttons = MakeButtons(scrolled_window);
+	scrolled_sizer->Add(buttons, 0, wxEXPAND|wxALL, 10);
+
+	scrolled_window->SetSizer(scrolled_sizer);
+	auto main_sizer = new wxBoxSizer(wxVERTICAL);
+	scrolled_window->SetScrollRate(5, 5);
+	scrolled_window->FitInside();
+	scrolled_window->SetVirtualSize(1000, 600);
+	main_sizer->Add(scrolled_window, 1, wxEXPAND|wxALL, 0);
+	SetSizer(main_sizer);
+	prepared = true;
 }
 
-void QueryParser::accept(QueryParser::Type t, const char *msg)
+void QueryEditor::Execute()
 {
-	if (the_token->type == t)
-	{
-		accept();
+	if (!prepared) {
+		throw error("Internal error: you must call Prepare() before executing a query");
 	}
-	else
-	{
-		throw error("[Internal error] Invalid query token: expected a %", msg);
-	}
+
 }
-
-
 } // namespace phonometrica

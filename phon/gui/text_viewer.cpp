@@ -22,7 +22,7 @@
 #include <wx/sizer.h>
 #include <wx/richtext/richtextctrl.h>
 #include <wx/button.h>
-#include <phon/gui/macros.hpp>
+#include <phon/application/macros.hpp>
 #include <phon/gui/text_viewer.hpp>
 
 namespace phonometrica {

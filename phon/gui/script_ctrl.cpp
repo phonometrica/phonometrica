@@ -20,7 +20,6 @@
  ***********************************************************************************************************************/
 
 #include <wx/settings.h>
-#include <phon/gui/macros.hpp>
 #include <phon/gui/script_ctrl.hpp>
 #include <phon/application/settings.hpp>
 
@@ -46,24 +45,7 @@ ScriptControl::ScriptControl(wxWindow *parent) :
 
 void ScriptControl::InitializeFont()
 {
-    wxFont font = MONOSPACE_FONT;
-
-    try
-    {
-    	auto value = int(Settings::get_int("mono_font_size"));
-    	font.SetPointSize(value);
-    }
-    catch (...)
-    {
-#ifdef __WXGTK__
-	    int value = 13;
-#else
-	    int value = 12;
-#endif
-	    font.SetPointSize(value);
-	    Settings::set_value("mono_font_size", intptr_t(value));
-    }
-
+    wxFont font = Settings::get_mono_font();
     SetFont(font);
     StyleSetFont(wxSTC_STYLE_DEFAULT, font);
 }

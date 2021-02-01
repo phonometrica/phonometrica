@@ -30,7 +30,7 @@
 #include <wx/aui/auibook.h>
 #include <wx/settings.h>
 #include <phon/gui/tab_art_provider.hpp>
-#include <phon/gui/macros.hpp>
+#include <phon/application/macros.hpp>
 #include <phon/include/icons.hpp>
 
 // TODO: better match tab color to system color on mac

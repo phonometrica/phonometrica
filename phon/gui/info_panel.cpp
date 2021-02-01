@@ -614,8 +614,14 @@ void InfoPanel::ValidateProperty()
 		case 1:
 			type = "Number";
 			break;
-		default:
+		case 2:
 			type = "Boolean";
+			break;
+		default:
+		{
+			wxMessageBox(_("You must first select a type"), _("Invalid property"), wxICON_ERROR);
+			return;
+		}
 	}
 	String category = category_combo->GetValue();
 	String value = value_combo->GetValue();

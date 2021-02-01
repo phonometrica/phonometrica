@@ -158,7 +158,7 @@ int AudioPlayer::playback(void *out, void *, unsigned int nframe, double, RtAudi
     player->position += handle.readf(output, len);
 #endif
 
-    auto t = double(player->position) / handle.samplerate();
+//    auto t = double(player->position) / handle.samplerate();
 //    emit player->current_time(t);
 
     if (left_over > 0) {

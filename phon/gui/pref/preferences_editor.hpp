@@ -27,6 +27,7 @@
 #include <wx/simplebook.h>
 #include <wx/spinctrl.h>
 #include <wx/combobox.h>
+#include <wx/fontpicker.h>
 #include <phon/gui/pref/preferences_dialog.hpp>
 
 namespace phonometrica {
@@ -47,7 +48,9 @@ private:
 
 	wxPanel *MakeScriptingPanel();
 
-	wxSpinCtrl *m_match_window_ctrl, *m_font_size_ctrl;
+	wxSpinCtrl *m_match_window_ctrl;
+
+	wxFontPickerCtrl *m_font_picker;
 
 	wxCheckBox *m_autosave_checkbox, *m_autoload_checkbox;
 };

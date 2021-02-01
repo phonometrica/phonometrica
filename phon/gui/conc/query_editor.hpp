@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
  *                                                                                                                     *
- * Copyright (C) 2019-2021 Julien Eychenne <jeychenne@gmail.com>                                                       *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
  * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
@@ -13,95 +13,51 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 07/09/2019                                                                                                 *
+ * Created: 01/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: nodes used to filter metadata in a query.                                                                  *
+ * Purpose: Base class for all query editors.                                                                          *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_META_NODE_HPP
-#define PHONOMETRICA_META_NODE_HPP
+#ifndef PHONOMETRICA_QUERY_EDITOR_HPP
+#define PHONOMETRICA_QUERY_EDITOR_HPP
 
-#include <set>
-#include <functional>
-#include <unordered_set>
-#include <phon/string.hpp>
-#include <phon/regex.hpp>
-#include <phon/application/annotation.hpp>
+#include <wx/dialog.h>
+#include <phon/application/conc/query.hpp>
 
 namespace phonometrica {
 
-enum class DescOperator
+class QueryEditor : public wxDialog
 {
-	Equals,
-	Contains,
-	Matches
+public:
+
+	QueryEditor(wxWindow *parent, const wxString &title);
+
+	QueryEditor(wxWindow *parent, const wxString &title, const AutoQuery &query);
+
+	void Prepare();
+
+	intptr_t GenerateId() const { return id++; }
+
+	void Execute();
+
+protected:
+
+	void SetHeader();
+
+	virtual void SetSearchPanel() = 0;
+
+	void SetMetadata();
+
+	wxBoxSizer *MakeButtons(wxWindow *parent);
+
+	AutoQuery m_query;
+
+	bool prepared = false;
+
+	static intptr_t id;
 };
-
-struct MetaNode
-{
-	MetaNode() = default;
-	virtual ~MetaNode() = default;
-
-	virtual AnnotationSet filter(const AnnotationSet &files) = 0;
-};
-
-using AutoMetaNode = std::unique_ptr<MetaNode>;
-
-struct DescriptionNode final : public MetaNode
-{
-	DescriptionNode(const String &value, DescOperator op, bool truth) :
-		value(value)
-	{
-		this->op = op;
-		this->truth = truth;
-	}
-
-	AnnotationSet filter(const AnnotationSet &files) override;
-
-	String value;
-	DescOperator op;
-	bool truth;
-};
-
-struct PropertyNode : public MetaNode
-{
-	PropertyNode(const String &cat) : category(cat) { }
-
-	String category;
-};
-
-struct TextPropertyNode final : public PropertyNode
-{
-	TextPropertyNode(const String &category, std::unordered_set<String> values) :
-		PropertyNode(category), values(std::move(values)) { }
-
-	AnnotationSet filter(const AnnotationSet &files) override;
-
-	std::unordered_set<String> values;
-};
-
-struct NumericPropertyNode final : public PropertyNode
-{
-	NumericPropertyNode(const String &category, std::function<bool(double)> cb) :
-		PropertyNode(category), callback(std::move(cb)) { }
-
-	AnnotationSet filter(const AnnotationSet &files) override;
-
-	std::function<bool(double)> callback;
-};
-
-struct BooleanPropertyNode final : public PropertyNode
-{
-	BooleanPropertyNode(const String &category, bool value) :
-		PropertyNode(category) { this->value = value; }
-
-	AnnotationSet filter(const AnnotationSet &files) override;
-
-	bool value;
-};
-
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_META_NODE_HPP
+#endif // PHONOMETRICA_QUERY_EDITOR_HPP

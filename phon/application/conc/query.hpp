@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
  *                                                                                                                     *
- * Copyright (C) 2019-2021 Julien Eychenne <jeychenne@gmail.com>                                                       *
+ * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
  * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
@@ -13,82 +13,30 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 07/09/2019                                                                                                 *
+ * Created: 01/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Query object. A query contains metadata nodes, which allow the user to filter annotations, and search      *
- * nodes, which allow them to extract concordances from the selected set of annotations.                               *
+ * Purpose: Base class for a all queries. A Query is a blueprint for the search engine. Each execution of a given      *
+ * query produces a Concordance.                                                                                       *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
 #ifndef PHONOMETRICA_QUERY_HPP
 #define PHONOMETRICA_QUERY_HPP
 
-#include <memory>
-#include <phon/application/protocol.hpp>
-#include <phon/application/dataset.hpp>
-#include <phon/application/search/meta_node.hpp>
-#include <phon/application/search/search_node.hpp>
-#include <phon/utils/signal.hpp>
+#include <phon/application/vfs.hpp>
 
 namespace phonometrica {
 
-class Query final
+class Query : public VFile
 {
 public:
 
-	using Type = SearchNode::Type;
-	using Settings = SearchNode::Settings;
+protected:
 
-	Query(AutoProtocol p, const String &label, AnnotationSet annotations, Array <AutoMetaNode> metadata,
-	      AutoSearchNode tree, std::shared_ptr<Settings> settings);
-
-	Query(const Query &) = delete;
-
-	~Query() = default;
-
-	AutoDataset execute();
-
-	intptr_t id() const { return m_id; }
-
-	static int current_id();
-
-	String label() const { return m_label; }
-
-	Type type() const { return m_settings->type; }
-
-
-	Signal<const String &> debug;
-
-	Signal<> done;
-
-private:
-
-	void filter_metadata();
-
-	QueryMatchList filter_data();
-
-	static int the_id;
-
-	AutoProtocol m_protocol; // may be null
-
-	std::shared_ptr<Settings> m_settings;
-
-	String m_label;
-
-	AnnotationSet annotations;
-
-	Array<AutoMetaNode> metadata;
-
-	AutoSearchNode search_tree;
-
-	intptr_t m_id;
 };
 
-// We shouldn't need the query to be shared, but we can't use a std::unique_ptr with Qt's signals and slots, since a
-// signal may be connected to several slots, in which case the value needs to be copied.
-using AutoQuery = std::shared_ptr<Query>;
 
-using AutoQuerySettings = std::shared_ptr<Query::Settings>;
+using AutoQuery = std::shared_ptr<Query>;
 
 } // namespace phonometrica
 
