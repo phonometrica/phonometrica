@@ -127,12 +127,21 @@ static Variant system_create_directory(Runtime &, std::span<Variant> args)
 	return Variant();
 }
 
-static Variant system_remove_directory(Runtime &, std::span<Variant> args)
+static Variant system_remove_directory1(Runtime &, std::span<Variant> args)
 {
 	auto &path = cast<String>(args[0]);
-	fs::remove_directory(path);
+    fs::remove_directory(path, false);
 	
 	return Variant();
+}
+
+static Variant system_remove_directory2(Runtime &, std::span<Variant> args)
+{
+    auto &path = cast<String>(args[0]);
+    bool recursive = cast<bool>(args[1]);
+    fs::remove_directory(path, recursive);
+
+    return Variant();
 }
 
 static Variant system_remove_file(Runtime &, std::span<Variant> args)

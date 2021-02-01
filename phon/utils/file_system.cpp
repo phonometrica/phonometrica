@@ -273,12 +273,27 @@ bool create_directory(const String &path)
 	return !has_error;
 }
 
-bool remove_directory(const String &dir)
+bool remove_directory(const String &dir, bool recursive)
 {
 	if (!is_directory(dir))
 	{
 		throw error("[System error] Trying to remove \"%\" which is not a directory", dir);
 	}
+
+	if (recursive)
+	{
+	    for (auto &name : list_directory(dir))
+	    {
+	        auto path = join(dir, name);
+	        if (is_directory(path)) {
+                remove_directory(path, true);
+	        }
+	        else {
+                remove_file(path);
+	        }
+
+        }
+    }
 
 	bool has_error;
 
@@ -357,7 +372,7 @@ bool remove(const String &path)
 {
 	if (is_directory(path))
 	{
-		return remove_directory(path);
+		return remove_directory(path, true);
 	}
 	else
 	{

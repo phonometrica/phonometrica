@@ -55,7 +55,7 @@ String directory_name(const String &path);
 
 bool create_directory(const String &path);
 
-bool remove_directory(const String &dir);
+bool remove_directory(const String &dir, bool recursive);
 
 bool remove_file(const String &path);
 

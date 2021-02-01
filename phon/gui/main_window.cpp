@@ -885,14 +885,13 @@ void MainWindow::LoadPlugin(const String &path)
 		if (plugin->has_entries())
 		{
 			String label = plugin->label();
-			menu->SetTitle(label);
 			auto desc = plugin->description();
 
 			if (!desc.empty())
 			{
 				menu->AppendSeparator();
-				String title("About ");
-				title.append(label);
+				wxString title = _("About ");
+				title.Append(label);
 				auto action_id = wxNewId();
 				menu->Append(action_id, title);
 
@@ -948,6 +947,9 @@ void MainWindow::OnInstallPlugin(wxCommandEvent &)
 
 	// Temporary installation to retrieve the plugin's name.
 	auto temp_dir = filesystem::join(filesystem::temp_directory(), "PHON_TEMP_PLUGIN");
+	if (filesystem::exists(temp_dir)) {
+        filesystem::remove_directory(temp_dir, true);
+    }
 	filesystem::create_directory(temp_dir);
 	utils::unzip(archive, temp_dir);
 	auto content = filesystem::list_directory(temp_dir);
@@ -963,7 +965,7 @@ void MainWindow::OnInstallPlugin(wxCommandEvent &)
 		wxMessageBox(_("The plugin must contain  a directory"), _("Invalid plugin"), wxICON_ERROR);
 		return;
 	}
-	filesystem::remove_directory(temp_dir);
+    filesystem::remove_directory(temp_dir, true);
 
 	// Check whether the plugin already exists
 	auto plugin_dir = Settings::plugin_directory();
