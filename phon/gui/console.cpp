@@ -51,21 +51,21 @@ Console::Console(Runtime &rt, wxWindow *parent) :
 
 void Console::SetIO()
 {
-	m_ctrl = new wxRichTextCtrl(this);
+	text_ctrl = new wxRichTextCtrl(this);
 	m_sizer = new wxBoxSizer(wxVERTICAL);
-	m_sizer->Add(m_ctrl, 1, wxEXPAND, 0);
+	m_sizer->Add(text_ctrl, 1, wxEXPAND, 0);
 	wxFont font = MONOSPACE_FONT;
 #if !PHON_WINDOWS
 	font.SetPointSize(12);
 #endif
-	m_ctrl->SetFont(font);
-	m_ctrl->Bind(wxEVT_KEY_DOWN, &Console::OnKeyDown, this);
+	text_ctrl->SetFont(font);
+	text_ctrl->Bind(wxEVT_KEY_DOWN, &Console::OnKeyDown, this);
 }
 
 void Console::OnKeyDown(wxKeyEvent &e)
 {
 	// Don't write in the prompt (">> ")
-	if (m_ctrl->GetInsertionPoint() < (long)prompt.size()) return;
+	if (text_ctrl->GetInsertionPoint() < (long)prompt.size()) return;
 
 	int key = e.GetKeyCode();
 
@@ -105,9 +105,9 @@ void Console::OnKeyDown(wxKeyEvent &e)
 	}
 	else if (key == WXK_LEFT || key == WXK_BACK)
 	{
-		long min_pos = m_ctrl->GetLastPosition() - m_ctrl->GetLineText(m_ctrl->GetNumberOfLines()-1).Length() + 3;
+		long min_pos = text_ctrl->GetLastPosition() - text_ctrl->GetLineText(text_ctrl->GetNumberOfLines() - 1).Length() + 3;
 
-		if (m_ctrl->GetInsertionPoint() <= min_pos)
+		if (text_ctrl->GetInsertionPoint() <= min_pos)
 		{
 			return;
 		}
@@ -124,7 +124,7 @@ void Console::OnKeyDown(wxKeyEvent &e)
 void Console::GrabLine()
 {
 	text_written = false;
-	wxString ln = m_ctrl->GetLineText(m_ctrl->GetNumberOfLines()-1);
+	wxString ln = text_ctrl->GetLineText(text_ctrl->GetNumberOfLines() - 1);
 	auto pos = ln.Find(prompt);
 
 	if (pos == wxNOT_FOUND)
@@ -154,22 +154,22 @@ void Console::GrabLine()
 
 void Console::ShowErrorMessage(const wxString &msg)
 {
-	m_ctrl->BeginTextColour(wxColour(255, 0, 0));
-	m_ctrl->WriteText(msg);
-	m_ctrl->EndTextColour();
+	text_ctrl->BeginTextColour(wxColour(255, 0, 0));
+	text_ctrl->WriteText(msg);
+	text_ctrl->EndTextColour();
 }
 
 void Console::Clear()
 {
-	m_ctrl->SetValue("");
+	text_ctrl->SetValue("");
 }
 
 void Console::AddPrompt()
 {
-	wxString ln = m_ctrl->GetLineText(m_ctrl->GetNumberOfLines()-1);
+	wxString ln = text_ctrl->GetLineText(text_ctrl->GetNumberOfLines() - 1);
 	// If an EOL character has been appended, the last line is empty, so we check that
 	// in order to determine whether we need to append a new line.
-	if (!ln.IsEmpty() && m_ctrl->GetLastPosition() > 0) {
+	if (!ln.IsEmpty() && text_ctrl->GetLastPosition() > 0) {
 		AppendNewLine();
 	}
 	Append(prompt);
@@ -178,18 +178,18 @@ void Console::AddPrompt()
 
 void Console::ResetLastLine(wxString text)
 {
-	long line_count = m_ctrl->GetNumberOfLines();
-	long start = m_ctrl->XYToPosition(0, line_count-1);
-	long end = m_ctrl->GetLastPosition();
+	long line_count = text_ctrl->GetNumberOfLines();
+	long start = text_ctrl->XYToPosition(0, line_count - 1);
+	long end = text_ctrl->GetLastPosition();
 	text.Prepend(prompt);
-	m_ctrl->Replace(start, end, text);
+	text_ctrl->Replace(start, end, text);
 	GoToEnd();
 }
 
 void Console::ChopNewLine()
 {
-	auto end = (long)m_ctrl->GetValue().length();
-	m_ctrl->Remove(end-1, end);
+	auto end = (long)text_ctrl->GetValue().length();
+	text_ctrl->Remove(end - 1, end);
 }
 
 void Console::RunScript(const String &path)

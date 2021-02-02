@@ -55,21 +55,6 @@ void Script::write()
 	file.close();
 }
 
-void Script::from_xml(xml_node root, const String &project_dir)
-{
-	static const std::string_view path_tag("Path");
-
-	for (auto node = root.first_child(); node; node = node.next_sibling())
-	{
-		if (node.name() == path_tag)
-		{
-			String path(node.text().get());
-			Project::interpolate(path, project_dir);
-			m_path = std::move(path);
-		}
-	}
-}
-
 const String &Script::content() const
 {
 	return m_content;

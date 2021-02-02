@@ -108,6 +108,11 @@ const VFolder *VNode::toplevel() const
     return m_parent ? m_parent->toplevel() : nullptr;
 }
 
+bool VNode::is_query() const
+{
+	return false;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -358,31 +363,40 @@ void VFile::open()
 {
 	if (!m_loaded)
 	{
-		try {
+		try
+		{
 			load();
+			m_loaded = true;
 		}
-		catch (std::exception &e) {
+		catch (std::exception &e)
+		{
 			throw error("Cannot open file \"%\": %", this->path(), e.what());
 		}
 	}
-
-	m_loaded = true;
 }
 
 void VFile::save()
 {
-	if (!modified()) return;
-
-	save_metadata();
-
-	if (content_modified())
+	try
 	{
-		assert(!m_path.empty());
-		write();
+		if (!modified()) return;
+
+		save_metadata();
+
+		if (content_modified())
+		{
+			assert(!m_path.empty());
+			write();
+		}
+
+		m_content_modified = false;
+		m_metadata_modified = false;
+	}
+	catch (std::exception &e)
+	{
+		throw error("Could not save file \"%\": %", m_path, e.what());
 	}
 
-	m_content_modified = false;
-	m_metadata_modified = false;
 }
 
 bool VFile::is_file() const

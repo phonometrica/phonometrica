@@ -21,51 +21,25 @@
 
 #include <wx/sizer.h>
 #include <wx/scrolwin.h>
+#include <wx/stattext.h>
 #include <wx/button.h>
 #include <phon/gui/conc/query_editor.hpp>
+#include <phon/gui/dialog.hpp>
+#include <phon/include/icons.hpp>
 #include <phon/runtime.hpp>
+#include <phon/application/macros.hpp>
+#include <phon/application/project.hpp>
+#include <phon/application/settings.hpp>
 
 namespace phonometrica {
 
-intptr_t QueryEditor::id = 0;
+int QueryEditor::id = 0;
 
 
 QueryEditor::QueryEditor(wxWindow *parent, const wxString &title) :
-	wxDialog(parent, wxID_ANY, title)
+	wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
 
-}
-
-QueryEditor::QueryEditor(wxWindow *parent, const wxString &title, const AutoQuery &query) :
-	wxDialog(parent, wxID_ANY, title), m_query(query)
-{
-
-}
-
-void QueryEditor::SetHeader()
-{
-
-}
-
-void QueryEditor::SetMetadata()
-{
-
-}
-
-wxBoxSizer *QueryEditor::MakeButtons(wxWindow *parent)
-{
-	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	auto save_btn = new wxButton(parent, wxID_ANY, _("Save"));
-	save_btn->SetToolTip(_("Save query"));
-	auto cancel_btn = new wxButton(parent, wxID_ANY, _("Cancel"));
-	auto ok_btn = new wxButton(parent, wxID_ANY, _("OK"));
-	sizer->Add(save_btn);
-	sizer->AddStretchSpacer();
-	sizer->Add(cancel_btn);
-	sizer->AddSpacer(5);
-	sizer->Add(ok_btn);
-
-	return sizer;
 }
 
 void QueryEditor::Prepare()
@@ -77,20 +51,64 @@ void QueryEditor::Prepare()
 	auto scrolled_window = new wxScrolledWindow(this);
 	auto scrolled_sizer = new wxBoxSizer(wxVERTICAL);
 
-	SetHeader();
-	SetSearchPanel();
-	SetMetadata();
+	scrolled_sizer->Add(MakeHeader(scrolled_window), 0, wxEXPAND|wxALL, 10);
+	scrolled_sizer->Add(MakeFileSelector(scrolled_window), 0, wxEXPAND|wxALL, 0);
+	//scrolled_sizer->Add(MakeSearchPanel(scrolled_window), 0, wxEXPAND|wxALL, 0);
+
 	auto buttons = MakeButtons(scrolled_window);
 	scrolled_sizer->Add(buttons, 0, wxEXPAND|wxALL, 10);
 
 	scrolled_window->SetSizer(scrolled_sizer);
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 	scrolled_window->SetScrollRate(5, 5);
-	scrolled_window->FitInside();
-	scrolled_window->SetVirtualSize(1000, 600);
 	main_sizer->Add(scrolled_window, 1, wxEXPAND|wxALL, 0);
 	SetSizer(main_sizer);
 	prepared = true;
+}
+
+wxBoxSizer *QueryEditor::MakeHeader(wxWindow *parent)
+{
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	sizer->Add(new wxStaticText(parent, wxID_ANY, _("Query name:")), 0, wxALIGN_CENTER, 0);
+	wxString name = wxString::Format(_("Query %d"), GenerateId());
+	name_ctrl = new wxTextCtrl(parent, wxID_ANY, name);
+	sizer->AddSpacer(5);
+	sizer->Add(name_ctrl);
+	sizer->AddStretchSpacer();
+#if __WXMAC__
+	auto help_btn = new wxButton(this, wxID_HELP);
+#else
+	auto help_btn = new wxButton(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+	help_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(question));
+	help_btn->SetMaxClientSize(wxSize(40, 100));
+#endif
+	help_btn->SetToolTip(_("Display help about metadata"));
+	help_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &QueryEditor::OnOpenHelp, this);
+	sizer->Add(help_btn, 0, 0, 0);
+
+	return sizer;
+}
+
+wxBoxSizer *QueryEditor::MakeButtons(wxWindow *parent)
+{
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	auto save_btn = new wxButton(parent, wxID_ANY, _("Save"));
+	auto save_as_btn = new wxButton(parent, wxID_ANY, _("Save as..."));
+	auto cancel_btn = new wxButton(parent, wxID_ANY, _("Cancel"));
+	auto ok_btn = new wxButton(parent, wxID_ANY, _("OK"));
+	sizer->Add(save_btn);
+	sizer->AddSpacer(5);
+	sizer->Add(save_as_btn);
+	sizer->AddStretchSpacer();
+	sizer->Add(cancel_btn);
+	sizer->AddSpacer(5);
+	sizer->Add(ok_btn);
+
+	ok_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &QueryEditor::OnOk, this);
+	cancel_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &QueryEditor::OnCancel, this);
+	save_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &QueryEditor::OnSave, this);
+
+	return sizer;
 }
 
 void QueryEditor::Execute()
@@ -99,5 +117,106 @@ void QueryEditor::Execute()
 		throw error("Internal error: you must call Prepare() before executing a query");
 	}
 
+}
+
+void QueryEditor::OnOpenHelp(wxCommandEvent &)
+{
+	auto url = Settings::get_documentation_page("query.html");
+	wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
+}
+
+wxBoxSizer *QueryEditor::MakeProperties(wxWindow *parent)
+{
+	return nullptr;
+}
+
+wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)
+{
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	auto file_box = new wxStaticBox(parent, wxID_ANY, _("Annotations"));
+	auto file_sizer = new wxBoxSizer(wxVERTICAL);
+	wxArrayString annotations, tooltips;
+	for (auto &file : Project::get()->annotations()) {
+		annotations.Add(file->label());
+		tooltips.Add(file->path());
+	}
+
+	file_list = new CheckListBox(file_box, annotations, tooltips);
+	auto old_font = file_list->GetFont();
+	auto new_font = Settings::get_mono_font();
+	new_font.SetPointSize(old_font.GetPointSize());
+	file_list->SetFont(new_font);
+
+	file_sizer->Add(file_list, 1, wxEXPAND|wxALL, 10);
+	file_sizer->AddSpacer(10);
+	file_box->SetSizer(file_sizer);
+	file_box->SetToolTip(_("Select specific files or leave empty to search all the files"));
+	sizer->Add(file_box, 1, wxEXPAND|wxLEFT, 10);
+	sizer->AddSpacer(10);
+
+	auto desc_box = new wxStaticBox(parent, wxID_ANY, _("File description"));
+	auto desc_sizer = new wxBoxSizer(wxHORIZONTAL);
+	desc_sizer->Add(new wxStaticText(desc_box, wxID_ANY, _("Description")), 0, wxALIGN_CENTER);
+	desc_sizer->AddSpacer(5);
+	wxArrayString operators;
+	operators.Add(_("is exactly"));
+	operators.Add(_("is not"));
+	operators.Add(_("contains"));
+	operators.Add(_("doesn't contain"));
+	operators.Add(_("matches"));
+	operators.Add(_("doesn't match"));
+	desc_op_choice = new wxChoice(desc_box, wxID_ANY, wxDefaultPosition, wxDefaultSize, operators);
+	desc_op_choice->SetSelection(2);
+	desc_sizer->Add(desc_op_choice);
+	desc_sizer->AddSpacer(5);
+	desc_ctrl = new wxTextCtrl(desc_box, wxID_ANY);
+	desc_sizer->Add(desc_ctrl, 1, wxEXPAND, 0);
+	auto dummy_sizer = new wxBoxSizer(wxVERTICAL);
+	dummy_sizer->Add(desc_sizer, 0, wxEXPAND|wxALL, 10);
+	dummy_sizer->AddStretchSpacer();
+	desc_box->SetSizer(dummy_sizer);
+	sizer->Add(desc_box, 3, wxEXPAND|wxRIGHT, 10);
+
+	return sizer;
+}
+
+void QueryEditor::OnOk(wxCommandEvent &)
+{
+	ParseQuery();
+	EndModal(wxID_OK);
+}
+
+void QueryEditor::OnCancel(wxCommandEvent &)
+{
+	EndModal(wxID_CANCEL);
+}
+
+void QueryEditor::OnSave(wxCommandEvent &)
+{
+	auto name = name_ctrl->GetValue();
+	name.Replace(" ", "");
+	name.Append(PHON_EXT_QUERY);
+	FileDialog dlg(this, _("Save query..."), name, "Phonometrica query (*.phon-query)|*.phon-query",
+				  wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		SaveQuery(dlg.GetPath());
+	}
+}
+
+void QueryEditor::SaveQuery(const String &path)
+{
+	// FIXME check that this makes sense in terms of mutation
+	ParseQuery();
+	auto query = GetQuery();
+	query->set_path(path, true);
+	query->save();
+
+	if (query->parent() == nullptr)
+	{
+		Project::get()->add_query(std::move(query));
+		Project::updated();
+	}
 }
 } // namespace phonometrica

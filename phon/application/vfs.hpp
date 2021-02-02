@@ -80,6 +80,8 @@ public:
 
 	virtual bool is_folder() const;
 
+	virtual bool is_query() const;
+
 	virtual const char *class_name() const = 0;
 
 	virtual void to_xml(xml_node root) = 0;

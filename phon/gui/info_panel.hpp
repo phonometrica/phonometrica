@@ -24,7 +24,7 @@
 #define PHONOMETRICA_INFO_PANEL_HPP
 
 #include <wx/simplebook.h>
-#include <wx/panel.h>
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/choice.h>
@@ -37,7 +37,7 @@
 namespace phonometrica {
 
 
-class InfoPanel final : public wxPanel
+class InfoPanel final : public wxScrolledWindow
 {
 public:
 
@@ -130,9 +130,9 @@ private:
 
 	Runtime &runtime;
 
-	VFileList m_files;
+	VFileList selected_files;
 
-	wxSimplebook *m_book;
+	wxSimplebook *book;
 
 	wxPanel *empty_page, *single_page, *multiple_page;
 

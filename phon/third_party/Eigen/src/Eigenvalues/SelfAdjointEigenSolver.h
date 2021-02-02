@@ -702,7 +702,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
     eivals *= scale;
     eivals.array() += shift;
     
-    solver.m_info_panel = Success;
+    solver.info_panel = Success;
     solver.m_isInitialized = true;
     solver.m_eigenvectorsOk = computeEigenvectors;
   }
@@ -786,7 +786,7 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
     eivals *= scale;
     eivals.array() += shift;
 
-    solver.m_info_panel = Success;
+    solver.info_panel = Success;
     solver.m_isInitialized = true;
     solver.m_eigenvectorsOk = computeEigenvectors;
   }

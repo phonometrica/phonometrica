@@ -40,7 +40,7 @@ public:
 
 	void AddPrompt();
 
-	void AppendNewLine() { static wxString eol("\n"); m_ctrl->WriteText(eol); }
+	void AppendNewLine() { static wxString eol("\n"); text_ctrl->WriteText(eol); }
 
 	void ChopNewLine();
 
@@ -58,13 +58,13 @@ private:
 
 	void ResetLastLine(wxString text);
 
-	void GoToEnd() { m_ctrl->SetInsertionPointEnd(); }
+	void GoToEnd() { text_ctrl->SetInsertionPointEnd(); }
 
-	void Append(const wxString &text) { m_ctrl->WriteText(text); }
+	void Append(const wxString &text) { text_ctrl->WriteText(text); }
 
 	void RunCode(const String &code);
 
-	wxRichTextCtrl *m_ctrl;
+	wxRichTextCtrl *text_ctrl;
 
 	wxSizer *m_sizer;
 

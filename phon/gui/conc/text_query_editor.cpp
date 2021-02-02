@@ -13,80 +13,47 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 13/01/2021                                                                                                 *
+ * Created: 01/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: see header.                                                                                                *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/msgdlg.h>
-#include <phon/gui/application.hpp>
+#include <phon/gui/conc/text_query_editor.hpp>
 
 namespace phonometrica {
 
-Application::Application(Runtime &rt) :
-	wxApp(), runtime(rt)
+TextQueryEditor::TextQueryEditor(wxWindow *parent) :
+	QueryEditor(parent, _("Query editor")), query(std::make_shared<TextQuery>(nullptr, String()))
 {
 
 }
 
-bool Application::OnInit()
+wxWindow *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 {
-	wxImage::AddHandler(new wxPNGHandler());
-
-	try
-	{
-		window = new MainWindow(runtime, "Phonometrica");
-		SetTopWindow(window);
-		window->Layout();
-		window->Show();
-		window->PostInitialize();
-		// Bind OnResize after the window is properly sized
-		Bind(wxEVT_SIZE, &MainWindow::OnResize, window);
-	}
-	catch (std::exception &e)
-	{
-		wxMessageBox(wxString(e.what()), _("Initialization failed"), wxICON_ERROR);
-		return false;
-	}
-
-	return true;
+	return nullptr;
 }
 
-int Application::OnExit()
+AutoQuery TextQueryEditor::GetQuery() const
 {
-	return 0;
+	return query;
 }
 
-bool Application::OnExceptionInMainLoop()
+void TextQueryEditor::ParseQuery()
 {
-	try
-	{
-		return wxAppConsoleBase::OnExceptionInMainLoop();
+	// FIXME: when to create a new query object?
+	assert(query);
+	String label = name_ctrl->GetValue();
+	if (label != query->label()) {
+		query->set_label(label);
 	}
-	catch (std::exception &e)
+	if (!desc_ctrl->IsEmpty())
 	{
-		auto msg = utils::format("Phonometrica generated an error with the following message:\n%\n\n", e.what());
-		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+		auto op = static_cast<DescMetaConstraint::Operator>(desc_op_choice->GetSelection());
+		auto mc = std::make_unique<DescMetaConstraint>(op, desc_ctrl->GetValue());
+		query->add_metaconstraint(std::move(mc));
+	}
 
-		return true;
-	}
-	catch (...)
-	{
-		auto msg = _("Phonometrica generated an unxpected error."
-			   "It is unable to recover from such errors and is going to crash :-(\n"
-	            "Please contact the developers about this problem.");
-		wxMessageBox(msg, _("Unhandled error"), wxICON_ERROR);
-		return false;
-	}
+	// TODO: files (refactor checkbox)
 }
-
-#ifdef __WXMAC__
-void Application::MacOpenFile(const wxString &fileName)
-{
-	// TODO: implement dropping files in project manager on macos
-	wxApp::MacOpenFile(fileName);
-}
-#endif
-
 } // namespace phonometrica

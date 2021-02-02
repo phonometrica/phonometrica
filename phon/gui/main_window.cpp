@@ -57,6 +57,7 @@ static const int ID_FILE_EXIT = wxID_EXIT;
 // Analysis menu
 static const int ID_ANALYSIS_FIND = wxID_FIND;
 static const int ID_ANALYSIS_FORMANTS = wxNewId();
+static const int ID_ANALYSIS_LAST_QUERY = wxNewId();
 
 // Tools menu
 static const int ID_TOOLS_RUN = wxNewId();
@@ -102,23 +103,23 @@ void MainWindow::MakeMenus()
 	//  and we populate the menu at the end. This seems to be the only way to get it to work on my machine
 	//  (macOS 10.13.6).
 
-	m_menubar = new wxMenuBar;
-	m_menubar->Append(MakeFileMenu(), _("&File"));
-	m_menubar->Append(MakeAnalysisMenu(), _("&Analysis"));
-	m_menubar->Append(MakeToolsMenu(), _("&Tools"));
+	menubar = new wxMenuBar;
+	menubar->Append(MakeFileMenu(), _("&File"));
+	menubar->Append(MakeAnalysisMenu(), _("&Analysis"));
+	menubar->Append(MakeToolsMenu(), _("&Tools"));
 #ifdef __WXMAC__
-	m_menubar->Append(new wxMenu, _("&Window"));
+	menubar->Append(new wxMenu, _("&Window"));
 #else
-	m_menubar->Append(MakeWindowMenu(), _("&Window"));
+	menubar->Append(MakeWindowMenu(), _("&Window"));
 #endif
-	m_menubar->Append(MakeHelpMenu(), _("&Help"));
-	SetMenuBar(m_menubar);
+	menubar->Append(MakeHelpMenu(), _("&Help"));
+	SetMenuBar(menubar);
 
 #ifdef __WXMAC__
-	wxMenuBar::MacSetCommonMenuBar(m_menubar);
+	wxMenuBar::MacSetCommonMenuBar(menubar);
 
-	auto i = m_menubar->FindMenu("Window");
-	auto menu = m_menubar->GetMenu(i);
+	auto i = menubar->FindMenu("Window");
+	auto menu = menubar->GetMenu(i);
 	menu->AppendSeparator();
 	PopulateWindowMenu(menu);
 #endif
@@ -139,14 +140,14 @@ wxMenu *MainWindow::MakeFileMenu()
 	menu->Append(ID_FILE_CLOSE_PROJECT, _("Close current project"), _("Close the current project"));
 	menu->AppendSeparator();
 
-	m_recent_submenu = new wxMenu();
-	m_recent_item = menu->AppendSubMenu(m_recent_submenu, _("Recent projects"));
-	m_last_item = menu->Append(ID_FILE_OPEN_LAST, _("Open most recent project\tCtrl+Shift+o"),
-	                           _("Open the last project that was used in the previous session"));
+	recent_submenu = new wxMenu();
+	recent_item = menu->AppendSubMenu(recent_submenu, _("Recent projects"));
+	last_item = menu->Append(ID_FILE_OPEN_LAST, _("Open most recent project\tCtrl+Shift+o"),
+	                         _("Open the last project that was used in the previous session"));
 	menu->AppendSeparator();
 
-	m_save_item = menu->Append(ID_FILE_SAVE, _("Save project\tCtrl+Shift+s"));
-	m_save_as_item = menu->Append(ID_FILE_SAVE_AS, _("Save project as..."));
+	save_item = menu->Append(ID_FILE_SAVE, _("Save project\tCtrl+Shift+s"));
+	save_as_item = menu->Append(ID_FILE_SAVE_AS, _("Save project as..."));
 	menu->AppendSeparator();
 
 	menu->Append(ID_FILE_PREFERENCES, _("Preferences..."));
@@ -168,7 +169,7 @@ wxMenu *MainWindow::MakeFileMenu()
 
 	PopulateRecentProjects();
 	EnableSaveFile(false);
-	m_file_menu = menu;
+	file_menu = menu;
 
 	return menu;
 }
@@ -178,6 +179,8 @@ wxMenu *MainWindow::MakeAnalysisMenu()
 	auto menu = new wxMenu;
 	menu->Append(ID_ANALYSIS_FIND, _("Find in annotations...\tctrl+shift+f"));
 	menu->Append(ID_ANALYSIS_FORMANTS, _("Measure formants..."));
+	menu->AppendSeparator();
+	menu->Append(ID_ANALYSIS_LAST_QUERY, _("Edit last query...\tctrl+l"));
 
 	return menu;
 }
@@ -192,9 +195,9 @@ wxMenu *MainWindow::MakeWindowMenu()
 
 void MainWindow::PopulateWindowMenu(wxMenu *menu)
 {
-	m_project_item = menu->AppendCheckItem(ID_WINDOW_HIDE_PROJECT, _("Hide project panel\tctrl+Left"));
-	m_info_item = menu->AppendCheckItem(ID_WINDOW_HIDE_INFO, _("Hide information panel\tctrl+Right"));
-	m_console_item = menu->AppendCheckItem(ID_WINDOW_HIDE_CONSOLE, _("Hide console\tctrl+Down"));
+	project_item = menu->AppendCheckItem(ID_WINDOW_HIDE_PROJECT, _("Hide project panel\tctrl+Left"));
+	info_item = menu->AppendCheckItem(ID_WINDOW_HIDE_INFO, _("Hide information panel\tctrl+Right"));
+	console_item = menu->AppendCheckItem(ID_WINDOW_HIDE_CONSOLE, _("Hide console\tctrl+Down"));
 	menu->AppendSeparator();
 	menu->Append(ID_WINDOW_MAXIMIZE_VIEWER, _("Maximize viewer\tctrl+Up"));
 	menu->AppendSeparator();
@@ -211,7 +214,7 @@ wxMenu *MainWindow::MakeToolsMenu()
 	menu->Append(ID_TOOLS_UNINSTALL, _("Uninstall plugin..."));
 	menu->AppendSeparator();
 	menu->Append(ID_TOOLS_EXTEND, _("How to extend this menu"));
-	m_tools_menu = menu;
+	tools_menu = menu;
 
 	return menu;
 }
@@ -250,6 +253,10 @@ void MainWindow::SetBindings()
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExportMetadata, this, ID_FILE_EXPORT_METADATA);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseCurrentView, this, ID_FILE_CLOSE_VIEW);
 
+	// Analysis menu
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnFindInAnnotations, this, ID_ANALYSIS_FIND);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnMeasureFormants, this, ID_ANALYSIS_FORMANTS);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnEditLastQuery, this, ID_ANALYSIS_LAST_QUERY);
 
 	// Tools menu
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnRunScript, this, ID_TOOLS_RUN);
@@ -276,17 +283,17 @@ void MainWindow::SetBindings()
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnAbout, this, ID_HELP_ABOUT);
 
 	// Sashes
-	m_project_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnFileManagerSashMoved, this);
-	m_viewer_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnViewerSashMoved, this);
-	m_info_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnInfoSashMoved, this);
+	project_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnFileManagerSashMoved, this);
+	viewer_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnViewerSashMoved, this);
+	info_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnInfoSashMoved, this);
 
-	m_project_manager->view_file.connect(&Viewer::OnViewFile, m_viewer);
-	m_project_manager->files_selected.connect(&InfoPanel::OnSetFileSelection, m_info_panel);
-	m_project_manager->execute_script.connect(&Console::RunScript, m_console);
+	project_manager->view_file.connect(&Viewer::OnViewFile, viewer);
+	project_manager->files_selected.connect(&InfoPanel::OnSetFileSelection, info_panel);
+	project_manager->execute_script.connect(&Console::RunScript, console);
 
 	auto project = Project::get();
-	project->notify_update.connect(&ProjectManager::OnProjectUpdated, m_project_manager);
-	project->metadata_updated.connect(&ProjectManager::UpdateLabel, m_project_manager);
+	project->notify_update.connect(&ProjectManager::OnProjectUpdated, project_manager);
+	project->metadata_updated.connect(&ProjectManager::UpdateLabel, project_manager);
 
 //	connect(Project::instance(), &Project::notify_closed, viewer, &Viewer::closeAll);
 //	connect(Project::instance(), &Project::request_save, viewer, &Viewer::saveViews);
@@ -312,7 +319,7 @@ bool MainWindow::Finalize()
 	bool autosave = Settings::get_boolean("autosave");
 	auto project = Project::get();
 
-	if (!m_viewer->SaveViews(autosave)) {
+	if (!viewer->SaveViews(autosave)) {
 		return false;
 	}
 	if (project->modified())
@@ -343,19 +350,19 @@ bool MainWindow::Finalize()
 
 void MainWindow::EnableSaveFile(bool value)
 {
-	m_save_item->Enable(value);
-	m_save_as_item->Enable(value);
+	save_item->Enable(value);
+	save_as_item->Enable(value);
 }
 
 void MainWindow::EnableRecentProjects(bool value)
 {
-	m_recent_item->Enable(value);
-	m_last_item->Enable(value);
+	recent_item->Enable(value);
+	last_item->Enable(value);
 }
 
 void MainWindow::OnNewScript(wxCommandEvent &)
 {
-	m_viewer->NewScript();
+	viewer->NewScript();
 }
 
 void MainWindow::SetupUi()
@@ -365,32 +372,32 @@ void MainWindow::SetupUi()
 	icon.CopyFromBitmap(wxBITMAP_PNG_FROM_DATA(sound_wave_small));
 	SetIcon(icon);
 	// Split project manager on the left and the main area.
-	m_project_splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
-	m_project_manager = new ProjectManager(runtime, m_project_splitter);
-	m_main_area = new wxPanel(m_project_splitter, -1, wxDefaultPosition, wxDefaultSize);
+	project_splitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
+	project_manager = new ProjectManager(runtime, project_splitter);
+	main_area = new wxPanel(project_splitter, -1, wxDefaultPosition, wxDefaultSize);
 
 	// The main area contains the console at the bottom, the info panel on the right, and the viewer in the center.
-	m_info_splitter = new wxSplitterWindow(m_main_area, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
-	m_central_panel = new wxPanel(m_info_splitter);
-	m_info_panel = new InfoPanel(runtime, m_info_splitter);
+	info_splitter = new wxSplitterWindow(main_area, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
+	central_panel = new wxPanel(info_splitter);
+	info_panel = new InfoPanel(runtime, info_splitter);
 
 	// Split viewer and info panel.
-	m_viewer_splitter = new wxSplitterWindow(m_central_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
-	m_viewer = new Viewer(runtime, m_viewer_splitter, this);
-	m_console = new Console(runtime, m_viewer_splitter);
+	viewer_splitter = new wxSplitterWindow(central_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
+	viewer = new Viewer(runtime, viewer_splitter, this);
+	console = new Console(runtime, viewer_splitter);
 
 	// Set sizers.
 	auto sizer1 = new wxBoxSizer(wxVERTICAL);
-	sizer1->Add(m_project_splitter, 1, wxEXPAND, 0);
+	sizer1->Add(project_splitter, 1, wxEXPAND, 0);
 	this->SetSizer(sizer1);
 
 	auto sizer2 = new wxBoxSizer(wxVERTICAL);
-	sizer2->Add(m_info_splitter, 1, wxEXPAND);
-	m_main_area->SetSizer(sizer2);
+	sizer2->Add(info_splitter, 1, wxEXPAND);
+	main_area->SetSizer(sizer2);
 
 	auto sizer3 = new wxBoxSizer(wxVERTICAL);
-	sizer3->Add(m_viewer_splitter, 1, wxEXPAND, 0);
-	m_central_panel->SetSizer(sizer3);
+	sizer3->Add(viewer_splitter, 1, wxEXPAND, 0);
+	central_panel->SetSizer(sizer3);
 }
 
 void MainWindow::PostInitialize()
@@ -403,7 +410,7 @@ void MainWindow::PostInitialize()
 	String user_dir = Settings::settings_directory();
 	LoadPluginsAndScripts(resources_dir);
 	LoadPluginsAndScripts(user_dir);
-	m_console->SetFocus();
+	console->SetFocus();
 
 	if (Settings::get_boolean("autoload"))
 	{
@@ -413,9 +420,9 @@ void MainWindow::PostInitialize()
 
 void MainWindow::ShowAllPanels()
 {
-	m_project_splitter->SplitVertically(m_project_manager, m_main_area);
-	m_info_splitter->SplitVertically(m_central_panel, m_info_panel);
-	m_viewer_splitter->SplitHorizontally(m_viewer, m_console);
+	project_splitter->SplitVertically(project_manager, main_area);
+	info_splitter->SplitVertically(central_panel, info_panel);
+	viewer_splitter->SplitHorizontally(viewer, console);
 	UpdateLayout();
 }
 
@@ -452,7 +459,7 @@ void MainWindow::OpenDocumentation(String page)
 
 void MainWindow::SetStartView()
 {
-	m_viewer->SetStartView();
+	viewer->SetStartView();
 }
 
 void MainWindow::UpdateLayout()
@@ -468,21 +475,21 @@ void MainWindow::UpdateProjectLayout()
 
 	if (ratio == 0.0)
 	{
-		if (m_project_splitter->IsSplit()) {
-			m_project_splitter->Unsplit(m_project_manager);
+		if (project_splitter->IsSplit()) {
+			project_splitter->Unsplit(project_manager);
 		}
-		if (!m_project_item->IsChecked()) {
-			m_project_item->Check();
+		if (!project_item->IsChecked()) {
+			project_item->Check();
 		}
 	}
 	else
 	{
-		if (!m_project_splitter->IsSplit()) {
-			m_project_splitter->SplitVertically(m_project_manager, m_main_area);
+		if (!project_splitter->IsSplit()) {
+			project_splitter->SplitVertically(project_manager, main_area);
 		}
 		int pos = (int) ((double) GetSize().GetWidth() * ratio);
-		m_project_splitter->SetSashGravity(ratio);
-		m_project_splitter->SetSashPosition(pos);
+		project_splitter->SetSashGravity(ratio);
+		project_splitter->SetSashPosition(pos);
 	}
 }
 
@@ -492,22 +499,22 @@ void MainWindow::UpdateViewerLayout()
 
 	if (ratio == 0.0)
 	{
-		if (m_viewer_splitter->IsSplit()) {
-			m_viewer_splitter->Unsplit(m_console);
+		if (viewer_splitter->IsSplit()) {
+			viewer_splitter->Unsplit(console);
 		}
-		if (!m_console_item->IsChecked()) {
-			m_console_item->Check();
+		if (!console_item->IsChecked()) {
+			console_item->Check();
 		}
 	}
 	else
 	{
-		if (!m_viewer_splitter->IsSplit()) {
-			m_viewer_splitter->SplitHorizontally(m_viewer, m_console);
+		if (!viewer_splitter->IsSplit()) {
+			viewer_splitter->SplitHorizontally(viewer, console);
 		}
 		int height = GetMainAreaHeight();
 		auto pos = int(height * ratio);
-		m_viewer_splitter->SetSashGravity(ratio);
-		m_viewer_splitter->SetSashPosition(pos);
+		viewer_splitter->SetSashGravity(ratio);
+		viewer_splitter->SetSashPosition(pos);
 	}
 }
 
@@ -517,22 +524,22 @@ void MainWindow::UpdateInfoLayout()
 
 	if (ratio == 0.0)
 	{
-		if (m_info_splitter->IsSplit()) {
-			m_info_splitter->Unsplit(m_info_panel);
+		if (info_splitter->IsSplit()) {
+			info_splitter->Unsplit(info_panel);
 		}
-		if (!m_info_item->IsChecked()) {
-			m_info_item->Check();
+		if (!info_item->IsChecked()) {
+			info_item->Check();
 		}
 	}
 	else
 	{
-		if (!m_info_splitter->IsSplit()) {
-			m_info_splitter->SplitVertically(m_central_panel, m_info_panel);
+		if (!info_splitter->IsSplit()) {
+			info_splitter->SplitVertically(central_panel, info_panel);
 		}
 		int width = GetMainAreaWidth();
 		auto pos = int(width * ratio);
-		m_info_splitter->SetSashPosition(pos);
-		m_info_splitter->SetSashGravity(ratio);
+		info_splitter->SetSashPosition(pos);
+		info_splitter->SetSashGravity(ratio);
 	}
 }
 
@@ -544,12 +551,12 @@ void MainWindow::OnResize(wxSizeEvent &e)
 
 int MainWindow::GetMainAreaHeight() const
 {
-	return (m_main_area->GetSize().GetHeight());
+	return (main_area->GetSize().GetHeight());
 }
 
 int MainWindow::GetMainAreaWidth() const
 {
-	return m_main_area->GetSize().GetWidth();
+	return main_area->GetSize().GetWidth();
 }
 
 void MainWindow::OnFileManagerSashMoved(wxSplitterEvent &e)
@@ -557,7 +564,7 @@ void MainWindow::OnFileManagerSashMoved(wxSplitterEvent &e)
 	int pos = e.GetSashPosition();
 	int width = GetClientSize().GetWidth();
 	double ratio = double(pos) / width;
-	m_project_splitter->SetSashGravity(ratio);
+	project_splitter->SetSashGravity(ratio);
 	Settings::set_value("project_ratio", ratio);
 }
 
@@ -566,7 +573,7 @@ void MainWindow::OnInfoSashMoved(wxSplitterEvent &e)
 	int pos = e.GetSashPosition();
 	int width = GetMainAreaWidth();
 	double ratio = double(pos) / width;
-	m_viewer_splitter->SetSashGravity(ratio);
+	viewer_splitter->SetSashGravity(ratio);
 	Settings::set_value("info_ratio", ratio);
 }
 
@@ -575,7 +582,7 @@ void MainWindow::OnViewerSashMoved(wxSplitterEvent &e)
 	int pos = e.GetSashPosition();
 	int height = GetMainAreaHeight();
 	double ratio = double(pos) / height;
-	m_viewer_splitter->SetSashGravity(ratio);
+	viewer_splitter->SetSashGravity(ratio);
 	Settings::set_value("console_ratio", ratio);
 }
 
@@ -613,9 +620,9 @@ void MainWindow::OnRestoreDefaultLayout(wxCommandEvent &)
 	Settings::set_value("info_ratio", DEFAULT_INFO_RATIO);
 	Settings::set_value("console_ratio", DEFAULT_CONSOLE_RATIO);
 	UpdateLayout();
-	m_console_item->Check(false);
-	m_info_item->Check(false);
-	m_project_item->Check(false);
+	console_item->Check(false);
+	info_item->Check(false);
+	project_item->Check(false);
 
 	// TODO: update status bar buttons when restoring default layout
 }
@@ -640,9 +647,9 @@ void MainWindow::OnHideConsole(wxCommandEvent &)
 
 void MainWindow::OnMaximizeViewer(wxCommandEvent &)
 {
-	m_console_item->Check(true);
-	m_info_item->Check(true);
-	m_project_item->Check(true);
+	console_item->Check(true);
+	info_item->Check(true);
+	project_item->Check(true);
 	Settings::set_value("console_ratio", 0.0);
 	UpdateViewerLayout();
 	Settings::set_value("info_ratio", 0.0);
@@ -653,17 +660,17 @@ void MainWindow::OnMaximizeViewer(wxCommandEvent &)
 
 double MainWindow::GetProjectRatio() const
 {
-	return m_project_item->IsChecked() ? 0.0 : DEFAULT_PROJECT_RATIO;
+	return project_item->IsChecked() ? 0.0 : DEFAULT_PROJECT_RATIO;
 }
 
 double MainWindow::GetInfoRatio() const
 {
-	return m_info_item->IsChecked() ? 0.0 : DEFAULT_INFO_RATIO;
+	return info_item->IsChecked() ? 0.0 : DEFAULT_INFO_RATIO;
 }
 
 double MainWindow::GetConsoleRatio() const
 {
-	return m_console_item->IsChecked() ? 0.0 : DEFAULT_CONSOLE_RATIO;
+	return console_item->IsChecked() ? 0.0 : DEFAULT_CONSOLE_RATIO;
 }
 
 void MainWindow::OnAbout(wxCommandEvent &)
@@ -725,7 +732,7 @@ void MainWindow::OnHelpScripting(wxCommandEvent &)
 
 void MainWindow::OnCloseCurrentView(wxCommandEvent &)
 {
-	m_viewer->CloseCurrentView();
+	viewer->CloseCurrentView();
 }
 
 void MainWindow::OnOpenProject(wxCommandEvent &)
@@ -749,7 +756,7 @@ void MainWindow::OnEditPreferences(wxCommandEvent &)
 	dlg.SetSize(FromDIP(size));
 	if (dlg.ShowModal() == wxID_OK)
 	{
-		m_viewer->AdjustFontSize();
+		viewer->AdjustFontSize();
 	}
 }
 
@@ -771,13 +778,13 @@ void MainWindow::SetAccelerators()
 
 void MainWindow::OnRun(wxCommandEvent &)
 {
-	auto view = m_viewer->GetCurrentView();
+	auto view = viewer->GetCurrentView();
 	view->Run();
 }
 
 void MainWindow::OnSave(wxCommandEvent &)
 {
-	auto view = m_viewer->GetCurrentView();
+	auto view = viewer->GetCurrentView();
 	view->Save();
 }
 
@@ -842,7 +849,7 @@ void MainWindow::LoadPlugin(const String &path)
 	auto script_callback = [=](String name, Plugin::MenuEntry target) {
 		if (name.empty())
 		{
-			m_tool_separator = menu->AppendSeparator();
+			tool_separator = menu->AppendSeparator();
 			return;
 		}
 		auto id = wxNewId();
@@ -864,7 +871,7 @@ void MainWindow::LoadPlugin(const String &path)
 			else // Or run a script
 			{
 				this->Bind(wxEVT_COMMAND_MENU_SELECTED, [script, this](wxCommandEvent &) {
-					m_console->RunScript(script);
+					console->RunScript(script);
 				}, id);
 			}
 		}
@@ -900,19 +907,19 @@ void MainWindow::LoadPlugin(const String &path)
 				}, action_id);
 			}
 
-			auto pos = (size_t) m_plugins.size();
+			auto pos = (size_t) plugins.size();
 			auto id = wxNewId();
-			m_tools_menu->Insert(pos, id, plugin->label(), menu);
+			tools_menu->Insert(pos, id, plugin->label(), menu);
 			plugin->set_menu_id(id);
 			if (pos == 0) {
-				m_tool_separator = m_tools_menu->InsertSeparator(1);
+				tool_separator = tools_menu->InsertSeparator(1);
 			}
 		}
 		else
 		{
 			delete menu;
 		}
-		m_plugins.append(std::move(plugin));
+		plugins.append(std::move(plugin));
 	}
 	catch (...)
 	{
@@ -928,7 +935,7 @@ void MainWindow::OnRunScript(wxCommandEvent &)
 		return;
 	}
 
-	m_console->RunScript(dlg.GetPath());
+	console->RunScript(dlg.GetPath());
 }
 
 void MainWindow::OnExtendTools(wxCommandEvent &)
@@ -977,9 +984,9 @@ void MainWindow::OnInstallPlugin(wxCommandEvent &)
 							  "the newer version?"), _("Update plugin?"), wxYES|wxNO|wxYES_DEFAULT);
 		if (dlg.ShowModal() != wxID_YES) return;
 		bool found = false;
-		for (intptr_t i = 1; i <= m_plugins.size(); i++)
+		for (intptr_t i = 1; i <= plugins.size(); i++)
 		{
-			auto &p = m_plugins[i];
+			auto &p = plugins[i];
 
 			if (p->path() == plugin_path)
 			{
@@ -997,20 +1004,20 @@ void MainWindow::OnInstallPlugin(wxCommandEvent &)
 	// Proceed to installation
 	utils::unzip(archive, plugin_dir);
 	LoadPlugin(plugin_path);
-	String label = m_plugins.last()->label();
+	String label = plugins.last()->label();
 	auto msg = utils::format("The plugin \"%\" has been installed!", label);
 	wxMessageBox(msg, _("Success"), wxICON_INFORMATION);
 }
 
 void MainWindow::OnUninstallPlugin(wxCommandEvent &)
 {
-	if (m_plugins.empty())
+	if (plugins.empty())
 	{
 		wxMessageBox(_("You don't have any plugin installed!"), _("No plugin found"), wxICON_INFORMATION);
 		return;
 	}
 	wxArrayString names;
-	for (auto &p : m_plugins) {
+	for (auto &p : plugins) {
 		names.Add(p->label());
 	}
 	int index = wxGetSingleChoiceIndex(_("Which plugin do you want to uninstall?"), _("Uninstall plugin"), names);
@@ -1019,17 +1026,17 @@ void MainWindow::OnUninstallPlugin(wxCommandEvent &)
 
 void MainWindow::UninstallPlugin(int index, bool verbose)
 {
-	auto p = m_plugins[index];
+	auto p = plugins[index];
 	filesystem::remove(p->path());
 	String label = p->label();
-	m_plugins.remove_at(index);
-	auto item = m_tools_menu->Remove(p->menu_id());
+	plugins.remove_at(index);
+	auto item = tools_menu->Remove(p->menu_id());
 	delete item;
 
-	if (m_plugins.empty())
+	if (plugins.empty())
 	{
-		m_tools_menu->Remove(m_tool_separator); // Remove separator
-		m_tool_separator = nullptr;
+		tools_menu->Remove(tool_separator); // Remove separator
+		tool_separator = nullptr;
 	}
 	if (verbose) {
 		auto msg = utils::format("The plugin \"%\" has been uninstalled!", label);
@@ -1058,21 +1065,21 @@ void MainWindow::PopulateRecentProjects()
 	{
 		auto &lst = Settings::get_list("recent_projects");
 
-		while (m_recent_submenu->GetMenuItemCount() != 0)
+		while (recent_submenu->GetMenuItemCount() != 0)
 		{
-			auto item = m_recent_submenu->FindItemByPosition(0);
-			m_recent_submenu->Destroy(item);
+			auto item = recent_submenu->FindItemByPosition(0);
+			recent_submenu->Destroy(item);
 		}
 
 		for (auto &item : lst)
 		{
 			auto &path = cast<String>(item);
 			auto id = wxNewId();
-			m_recent_submenu->Append(id, path);
+			recent_submenu->Append(id, path);
 			Bind(wxEVT_COMMAND_MENU_SELECTED, [this,path](wxCommandEvent &) { OpenProject(path); }, id);
 		}
-		m_recent_submenu->AppendSeparator();
-		m_recent_submenu->Append(ID_FILE_CLEAR_RECENT, _("Clear recent projects"));
+		recent_submenu->AppendSeparator();
+		recent_submenu->Append(ID_FILE_CLEAR_RECENT, _("Clear recent projects"));
 		Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnClearRecentProjects, this, ID_FILE_CLEAR_RECENT);
 		EnableRecentProjects(!lst.empty());
 	}
@@ -1131,24 +1138,24 @@ void MainWindow::OnCloseProject(wxCommandEvent &)
 
 void MainWindow::OnSaveProject(wxCommandEvent &)
 {
-	m_viewer->SaveViews(false);
+	viewer->SaveViews(false);
 	SaveProject();
 }
 
 void MainWindow::OnSaveProjectAs(wxCommandEvent &)
 {
-	m_viewer->SaveViews(false);
+	viewer->SaveViews(false);
 	SaveProjectAs();
 }
 
 void MainWindow::OnImportMetadata(wxCommandEvent &)
 {
-	m_info_panel->ImportMetadata();
+	info_panel->ImportMetadata();
 }
 
 void MainWindow::OnExportMetadata(wxCommandEvent &)
 {
-	m_info_panel->ExportMetadata();
+	info_panel->ExportMetadata();
 }
 
 void MainWindow::SetShellFunctions()
@@ -1293,14 +1300,14 @@ void MainWindow::SetShellFunctions()
 	};
 
 	auto close_current_view = [this](Runtime &, std::span<Variant> args) -> Variant {
-		m_viewer->CloseCurrentView();
+		viewer->CloseCurrentView();
 		return Variant();
 	};
 
 #if 0
 	auto view_annotation1 = [this](Runtime &, std::span<Variant> args) -> Variant {
 		auto &annot = cast<AutoAnnotation>(args[0]);
-		m_viewer->editAnnotation(std::move(annot), 1, 0.0, 10.0);
+		viewer->editAnnotation(std::move(annot), 1, 0.0, 10.0);
 		return Variant();
 	};
 
@@ -1309,17 +1316,17 @@ void MainWindow::SetShellFunctions()
 		intptr_t layer = cast<intptr_t>(args[1]);
 		double from = args[2].resolve().get_number();
 		double to = args[3].resolve().get_number();
-		m_viewer->editAnnotation(std::move(annot), layer, from, to);
+		viewer->editAnnotation(std::move(annot), layer, from, to);
 		return Variant();
 	};
 
 	auto import_metadata = [this](Runtime &, std::span<Variant> args) -> Variant {
-		m_info_panel->ImportMetadata();
+		info_panel->ImportMetadata();
 		return Variant();
 	};
 
 	auto export_metadata = [this](Runtime &, std::span<Variant> args) -> Variant {
-		m_info_panel->ExportMetadata();
+		info_panel->ExportMetadata();
 		return Variant();
 	};
 
@@ -1389,7 +1396,7 @@ void MainWindow::SetShellFunctions()
 	};
 
 	auto get_current_sound = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto viewer = m_viewer;
+		auto viewer = viewer;
 		auto sound = viewer->getCurrentSound();
 		if (sound) {
 			return make_handle<AutoSound>(std::move(sound));
@@ -1398,7 +1405,7 @@ void MainWindow::SetShellFunctions()
 	};
 
 	auto get_current_annot = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto viewer = m_viewer;
+		auto viewer = viewer;
 		auto annot = viewer->getCurrentAnnotation();
 		if (annot) {
 			return make_handle<AutoAnnotation>(std::move(annot));
@@ -1407,12 +1414,12 @@ void MainWindow::SetShellFunctions()
 	};
 
 	auto get_window_duration = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto viewer = m_viewer;
+		auto viewer = viewer;
 		return viewer->getWindowDuration();
 	};
 
 	auto get_selection_duration = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto viewer = m_viewer;
+		auto viewer = viewer;
 		return viewer->getSelectionDuration();
 	};
 #endif
@@ -1464,7 +1471,7 @@ void MainWindow::SetShellFunctions()
 
 Plugin *MainWindow::FindPlugin(const String &name)
 {
-	for (auto &plugin : m_plugins)
+	for (auto &plugin : plugins)
 	{
 		if (plugin->label() == name) {
 			return plugin.get();
@@ -1511,6 +1518,28 @@ void MainWindow::SaveProjectAs()
 	String path = dlg.GetPath();
 	Project::get()->save(path);
 	UpdateRecentProjects(path);
+}
+
+void MainWindow::OnFindInAnnotations(wxCommandEvent &)
+{
+	TextQueryEditor ed(this);
+	ed.Prepare();
+	ed.SetSize(FromDIP(wxSize(1000, 700)));
+
+	if (ed.ShowModal() == wxID_OK)
+	{
+		last_query = ed.GetQuery();
+	}
+}
+
+void MainWindow::OnMeasureFormants(wxCommandEvent &)
+{
+
+}
+
+void MainWindow::OnEditLastQuery(wxCommandEvent &)
+{
+
 }
 
 

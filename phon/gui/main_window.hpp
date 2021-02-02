@@ -31,6 +31,7 @@
 #include <phon/gui/viewer.hpp>
 #include <phon/gui/console.hpp>
 #include <phon/gui/info_panel.hpp>
+#include <phon/gui/conc/text_query_editor.hpp>
 #include <phon/application/plugin.hpp>
 
 namespace phonometrica {
@@ -187,6 +188,12 @@ private:
 
 	void OnExportMetadata(wxCommandEvent &);
 
+	void OnFindInAnnotations(wxCommandEvent &);
+
+	void OnMeasureFormants(wxCommandEvent &);
+
+	void OnEditLastQuery(wxCommandEvent &);
+
 	void SetShellFunctions();
 
 	void SaveProject();
@@ -196,41 +203,43 @@ private:
 	Plugin *FindPlugin(const String &name);
 
 	// Project browser, on the left.
-	ProjectManager *m_project_manager;
+	ProjectManager *project_manager;
 
 	// Main area, which contains a set of views displayed as tabs.
-	Viewer *m_viewer;
+	Viewer *viewer;
 
 	// Lua command line, at the bottom.
-	Console *m_console;
+	Console *console;
 
 	// Panel displaying metadata, on the right.
-	InfoPanel *m_info_panel;
+	InfoPanel *info_panel;
 
 	// Panel holding the command line, the viewer and the info panel.
-	wxPanel *m_main_area;
+	wxPanel *main_area;
 
 	// Panel holding the viewer and the info panel.
-	wxPanel *m_central_panel;
+	wxPanel *central_panel;
 
 	// Split the project manager and the remainder of the main window.
-	wxSplitterWindow *m_project_splitter;
+	wxSplitterWindow *project_splitter;
 
 	// Split command line and viewer/info panel.
-	wxSplitterWindow *m_info_splitter;
+	wxSplitterWindow *info_splitter;
 
 	// Split viewer and info panel.
-	wxSplitterWindow *m_viewer_splitter;
+	wxSplitterWindow *viewer_splitter;
 
 
-	wxMenuBar *m_menubar = nullptr;
-	wxMenu *m_file_menu = nullptr, *m_recent_submenu = nullptr, *m_tools_menu = nullptr;
+	wxMenuBar *menubar = nullptr;
+	wxMenu *file_menu = nullptr, *recent_submenu = nullptr, *tools_menu = nullptr;
 
-	wxMenuItem *m_recent_item = nullptr, *m_last_item = nullptr, *m_save_item = nullptr, *m_save_as_item = nullptr;
-	wxMenuItem *m_project_item = nullptr, *m_info_item = nullptr, *m_console_item = nullptr;
-	wxMenuItem *m_tool_separator = nullptr;
+	wxMenuItem *recent_item = nullptr, *last_item = nullptr, *save_item = nullptr, *save_as_item = nullptr;
+	wxMenuItem *project_item = nullptr, *info_item = nullptr, *console_item = nullptr;
+	wxMenuItem *tool_separator = nullptr;
 
-	Array<AutoPlugin> m_plugins;
+	Array<AutoPlugin> plugins;
+
+	AutoQuery last_query;
 
 	Runtime &runtime;
 };

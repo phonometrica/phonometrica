@@ -42,8 +42,9 @@ static inline wxFont MakeBold(wxFont font)
 
 
 InfoPanel::InfoPanel(Runtime &rt, wxWindow *parent) :
-		wxPanel(parent, -1), runtime(rt)
+		wxScrolledWindow(parent, -1), runtime(rt)
 {
+	SetScrollRate(5, 10);
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	auto header = new wxStaticText(this, wxID_ANY, _("Information"), wxDefaultPosition, wxDefaultSize);
 	header->SetForegroundColour(wxColor(75, 75, 75));
@@ -67,11 +68,11 @@ InfoPanel::InfoPanel(Runtime &rt, wxWindow *parent) :
 	hsizer->Add(help_btn);
 	hsizer->AddSpacer(SIDE_PADDING);
 
-	m_book = new wxSimplebook(this);
+	book = new wxSimplebook(this);
 	SetupBook();
 	sizer->AddSpacer(5);
 	sizer->Add(hsizer, 0, wxEXPAND|wxLEFT, 7);
-	sizer->Add(m_book, 1,wxEXPAND, 0);
+	sizer->Add(book, 1, wxEXPAND, 0);
 	SetSizer(sizer);
 }
 
@@ -85,7 +86,7 @@ void InfoPanel::SetupBook()
 
 void InfoPanel::SetEmptyPage()
 {
-	empty_page = new wxPanel(m_book);
+	empty_page = new wxPanel(book);
 	auto empty_text = new wxStaticText(empty_page, wxID_ANY, _("No metadata to display"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL|wxST_NO_AUTORESIZE);
 	empty_text->SetForegroundColour(wxColor(175, 175, 175)); // grey
 	auto font = empty_text->GetFont();
@@ -98,34 +99,34 @@ void InfoPanel::SetEmptyPage()
 	sizer->AddStretchSpacer(3);
 	empty_page->SetSizer(sizer);
 
-	m_book->AddPage(empty_page, _("File information"));
+	book->AddPage(empty_page, _("File information"));
 }
 
 void InfoPanel::SetSingleFilePage()
 {
-	single_page = new wxPanel(m_book);
+	single_page = new wxPanel(book);
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	single_page->SetSizer(sizer);
-	m_book->AddPage(single_page, _("File information"));
+	book->AddPage(single_page, _("File information"));
 }
 
 void InfoPanel::SetMultipleFilesPage()
 {
-	multiple_page = new wxPanel(m_book);
+	multiple_page = new wxPanel(book);
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	multiple_page->SetSizer(sizer);
-	m_book->AddPage(multiple_page, _("File information"));
+	book->AddPage(multiple_page, _("File information"));
 }
 
 void InfoPanel::OnSetFileSelection(VFileList files)
 {
-	m_files = std::move(files);
+	selected_files = std::move(files);
 	UpdateInformation();
 }
 
 void InfoPanel::UpdateInformation()
 {
-	auto id = std::min<intptr_t>(m_files.size(), 2);
+	auto id = std::min<intptr_t>(selected_files.size(), 2);
 	has_unsaved_property = false;
 	help_btn->Show(id != 0);
 	Layout(); // needed to keep the help button where it belongs
@@ -141,13 +142,13 @@ void InfoPanel::UpdateInformation()
 		DisplayMultipleFiles();
 	}
 
-	m_book->SetSelection(id);
-	m_book->GetCurrentPage()->Layout();
+	book->SetSelection(id);
+	book->GetCurrentPage()->Layout();
 }
 
 void InfoPanel::DisplaySingleFile()
 {
-	auto file = m_files.first().get();
+	auto file = selected_files.first().get();
 
 	single_page->GetSizer()->AddSpacer(5);
 	AddSectionHeading(single_page, _("File name:"), false);
@@ -173,7 +174,7 @@ void InfoPanel::DisplayMultipleFiles()
 {
 	AddSectionHeading(multiple_page, _("Files:"), false);
 
-	for (auto &f: m_files) {
+	for (auto &f: selected_files) {
 		AddLabel(multiple_page, f->label());
 	}
 
@@ -347,7 +348,7 @@ void InfoPanel::AddPropertyButtons(wxPanel *panel)
 
 void InfoPanel::OnSaveDescription(wxCommandEvent &)
 {
-	auto file = m_files.front().get();
+	auto file = selected_files.front().get();
 	file->set_description(ctrl_desc->GetValue());
 	save_desc_btn->Enable(false);
 	Project::updated();
@@ -372,7 +373,7 @@ void InfoPanel::OnBindSound(wxCommandEvent &)
 			return;
 		}
 
-		auto annot = downcast<Annotation>(m_files.first());
+		auto annot = downcast<Annotation>(selected_files.first());
 		project->import_file(path);
 		auto sound = downcast<Sound>(project->get(path));
 
@@ -421,7 +422,7 @@ void InfoPanel::OnRemoveProperty(wxCommandEvent &e)
 		return;
 	}
 	String category = prop_ctrl->GetItemText(row, 1);
-	for (auto &file : m_files)
+	for (auto &file : selected_files)
 	{
 		file->remove_property(category);
 	}
@@ -640,7 +641,7 @@ void InfoPanel::ValidateProperty()
 		return;
 	}
 
-	for (auto &file : m_files) {
+	for (auto &file : selected_files) {
 		file->add_property(prop);
 	}
 	EnablePropertyEditing(false);
@@ -662,7 +663,7 @@ void InfoPanel::SetProperties(const wxString &selected)
 	prop_ctrl->AppendColumn(_("Key"));
 	prop_ctrl->AppendColumn(_("Value"));
 
-	for (auto &prop : Project::get_shared_properties(m_files))
+	for (auto &prop : Project::get_shared_properties(selected_files))
 	{
 		long row = prop_ctrl->InsertItem(prop_ctrl->GetItemCount(), prop.type_name());
 		prop_ctrl->SetItem(row, 1, prop.category());

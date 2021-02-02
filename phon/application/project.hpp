@@ -30,6 +30,7 @@
 #include <phon/application/spreadsheet.hpp>
 #include <phon/application/metadata.hpp>
 #include <phon/application/database.hpp>
+#include <phon/application/conc/text_query.hpp>
 #include <phon/utils/signal.hpp>
 #include <phon/error.hpp>
 #include <phon/dictionary.hpp>
@@ -93,6 +94,8 @@ public:
 	void import_directory(String path);
 
 	String import_file(String path);
+
+	void add_query(AutoQuery query);
 
 	void remove(VFileList &files);
 
@@ -167,8 +170,6 @@ public:
 	// Inform the UI that an error occurred.
 	Signal<const String &> notify_error;
 
-	Signal<> request_save;
-
 	Signal<> initialized;
 
 private:
@@ -179,6 +180,7 @@ private:
 	void parse_corpus(xml_node root, VFolder *folder, bool emitting = false);
 	void parse_metadata(xml_node root);
 	void parse_scripts(xml_node root, VFolder *folder);
+	void parse_queries(xml_node root, VFolder *folder);
 	void parse_bookmarks(xml_node root, VFolder *folder);
 	void parse_changelog(xml_node root);
 	void parse_data(xml_node root, VFolder *folder);
@@ -188,6 +190,7 @@ private:
 	void write_bookmarks(xml_node root);
 	void write_scripts(xml_node root);
 	void write_data(xml_node root);
+	void write_queries(xml_node root);
 
 	void add_folder(String path, const std::shared_ptr<VFolder> &parent);
 

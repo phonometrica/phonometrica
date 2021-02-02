@@ -211,7 +211,7 @@ String Settings::get_std_script(String name)
 	auto path = Settings::resources_directory();
 	filesystem::append(path, "std");
 	filesystem::nativize(name);
-	name.append(".phon");
+	name.append(PHON_EXT_SCRIPT);
 	filesystem::append(path, name);
 
 	return path;

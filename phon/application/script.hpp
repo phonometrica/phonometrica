@@ -36,8 +36,6 @@ public:
 
 	const char *class_name() const override;
 
-	void from_xml(xml_node root, const String &project_dir);
-
 	const String &content() const;
 
 	void set_content(String value, bool mutate = true);

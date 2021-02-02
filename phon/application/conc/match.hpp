@@ -13,80 +13,61 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 13/01/2021                                                                                                 *
+ * Created: 01/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: see header.                                                                                                *
+ * Purpose: Match is the base class for all matches: it represents a line of concordance. For simple queries with      *
+ * a single constraint, there is a single match; for complex queries with two or more constraints, the match is        *
+ * represented as a linked list of matches. Match only contains information about the location of the match in a file, *
+ * but not about the file itself: this information is stored in derived classes (see TextMatch).                       *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/msgdlg.h>
-#include <phon/gui/application.hpp>
+#ifndef PHONOMETRICA_MATCH_HPP
+#define PHONOMETRICA_MATCH_HPP
+
+#include <phon/application/agraph.hpp>
 
 namespace phonometrica {
 
-Application::Application(Runtime &rt) :
-	wxApp(), runtime(rt)
+class Match
 {
+public:
 
-}
+	Match(const AutoEvent &e, String target, int layer, int offset);
 
-bool Application::OnInit()
-{
-	wxImage::AddHandler(new wxPNGHandler());
+	const AutoEvent &event() const { return m_event; }
 
-	try
-	{
-		window = new MainWindow(runtime, "Phonometrica");
-		SetTopWindow(window);
-		window->Layout();
-		window->Show();
-		window->PostInitialize();
-		// Bind OnResize after the window is properly sized
-		Bind(wxEVT_SIZE, &MainWindow::OnResize, window);
-	}
-	catch (std::exception &e)
-	{
-		wxMessageBox(wxString(e.what()), _("Initialization failed"), wxICON_ERROR);
-		return false;
-	}
+	Match *next() const { return m_next.get(); }
 
-	return true;
-}
+	int layer_index() const { return m_layer_index; }
 
-int Application::OnExit()
-{
-	return 0;
-}
+	int offset() const { return m_offset; }
 
-bool Application::OnExceptionInMainLoop()
-{
-	try
-	{
-		return wxAppConsoleBase::OnExceptionInMainLoop();
-	}
-	catch (std::exception &e)
-	{
-		auto msg = utils::format("Phonometrica generated an error with the following message:\n%\n\n", e.what());
-		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+	String text() const { return m_target; }
 
-		return true;
-	}
-	catch (...)
-	{
-		auto msg = _("Phonometrica generated an unxpected error."
-			   "It is unable to recover from such errors and is going to crash :-(\n"
-	            "Please contact the developers about this problem.");
-		wxMessageBox(msg, _("Unhandled error"), wxICON_ERROR);
-		return false;
-	}
-}
+	void append_match(std::unique_ptr<Match> m);
 
-#ifdef __WXMAC__
-void Application::MacOpenFile(const wxString &fileName)
-{
-	// TODO: implement dropping files in project manager on macos
-	wxApp::MacOpenFile(fileName);
-}
-#endif
+protected:
+
+	// Event where the match occurred.
+	AutoEvent m_event;
+
+	// Matched text.
+	String m_target;
+
+	// Index of the layer in which the match was found.
+	int m_layer_index;
+
+	// Offset where the match occurred in the event.
+	int m_offset;
+
+	// Next match in a complex query (may be null).
+	std::unique_ptr<Match> m_next;
+};
+
 
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_MATCH_HPP

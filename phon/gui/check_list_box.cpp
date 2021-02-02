@@ -13,80 +13,30 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 13/01/2021                                                                                                 *
+ * Created: 02/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: see header.                                                                                                *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/msgdlg.h>
-#include <phon/gui/application.hpp>
+#include <phon/gui/check_list_box.hpp>
 
 namespace phonometrica {
 
-Application::Application(Runtime &rt) :
-	wxApp(), runtime(rt)
+CheckListBox::CheckListBox(wxWindow *parent, const wxArrayString &choices, wxArrayString &tooltips) :
+	wxCheckListBox(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices), m_tooltips(tooltips)
 {
-
+	Bind(wxEVT_MOTION, &CheckListBox::OnMouseOver, this);
 }
 
-bool Application::OnInit()
+void CheckListBox::OnMouseOver(wxMouseEvent &e)
 {
-	wxImage::AddHandler(new wxPNGHandler());
-
-	try
+	auto item = HitTest(e.GetPosition());
+	if (item != wxNOT_FOUND)
 	{
-		window = new MainWindow(runtime, "Phonometrica");
-		SetTopWindow(window);
-		window->Layout();
-		window->Show();
-		window->PostInitialize();
-		// Bind OnResize after the window is properly sized
-		Bind(wxEVT_SIZE, &MainWindow::OnResize, window);
+		SetToolTip(m_tooltips.at(item));
 	}
-	catch (std::exception &e)
-	{
-		wxMessageBox(wxString(e.what()), _("Initialization failed"), wxICON_ERROR);
-		return false;
-	}
-
-	return true;
+	e.Skip();
 }
-
-int Application::OnExit()
-{
-	return 0;
-}
-
-bool Application::OnExceptionInMainLoop()
-{
-	try
-	{
-		return wxAppConsoleBase::OnExceptionInMainLoop();
-	}
-	catch (std::exception &e)
-	{
-		auto msg = utils::format("Phonometrica generated an error with the following message:\n%\n\n", e.what());
-		wxMessageBox(msg, _("Error"), wxICON_ERROR);
-
-		return true;
-	}
-	catch (...)
-	{
-		auto msg = _("Phonometrica generated an unxpected error."
-			   "It is unable to recover from such errors and is going to crash :-(\n"
-	            "Please contact the developers about this problem.");
-		wxMessageBox(msg, _("Unhandled error"), wxICON_ERROR);
-		return false;
-	}
-}
-
-#ifdef __WXMAC__
-void Application::MacOpenFile(const wxString &fileName)
-{
-	// TODO: implement dropping files in project manager on macos
-	wxApp::MacOpenFile(fileName);
-}
-#endif
 
 } // namespace phonometrica

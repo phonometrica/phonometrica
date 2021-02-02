@@ -29,6 +29,7 @@
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/project_manager.hpp>
 #include <phon/include/icons.hpp>
+#include <phon/application/macros.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/praat.hpp>
 #include <phon/utils/file_system.hpp>
@@ -48,61 +49,67 @@ struct ItemData final : public wxTreeItemData
 ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	wxPanel(parent), runtime(rt)
 {
-	m_tree = new wxTreeCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_HIDE_ROOT|wxTR_MULTIPLE|wxTR_NO_LINES|wxTR_DEFAULT_STYLE);
-	m_label = new wxStaticText(this, wxID_ANY, _("Project"), wxDefaultPosition, wxDefaultSize);
+	tree = new wxTreeCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_HIDE_ROOT | wxTR_MULTIPLE | wxTR_NO_LINES | wxTR_DEFAULT_STYLE);
+	mono_font = Settings::get_mono_font();
+	mono_font.SetPointSize(tree->GetFont().GetPointSize());
+
+	main_label = new wxStaticText(this, wxID_ANY, _("Project"), wxDefaultPosition, wxDefaultSize);
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 #ifdef __WXGTK__
 	sizer->AddSpacer(2);
 #endif
-	sizer->Add(m_label, 0, wxEXPAND|wxTOP|wxLEFT, 8);
-	sizer->Add(m_tree, 10, wxEXPAND|wxTOP, 5);
-	auto font = m_label->GetFont();
+	sizer->Add(main_label, 0, wxEXPAND | wxTOP | wxLEFT, 8);
+	sizer->Add(tree, 10, wxEXPAND | wxTOP, 5);
+	auto font = main_label->GetFont();
 	font.MakeBold();
-	m_label->SetFont(font);
-	m_label->SetForegroundColour(wxColor(75, 75, 75));
+	main_label->SetFont(font);
+	main_label->SetForegroundColour(wxColor(75, 75, 75));
 
 	SetSizer(sizer);
 	auto images = new wxImageList(16, 16);
-	m_corpus_img = images->Add(wxBITMAP_PNG_FROM_DATA(corpus));
-	m_queries_img = images->Add(wxBITMAP_PNG_FROM_DATA(search));
-	m_datasets_img = images->Add(wxBITMAP_PNG_FROM_DATA(data));
-	m_scripts_img = images->Add(wxBITMAP_PNG_FROM_DATA(console));
-	m_bookmarks_img = images->Add(wxBITMAP_PNG_FROM_DATA(favorite));
-	m_annot_img = images->Add(wxBITMAP_PNG_FROM_DATA(annotation));
+	corpus_img = images->Add(wxBITMAP_PNG_FROM_DATA(corpus));
+	queries_img = images->Add(wxBITMAP_PNG_FROM_DATA(search));
+	datasets_img = images->Add(wxBITMAP_PNG_FROM_DATA(data));
+	scripts_img = images->Add(wxBITMAP_PNG_FROM_DATA(console));
+	bookmarks_img = images->Add(wxBITMAP_PNG_FROM_DATA(favorite));
+	annot_img = images->Add(wxBITMAP_PNG_FROM_DATA(annotation));
 #ifdef __WXMSW__
-	m_folder_img = images->Add(wxBITMAP_PNG_FROM_DATA(folder));
+	folder_img = images->Add(wxBITMAP_PNG_FROM_DATA(folder));
 #elif defined(__WXMAC__)
-//	m_folder_img = images->Add(wxArtProvider::GetIcon(wxART_FOLDER, wxART_OTHER, wxSize(16, 16)));
-	m_folder_img = images->Add(wxBITMAP_PNG_FROM_DATA(folder_mac));
+//	folder_img = images->Add(wxArtProvider::GetIcon(wxART_FOLDER, wxART_OTHER, wxSize(16, 16)));
+	folder_img = images->Add(wxBITMAP_PNG_FROM_DATA(folder_mac));
 #else
-	m_folder_img = images->Add(wxArtProvider::GetIcon(wxART_FOLDER));
+	folder_img = images->Add(wxArtProvider::GetIcon(wxART_FOLDER));
 #endif
-	m_bookmark_img = images->Add(wxBITMAP_PNG_FROM_DATA(bookmark));
-	m_sound_img = images->Add(wxBITMAP_PNG_FROM_DATA(sound));
-	m_script_img = images->Add(wxBITMAP_PNG_FROM_DATA(script));
-	m_document_img = images->Add(wxBITMAP_PNG_FROM_DATA(document));
-	m_query_img = images->Add(wxBITMAP_PNG_FROM_DATA(query));
-	m_dataset_img = images->Add(wxBITMAP_PNG_FROM_DATA(dataset));
-	m_tree->SetImageList(images);
-	m_root = m_tree->AddRoot(_("Project"));
+	bookmark_img = images->Add(wxBITMAP_PNG_FROM_DATA(bookmark));
+	sound_img = images->Add(wxBITMAP_PNG_FROM_DATA(sound));
+	script_img = images->Add(wxBITMAP_PNG_FROM_DATA(script));
+	document_img = images->Add(wxBITMAP_PNG_FROM_DATA(document));
+	query_img = images->Add(wxBITMAP_PNG_FROM_DATA(query));
+	dataset_img = images->Add(wxBITMAP_PNG_FROM_DATA(dataset));
+	tree->SetImageList(images);
+	root = tree->AddRoot(_("Project"));
 #if PHON_LINUX
-	auto col = m_label->GetBackgroundColour();
+	auto col = main_label->GetBackgroundColour();
 #else
 	auto col = wxSystemSettings::GetColour(wxSYS_COLOUR_FRAMEBK);
 #endif
 	this->SetBackgroundColour(col);
-	m_label->SetBackgroundColour(col);
-	m_tree->SetBackgroundColour(col);
+	main_label->SetBackgroundColour(col);
+	tree->SetBackgroundColour(col);
 
-	m_root = m_tree->GetRootItem();
+	root = tree->GetRootItem();
 	Populate();
 
-	m_tree->Bind(wxEVT_TREE_BEGIN_DRAG, &ProjectManager::OnDragItem, this);
-	m_tree->Bind(wxEVT_TREE_END_DRAG, &ProjectManager::OnDropItem, this);
+	tree->Bind(wxEVT_TREE_BEGIN_DRAG, &ProjectManager::OnDragItem, this);
+	tree->Bind(wxEVT_TREE_END_DRAG, &ProjectManager::OnDropItem, this);
 	Bind(wxEVT_TREE_SEL_CHANGED, &ProjectManager::OnItemSelected, this);
 	Bind(wxEVT_TREE_ITEM_ACTIVATED, &ProjectManager::OnItemDoubleClicked, this);
 	Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &ProjectManager::OnRightClick, this);
 	Bind(wxEVT_TREE_ITEM_MIDDLE_CLICK, &ProjectManager::OnMiddleClick, this);
+#ifdef __WXMSW__
+	Bind(wxEVT_TREE_ITEM_GETTOOLTIP, &ProjectManager::OnShowToolTip, this);
+#endif
 
 	SetScriptingFunctions();
 }
@@ -110,11 +117,11 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 void ProjectManager::Populate()
 {
 	auto p = Project::get();
-	m_corpus_item = m_tree->AppendItem(m_root, _("Corpus"), m_corpus_img, m_corpus_img, new ItemData(p->corpus().get()));
-	m_query_item = m_tree->AppendItem(m_root, _("Queries"), m_queries_img, m_queries_img, new ItemData(p->queries().get()));
-	m_data_item = m_tree->AppendItem(m_root, _("Datasets"), m_datasets_img, m_datasets_img, new ItemData(p->data().get()));
-	m_script_item = m_tree->AppendItem(m_root, _("Scripts"), m_scripts_img, m_scripts_img, new ItemData(p->scripts().get()));
-	m_bookmark_item = m_tree->AppendItem(m_root, _("Bookmarks"), m_bookmarks_img, m_bookmarks_img, new ItemData(p->bookmarks().get()));
+	corpus_item = tree->AppendItem(root, _("Corpus"), corpus_img, corpus_img, new ItemData(p->corpus().get()));
+	query_item = tree->AppendItem(root, _("Queries"), queries_img, queries_img, new ItemData(p->queries().get()));
+	data_item = tree->AppendItem(root, _("Datasets"), datasets_img, datasets_img, new ItemData(p->data().get()));
+	script_item = tree->AppendItem(root, _("Scripts"), scripts_img, scripts_img, new ItemData(p->scripts().get()));
+	bookmark_item = tree->AppendItem(root, _("Bookmarks"), bookmarks_img, bookmarks_img, new ItemData(p->bookmarks().get()));
 }
 
 void ProjectManager::OnProjectUpdated()
@@ -132,52 +139,53 @@ void ProjectManager::UpdateProject()
 
 	UpdateLabel();
 
-	FillFolder(m_corpus_item, *project->corpus());
-	FillFolder(m_data_item, *project->data());
-	FillFolder(m_query_item, *project->queries());
-	FillFolder(m_script_item, *project->scripts());
-	FillFolder(m_bookmark_item, *project->bookmarks());
+	FillFolder(corpus_item, *project->corpus());
+	FillFolder(data_item, *project->data());
+	FillFolder(query_item, *project->queries());
+	FillFolder(script_item, *project->scripts());
+	FillFolder(bookmark_item, *project->bookmarks());
 
-	m_tree->Expand(m_corpus_item);
-	m_tree->Expand(m_query_item);
-	m_tree->Expand(m_data_item);
-	m_tree->Expand(m_script_item);
-	m_tree->Expand(m_bookmark_item);
+	tree->Expand(corpus_item);
+	tree->Expand(query_item);
+	tree->Expand(data_item);
+	tree->Expand(script_item);
+	tree->Expand(bookmark_item);
 }
 
 void ProjectManager::ClearProject()
 {
-	SetExpansionFlag(m_corpus_item);
-	SetExpansionFlag(m_query_item);
-	SetExpansionFlag(m_data_item);
-	SetExpansionFlag(m_script_item);
-	SetExpansionFlag(m_bookmark_item);
+	SetExpansionFlag(corpus_item);
+	SetExpansionFlag(query_item);
+	SetExpansionFlag(data_item);
+	SetExpansionFlag(script_item);
+	SetExpansionFlag(bookmark_item);
 
-	m_tree->DeleteChildren(m_corpus_item);
-	m_tree->DeleteChildren(m_query_item);
-	m_tree->DeleteChildren(m_data_item);
-	m_tree->DeleteChildren(m_script_item);
-	m_tree->DeleteChildren(m_bookmark_item);
+	tree->DeleteChildren(corpus_item);
+	tree->DeleteChildren(query_item);
+	tree->DeleteChildren(data_item);
+	tree->DeleteChildren(script_item);
+	tree->DeleteChildren(bookmark_item);
 }
 
 void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
 {
 	for (int i = 1; i <= folder.size(); i++)
 	{
+		wxTreeItemId child;
 		auto &node = folder.get(i);
 
 		if (node->is_folder())
 		{
 			auto &subfolder = dynamic_cast<VFolder&>(*node);
 			auto data = new ItemData(&subfolder);
-			auto child = m_tree->AppendItem(item, node->label(), m_folder_img, m_folder_img, data);
+			child = tree->AppendItem(item, node->label(), folder_img, folder_img, data);
 			FillFolder(child, subfolder);
 		}
 		else if (node->is_bookmark())
 		{
 //			auto &bookmark = dynamic_cast<Bookmark&>(*node);
 			auto data = new ItemData(node.get());
-			m_tree->AppendItem(item, node->label(), m_bookmark_img, m_bookmark_img, data);
+			child = tree->AppendItem(item, node->label(), bookmark_img, bookmark_img, data);
 		}
 		else
 		{
@@ -186,47 +194,52 @@ void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
 
 			if (vfile.is_annotation())
 			{
-				img = m_annot_img;
+				img = annot_img;
 			}
 			else if (vfile.is_sound())
 			{
-				img = m_sound_img;
+				img = sound_img;
 			}
 			else if (vfile.is_script())
 			{
-				img = m_script_img;
+				img = script_img;
 			}
 			else if (vfile.is_dataset())
 			{
-				img = m_dataset_img;
+				img = dataset_img;
 			}
-			else if (vfile.is_document())
+			else if (vfile.is_query())
 			{
-				img = m_document_img;
+				img = queries_img;
 			}
+//			else if (vfile.is_document())
+//			{
+//				img = document_img;
+//			}
 			else
 			{
-				img = m_document_img;
+				img = document_img;
 			}
 			auto data = new ItemData(node.get());
-			m_tree->AppendItem(item, node->label(), img, img, data);
+			child = tree->AppendItem(item, node->label(), img, img, data);
 		}
+		tree->SetItemFont(child, mono_font);
 	}
 
 	if (folder.expanded()) {
-		m_tree->Expand(item);
+		tree->Expand(item);
 	}
 }
 
 void ProjectManager::OnItemSelected(wxTreeEvent &)
 {
 	wxArrayTreeItemIds items;
-	m_tree->GetSelections(items);
+	tree->GetSelections(items);
 	VFileList files;
 
 	for (auto &item : items)
 	{
-		auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(item));
+		auto data = dynamic_cast<ItemData*>(tree->GetItemData(item));
 		if (!data) return; // should never happen
 		auto vnode = data->node;
 		assert(vnode);
@@ -242,7 +255,7 @@ void ProjectManager::OnItemSelected(wxTreeEvent &)
 
 void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 {
-	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(e.GetItem()));
+	auto data = dynamic_cast<ItemData*>(tree->GetItemData(e.GetItem()));
 	if (!data) return; // should never happen
 	auto vnode = data->node;
 	auto id = data->GetId();
@@ -250,13 +263,13 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 
 	if (vnode->is_folder())
 	{
-		if (m_tree->IsExpanded(id))
+		if (tree->IsExpanded(id))
 		{
-			m_tree->Collapse(id);
+			tree->Collapse(id);
 		}
 		else
 		{
-			m_tree->Expand(id);
+			tree->Expand(id);
 		}
 	}
 	else
@@ -268,7 +281,7 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 
 void ProjectManager::OnMiddleClick(wxTreeEvent &e)
 {
-	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(e.GetItem()));
+	auto data = dynamic_cast<ItemData*>(tree->GetItemData(e.GetItem()));
 	if (!data) return; // should never happen
 	auto vnode = data->node;
 	auto id = data->GetId();
@@ -276,7 +289,7 @@ void ProjectManager::OnMiddleClick(wxTreeEvent &e)
 
 	if (vnode->is_folder())
 	{
-		if (m_tree->IsExpanded(id))
+		if (tree->IsExpanded(id))
 		{
 			CollapseNode(id);
 		}
@@ -301,7 +314,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 		{
 			auto folder = downcast<VFolder>(item);
 			wxArrayTreeItemIds ids;
-			m_tree->GetSelections(ids);
+			tree->GetSelections(ids);
 			auto tree_item = ids.front();
 
 			auto expand_id = wxNewId();
@@ -312,7 +325,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 			Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnCollapseDirectory, this, collapse_id);
 			menu->AppendSeparator();
 
-			if (GetParentDirectory(tree_item) != m_bookmark_item)
+			if (GetParentDirectory(tree_item) != bookmark_item)
 			{
 				auto add_files_id = wxNewId();
 				menu->Append(add_files_id, _("Add files to directory..."));
@@ -430,12 +443,12 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 VNodeList ProjectManager::GetSelectedItems() const
 {
 	wxArrayTreeItemIds items;
-	m_tree->GetSelections(items);
+	tree->GetSelections(items);
 	VNodeList files;
 
 	for (auto &item : items)
 	{
-		auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(item));
+		auto data = dynamic_cast<ItemData*>(tree->GetItemData(item));
 		if (!data) {
 			wxMessageBox(_("Null tree item data"), _("Internal error"), wxICON_ERROR);
 			return files;
@@ -450,7 +463,7 @@ VNodeList ProjectManager::GetSelectedItems() const
 wxTreeItemId ProjectManager::GetSelectedId() const
 {
 	wxArrayTreeItemIds items;
-	m_tree->GetSelections(items);
+	tree->GetSelections(items);
 	if (items.IsEmpty()) {
 		return wxTreeItemId();
 	}
@@ -462,9 +475,9 @@ wxTreeItemId ProjectManager::GetSelectedId() const
 std::shared_ptr<VFolder> ProjectManager::GetSelectedFolder() const
 {
 	wxArrayTreeItemIds ids;
-	m_tree->GetSelections(ids);
+	tree->GetSelections(ids);
 	auto id = ids.front();
-	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(id));
+	auto data = dynamic_cast<ItemData*>(tree->GetItemData(id));
 	if (!data) {
 		wxMessageBox(_("Null tree item data"), _("Internal error"), wxICON_ERROR);
 		return nullptr;
@@ -477,9 +490,9 @@ std::shared_ptr<VFolder> ProjectManager::GetSelectedFolder() const
 std::shared_ptr<VFile> ProjectManager::GetSelectedFile() const
 {
 	wxArrayTreeItemIds ids;
-	m_tree->GetSelections(ids);
+	tree->GetSelections(ids);
 	auto id = ids.front();
-	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(id));
+	auto data = dynamic_cast<ItemData*>(tree->GetItemData(id));
 	if (!data) {
 		wxMessageBox(_("Null tree item data"), _("Internal error"), wxICON_ERROR);
 		return nullptr;
@@ -543,13 +556,13 @@ void ProjectManager::UpdateLabel()
 	if (Project::get()->modified()) {
 		label.append('*');
 	}
-	m_label->SetLabel(label);
+	main_label->SetLabel(label);
 }
 
 void ProjectManager::OnExpandDirectory(wxCommandEvent &e)
 {
 	wxArrayTreeItemIds ids;
-	m_tree->GetSelections(ids);
+	tree->GetSelections(ids);
 	auto id = ids.front();
 	ExpandNode(id);
 }
@@ -557,40 +570,40 @@ void ProjectManager::OnExpandDirectory(wxCommandEvent &e)
 void ProjectManager::OnCollapseDirectory(wxCommandEvent &)
 {
 	wxArrayTreeItemIds ids;
-	m_tree->GetSelections(ids);
+	tree->GetSelections(ids);
 	auto id = ids.front();
 	CollapseNode(id);
 }
 
 void ProjectManager::ExpandNode(wxTreeItemId node)
 {
-	m_tree->Expand(node);
+	tree->Expand(node);
 	wxTreeItemIdValue cookie;
-	wxTreeItemId child = m_tree->GetFirstChild(node, cookie);
+	wxTreeItemId child = tree->GetFirstChild(node, cookie);
 
 	while (child.IsOk())
 	{
 		ExpandNode(child);
-		child = m_tree->GetNextChild(node, cookie);
+		child = tree->GetNextChild(node, cookie);
 	}
 }
 
 void ProjectManager::CollapseNode(wxTreeItemId node)
 {
-	m_tree->Collapse(node);
+	tree->Collapse(node);
 	wxTreeItemIdValue cookie;
-	wxTreeItemId child = m_tree->GetFirstChild(node, cookie);
+	wxTreeItemId child = tree->GetFirstChild(node, cookie);
 
 	while (child.IsOk())
 	{
 		CollapseNode(child);
-		child = m_tree->GetNextChild(node, cookie);
+		child = tree->GetNextChild(node, cookie);
 	}
 }
 
 void ProjectManager::SetExpansionFlag(wxTreeItemId node)
 {
-	auto data = dynamic_cast<ItemData*>(m_tree->GetItemData(node));
+	auto data = dynamic_cast<ItemData*>(tree->GetItemData(node));
 	assert(data);
 	auto vnode = data->node;
 	assert(node);
@@ -598,14 +611,14 @@ void ProjectManager::SetExpansionFlag(wxTreeItemId node)
 	if (vnode->is_folder())
 	{
 		auto vfolder = dynamic_cast<VFolder*>(vnode);
-		vfolder->set_expanded(m_tree->IsExpanded(node));
+		vfolder->set_expanded(tree->IsExpanded(node));
 		wxTreeItemIdValue cookie;
-		wxTreeItemId child = m_tree->GetFirstChild(node, cookie);
+		wxTreeItemId child = tree->GetFirstChild(node, cookie);
 
 		while (child.IsOk())
 		{
 			SetExpansionFlag(child);
-			child = m_tree->GetNextChild(node, cookie);
+			child = tree->GetNextChild(node, cookie);
 		}
 	}
 }
@@ -644,7 +657,7 @@ void ProjectManager::OnAddFilesToDirectory(wxCommandEvent &e)
 	{
 		project->add_file(path, folder, type);
 	}
-	m_tree->Expand(GetSelectedId());
+	tree->Expand(GetSelectedId());
 	CheckProjectImport();
 
 	// Files are added silently, so we need to explicitly modify the project
@@ -656,8 +669,8 @@ wxTreeItemId ProjectManager::GetParentDirectory(wxTreeItemId item) const
 {
 	while (true)
 	{
-		auto tmp = m_tree->GetItemParent(item);
-		if (tmp == m_root) {
+		auto tmp = tree->GetItemParent(item);
+		if (tmp == root) {
 			return item;
 		}
 		item = tmp;
@@ -666,14 +679,14 @@ wxTreeItemId ProjectManager::GetParentDirectory(wxTreeItemId item) const
 
 void ProjectManager::OnDragItem(wxTreeEvent &e)
 {
-	m_dragged_files = GetSelectedItems();
+	dragged_files = GetSelectedItems();
 	auto project = Project::get();
 
-	for (auto &item : m_dragged_files)
+	for (auto &item : dragged_files)
 	{
 		if (item->is_folder() && project->is_root(dynamic_cast<VFolder*>(item.get())))
 		{
-			m_dragged_files.clear();
+			dragged_files.clear();
 			return;
 		}
 	}
@@ -688,7 +701,7 @@ void ProjectManager::OnDropItem(wxTreeEvent &e)
 		return;
 	}
 
-	auto dest_data = dynamic_cast<ItemData*>(m_tree->GetItemData(dest_item));
+	auto dest_data = dynamic_cast<ItemData*>(tree->GetItemData(dest_item));
 	assert(dest_data);
 	auto dest_node = dest_data->node;
 
@@ -696,11 +709,11 @@ void ProjectManager::OnDropItem(wxTreeEvent &e)
 	// and that the drop target is not lower than the dragged items in the tree
 	auto toplevel = dest_node->toplevel();
 
-	for (auto &file : m_dragged_files)
+	for (auto &file : dragged_files)
 	{
 		if (file->toplevel() != toplevel || file->contains(dest_node))
 		{
-			m_dragged_files.clear();
+			dragged_files.clear();
 			return;
 		}
 	}
@@ -709,38 +722,38 @@ void ProjectManager::OnDropItem(wxTreeEvent &e)
 	if (dest_node->is_folder())
 	{
 		auto folder = dynamic_cast<VFolder*>(dest_node);
-		m_tree->Expand(dest_item);
+		tree->Expand(dest_item);
 
-		for (auto &file : m_dragged_files) {
+		for (auto &file : dragged_files) {
 			file->move_to(folder, -1);
 		}
 	}
 	else
 	{
-		auto parent_item = m_tree->GetItemParent(dest_item);
+		auto parent_item = tree->GetItemParent(dest_item);
 		int i = 1;
 		wxTreeItemIdValue cookie;
-		wxTreeItemId child = m_tree->GetFirstChild(parent_item, cookie);
+		wxTreeItemId child = tree->GetFirstChild(parent_item, cookie);
 
 		while (child.IsOk())
 		{
 			if (child == dest_item)
 			{
-				auto parent_data = dynamic_cast<ItemData*>(m_tree->GetItemData(parent_item));
+				auto parent_data = dynamic_cast<ItemData*>(tree->GetItemData(parent_item));
 				auto folder = dynamic_cast<VFolder*>(parent_data->node);
 
-				for (auto &file : m_dragged_files) {
+				for (auto &file : dragged_files) {
 					file->move_to(folder, i+1);
 				}
 				break;
 			}
-			child = m_tree->GetNextChild(parent_item, cookie);
+			child = tree->GetNextChild(parent_item, cookie);
 			i++;
 		}
 	}
 
 	e.Allow();
-	m_dragged_files.clear();
+	dragged_files.clear();
 	Project::updated();
 }
 
@@ -859,4 +872,14 @@ void ProjectManager::RemoveItems(const VNodeList &items)
 	Project::updated();
 }
 
+#ifdef __WXMSW__
+void ProjectManager::OnShowToolTip(wxTreeEvent &e)
+{
+	auto items = GetSelectedItems();
+	if (items.size() == 1 && items.front()->is_file())
+	{
+		e.SetToolTip(downcast<VFile>(items.front())->path());
+	}
+}
+#endif
 } // namespace phonometrica

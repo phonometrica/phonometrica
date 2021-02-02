@@ -19,71 +19,114 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/application/conc/query.hpp>
+#include <phon/application/project.hpp>
+#include <phon/application/conc/text_query.hpp>
+#include <phon/utils/xml.hpp>
+#include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
 
-Query::Query(VFolder *parent, String path) :
-	VFile(parent, std::move(path))
+TextQuery::TextQuery(VFolder *parent, const String &path) :
+		Query(parent, path)
 {
-
-}
-
-void Query::add_metaconstraint(std::unique_ptr<MetaConstraint> m)
-{
-	m_metaconstraints.append(std::move(m));
-	m_content_modified = true;
-}
-
-void Query::add_constraint(Constraint c)
-{
-	m_constraints.append(std::move(c));
-	m_content_modified = true;
-}
-
-Array<AutoAnnotation> Query::filter_annotations(const Array<AutoAnnotation> &candidates) const
-{
-	if (m_metaconstraints.empty()) {
-		return candidates;
+	if (!path.empty()) {
+		load();
 	}
-	Array<AutoAnnotation> result;
+}
 
-	for (auto &candidate : candidates)
+void TextQuery::load()
+{
+	xml_document doc;
+	xml_node root;
+
+	try
 	{
-		if (filter_metadata(candidate.get())) {
-			result.append(candidate);
+		root = read_xml(doc, m_path);
+	}
+	catch (...)
+	{
+		throw error("Cannot open text query \"%\"", m_path);
+	}
+
+	if (root.name() != std::string_view("Phonometrica")) {
+		throw error("Invalid XML project root in %", m_path);
+	}
+
+	auto attr = root.attribute("class");
+
+	if (!attr || attr.as_string() != std::string_view(class_name())) {
+		throw error("Expected a text query, got a % file instead", attr.as_string());
+	}
+
+	attr = root.attribute("label");
+	if (attr) {
+		set_label(attr.value());
+	}
+	else {
+		set_label(filesystem::base_name(m_path));
+	}
+
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == std::string_view("Metadata"))
+		{
+			metadata_from_xml(node);
+		}
+		else if (node.name() == std::string_view("MetaConstraints"))
+		{
+			metaconstraints_from_xml(node);
+		}
+		else if (node.name() == std::string_view("Constraints"))
+		{
+			constraints_from_xml(node);
 		}
 	}
 
-	return result;
+	m_loaded = true;
 }
 
-bool Query::filter_metadata(const VFile *file) const
+void TextQuery::metaconstraints_from_xml(xml_node root)
 {
-	// Reject files that do not satisfy all the constraints.
-	for (auto &constraint : m_metaconstraints)
+	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
-		if (!constraint->filter(file)) {
-			return false;
+		if (node.name() == std::string_view("Description"))
+		{
+			auto attr = node.attribute("operator");
+			auto op = DescMetaConstraint::name_to_op(attr.value());
+			String value(node.text().get());
+			add_metaconstraint(std::make_unique<DescMetaConstraint>(op, std::move(value)));
 		}
 	}
-
-	return true;
 }
 
-String Query::label() const
+void TextQuery::constraints_from_xml(xml_node root)
 {
-	return m_label;
+
 }
 
-void Query::set_label(String value)
+void TextQuery::write()
 {
-	m_label = std::move(value);
-}
+	xml_document doc;
 
-bool Query::is_query() const
-{
-	return true;
+	auto root = doc.append_child("Phonometrica");
+	auto attr = root.append_attribute("class");
+	attr.set_value(class_name());
+	attr = root.append_attribute("label");
+	attr.set_value(m_label.data());
+	auto metadata_node = root.append_child("Metadata");
+	metadata_to_xml(metadata_node);
+
+	auto meta_node = root.append_child("MetaConstraints");
+	auto file_sel_node = meta_node.append_child("FileSelection");
+	for (auto &file : selected_annotations)
+	{
+		add_data_node(file_sel_node, "File", file->path());
+	}
+	for (auto &mc : m_metaconstraints)
+	{
+		mc->to_xml(meta_node);
+	}
+	write_xml(doc, m_path);
 }
 
 } // namespace phonometrica

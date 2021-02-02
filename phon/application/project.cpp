@@ -25,6 +25,7 @@
 #include <phon/application/project.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/bookmark.hpp>
+#include <phon/application/macros.hpp>
 #include <phon/utils/helpers.hpp>
 #include <phon/utils/file_system.hpp>
 #include <phon/utils/text.hpp>
@@ -120,8 +121,8 @@ bool Project::has_path() const
 
 void Project::set_path(String value)
 {
-	if (!value.ends_with(".phon-project")) {
-		value.append(".phon-project");
+	if (!value.ends_with(PHON_EXT_PROJECT)) {
+		value.append(PHON_EXT_PROJECT);
 	}
 	filesystem::nativize(value);
 	m_directory = filesystem::directory_name(value);
@@ -136,9 +137,6 @@ void Project::save(String path)
 
 void Project::save()
 {
-	// Inform the views so that they can save unsaved work.
-	request_save();
-
 	// Save content before writing the project, because write() will reset modifications on all VFiles.
 	m_corpus->save_content();
 	m_scripts->save_content();
@@ -166,6 +164,7 @@ void Project::load()
 	static const std::string_view class_tag("Project");
 	static const std::string_view corpus_tag("Corpus");
 	static const std::string_view meta_tag("Metadata");
+	static const std::string_view queries_tag("Queries");
 	static const std::string_view scripts_tag("Scripts");
 	static const std::string_view bookmarks_tag("Bookmarks");
 	static const std::string_view data_tag("Data");
@@ -197,6 +196,10 @@ void Project::load()
 		else if (node.name() == meta_tag)
 		{
 			parse_metadata(node);
+		}
+		else if (node.name() == queries_tag)
+		{
+			parse_queries(node, m_queries.get());
 		}
 		else if (node.name() == scripts_tag)
 		{
@@ -376,7 +379,6 @@ void Project::parse_scripts(xml_node root, VFolder *folder)
 			if (cls == script_tag)
 			{
 				auto script = std::make_shared<Script>(folder, std::move(path));
-				script->from_xml(node, m_directory);
 				folder->append(script, false);
 				register_file(script->path(), script);
 				// TODO: trigger action when a script is loaded
@@ -388,6 +390,50 @@ void Project::parse_scripts(xml_node root, VFolder *folder)
 			}
 		}
 	}
+}
+
+void Project::parse_queries(xml_node root, VFolder *folder)
+{
+	static const std::string_view folder_tag("VFolder");
+	static const std::string_view file_tag("VFile");
+	static const std::string_view text_query_tag("TextQuery");
+
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == folder_tag)
+		{
+			String label;
+			auto attr = node.attribute("label");
+			if (attr) label = attr.value();
+			auto subfolder = std::make_shared<VFolder>(folder, std::move(label));
+			auto sub = subfolder.get();
+			folder->append(std::move(subfolder), false);
+
+			parse_queries(node, sub);
+		}
+		else if (node.name() == file_tag)
+		{
+			auto attr = node.attribute("class");
+			if (!attr) throw error("Invalid VFile node");
+			std::string_view cls(attr.value());
+			String path(node.text().get());
+			interpolate(path, m_directory);
+
+			if (cls == text_query_tag)
+			{
+				auto query = std::make_shared<TextQuery>(folder, std::move(path));
+				folder->append(query, false);
+				register_file(query->path(), query);
+				// TODO: trigger action when a query is loaded
+				//trigger(query_loaded, make_handle<AutoQuery>(query));
+			}
+			else
+			{
+				throw error("Invalid query type \"%\" in VFile XML entry", node.name());
+			}
+		}
+	}
+
 }
 
 void Project::parse_data(xml_node root, VFolder *folder)
@@ -591,6 +637,15 @@ void Project::write_data(xml_node root)
 	m_scripts->discard_changes();
 }
 
+void Project::write_queries(xml_node root)
+{
+	for (auto &file : *m_queries) {
+		file->to_xml(root);
+	}
+
+	m_queries->discard_changes();
+}
+
 void Project::write()
 {
 	assert(has_path());
@@ -605,6 +660,9 @@ void Project::write()
 
 	auto fs_node = root.append_child("Corpus");
 	write_corpus(fs_node);
+
+	auto queries_node = root.append_child("Queries");
+	write_queries(queries_node);
 
 	auto scripts_node = root.append_child("Scripts");
 	write_scripts(scripts_node);
@@ -643,6 +701,25 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 		parent->append(vfile);
 //		trigger(sound_loaded, sound->class_name(), sound);
 	}
+	else if (ext == PHON_EXT_QUERY)
+	{
+//		VFolder *p = m_data.get();
+//
+//		if (static_cast<int>(type) & static_cast<int>(FileType::Query))
+//		{
+//			if (parent->toplevel() == p) {
+//				p = parent.get();
+//			}
+//		}
+//		else
+//		{
+//			return set_import_flag();
+//		}
+//
+//		auto query = std::make_shared<Query>(p, std::move(path));
+//		vfile = upcast<VFile>(query);
+//		p->append(vfile);
+	}
 	else if (ext == ".csv")
 	{
 		VFolder *p = m_data.get();
@@ -663,7 +740,7 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 		p->append(vfile);
 //		trigger(dataset_loaded, dataset->class_name(), dataset);
 	}
-	else if ((ext == ".phon" || ext == ".phon-script"))
+	else if ((ext == PHON_EXT_SCRIPT || ext == ".phon-script"))
 	{
 		VFolder *p = m_scripts.get();
 
@@ -1312,6 +1389,9 @@ Array<AutoAnnotation> Project::annotations() const
 			result.push_back(std::dynamic_pointer_cast<Annotation>(vf));
 		}
 	}
+	std::sort(result.begin(), result.end(), [](const AutoAnnotation &a1, const AutoAnnotation &a2) -> bool {
+		return a1->path() < a2->path();
+	});
 
 	return result;
 }
@@ -1408,5 +1488,9 @@ void Project::initialize_types(Runtime &rt)
 	Dataset::initialize(rt);
 }
 
+void Project::add_query(AutoQuery query)
+{
+	m_queries->append(query, true);
+}
 
 } // namespace phonometrica

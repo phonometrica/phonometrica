@@ -13,80 +13,52 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 13/01/2021                                                                                                 *
+ * Created: 01/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: see header.                                                                                                *
+ * Purpose: A search constraint, used to extract a concordance.                                                        *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/msgdlg.h>
-#include <phon/gui/application.hpp>
+#ifndef PHONOMETRICA_CONSTRAINT_HPP
+#define PHONOMETRICA_CONSTRAINT_HPP
+
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
-Application::Application(Runtime &rt) :
-	wxApp(), runtime(rt)
+
+struct Constraint final
 {
-
-}
-
-bool Application::OnInit()
-{
-	wxImage::AddHandler(new wxPNGHandler());
-
-	try
+	enum class Operator : uint8_t
 	{
-		window = new MainWindow(runtime, "Phonometrica");
-		SetTopWindow(window);
-		window->Layout();
-		window->Show();
-		window->PostInitialize();
-		// Bind OnResize after the window is properly sized
-		Bind(wxEVT_SIZE, &MainWindow::OnResize, window);
-	}
-	catch (std::exception &e)
-	{
-		wxMessageBox(wxString(e.what()), _("Initialization failed"), wxICON_ERROR);
-		return false;
-	}
+		None,
+		Contains,
+		StrictlyContains,
+		LeftAligned,
+		RighAligned,
+		Precedes,
+		Follows
+	};
 
-	return true;
-}
+	// Relation with the previous constraint, if any.
+	Operator op;
 
-int Application::OnExit()
-{
-	return 0;
-}
+	// Use regular expression or plain text search.
+	bool use_regex;
 
-bool Application::OnExceptionInMainLoop()
-{
-	try
-	{
-		return wxAppConsoleBase::OnExceptionInMainLoop();
-	}
-	catch (std::exception &e)
-	{
-		auto msg = utils::format("Phonometrica generated an error with the following message:\n%\n\n", e.what());
-		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+	// Whether the match is case-sensitive.
+	bool case_sensitive;
 
-		return true;
-	}
-	catch (...)
-	{
-		auto msg = _("Phonometrica generated an unxpected error."
-			   "It is unable to recover from such errors and is going to crash :-(\n"
-	            "Please contact the developers about this problem.");
-		wxMessageBox(msg, _("Unhandled error"), wxICON_ERROR);
-		return false;
-	}
-}
+	// If true, use the layer pattern, otherwise use the layer index
+	bool by_name;
 
-#ifdef __WXMAC__
-void Application::MacOpenFile(const wxString &fileName)
-{
-	// TODO: implement dropping files in project manager on macos
-	wxApp::MacOpenFile(fileName);
-}
-#endif
+	// Layer index, if using SearchOperator
+	int layer_index;
+
+	// Pattern to match a layer's name against. The name must match the pattern exactly.
+	String layer_pattern;
+};
 
 } // namespace phonometrica
+
+#endif // PHONOMETRICA_CONSTRAINT_HPP

@@ -13,80 +13,86 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 13/01/2021                                                                                                 *
+ * Created: 01/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: see header.                                                                                                *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/msgdlg.h>
-#include <phon/gui/application.hpp>
+#include <phon/application/conc/text_match.hpp>
 
 namespace phonometrica {
 
-Application::Application(Runtime &rt) :
-	wxApp(), runtime(rt)
+double TextMatch::start_time() const
 {
+	const Match *match = this;
+	auto value = (std::numeric_limits<double>::max)();
 
-}
-
-bool Application::OnInit()
-{
-	wxImage::AddHandler(new wxPNGHandler());
-
-	try
+	while (match)
 	{
-		window = new MainWindow(runtime, "Phonometrica");
-		SetTopWindow(window);
-		window->Layout();
-		window->Show();
-		window->PostInitialize();
-		// Bind OnResize after the window is properly sized
-		Bind(wxEVT_SIZE, &MainWindow::OnResize, window);
-	}
-	catch (std::exception &e)
-	{
-		wxMessageBox(wxString(e.what()), _("Initialization failed"), wxICON_ERROR);
-		return false;
+		auto t = match->event()->start_time();
+		if (t < value) value = t;
+		match = match->next();
 	}
 
-	return true;
+	return value;
 }
 
-int Application::OnExit()
+double TextMatch::end_time() const
 {
-	return 0;
-}
+	const Match *match = this;
+	double value = 0;
 
-bool Application::OnExceptionInMainLoop()
-{
-	try
+	while (match)
 	{
-		return wxAppConsoleBase::OnExceptionInMainLoop();
+		auto t = match->event()->end_time();
+		if (t > value) value = t;
+		match = match->next();
 	}
-	catch (std::exception &e)
-	{
-		auto msg = utils::format("Phonometrica generated an error with the following message:\n%\n\n", e.what());
-		wxMessageBox(msg, _("Error"), wxICON_ERROR);
 
+	return value;
+}
+
+bool TextMatch::operator<(const TextMatch &other) const
+{
+	int cmp;
+
+	// First compare file names.
+	cmp = this->annotation()->path().compare(other.annotation()->path());
+
+	if (cmp < 0) {
 		return true;
 	}
-	catch (...)
-	{
-		auto msg = _("Phonometrica generated an unxpected error."
-			   "It is unable to recover from such errors and is going to crash :-(\n"
-	            "Please contact the developers about this problem.");
-		wxMessageBox(msg, _("Unhandled error"), wxICON_ERROR);
+	else if (cmp > 0) {
 		return false;
 	}
+
+	// Next, compare tier in the file
+	cmp = (this->layer_index() - other.layer_index());
+
+	if (cmp < 0) {
+		return true;
+	}
+	else if (cmp > 0) {
+		return false;
+	}
+
+	// Next, Compare temporal position
+	double delta = (this->start_time() - other.start_time());
+
+	if (delta < 0) {
+		return true;
+	}
+	else if (delta > 0) {
+		return false;
+	}
+
+	// Finally compare position in the event.
+	return this->offset() < other.offset();
 }
 
-#ifdef __WXMAC__
-void Application::MacOpenFile(const wxString &fileName)
+size_t TextMatch::hash() const
 {
-	// TODO: implement dropping files in project manager on macos
-	wxApp::MacOpenFile(fileName);
+	return annotation()->path().hash() + std::hash<int>{}(layer_index()) + text().hash() + std::hash<int>{}(offset());
 }
-#endif
-
 } // namespace phonometrica

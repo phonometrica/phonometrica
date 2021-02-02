@@ -88,10 +88,6 @@ using GCCallback = std::function<void(Collectable*)>;
 #define PHON_LOG(...);
 #endif
 
-#define PHON_MAC_SIDEBAR_COLOR "#E5E7EC"
-
-#define PHON_EXT_ANNOTATION ".phon-annot"
-
 #define PHON_MAX_FORMANTS 10
 
 #endif // PHONOMETRICA_DEFINITIONS_HPP

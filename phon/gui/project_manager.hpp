@@ -117,16 +117,22 @@ private:
 
 	void SetScriptingFunctions();
 
-	wxTreeCtrl *m_tree = nullptr;
+#ifdef __WXMSW__
+	void OnShowToolTip(wxTreeEvent &e);
+#endif
 
-	wxStaticText *m_label = nullptr;
+	wxTreeCtrl *tree = nullptr;
 
-	wxTreeItemId m_root, m_corpus_item, m_query_item, m_script_item, m_data_item, m_bookmark_item;
+	wxStaticText *main_label = nullptr;
 
-	int m_corpus_img, m_queries_img, m_datasets_img, m_scripts_img, m_bookmarks_img;
-	int m_annot_img, m_folder_img, m_bookmark_img, m_sound_img, m_document_img, m_query_img, m_script_img, m_dataset_img;
+	wxTreeItemId root, corpus_item, query_item, script_item, data_item, bookmark_item;
 
-	VNodeList m_dragged_files;
+	int corpus_img, queries_img, datasets_img, scripts_img, bookmarks_img;
+	int annot_img, folder_img, bookmark_img, sound_img, document_img, query_img, script_img, dataset_img;
+
+	VNodeList dragged_files;
+
+	wxFont mono_font;
 
 	Runtime &runtime;
 };

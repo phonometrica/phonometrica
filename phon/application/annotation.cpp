@@ -19,7 +19,8 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include "annotation.hpp"
+#include <phon/application/annotation.hpp>
+#include <phon/application/macros.hpp>
 #include <phon/runtime/runtime.hpp>
 #include <phon/runtime/object.hpp>
 #include <phon/application/project.hpp>
@@ -457,8 +458,8 @@ void Annotation::read_from_native()
 	xml_document doc;
 	auto root = read_xml(doc, m_path);
 
-		if (root.name() != project_tag) {
-		throw error("[Input/Output] Invalid XML project root");
+	if (root.name() != project_tag) {
+		throw error("Invalid XML project root in %", m_path);
 	}
 
     auto attr = root.attribute("class");

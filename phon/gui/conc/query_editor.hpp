@@ -23,6 +23,10 @@
 #define PHONOMETRICA_QUERY_EDITOR_HPP
 
 #include <wx/dialog.h>
+#include <wx/textctrl.h>
+#include <wx/statbox.h>
+#include <wx/choice.h>
+#include <phon/gui/check_list_box.hpp>
 #include <phon/application/conc/query.hpp>
 
 namespace phonometrica {
@@ -33,29 +37,47 @@ public:
 
 	QueryEditor(wxWindow *parent, const wxString &title);
 
-	QueryEditor(wxWindow *parent, const wxString &title, const AutoQuery &query);
-
 	void Prepare();
-
-	intptr_t GenerateId() const { return id++; }
 
 	void Execute();
 
+	virtual AutoQuery GetQuery() const = 0;
+
 protected:
 
-	void SetHeader();
+	static int GenerateId() { return ++id; }
 
-	virtual void SetSearchPanel() = 0;
+	wxBoxSizer *MakeHeader(wxWindow *parent);
 
-	void SetMetadata();
+	virtual wxWindow *MakeSearchPanel(wxWindow *parent) = 0;
+
+	wxBoxSizer *MakeProperties(wxWindow *parent);
 
 	wxBoxSizer *MakeButtons(wxWindow *parent);
 
-	AutoQuery m_query;
+	wxBoxSizer *MakeFileSelector(wxWindow *parent);
+
+	void OnOpenHelp(wxCommandEvent &);
+
+	void OnOk(wxCommandEvent &);
+
+	void OnCancel(wxCommandEvent &);
+
+	void OnSave(wxCommandEvent &);
+
+	void SaveQuery(const String &path);
+
+	virtual void ParseQuery() = 0;
+
+	wxTextCtrl *name_ctrl, *desc_ctrl;
+
+	CheckListBox *file_list;
+
+	wxChoice *desc_op_choice;
 
 	bool prepared = false;
 
-	static intptr_t id;
+	static int id;
 };
 
 } // namespace phonometrica

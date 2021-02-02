@@ -23,7 +23,9 @@
 #ifndef PHONOMETRICA_QUERY_HPP
 #define PHONOMETRICA_QUERY_HPP
 
-#include <phon/application/vfs.hpp>
+#include <phon/application/annotation.hpp>
+#include <phon/application/conc/metaconstraint.hpp>
+#include <phon/application/conc/constraint.hpp>
 
 namespace phonometrica {
 
@@ -31,8 +33,42 @@ class Query : public VFile
 {
 public:
 
+	enum class DescriptionOperator
+	{
+
+	};
+
+	Query(VFolder *parent, String path);
+
+	~Query() override = default;
+
+	void add_metaconstraint(std::unique_ptr<MetaConstraint> m);
+
+	void add_constraint(Constraint c);
+
+	String label() const override;
+
+	void set_label(String value);
+
+	bool is_query() const override;
+
 protected:
 
+	Array<AutoAnnotation> filter_annotations(const Array<AutoAnnotation> &candidates) const;
+
+	bool filter_metadata(const VFile *file) const;
+
+	// Constraints on the metadata.
+	Array<std::unique_ptr<MetaConstraint>> m_metaconstraints;
+
+	// Constraints on the data
+	Array<Constraint> m_constraints;
+
+	// If empty, use all the annotations from the project
+	Array<AutoAnnotation> selected_annotations;
+
+	// Label set by the user
+	String m_label;
 };
 
 
