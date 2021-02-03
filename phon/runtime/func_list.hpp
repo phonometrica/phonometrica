@@ -99,7 +99,7 @@ static Variant list_find1(Runtime &, std::span<Variant> args)
 static Variant list_find2(Runtime &, std::span<Variant> args)
 {
 	auto &lst = cast<List>(args[0]).items();
-	intptr_t i = cast<intptr_t>(args[1]);
+	intptr_t i = cast<intptr_t>(args[2]);
 	return lst.find(args[1].resolve(), i);
 }
 
@@ -112,7 +112,7 @@ static Variant list_rfind_back1(Runtime &, std::span<Variant> args)
 static Variant list_rfind_back2(Runtime &, std::span<Variant> args)
 {
 	auto &lst = cast<List>(args[0]).items();
-	intptr_t i = cast<intptr_t>(args[1]);
+	intptr_t i = cast<intptr_t>(args[2]);
 	return lst.rfind(args[1], i);
 }
 

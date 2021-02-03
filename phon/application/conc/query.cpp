@@ -29,16 +29,16 @@ Query::Query(VFolder *parent, String path) :
 
 }
 
-void Query::add_metaconstraint(std::unique_ptr<MetaConstraint> m)
+void Query::add_metaconstraint(std::unique_ptr<MetaConstraint> m, bool mutate)
 {
 	m_metaconstraints.append(std::move(m));
-	m_content_modified = true;
+	if (mutate) m_content_modified = true;
 }
 
-void Query::add_constraint(Constraint c)
+void Query::add_constraint(Constraint c, bool mutate)
 {
 	m_constraints.append(std::move(c));
-	m_content_modified = true;
+	if (mutate) m_content_modified = true;
 }
 
 Array<AutoAnnotation> Query::filter_annotations(const Array<AutoAnnotation> &candidates) const
@@ -76,14 +76,30 @@ String Query::label() const
 	return m_label;
 }
 
-void Query::set_label(String value)
+void Query::set_label(String value, bool mutate)
 {
 	m_label = std::move(value);
+	if (mutate) m_content_modified = true;
 }
 
 bool Query::is_query() const
 {
 	return true;
+}
+
+void Query::set_selection(Array<AutoAnnotation> files)
+{
+	selected_annotations = std::move(files);
+	m_content_modified = true;
+}
+
+void Query::clear()
+{
+	m_metaconstraints.clear();
+	m_constraints.clear();
+	selected_annotations.clear();
+	m_label = String();
+	m_content_modified = true;
 }
 
 } // namespace phonometrica

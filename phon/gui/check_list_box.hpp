@@ -32,6 +32,8 @@ public:
 
 	CheckListBox(wxWindow *parent, const wxArrayString &choices, wxArrayString &tooltips);
 
+	const wxString &GetToolTip(size_t i) const;
+
 protected:
 
 	void OnMouseOver(wxMouseEvent &e);

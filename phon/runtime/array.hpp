@@ -804,15 +804,18 @@ public:
 	intptr_t rfind(const_reference value, intptr_t from = -1) const
 	{
 		assert(from < 0);
-		auto start = rbegin() - from;
+		if (empty()) return 0; // not found
+		auto start = rbegin() - from - 1;
 		auto result = rfind(value, start);
 
-		return (result == rbegin()) ? 0 : ( result - rbegin() + 1);
+		if (result == rbegin()) return 0;
+		auto rpos = intptr_t( result - rbegin());
+		return size() - rpos;
 	}
 
 	const_reverse_iterator rfind(const_reference value, const_reverse_iterator from) const
 	{
-		return std::find(from, rbegin(), value);
+		return std::find(from, rend(), value);
 	}
 
 	void resize(size_type new_size)

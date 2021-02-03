@@ -42,15 +42,35 @@ public:
 
 	~Query() override = default;
 
-	void add_metaconstraint(std::unique_ptr<MetaConstraint> m);
+	void add_metaconstraint(std::unique_ptr<MetaConstraint> m, bool mutate);
 
-	void add_constraint(Constraint c);
+	void add_constraint(Constraint c, bool mutate);
 
 	String label() const override;
 
-	void set_label(String value);
+	void set_label(String value, bool mutate);
 
 	bool is_query() const override;
+
+	void set_selection(Array<AutoAnnotation> files);
+
+	virtual void clear();
+
+	virtual bool is_text_query() const { return false; }
+
+	virtual bool is_duration_query() const { return false; }
+
+	virtual bool is_formant_query() const { return false; }
+
+	virtual bool is_pitch_query() const { return false; }
+
+	virtual bool is_intensity_query() const { return false; }
+
+	const Array<std::unique_ptr<MetaConstraint>> &metaconstraints() const { return m_metaconstraints; }
+
+	const Array<Constraint> &constraints() const { return m_constraints; }
+
+	const Array<AutoAnnotation> &selection() const { return selected_annotations; }
 
 protected:
 

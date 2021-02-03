@@ -46,7 +46,7 @@ private:
 
 	wxPanel *MakeGeneralPanel();
 
-	wxPanel *MakeScriptingPanel();
+	wxPanel *MakeAppearancePanel();
 
 	wxSpinCtrl *m_match_window_ctrl;
 

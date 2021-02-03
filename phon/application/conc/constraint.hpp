@@ -31,13 +31,13 @@ struct Constraint final
 {
 	enum class Operator : uint8_t
 	{
-		None,
-		Contains,
-		StrictlyContains,
+		Dominates = 0,
+		StrictlyDominates,
 		LeftAligned,
 		RighAligned,
 		Precedes,
-		Follows
+		Follows,
+		None
 	};
 
 	// Relation with the previous constraint, if any.

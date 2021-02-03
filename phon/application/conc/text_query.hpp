@@ -34,6 +34,9 @@ public:
 
 	const char *class_name() const override { return "TextQuery"; }
 
+	// Note: subclasses must override this method and return false
+	bool is_text_query() const override { return true; }
+
 private:
 
 	void load() override;

@@ -26,6 +26,7 @@
 #include <wx/textctrl.h>
 #include <wx/statbox.h>
 #include <wx/choice.h>
+#include <wx/panel.h>
 #include <phon/gui/check_list_box.hpp>
 #include <phon/application/conc/query.hpp>
 
@@ -49,7 +50,7 @@ protected:
 
 	wxBoxSizer *MakeHeader(wxWindow *parent);
 
-	virtual wxWindow *MakeSearchPanel(wxWindow *parent) = 0;
+	virtual wxPanel *MakeSearchPanel(wxWindow *parent) = 0;
 
 	wxBoxSizer *MakeProperties(wxWindow *parent);
 
@@ -65,7 +66,15 @@ protected:
 
 	void OnSave(wxCommandEvent &);
 
+	void OnSaveAs(wxCommandEvent &);
+
 	void SaveQuery(const String &path);
+
+	void OnQueryModified(wxCommandEvent &);
+
+	void EnableSaving(bool value);
+
+	virtual void LoadQuery() = 0;
 
 	virtual void ParseQuery() = 0;
 
@@ -74,6 +83,8 @@ protected:
 	CheckListBox *file_list;
 
 	wxChoice *desc_op_choice;
+
+	wxButton *save_btn, *save_as_btn;
 
 	bool prepared = false;
 

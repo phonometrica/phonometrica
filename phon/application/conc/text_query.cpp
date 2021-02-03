@@ -60,10 +60,10 @@ void TextQuery::load()
 
 	attr = root.attribute("label");
 	if (attr) {
-		set_label(attr.value());
+		set_label(attr.value(), false);
 	}
 	else {
-		set_label(filesystem::base_name(m_path));
+		set_label(filesystem::base_name(m_path), false);
 	}
 
 	for (auto node = root.first_child(); node; node = node.next_sibling())
@@ -93,8 +93,25 @@ void TextQuery::metaconstraints_from_xml(xml_node root)
 		{
 			auto attr = node.attribute("operator");
 			auto op = DescMetaConstraint::name_to_op(attr.value());
-			String value(node.text().get());
-			add_metaconstraint(std::make_unique<DescMetaConstraint>(op, std::move(value)));
+			String value = node.text().get();
+			add_metaconstraint(std::make_unique<DescMetaConstraint>(op, std::move(value)), false);
+		}
+		else if (node.name() == std::string_view("FileSelection"))
+		{
+			for (auto subnode = node.first_child(); subnode; subnode = subnode.next_sibling())
+			{
+				if (subnode.name() != std::string_view("File")) {
+					throw error("Invalid XML node in text query file selection");
+				}
+				String path = subnode.text().get();
+				auto vfile = Project::get()->get(path);
+				auto annot = downcast<Annotation>(vfile);
+
+				if (!annot) {
+					throw error("Invalid annotation in text query file selection");
+				}
+				selected_annotations.append(std::move(annot));
+			}
 		}
 	}
 }

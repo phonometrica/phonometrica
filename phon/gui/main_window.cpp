@@ -290,6 +290,7 @@ void MainWindow::SetBindings()
 	project_manager->view_file.connect(&Viewer::OnViewFile, viewer);
 	project_manager->files_selected.connect(&InfoPanel::OnSetFileSelection, info_panel);
 	project_manager->execute_script.connect(&Console::RunScript, console);
+	project_manager->edit_query.connect(&MainWindow::EditQuery, this);
 
 	auto project = Project::get();
 	project->notify_update.connect(&ProjectManager::OnProjectUpdated, project_manager);
@@ -1522,13 +1523,13 @@ void MainWindow::SaveProjectAs()
 
 void MainWindow::OnFindInAnnotations(wxCommandEvent &)
 {
-	TextQueryEditor ed(this);
-	ed.Prepare();
-	ed.SetSize(FromDIP(wxSize(1000, 700)));
+	TextQueryEditor editor(this);
+	editor.Prepare();
+	editor.SetSize(FromDIP(wxSize(1000, 700)));
 
-	if (ed.ShowModal() == wxID_OK)
+	if (editor.ShowModal() == wxID_OK)
 	{
-		last_query = ed.GetQuery();
+		last_query = editor.GetQuery();
 	}
 }
 
@@ -1539,7 +1540,29 @@ void MainWindow::OnMeasureFormants(wxCommandEvent &)
 
 void MainWindow::OnEditLastQuery(wxCommandEvent &)
 {
+	if (last_query)
+	{
+		EditQuery(last_query);
+	}
+	else
+	{
+		wxMessageBox(_("You must first run a query"), _("Query error"), wxICON_ERROR);
+	}
+}
 
+void MainWindow::EditQuery(const AutoQuery &q)
+{
+	if (q->is_text_query())
+	{
+		TextQueryEditor editor(this, downcast<TextQuery>(q));
+		editor.Prepare();
+		editor.SetSize(FromDIP(wxSize(1000, 700)));
+
+		if (editor.ShowModal() == wxID_OK)
+		{
+			last_query = editor.GetQuery();
+		}
+	}
 }
 
 

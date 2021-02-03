@@ -210,7 +210,7 @@ void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
 			}
 			else if (vfile.is_query())
 			{
-				img = queries_img;
+				img = query_img;
 			}
 //			else if (vfile.is_document())
 //			{
@@ -275,7 +275,15 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 	else
 	{
 		auto vf = downcast<VFile>(vnode->shared_from_this());
-		view_file(vf);
+
+		if (vf->is_query())
+		{
+			edit_query(downcast<Query>(vf));
+		}
+		else
+		{
+			view_file(vf);
+		}
 	}
 }
 
@@ -352,9 +360,24 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 		else if (item->is_file())
 		{
 			auto file = downcast<VFile>(item);
-			auto view_id = wxNewId();
-			menu->Append(view_id, _("View file"));
-			Bind(wxEVT_COMMAND_MENU_SELECTED, [this,file](wxCommandEvent &) { view_file(file); }, view_id);
+
+			if (file->is_query())
+			{
+				auto query = downcast<Query>(file);
+				auto edit_id = wxNewId();
+				menu->Append(edit_id, _("Edit query"));
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { edit_query(query); }, edit_id);
+
+				auto rename_id = wxNewId();
+				menu->Append(rename_id, _("Rename..."));
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { RenameQuery(query); }, rename_id);
+			}
+			else
+			{
+				auto view_id = wxNewId();
+				menu->Append(view_id, _("View file"));
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { view_file(file); }, view_id);
+			}
 
 			if (file->is_annotation())
 			{
@@ -870,6 +893,17 @@ void ProjectManager::RemoveItems(const VNodeList &items)
 		}
 	}
 	Project::updated();
+}
+
+void ProjectManager::RenameQuery(const AutoQuery &query)
+{
+	String name = wxGetTextFromUser(_("New query name:"), _("Rename query..."));
+
+	if (!name.empty())
+	{
+		query->set_label(name, true);
+		Project::updated();
+	}
 }
 
 #ifdef __WXMSW__

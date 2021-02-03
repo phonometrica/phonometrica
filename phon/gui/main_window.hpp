@@ -194,6 +194,8 @@ private:
 
 	void OnEditLastQuery(wxCommandEvent &);
 
+	void EditQuery(const AutoQuery &q);
+
 	void SetShellFunctions();
 
 	void SaveProject();

@@ -51,6 +51,8 @@ public:
 
 	Signal<const String &> execute_script;
 
+	Signal<const AutoQuery &> edit_query;
+
 private:
 
 	void Populate();
@@ -116,6 +118,8 @@ private:
 	void RemoveItems(const VNodeList &items);
 
 	void SetScriptingFunctions();
+
+	void RenameQuery(const AutoQuery &query);
 
 #ifdef __WXMSW__
 	void OnShowToolTip(wxTreeEvent &e);

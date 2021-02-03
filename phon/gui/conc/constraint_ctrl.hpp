@@ -13,35 +13,45 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 02/02/2021                                                                                                 *
+ * Created: 03/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: Display a search constraint in the query editor.                                                           *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/gui/check_list_box.hpp>
+#ifndef PHONOMETRICA_CONSTRAINT_CTRL_HPP
+#define PHONOMETRICA_CONSTRAINT_CTRL_HPP
+
+#include <wx/panel.h>
+#include <wx/choice.h>
+#include <wx/spinbutt.h>
+#include <wx/srchctrl.h>
+#include <wx/textctrl.h>
+#include <wx/radiobut.h>
+#include <phon/application/conc/constraint.hpp>
 
 namespace phonometrica {
 
-CheckListBox::CheckListBox(wxWindow *parent, const wxArrayString &choices, wxArrayString &tooltips) :
-	wxCheckListBox(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices), m_tooltips(tooltips)
+struct ConstraintCtrl final : public wxPanel
 {
-	Bind(wxEVT_MOTION, &CheckListBox::OnMouseOver, this);
-}
+	explicit ConstraintCtrl(wxWindow *parent, int style = 0);
 
-void CheckListBox::OnMouseOver(wxMouseEvent &e)
-{
-	auto item = HitTest(e.GetPosition());
-	if (item != wxNOT_FOUND)
-	{
-		SetToolTip(m_tooltips.at(item));
-	}
-	e.Skip();
-}
+	// Used to select whether we use layer indices or layer names
+	wxChoice *location_selector;
 
-const wxString &CheckListBox::GetToolTip(size_t i) const
-{
-	return m_tooltips[i];
-}
+	// Displays the layer index or name pattern
+	wxTextCtrl *layer_ctrl;
+
+	// Used to choose the layer index
+	wxSpinButton *layer_spin;
+
+	// Search field
+	wxSearchCtrl *search_ctrl;
+
+	// Select search operator (in case of a complex query).
+	wxChoice *operator_selector;
+};
 
 } // namespace phonometrica
+
+#endif // PHONOMETRICA_CONSTRAINT_CTRL_HPP

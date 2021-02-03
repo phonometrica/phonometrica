@@ -20,6 +20,7 @@
  ***********************************************************************************************************************/
 
 #include <wx/stattext.h>
+#include <wx/msgdlg.h>
 #include <phon/gui/pref/preferences_editor.hpp>
 #include <phon/application/settings.hpp>
 
@@ -29,7 +30,7 @@ PreferencesEditor::PreferencesEditor(wxWindow *parent) :
 	PreferencesDialog(parent, _("Preferences"))
 {
 	AddPage(MakeGeneralPanel(), _("General"));
-	AddPage(MakeScriptingPanel(), _("Scripting"));
+	AddPage(MakeAppearancePanel(), _("Appearance"));
 }
 
 wxPanel *PreferencesEditor::MakeGeneralPanel()
@@ -63,12 +64,12 @@ wxPanel *PreferencesEditor::MakeGeneralPanel()
 	return panel;
 }
 
-wxPanel *PreferencesEditor::MakeScriptingPanel()
+wxPanel *PreferencesEditor::MakeAppearancePanel()
 {
 	auto panel = new wxPanel(m_book);
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
-	hsizer->Add(new wxStaticText(panel, wxID_ANY, _("Font size in script views (needs reopening):"), wxDefaultPosition, wxDefaultSize), 0, wxALIGN_CENTER, 0);
+	hsizer->Add(new wxStaticText(panel, wxID_ANY, _("Monospaced (fixed-width) font:"), wxDefaultPosition, wxDefaultSize), 0, wxALIGN_CENTER, 0);
 	hsizer->AddSpacer(10);
 	m_font_picker = new wxFontPickerCtrl(panel, wxID_ANY, Settings::get_mono_font());
 	hsizer->Add(m_font_picker, 1, wxEXPAND, 0);
@@ -87,7 +88,14 @@ void PreferencesEditor::DoOk()
 	Settings::set_value("autosave", m_autosave_checkbox->GetValue());
 
 	// Scripting panel
-	Settings::set_mono_font(m_font_picker->GetSelectedFont());
+	auto old_font = Settings::get_mono_font();
+	auto new_font = m_font_picker->GetSelectedFont();
+	Settings::set_mono_font(new_font);
+
+	if (old_font != new_font) {
+		wxMessageBox(_("The font change will take effect when script views and the project are reloaded."),
+			   _("Font information"), wxICON_INFORMATION);
+	}
 }
 
 void PreferencesEditor::DoReset()

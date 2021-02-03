@@ -46,7 +46,7 @@ struct DescMetaConstraint final : public MetaConstraint
 {
 	enum class Operator
 	{
-		Equal,
+		Equal = 0, // this must be 0 to match the selector in the GUI
 		NotEqual,
 		Contains,
 		NotContains,

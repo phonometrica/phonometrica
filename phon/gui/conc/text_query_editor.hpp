@@ -22,6 +22,8 @@
 #ifndef PHONOMETRICA_TEXT_QUERY_EDITOR_HPP
 #define PHONOMETRICA_TEXT_QUERY_EDITOR_HPP
 
+#include <wx/radiobox.h>
+#include <wx/spinctrl.h>
 #include <phon/gui/conc/query_editor.hpp>
 #include <phon/application/conc/text_query.hpp>
 
@@ -33,11 +35,15 @@ public:
 
 	explicit TextQueryEditor(wxWindow *parent);
 
+	explicit TextQueryEditor(wxWindow *parent, AutoTextQuery q);
+
 	AutoQuery GetQuery() const override;
 
 private:
 
-	wxWindow *MakeSearchPanel(wxWindow *parent) override;
+	wxPanel *MakeSearchPanel(wxWindow *parent) override;
+
+	void LoadQuery() override;
 
 	void ParseQuery() override;
 
