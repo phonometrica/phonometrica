@@ -53,12 +53,12 @@ void QueryEditor::Prepare()
 	scrolled_sizer->AddSpacer(5);
 	scrolled_sizer->Add(MakeHeader(scrolled_window), 0, wxEXPAND|wxALL, 10);
 	scrolled_sizer->AddSpacer(5);
-	scrolled_sizer->Add(MakeSearchPanel(scrolled_window), 0, wxEXPAND|wxALL, 0);
-	scrolled_sizer->Add(MakeFileSelector(scrolled_window), 0, wxEXPAND|wxALL, 0);
-	scrolled_sizer->Add(MakeProperties(scrolled_window), 0, wxEXPAND|wxALL, 10);
+	scrolled_sizer->Add(MakeSearchPanel(scrolled_window), 2, wxEXPAND|wxALL, 0);
+	scrolled_sizer->Add(MakeFileSelector(scrolled_window), 1, wxEXPAND|wxALL, 0);
+	scrolled_sizer->Add(MakeProperties(scrolled_window), 1, wxEXPAND|wxALL, 10);
 
 	auto buttons = MakeButtons(scrolled_window);
-	scrolled_sizer->AddStretchSpacer();
+	//scrolled_sizer->AddStretchSpacer();
 	scrolled_sizer->Add(buttons, 0, wxEXPAND|wxALL, 10);
 
 	scrolled_window->SetSizer(scrolled_sizer);

@@ -25,7 +25,6 @@
 #include <wx/panel.h>
 #include <wx/checkbox.h>
 #include <wx/simplebook.h>
-#include <wx/spinctrl.h>
 #include <wx/combobox.h>
 #include <wx/fontpicker.h>
 #include <phon/gui/pref/preferences_dialog.hpp>
@@ -47,8 +46,6 @@ private:
 	wxPanel *MakeGeneralPanel();
 
 	wxPanel *MakeAppearancePanel();
-
-	wxSpinCtrl *m_match_window_ctrl;
 
 	wxFontPickerCtrl *m_font_picker;
 

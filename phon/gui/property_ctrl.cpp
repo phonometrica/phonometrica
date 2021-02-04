@@ -35,7 +35,7 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
     font.MakeBold();
     txt->SetFont(font);
     auto head_sizer = new HBoxSizer;
-    head_sizer->Add(txt, 0, wxLEFT, 10);
+    head_sizer->Add(txt, 0, wxLEFT|wxTOP, 10);
     head_sizer->AddStretchSpacer();
     sizer->Add(head_sizer, 0, wxEXPAND);
 
@@ -77,7 +77,7 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
     else
     {
     	auto cb = new wxCheckBox(this, wxID_ANY, wxString());
-    	head_sizer->Add(cb, 0, wxRIGHT, 10);
+    	head_sizer->Add(cb, 0, wxRIGHT|wxTOP, 10);
         wxArrayString values;
 
         for (auto &value : Property::get_values(category)) {

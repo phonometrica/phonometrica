@@ -58,18 +58,18 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	con->layer_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
 	con->relation_selector->Bind(wxEVT_CHOICE, [this](wxCommandEvent &){ EnableSaving(true); });
 
-#ifdef __WXMAC__
-	add_constraint_btn = new wxButton(constraint_box, wxID_ANY, "+");
-	remove_constraint_btn = new wxButton(constraint_box, wxID_ANY, "-");
-#else
 	add_constraint_btn = new wxButton(constraint_box, wxID_ANY, wxEmptyString);
 	remove_constraint_btn = new wxButton(constraint_box, wxID_ANY, wxEmptyString);
-	add_constraint_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(plus), wxTOP);
+	add_constraint_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(plus));
 	remove_constraint_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(minus));
-#endif
 	remove_constraint_btn->Enable(false);
-	add_constraint_btn->SetMaxClientSize(wxSize(40, -1));
-	remove_constraint_btn->SetMaxClientSize(wxSize(40, -1));
+#if __WXMAC__
+	wxSize btn_size(30, -1);
+#else
+	wxSize btn_size(40, -1);
+#endif
+	add_constraint_btn->SetMaxClientSize(btn_size);
+	remove_constraint_btn->SetMaxClientSize(btn_size);
 	add_constraint_btn->SetToolTip(_("Add constraint"));
 	remove_constraint_btn->SetToolTip(_("Remove constraint"));
 	auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -115,7 +115,7 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	ctx_sizer->Add(ctx_btn1, 0, wxALL|wxALIGN_CENTER, 5);
 	ctx_sizer->Add(ctx_btn2, 0, wxALL|wxALIGN_CENTER, 5);
 	ctx_sizer->Add(ctx_btn3, 0, wxALL|wxALIGN_CENTER, 5);
-	ctx_sizer->Add(context_spinctrl, 0, wxALL, 5);
+	ctx_sizer->Add(context_spinctrl, 0, wxALL|wxALIGN_CENTER, 5);
 	ctx_sizer->AddStretchSpacer();
 
 
@@ -127,8 +127,8 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(constraint_box, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
-	sizer->Add(context_box, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
+	sizer->Add(constraint_box, 2, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
+	sizer->Add(context_box, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	panel->SetSizer(sizer);
 
 	return panel;

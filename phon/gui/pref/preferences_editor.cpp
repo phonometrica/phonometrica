@@ -37,22 +37,11 @@ wxPanel *PreferencesEditor::MakeGeneralPanel()
 {
 	auto panel = new wxPanel(m_book);
 
-	m_match_window_ctrl = new wxSpinCtrl(panel, wxID_ANY);
-	m_match_window_ctrl->SetRange(1, 100);
-	m_match_window_ctrl->SetValue((int)Settings::get_number("match_window_length"));
-
 	// Main sizer.
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	auto match_sizer = new wxBoxSizer(wxHORIZONTAL);
-	// Note: wxALIGN_CENTER gets the static text centered vertically in the horizontal sizer
-	match_sizer->Add(new wxStaticText(panel, wxID_ANY, _("Match context length:"), wxDefaultPosition, wxDefaultSize), 0, wxALIGN_CENTER, 0);
-	match_sizer->AddSpacer(10);
-	match_sizer->Add(m_match_window_ctrl, 0, wxEXPAND, 0);
-	sizer->AddSpacer(10);
-	sizer->Add(match_sizer, 0, wxEXPAND|wxALL, 10);
 	m_autoload_checkbox = new wxCheckBox(panel, wxID_ANY, _("Load most recent project on startup"));
 	m_autoload_checkbox->SetValue(Settings::get_boolean("autoload"));
-	sizer->Add(m_autoload_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
+	sizer->Add(m_autoload_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM|wxTOP, 10);
 	m_autosave_checkbox = new wxCheckBox(panel, wxID_ANY, _("Automatically save project on exit"));
 	m_autosave_checkbox->SetValue(Settings::get_boolean("autosave"));
 	sizer->Add(m_autosave_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
@@ -83,11 +72,10 @@ wxPanel *PreferencesEditor::MakeAppearancePanel()
 void PreferencesEditor::DoOk()
 {
 	// General panel
-	Settings::set_value("match_window_length", (intptr_t)m_match_window_ctrl->GetValue());
 	Settings::set_value("autoload", m_autoload_checkbox->GetValue());
 	Settings::set_value("autosave", m_autosave_checkbox->GetValue());
 
-	// Scripting panel
+	// Appearance panel
 	auto old_font = Settings::get_mono_font();
 	auto new_font = m_font_picker->GetSelectedFont();
 	Settings::set_mono_font(new_font);

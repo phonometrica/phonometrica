@@ -29,8 +29,14 @@ namespace phonometrica {
 ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation) :
 	wxPanel(parent, wxID_ANY)
 {
+#ifdef __WXGTK__
 	wxSize size(-1, 30); // ensure all the controls have the same height
-	layer_ctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(150, size.GetHeight()));
+	wxSize layer_size = (150, size.GetHeight());
+#else
+	auto size = wxDefaultSize;
+	auto layer_size = size;
+#endif
+	layer_ctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, layer_size);
 	layer_ctrl->SetToolTip(_("Leave this field empty to search anywhere, type in the index of a specific layer, or use a regular expression "
 						  "to match a layer's name against"));
 	SetDescriptiveText(false);
@@ -67,10 +73,10 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	auto font = num_text->GetFont();
 	font.MakeBold();
 	num_text->SetFont(font);
-	sizer->Add(num_text, 0, wxLEFT|wxTOP|wxALIGN_CENTER, 10);
+	sizer->Add(num_text, 0, wxLEFT|wxTOP|wxBOTTOM|wxALIGN_CENTER, 10);
 	auto txt = new wxStaticText(this, wxID_ANY, _("Layer:"), wxDefaultPosition, size);
-	sizer->Add(txt, 0, wxTOP|wxALIGN_CENTER, 10);
-	sizer->Add(layer_ctrl, 0, wxLEFT|wxTOP, 10);
+	sizer->Add(txt, 0, wxTOP|wxBOTTOM|wxALIGN_CENTER, 10);
+	sizer->Add(layer_ctrl, 0, wxLEFT|wxTOP|wxBOTTOM, 10);
 	sizer->Add(search_ctrl, 1, wxLEFT|wxTOP|wxBOTTOM, 10);
 	sizer->Add(relation_selector, 0, wxLEFT | wxTOP | wxRIGHT, 10);
 	SetSizer(sizer);
@@ -99,7 +105,7 @@ void ConstraintCtrl::SetDescriptiveText(bool focus)
 {
 	if (focus)
 	{
-		if (layer_ctrl->GetValue() == _("index or pattern"))
+		if (layer_ctrl->GetValue() == _("Index or pattern"))
 		{
 			layer_ctrl->SetValue(wxString());
 		}
@@ -107,8 +113,8 @@ void ConstraintCtrl::SetDescriptiveText(bool focus)
 	}
 	else if (layer_ctrl->IsEmpty())
 	{
-		layer_ctrl->SetValue(_("index or pattern"));
-		layer_ctrl->SetForegroundColour(wxColor(150,150,150));
+		layer_ctrl->SetValue(_("Index or pattern"));
+		layer_ctrl->SetForegroundColour(wxColor(175,175,175));
 	}
 }
 } // namespace phonometrica

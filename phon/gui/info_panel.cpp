@@ -273,18 +273,19 @@ void InfoPanel::AddProperties(wxPanel *panel, bool shared)
 
 void InfoPanel::AddPropertyButtons(wxPanel *panel)
 {
-#ifdef __WXMAC__
-	auto add_btn = new wxButton(panel, wxID_ANY, "+");
-	auto rm_btn = new wxButton(panel, wxID_ANY, "-");
-#else
 	auto add_btn = new wxButton(panel, wxID_ANY, wxEmptyString);
 	auto rm_btn = new wxButton(panel, wxID_ANY, wxEmptyString);
-	add_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(plus), wxTOP);
+	add_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(plus));
 	rm_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(minus));
+#if __WXMAC__
+	wxSize btn_size(30, -1);
+#else
+	wxSize btn_size(40, -1);
 #endif
+
 	rm_btn->Enable(false);
-	add_btn->SetMaxClientSize(wxSize(40, -1));
-	rm_btn->SetMaxClientSize(wxSize(40, -1));
+	add_btn->SetMaxClientSize(btn_size);
+	rm_btn->SetMaxClientSize(btn_size);
 	add_btn->SetToolTip(_("Add property"));
 	rm_btn->SetToolTip(_("Remove property"));
 	prop_rm_btn = rm_btn;
