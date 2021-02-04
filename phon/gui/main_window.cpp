@@ -624,8 +624,6 @@ void MainWindow::OnRestoreDefaultLayout(wxCommandEvent &)
 	console_item->Check(false);
 	info_item->Check(false);
 	project_item->Check(false);
-
-	// TODO: update status bar buttons when restoring default layout
 }
 
 void MainWindow::OnHideProject(wxCommandEvent &)
@@ -1525,7 +1523,7 @@ void MainWindow::OnFindInAnnotations(wxCommandEvent &)
 {
 	TextQueryEditor editor(this);
 	editor.Prepare();
-	editor.SetSize(FromDIP(wxSize(1000, 700)));
+	editor.SetSize(FromDIP(wxSize(1000, 800)));
 
 	if (editor.ShowModal() == wxID_OK)
 	{

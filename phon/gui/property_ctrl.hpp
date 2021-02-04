@@ -25,7 +25,7 @@
 #include <optional>
 #include <wx/panel.h>
 #include <wx/stattext.h>
-#include <wx/combobox.h>
+#include <wx/choice.h>
 #include <wx/textctrl.h>
 #include <wx/checklst.h>
 #include <phon/application/property.hpp>
@@ -47,13 +47,17 @@ public:
 
     const std::type_info &GetType() const;
 
-    std::optional<bool> GetBoolean() const;
+    bool GetBoolean() const;
 
     std::pair<double, double> GetNumericValue() const;
+
+    int GetOperator() const;
 
     Array<String> GetTextValues() const;
 
     bool HasSelection() const;
+
+	const String &GetCategory() const;
 
 private:
 
@@ -64,10 +68,12 @@ private:
     union
     {
         wxCheckListBox *checklist;
-        wxComboBox *combobox;
+        wxChoice *choicelist;
     };
 
 	wxTextCtrl *entry1 = nullptr, *entry2 = nullptr;
+
+	String category;
 };
 
 

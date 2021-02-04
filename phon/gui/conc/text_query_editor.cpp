@@ -83,23 +83,23 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 
 	// Create the context radio buttons
 	auto context_box = new wxStaticBox(panel, wxID_ANY, _("Context"));
-	auto ctx_btn1 = new wxRadioButton(context_box, wxID_ANY, _("No context"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-	auto ctx_btn2 = new wxRadioButton(context_box, wxID_ANY, _("Surrounding labels"));
-	auto ctx_btn3 = new wxRadioButton(context_box, wxID_ANY, _("Number of characters"));
+	ctx_btn1 = new wxRadioButton(context_box, wxID_ANY, _("No context"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+	ctx_btn2 = new wxRadioButton(context_box, wxID_ANY, _("Surrounding labels"));
+	ctx_btn3 = new wxRadioButton(context_box, wxID_ANY, _("Number of characters"));
 	ctx_btn3->SetValue(true);
 	ctx_btn1->SetToolTip(_("Don't extract any context"));
 	ctx_btn2->SetToolTip(_("Extract labels from surrounding events"));
 	ctx_btn3->SetToolTip(_("Extract fixed-sized left and right contexts"));
-	auto context_spinctrl = new wxSpinCtrl(context_box, wxID_ANY);
+	context_spinctrl = new wxSpinCtrl(context_box, wxID_ANY);
 	context_spinctrl->SetToolTip(_("Number of characters in the left and right contexts"));
 	context_spinctrl->SetRange(1, 1000);
 	context_spinctrl->SetValue((int)Settings::get_int("match_window_length"));
 	auto ref_label = new wxStaticText(context_box, wxID_ANY, _("Reference constraint:"));
-	auto ref_spin = new wxSpinCtrl(context_box, wxID_ANY, "1");
+	ref_spin = new wxSpinCtrl(context_box, wxID_ANY, "1");
 	ref_spin->SetToolTip(_("Select the constraint for which the context should be extracted"));
 
 	ctx_btn1->Bind(wxEVT_RADIOBUTTON, [=](wxCommandEvent &) { context_spinctrl->Disable(); ref_spin->Disable(); });
-	ctx_btn2->Bind(wxEVT_RADIOBUTTON, [=](wxCommandEvent &) { context_spinctrl->Enable(); ref_spin->Enable(); });
+	ctx_btn2->Bind(wxEVT_RADIOBUTTON, [=](wxCommandEvent &) { context_spinctrl->Disable(); ref_spin->Enable(); });
 	ctx_btn3->Bind(wxEVT_RADIOBUTTON, [=](wxCommandEvent &) { context_spinctrl->Enable(); ref_spin->Enable(); });
 
 	auto ctx_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -181,6 +181,7 @@ void TextQueryEditor::ParseQuery()
 	query->clear();
 	query->set_label(name_ctrl->GetValue(), false);
 
+	// Meta-constraints
 	if (!desc_ctrl->IsEmpty() || desc_op_choice->GetSelection() != wxNOT_FOUND)
 	{
 		auto op = static_cast<DescMetaConstraint::Operator>(desc_op_choice->GetSelection());
@@ -188,6 +189,44 @@ void TextQueryEditor::ParseQuery()
 		query->add_metaconstraint(std::move(mc), true);
 	}
 
+	for (auto prop : properties)
+	{
+		if (!prop->HasSelection()) continue;
+		auto &category = prop->GetCategory();
+		auto &type = prop->GetType();
+
+		if (type == typeid(bool))
+		{
+			bool value = prop->GetBoolean();
+			query->add_metaconstraint(std::make_unique<BooleanMetaConstraint>(category, value));
+		}
+		else if (type == typeid(double))
+		{
+			auto value = prop->GetNumericValue();
+			auto op = static_cast<NumericMetaConstraint::Operator>(prop->GetOperator());
+			query->add_metaconstraint(std::make_unique<NumericMetaConstraint>(category, op, value));
+		}
+		else
+		{
+			auto values = prop->GetTextValues();
+			query->add_metaconstraint(std::make_unique<TextMetaConstraint>(category, values));
+		}
+	}
+
+	// Context options
+	if (ctx_btn2->GetValue())
+	{
+		query->set_context(TextQuery::Context::Labels);
+		query->set_reference_constraint(ref_spin->GetValue());
+	}
+	else if (ctx_btn3->GetValue())
+	{
+		query->set_context(TextQuery::Context::KWIC);
+		query->set_context_length(context_spinctrl->GetValue());
+		query->set_reference_constraint(ref_spin->GetValue());
+	}
+
+	// File selection, if any
 	Array<AutoAnnotation> annotations;
 	for (unsigned int i = 0; i < file_list->GetCount(); i++)
 	{
@@ -202,7 +241,7 @@ void TextQueryEditor::ParseQuery()
 
 void TextQueryEditor::OnAddConstraint(wxCommandEvent &)
 {
-	auto con = new ConstraintCtrl(constraint_box, constraints.size()+1, false);
+	auto con = new ConstraintCtrl(constraint_box, (int)constraints.size()+1, false);
 	constraint_sizer->Insert(size_t(constraints.size()), con, 0, wxEXPAND);
 	this->Layout();
 	constraints.last()->EnableRelation(true);

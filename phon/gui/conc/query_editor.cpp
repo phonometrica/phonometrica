@@ -143,14 +143,15 @@ wxWindow *QueryEditor::MakeProperties(wxWindow *parent)
 	if (categories.empty())
 	{
 		auto sizer = new wxBoxSizer(wxVERTICAL);
-		auto label = new wxStaticText(this, wxID_ANY, _("The current project doesn't have any property."));
+		auto label = new wxStaticText(property_box, wxID_ANY, _("The current project doesn't have any property."));
 		label->SetForegroundColour(wxColor(100, 100, 100));
 		auto font = label->GetFont();
 		font.MakeBold();
 		label->SetFont(font);
-		sizer->AddStretchSpacer();
-		sizer->Add(label);
-		sizer->AddStretchSpacer();
+		sizer->AddSpacer(10);
+		sizer->Add(label, 1, wxEXPAND|wxALL, 10);
+		sizer->AddSpacer(30);
+		property_box->SetSizer(sizer);
 
 		return property_box;
 	}
@@ -175,6 +176,7 @@ wxWindow *QueryEditor::MakeProperties(wxWindow *parent)
 		}
 
 		auto prop = new PropertyCtrl(property_box, category, *type);
+		properties.append(prop);
 		sizer->Add(prop, 1, wxEXPAND);
 
 //		if (++col == properties_per_row)

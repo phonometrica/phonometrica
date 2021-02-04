@@ -27,7 +27,7 @@ namespace phonometrica {
 
 
 PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::type_info &type) :
-        wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 200)), type(type)
+		wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 200)), type(type), category(category)
 {
     auto sizer = new VBoxSizer;
     auto txt = new wxStaticText(this, wxID_ANY, category);
@@ -45,9 +45,10 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
 	    values.Add("any");
         values.Add("true");
 	    values.Add("false");
-        combobox = new wxComboBox(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, values);
-        combobox->SetSelection(0);
-        sizer->Add(combobox, 1, wxEXPAND | wxALL, 10);
+	    choicelist = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, values);
+        choicelist->SetSelection(0);
+        sizer->Add(choicelist, 1, wxEXPAND | wxALL, 10);
+        sizer->AddStretchSpacer();
     }
     else if (type == typeid(double))
     {
@@ -60,16 +61,17 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
     	values.Add("greater than");
     	values.Add("greater than or equal");
     	values.Add("in range");
-	    combobox = new wxComboBox(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, values);
-		combobox->SetSelection(0);
+	    choicelist = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, values);
+		choicelist->SetSelection(0);
 
 	    entry1 = new wxTextCtrl(this, wxID_ANY);
         entry2 = new wxTextCtrl(this, wxNewId());
 	    entry2->Disable();
-        sizer->Add(combobox, 0, wxEXPAND | wxALL, 10);
+        sizer->Add(choicelist, 0, wxEXPAND | wxALL, 10);
         sizer->Add(entry1, 0, wxEXPAND | wxLEFT|wxRIGHT, 10);
         sizer->Add(entry2, 0, wxEXPAND | wxALL, 10);
 		sizer->AddStretchSpacer();
+		choicelist->Bind(wxEVT_CHOICE, [=](wxCommandEvent &e) { entry2->Enable(e.GetSelection() == 7); });
     }
     else
     {
@@ -95,17 +97,19 @@ const std::type_info &PropertyCtrl::GetType() const
     return type;
 }
 
-std::optional<bool> PropertyCtrl::GetBoolean() const
+bool PropertyCtrl::GetBoolean() const
 {
-    switch (combobox->GetSelection())
+    switch (choicelist->GetSelection())
     {
-        case 0:
-            return std::optional<bool>();
         case 1:
             return true;
-        default:
+    	case 2:
             return false;
+    	default:
+    		assert(false);
     }
+
+    return false;
 }
 
 std::pair<double, double> PropertyCtrl::GetNumericValue() const
@@ -119,7 +123,7 @@ std::pair<double, double> PropertyCtrl::GetNumericValue() const
     }
     result.first = tmp;
 
-    if (combobox->GetSelection() == 7)
+    if (choicelist->GetSelection() == 7)
     {
     	if (!entry2->GetValue().ToCDouble(&tmp))
     	{
@@ -150,14 +154,17 @@ bool PropertyCtrl::HasSelection() const
 {
 	if (type == typeid(String))
 	{
-		wxArrayInt items;
-		int count = checklist->GetCheckedItems(items);
-
-		return count != 0;
+		for (int i = 0; i < checklist->GetCount(); i++)
+		{
+			 if (checklist->IsChecked(i)) {
+			 	return true;
+			 }
+		}
+		return false;
 	}
 	else // num or bool
 	{
-		return combobox->GetSelection() > 0;
+		return choicelist->GetSelection() > 0;
 	}
 }
 
@@ -167,6 +174,16 @@ void PropertyCtrl::OnCheckAllItems(wxCommandEvent &e)
 	{
 		checklist->Check(i, e.IsChecked());
 	}
+}
+
+const String &PropertyCtrl::GetCategory() const
+{
+	return category;
+}
+
+int PropertyCtrl::GetOperator() const
+{
+	return choicelist->GetSelection();
 }
 
 

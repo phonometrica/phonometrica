@@ -23,6 +23,7 @@
 #define PHONOMETRICA_CONSTRAINT_HPP
 
 #include <phon/string.hpp>
+#include <phon/utils/xml.hpp>
 
 namespace phonometrica {
 
@@ -31,14 +32,20 @@ struct Constraint final
 {
 	enum class Operator : uint8_t
 	{
-		Dominates = 0,
-		StrictlyDominates,
-		LeftAligned,
-		RighAligned,
-		Precedes,
-		Follows,
+		Dominance = 0,
+		StrictDominance,
+		LeftAlignment,
+		RightAlignment,
+		Precedence,
+		Subsequence,
 		None
 	};
+
+	void to_xml(xml_node root);
+
+	static Operator name_to_op(std::string_view name);
+
+	static const char *op_to_name(Operator op);
 
 	// Relation with the previous constraint, if any.
 	Operator op;
@@ -49,14 +56,17 @@ struct Constraint final
 	// Whether the match is case-sensitive.
 	bool case_sensitive;
 
-	// If true, use the layer pattern, otherwise use the layer index
+	// If true, use the layer pattern, otherwise use the layer index.
 	bool by_name;
 
-	// Layer index, if using SearchOperator
+	// Layer index, if using SearchOperator.
 	int layer_index;
 
 	// Pattern to match a layer's name against. The name must match the pattern exactly.
 	String layer_pattern;
+
+	// Target text or pattern.
+	String target;
 };
 
 } // namespace phonometrica

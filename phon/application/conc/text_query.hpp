@@ -30,12 +30,31 @@ class TextQuery final : public Query
 {
 public:
 
+	enum class Context
+	{
+		None,   // no context
+		Labels, // labels from surrounding events
+		KWIC    // keyword in context
+	};
+
 	TextQuery(VFolder *parent, const String &path);
 
 	const char *class_name() const override { return "TextQuery"; }
 
 	// Note: subclasses must override this method and return false
 	bool is_text_query() const override { return true; }
+
+	int context_length() const;
+
+	void set_context_length(int context_length);
+
+	Context context() const;
+
+	void set_context(Context context);
+
+	int reference_constraint() const;
+
+	void set_reference_constraint(int value);
 
 private:
 
@@ -46,6 +65,12 @@ private:
 	void metaconstraints_from_xml(xml_node node);
 
 	void constraints_from_xml(xml_node node);
+
+	Context m_context = Context::KWIC;
+
+	int m_ref_constraint;
+
+	int m_context_length = 0;
 };
 
 using AutoTextQuery = std::shared_ptr<TextQuery>;

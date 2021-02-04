@@ -28,6 +28,8 @@
 #include <phon/gui/conc/constraint_ctrl.hpp>
 #include <phon/application/conc/text_query.hpp>
 
+class wxRadioButton;
+
 namespace phonometrica {
 
 class TextQueryEditor final : public QueryEditor
@@ -57,6 +59,10 @@ private:
 	wxButton *add_constraint_btn, *remove_constraint_btn;
 
 	wxStaticBox *constraint_box;
+
+	wxRadioButton *ctx_btn1, *ctx_btn2, *ctx_btn3;
+
+	wxSpinCtrl *context_spinctrl, *ref_spin;
 
 	AutoTextQuery query;
 

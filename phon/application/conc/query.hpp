@@ -42,9 +42,9 @@ public:
 
 	~Query() override = default;
 
-	void add_metaconstraint(std::unique_ptr<MetaConstraint> m, bool mutate);
+	void add_metaconstraint(std::unique_ptr<MetaConstraint> m, bool mutate = true);
 
-	void add_constraint(Constraint c, bool mutate);
+	void add_constraint(Constraint c, bool mutate = true);
 
 	String label() const override;
 
