@@ -54,11 +54,6 @@ bool VNode::is_sound() const
 	return false;
 }
 
-bool VNode::is_document() const
-{
-	return false;
-}
-
 bool VNode::is_bookmark() const
 {
 	return false;
@@ -331,6 +326,18 @@ bool VFolder::contains(const VNode *node) const
 	}
 
 	return false;
+}
+
+bool VFolder::quick_search(const String &text) const
+{
+	for (auto &vnode : m_content)
+	{
+		if (vnode->quick_search(text)) {
+			return true;
+		}
+	}
+
+	return label().contains(text);
 }
 
 
@@ -647,6 +654,18 @@ void VFile::reload()
 {
 	discard_changes();
 	load();
+}
+
+bool VFile::quick_search(const String &text) const
+{
+	for (auto &prop : m_properties)
+	{
+		if (prop.value().to_lower().contains(text)) {
+			return true;
+		}
+	}
+
+	return label().to_lower().contains(text) ||  m_description.to_lower().contains(text);
 }
 
 } // namespace phonometrica

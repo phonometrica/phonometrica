@@ -26,6 +26,7 @@
 #include <wx/msgdlg.h>
 #include <wx/textdlg.h>
 #include <wx/clipbrd.h>
+#include <wx/button.h>
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/project_manager.hpp>
 #include <phon/include/icons.hpp>
@@ -54,16 +55,22 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	mono_font.SetPointSize(tree->GetFont().GetPointSize());
 
 	main_label = new wxStaticText(this, wxID_ANY, _("Project"), wxDefaultPosition, wxDefaultSize);
+	auto font = main_label->GetFont();
+	font.MakeBold();
+	main_label->SetFont(font);
+	main_label->SetForegroundColour(wxColor(75, 75, 75));
+
+	search_ctrl = new wxSearchCtrl(this, wxID_ANY);
+	search_ctrl->SetDescriptiveText(_("Search files"));
+	search_ctrl->SetToolTip(_("Find files in your project based on their name or metadata"));
+
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 #ifdef __WXGTK__
 	sizer->AddSpacer(2);
 #endif
 	sizer->Add(main_label, 0, wxEXPAND | wxTOP | wxLEFT, 8);
 	sizer->Add(tree, 10, wxEXPAND | wxTOP, 5);
-	auto font = main_label->GetFont();
-	font.MakeBold();
-	main_label->SetFont(font);
-	main_label->SetForegroundColour(wxColor(75, 75, 75));
+	sizer->Add(search_ctrl, 0, wxEXPAND|wxALL, 10);
 
 	SetSizer(sizer);
 	auto images = new wxImageList(16, 16);
@@ -107,6 +114,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	Bind(wxEVT_TREE_ITEM_ACTIVATED, &ProjectManager::OnItemDoubleClicked, this);
 	Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &ProjectManager::OnRightClick, this);
 	Bind(wxEVT_TREE_ITEM_MIDDLE_CLICK, &ProjectManager::OnMiddleClick, this);
+	search_ctrl->Bind(wxEVT_TEXT, &ProjectManager::OnQuickSearch, this);
 #ifdef __WXMSW__
 	Bind(wxEVT_TREE_ITEM_GETTOOLTIP, &ProjectManager::OnShowToolTip, this);
 #endif
@@ -138,6 +146,7 @@ void ProjectManager::UpdateProject()
 	}
 
 	UpdateLabel();
+	main_label->SetToolTip(Project::get()->path());
 
 	FillFolder(corpus_item, *project->corpus());
 	FillFolder(data_item, *project->data());
@@ -167,19 +176,24 @@ void ProjectManager::ClearProject()
 	tree->DeleteChildren(bookmark_item);
 }
 
-void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
+void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder, const String &text)
 {
 	for (int i = 1; i <= folder.size(); i++)
 	{
 		wxTreeItemId child;
 		auto &node = folder.get(i);
 
+		// Dismiss files and folders that don't match the quick search string.
+		if (!text.empty() && !node->quick_search(text)) {
+			continue;
+		}
+
 		if (node->is_folder())
 		{
 			auto &subfolder = dynamic_cast<VFolder&>(*node);
 			auto data = new ItemData(&subfolder);
 			child = tree->AppendItem(item, node->label(), folder_img, folder_img, data);
-			FillFolder(child, subfolder);
+			FillFolder(child, subfolder, text);
 		}
 		else if (node->is_bookmark())
 		{
@@ -212,10 +226,6 @@ void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
 			{
 				img = query_img;
 			}
-//			else if (vfile.is_document())
-//			{
-//				img = document_img;
-//			}
 			else
 			{
 				img = document_img;
@@ -904,6 +914,25 @@ void ProjectManager::RenameQuery(const AutoQuery &query)
 		query->set_label(name, true);
 		Project::updated();
 	}
+}
+
+void ProjectManager::OnQuickSearch(wxCommandEvent &e)
+{
+	auto project = Project::get();
+	if (project->empty()) {
+		return;
+	}
+
+	String text = search_ctrl->GetValue();
+	text = text.to_lower();
+	ClearProject();
+
+	FillFolder(corpus_item, *project->corpus(), text);
+	FillFolder(data_item, *project->data(), text);
+	FillFolder(query_item, *project->queries(), text);
+	FillFolder(script_item, *project->scripts(), text);
+	FillFolder(bookmark_item, *project->bookmarks(), text);
+	tree->ExpandAll();
 }
 
 #ifdef __WXMSW__

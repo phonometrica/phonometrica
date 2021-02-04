@@ -277,12 +277,6 @@ void Project::parse_corpus(xml_node root, VFolder *folder, bool emitting)
 				vfile = upcast<VFile>(sound);
 				trigger(sound_loaded, make_handle<AutoSound>(std::move(sound)));
 			}
-			else if (cls == "Document")
-			{
-				auto doc = std::make_shared<Document>(folder, std::move(path));
-				vfile = upcast<VFile>(doc);
-				trigger(document_loaded, make_handle<AutoDocument>(std::move(doc)));
-			}
 			else
 			{
 				throw error("Invalid VFile type: %", cls);
@@ -1484,7 +1478,6 @@ void Project::initialize_types(Runtime &rt)
 {
 	Annotation::initialize(rt);
 	Sound::initialize(rt);
-	Document::initialize(rt);
 	Dataset::initialize(rt);
 }
 

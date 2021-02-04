@@ -31,10 +31,9 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 {
 	wxSize size(-1, 30); // ensure all the controls have the same height
 	layer_ctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(150, size.GetHeight()));
-	layer_ctrl->SetValue(_("index or pattern"));
-	layer_ctrl->SetForegroundColour(wxColor(150,150,150));
 	layer_ctrl->SetToolTip(_("Leave this field empty to search anywhere, type in the index of a specific layer, or use a regular expression "
 						  "to match a layer's name against"));
+	SetDescriptiveText(false);
 	search_ctrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
 	search_ctrl->ShowCancelButton(true);
 	search_ctrl->SetDescriptiveText(_("Search text or pattern"));
@@ -75,6 +74,9 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	sizer->Add(search_ctrl, 1, wxLEFT|wxTOP|wxBOTTOM, 10);
 	sizer->Add(relation_selector, 0, wxLEFT | wxTOP | wxRIGHT, 10);
 	SetSizer(sizer);
+
+	layer_ctrl->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent &) { SetDescriptiveText(true); });
+	layer_ctrl->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent &) { SetDescriptiveText(false); });
 }
 
 void ConstraintCtrl::EnableRelation(bool value)
@@ -91,5 +93,22 @@ bool ConstraintCtrl::UsesRegex() const
 bool ConstraintCtrl::IsCaseSensitive() const
 {
 	return case_entry->IsChecked();
+}
+
+void ConstraintCtrl::SetDescriptiveText(bool focus)
+{
+	if (focus)
+	{
+		if (layer_ctrl->GetValue() == _("index or pattern"))
+		{
+			layer_ctrl->SetValue(wxString());
+		}
+		layer_ctrl->SetForegroundColour(search_ctrl->GetForegroundColour());
+	}
+	else if (layer_ctrl->IsEmpty())
+	{
+		layer_ctrl->SetValue(_("index or pattern"));
+		layer_ctrl->SetForegroundColour(wxColor(150,150,150));
+	}
 }
 } // namespace phonometrica

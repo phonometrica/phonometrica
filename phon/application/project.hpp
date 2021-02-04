@@ -24,7 +24,6 @@
 
 #include <phon/application/sound.hpp>
 #include <phon/application/annotation.hpp>
-#include <phon/application/document.hpp>
 #include <phon/application/script.hpp>
 #include <phon/application/bookmark.hpp>
 #include <phon/application/spreadsheet.hpp>

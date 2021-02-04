@@ -44,6 +44,8 @@ public:
 
 	virtual bool is_annotation_stamp() const { return false; }
 
+	bool quick_search(const String &text) const override;
+
 protected:
 
 	String m_title;

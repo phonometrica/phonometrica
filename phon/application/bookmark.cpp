@@ -54,6 +54,11 @@ void Bookmark::set_notes(const String &value, bool mutate)
 	m_content_modified |= mutate;
 }
 
+bool Bookmark::quick_search(const String &text) const
+{
+	return m_title.to_lower().contains(text) || m_notes.to_lower().contains(text);
+}
+
 AnnotationStamp::AnnotationStamp(VFolder *parent, String title, AutoAnnotation annot, size_t layer,
 								 double start, double end, String match, String left, String right) :
 		Bookmark(parent, std::move(title)), m_annot(std::move(annot)), m_match(std::move(match)),

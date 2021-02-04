@@ -25,7 +25,7 @@
 #include <wx/panel.h>
 #include <wx/stattext.h>
 #include <wx/treectrl.h>
-//#include <wx/treelist.h>
+#include <wx/srchctrl.h>
 #include <wx/imaglist.h>
 #include <phon/runtime.hpp>
 #include <phon/application/project.hpp>
@@ -61,7 +61,7 @@ private:
 
 	void UpdateProject();
 
-	void FillFolder(wxTreeItemId item, VFolder &folder);
+	void FillFolder(wxTreeItemId item, VFolder &folder, const String &text = String());
 
 	void OnItemSelected(wxTreeEvent &);
 
@@ -121,11 +121,15 @@ private:
 
 	void RenameQuery(const AutoQuery &query);
 
+	void OnQuickSearch(wxCommandEvent &e);
+
 #ifdef __WXMSW__
 	void OnShowToolTip(wxTreeEvent &e);
 #endif
 
 	wxTreeCtrl *tree = nullptr;
+
+	wxSearchCtrl *search_ctrl = nullptr;
 
 	wxStaticText *main_label = nullptr;
 

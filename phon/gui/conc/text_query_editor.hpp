@@ -62,7 +62,7 @@ private:
 
 	wxRadioButton *ctx_btn1, *ctx_btn2, *ctx_btn3;
 
-	wxSpinCtrl *context_spinctrl, *ref_spin;
+	wxSpinCtrl *context_spinctrl, *ref_spinctrl;
 
 	AutoTextQuery query;
 

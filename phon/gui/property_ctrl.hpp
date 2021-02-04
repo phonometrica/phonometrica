@@ -29,16 +29,9 @@
 #include <wx/textctrl.h>
 #include <wx/checklst.h>
 #include <phon/application/property.hpp>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
-
-enum class Trilean
-{
-    False,
-    True,
-    Both
-};
-
 
 class PropertyCtrl final : public wxPanel
 {
@@ -58,6 +51,8 @@ public:
     bool HasSelection() const;
 
 	const String &GetCategory() const;
+
+	Signal<> modified;
 
 private:
 

@@ -50,6 +50,10 @@ struct ConstraintCtrl final : public wxPanel
 	wxChoice *relation_selector;
 
 	wxMenuItem *case_entry, *regex_entry;
+
+private:
+
+	void SetDescriptiveText(bool focus);
 };
 
 } // namespace phonometrica

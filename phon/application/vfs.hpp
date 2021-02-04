@@ -68,8 +68,6 @@ public:
 
 	virtual bool is_sound() const;
 
-	virtual bool is_document() const;
-
 	virtual bool is_bookmark() const;
 
 	virtual bool is_script() const;
@@ -95,6 +93,8 @@ public:
 	virtual void discard_changes();
 
 	virtual bool contains(const VNode *node) const { return false; }
+
+	virtual bool quick_search(const String &text) const { return true; }
 
 protected:
 
@@ -175,6 +175,8 @@ public:
 
 	bool contains(const VNode *node) const override;
 
+	bool quick_search(const String &text) const override;
+
 protected:
 
     void set_modified(bool value);
@@ -243,6 +245,8 @@ public:
 	bool has_properties() const;
 
 	Array<String> property_list() const;
+
+	bool quick_search(const String &text) const override;
 
 protected:
 

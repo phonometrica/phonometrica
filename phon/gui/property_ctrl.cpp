@@ -49,6 +49,7 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
         choicelist->SetSelection(0);
         sizer->Add(choicelist, 1, wxEXPAND | wxALL, 10);
         sizer->AddStretchSpacer();
+        choicelist->Bind(wxEVT_CHOICE, [this](wxCommandEvent &e) { modified(); });
     }
     else if (type == typeid(double))
     {
@@ -71,7 +72,7 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
         sizer->Add(entry1, 0, wxEXPAND | wxLEFT|wxRIGHT, 10);
         sizer->Add(entry2, 0, wxEXPAND | wxALL, 10);
 		sizer->AddStretchSpacer();
-		choicelist->Bind(wxEVT_CHOICE, [=](wxCommandEvent &e) { entry2->Enable(e.GetSelection() == 7); });
+		choicelist->Bind(wxEVT_CHOICE, [this](wxCommandEvent &e) { entry2->Enable(e.GetSelection() == 7); modified(); });
     }
     else
     {
@@ -83,7 +84,8 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
             values.Add(value);
         }
         checklist = new wxCheckListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, values);
-        checklist->Bind(wxEVT_LEAVE_WINDOW, [=](wxMouseEvent &) { checklist->SetSelection(-1); });
+        checklist->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &) { checklist->SetSelection(-1); });
+        checklist->Bind(wxEVT_CHECKLISTBOX, [this](wxCommandEvent &) { modified(); });
         sizer->Add(checklist, 1, wxEXPAND | wxALL, 10);
         sizer->AddSpacer(20);
         cb->Bind(wxEVT_CHECKBOX, &PropertyCtrl::OnCheckAllItems, this);
@@ -154,7 +156,7 @@ bool PropertyCtrl::HasSelection() const
 {
 	if (type == typeid(String))
 	{
-		for (int i = 0; i < checklist->GetCount(); i++)
+		for (int i = 0; i < (int)checklist->GetCount(); i++)
 		{
 			 if (checklist->IsChecked(i)) {
 			 	return true;
@@ -174,6 +176,7 @@ void PropertyCtrl::OnCheckAllItems(wxCommandEvent &e)
 	{
 		checklist->Check(i, e.IsChecked());
 	}
+	modified();
 }
 
 const String &PropertyCtrl::GetCategory() const

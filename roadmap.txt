@@ -3,6 +3,7 @@ Version 0.8.0:
 
 - new user interface based on wxWidgets
 - new scripting engine
+- ability to search files in the project manager
 - License is now GPL2 or later (instead of GPL3 or later)
 - properties are now directly edited from the information panel
 - improved shortcuts to show/hide the panels of the main window (see the Window menu)

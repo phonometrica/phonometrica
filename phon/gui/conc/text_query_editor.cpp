@@ -54,6 +54,9 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	auto con = new ConstraintCtrl(constraint_box, 1, false);
 	constraints.append(con);
 	constraint_sizer->Add(con, 0, wxEXPAND);
+	con->search_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
+	con->layer_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
+	con->relation_selector->Bind(wxEVT_CHOICE, [this](wxCommandEvent &){ EnableSaving(true); });
 
 #ifdef __WXMAC__
 	add_constraint_btn = new wxButton(constraint_box, wxID_ANY, "+");
@@ -95,17 +98,19 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	context_spinctrl->SetRange(1, 1000);
 	context_spinctrl->SetValue((int)Settings::get_int("match_window_length"));
 	auto ref_label = new wxStaticText(context_box, wxID_ANY, _("Reference constraint:"));
-	ref_spin = new wxSpinCtrl(context_box, wxID_ANY, "1");
-	ref_spin->SetToolTip(_("Select the constraint for which the context should be extracted"));
+	ref_spinctrl = new wxSpinCtrl(context_box, wxID_ANY, "1");
+	ref_spinctrl->SetToolTip(_("Select the constraint for which the context should be extracted"));
 
-	ctx_btn1->Bind(wxEVT_RADIOBUTTON, [=](wxCommandEvent &) { context_spinctrl->Disable(); ref_spin->Disable(); });
-	ctx_btn2->Bind(wxEVT_RADIOBUTTON, [=](wxCommandEvent &) { context_spinctrl->Disable(); ref_spin->Enable(); });
-	ctx_btn3->Bind(wxEVT_RADIOBUTTON, [=](wxCommandEvent &) { context_spinctrl->Enable(); ref_spin->Enable(); });
+	ctx_btn1->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent &) { context_spinctrl->Disable(); ref_spinctrl->Disable(); EnableSaving(true); });
+	ctx_btn2->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent &) { context_spinctrl->Disable(); ref_spinctrl->Enable(); EnableSaving(true); });
+	ctx_btn3->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent &) { context_spinctrl->Enable(); ref_spinctrl->Enable(); EnableSaving(true); });
+	context_spinctrl->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent &) { EnableSaving(true); });
+	ref_spinctrl->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent &) { EnableSaving(true); });
 
 	auto ctx_sizer = new wxBoxSizer(wxHORIZONTAL);
 	ctx_sizer->AddSpacer(5);
 	ctx_sizer->Add(ref_label, 0, wxALL|wxALIGN_CENTER, 5);
-	ctx_sizer->Add(ref_spin, 0, wxALL|wxALIGN_CENTER, 5);
+	ctx_sizer->Add(ref_spinctrl, 0, wxALL | wxALIGN_CENTER, 5);
 
 	ctx_sizer->Add(ctx_btn1, 0, wxALL|wxALIGN_CENTER, 5);
 	ctx_sizer->Add(ctx_btn2, 0, wxALL|wxALIGN_CENTER, 5);
@@ -217,13 +222,13 @@ void TextQueryEditor::ParseQuery()
 	if (ctx_btn2->GetValue())
 	{
 		query->set_context(TextQuery::Context::Labels);
-		query->set_reference_constraint(ref_spin->GetValue());
+		query->set_reference_constraint(ref_spinctrl->GetValue());
 	}
 	else if (ctx_btn3->GetValue())
 	{
 		query->set_context(TextQuery::Context::KWIC);
 		query->set_context_length(context_spinctrl->GetValue());
-		query->set_reference_constraint(ref_spin->GetValue());
+		query->set_reference_constraint(ref_spinctrl->GetValue());
 	}
 
 	// File selection, if any

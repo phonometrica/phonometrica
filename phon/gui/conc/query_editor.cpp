@@ -178,12 +178,7 @@ wxWindow *QueryEditor::MakeProperties(wxWindow *parent)
 		auto prop = new PropertyCtrl(property_box, category, *type);
 		properties.append(prop);
 		sizer->Add(prop, 1, wxEXPAND);
-
-//		if (++col == properties_per_row)
-//		{
-//			row++;
-//			col = 0;
-//		}
+		prop->modified.connect([this]() { EnableSaving(true); });
 	}
 	property_box->SetSizer(sizer);
 
