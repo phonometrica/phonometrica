@@ -101,6 +101,7 @@ struct NumericMetaConstraint : public PropertyMetaConstraint
 {
 	enum class Operator
 	{
+		None,
 		Equal,
 		NotEqual,
 		Less,

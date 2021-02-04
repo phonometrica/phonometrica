@@ -37,25 +37,28 @@ int QueryEditor::id = 0;
 
 
 QueryEditor::QueryEditor(wxWindow *parent, const wxString &title) :
-	wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+	wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX)
 {
-
+	properties_per_row = 4;
 }
 
 void QueryEditor::Prepare()
 {
 	// Since we can't call virtual functions in the constructor, we setup the UI after the object is set up.
-	this->SetSize(1000, 700);
 	this->SetPosition(wxPoint(100, 70));
 
 	auto scrolled_window = new wxScrolledWindow(this);
 	auto scrolled_sizer = new wxBoxSizer(wxVERTICAL);
 
+	scrolled_sizer->AddSpacer(5);
 	scrolled_sizer->Add(MakeHeader(scrolled_window), 0, wxEXPAND|wxALL, 10);
+	scrolled_sizer->AddSpacer(5);
 	scrolled_sizer->Add(MakeSearchPanel(scrolled_window), 0, wxEXPAND|wxALL, 0);
 	scrolled_sizer->Add(MakeFileSelector(scrolled_window), 0, wxEXPAND|wxALL, 0);
+	scrolled_sizer->Add(MakeProperties(scrolled_window), 0, wxEXPAND|wxALL, 10);
 
 	auto buttons = MakeButtons(scrolled_window);
+	scrolled_sizer->AddStretchSpacer();
 	scrolled_sizer->Add(buttons, 0, wxEXPAND|wxALL, 10);
 
 	scrolled_window->SetSizer(scrolled_sizer);
@@ -77,9 +80,9 @@ wxBoxSizer *QueryEditor::MakeHeader(wxWindow *parent)
 	sizer->Add(name_ctrl);
 	sizer->AddStretchSpacer();
 #if __WXMAC__
-	auto help_btn = new wxButton(this, wxID_HELP);
+	auto help_btn = new wxButton(parent, wxID_HELP);
 #else
-	auto help_btn = new wxButton(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+	auto help_btn = new wxButton(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
 	help_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(question));
 	help_btn->SetMaxClientSize(wxSize(40, 100));
 #endif
@@ -132,9 +135,57 @@ void QueryEditor::OnOpenHelp(wxCommandEvent &)
 	wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
 }
 
-wxBoxSizer *QueryEditor::MakeProperties(wxWindow *parent)
+wxWindow *QueryEditor::MakeProperties(wxWindow *parent)
 {
-	return nullptr;
+	auto property_box = new wxStaticBox(parent, wxID_ANY, _("File properties"));
+	auto categories = Property::get_categories();
+
+	if (categories.empty())
+	{
+		auto sizer = new wxBoxSizer(wxVERTICAL);
+		auto label = new wxStaticText(this, wxID_ANY, _("The current project doesn't have any property."));
+		label->SetForegroundColour(wxColor(100, 100, 100));
+		auto font = label->GetFont();
+		font.MakeBold();
+		label->SetFont(font);
+		sizer->AddStretchSpacer();
+		sizer->Add(label);
+		sizer->AddStretchSpacer();
+
+		return property_box;
+	}
+
+	auto sizer = new wxGridSizer(properties_per_row, 5, 5);
+
+	for (auto &category : categories)
+	{
+		const std::type_info *type;
+
+		if (Property::is_boolean(category))
+		{
+			type = &typeid(bool);
+		}
+		else if (Property::is_numeric(category))
+		{
+			type = &typeid(double);
+		}
+		else
+		{
+			type = &typeid(String);
+		}
+
+		auto prop = new PropertyCtrl(property_box, category, *type);
+		sizer->Add(prop, 1, wxEXPAND);
+
+//		if (++col == properties_per_row)
+//		{
+//			row++;
+//			col = 0;
+//		}
+	}
+	property_box->SetSizer(sizer);
+
+	return property_box;
 }
 
 wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)

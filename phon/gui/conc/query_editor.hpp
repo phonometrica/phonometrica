@@ -28,6 +28,7 @@
 #include <wx/choice.h>
 #include <wx/panel.h>
 #include <phon/gui/check_list_box.hpp>
+#include <phon/gui/property_ctrl.hpp>
 #include <phon/application/conc/query.hpp>
 
 namespace phonometrica {
@@ -52,7 +53,7 @@ protected:
 
 	virtual wxPanel *MakeSearchPanel(wxWindow *parent) = 0;
 
-	wxBoxSizer *MakeProperties(wxWindow *parent);
+	wxWindow *MakeProperties(wxWindow *parent);
 
 	wxBoxSizer *MakeButtons(wxWindow *parent);
 
@@ -86,7 +87,11 @@ protected:
 
 	wxButton *save_btn, *save_as_btn;
 
+	Array<PropertyCtrl*> properties;
+
 	bool prepared = false;
+
+	int properties_per_row = 0;
 
 	static int id;
 };

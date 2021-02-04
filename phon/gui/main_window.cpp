@@ -1556,7 +1556,8 @@ void MainWindow::EditQuery(const AutoQuery &q)
 	{
 		TextQueryEditor editor(this, downcast<TextQuery>(q));
 		editor.Prepare();
-		editor.SetSize(FromDIP(wxSize(1000, 700)));
+		editor.Fit();
+		//editor.SetSize(FromDIP(wxSize(1100, 1000)));
 
 		if (editor.ShowModal() == wxID_OK)
 		{

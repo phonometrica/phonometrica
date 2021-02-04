@@ -24,32 +24,32 @@
 
 #include <wx/panel.h>
 #include <wx/choice.h>
-#include <wx/spinbutt.h>
 #include <wx/srchctrl.h>
 #include <wx/textctrl.h>
-#include <wx/radiobut.h>
 #include <phon/application/conc/constraint.hpp>
 
 namespace phonometrica {
 
 struct ConstraintCtrl final : public wxPanel
 {
-	explicit ConstraintCtrl(wxWindow *parent, int style = 0);
+	explicit ConstraintCtrl(wxWindow *parent, int index, bool enable_relation);
 
-	// Used to select whether we use layer indices or layer names
-	wxChoice *location_selector;
+	void EnableRelation(bool value);
+
+	bool UsesRegex() const;
+
+	bool IsCaseSensitive() const;
 
 	// Displays the layer index or name pattern
 	wxTextCtrl *layer_ctrl;
-
-	// Used to choose the layer index
-	wxSpinButton *layer_spin;
 
 	// Search field
 	wxSearchCtrl *search_ctrl;
 
 	// Select search operator (in case of a complex query).
-	wxChoice *operator_selector;
+	wxChoice *relation_selector;
+
+	wxMenuItem *case_entry, *regex_entry;
 };
 
 } // namespace phonometrica

@@ -13,58 +13,64 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 01/02/2021                                                                                                 *
+ * Created: 03/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Editor for text concordances in annotations.                                                               *
+ * Purpose: display a property in a query editor.                                                                      *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_TEXT_QUERY_EDITOR_HPP
-#define PHONOMETRICA_TEXT_QUERY_EDITOR_HPP
+#ifndef PHONOMETRICA_PROPERTYCTRL_HPP
+#define PHONOMETRICA_PROPERTYCTRL_HPP
 
-#include <wx/radiobox.h>
-#include <wx/spinctrl.h>
-#include <phon/gui/conc/query_editor.hpp>
-#include <phon/gui/conc/constraint_ctrl.hpp>
-#include <phon/application/conc/text_query.hpp>
+#include <optional>
+#include <wx/panel.h>
+#include <wx/stattext.h>
+#include <wx/combobox.h>
+#include <wx/textctrl.h>
+#include <wx/checklst.h>
+#include <phon/application/property.hpp>
 
 namespace phonometrica {
 
-class TextQueryEditor final : public QueryEditor
+enum class Trilean
+{
+    False,
+    True,
+    Both
+};
+
+
+class PropertyCtrl final : public wxPanel
 {
 public:
+    PropertyCtrl(wxWindow *parent, const String &category, const std::type_info &type);
 
-	explicit TextQueryEditor(wxWindow *parent);
+    const std::type_info &GetType() const;
 
-	explicit TextQueryEditor(wxWindow *parent, AutoTextQuery q);
+    std::optional<bool> GetBoolean() const;
 
-	AutoQuery GetQuery() const override;
+    std::pair<double, double> GetNumericValue() const;
+
+    Array<String> GetTextValues() const;
+
+    bool HasSelection() const;
 
 private:
 
-	wxPanel *MakeSearchPanel(wxWindow *parent) override;
+	void OnCheckAllItems(wxCommandEvent &);
 
-	void LoadQuery() override;
+    const std::type_info &type;
 
-	void ParseQuery() override;
+    union
+    {
+        wxCheckListBox *checklist;
+        wxComboBox *combobox;
+    };
 
-	void OnAddConstraint(wxCommandEvent &);
-
-	void OnRemoveConstraint(wxCommandEvent &);
-
-	wxBoxSizer *constraint_sizer;
-
-	wxButton *add_constraint_btn, *remove_constraint_btn;
-
-	wxStaticBox *constraint_box;
-
-	AutoTextQuery query;
-
-	Array<ConstraintCtrl*> constraints;
+	wxTextCtrl *entry1 = nullptr, *entry2 = nullptr;
 };
+
 
 } // namespace phonometrica
 
-
-
-#endif // PHONOMETRICA_TEXT_QUERY_EDITOR_HPP
+#endif // PHONOMETRICA_PROPERTYCTRL_HPP

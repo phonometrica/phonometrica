@@ -158,9 +158,9 @@ bool NumericMetaConstraint::check_value(double num) const
 			return num >= value.first;
 		case Operator::Range:
 			return num >= value.first && num <= value.second;
+		default:
+			throw error("Invalid operator for numeric meta-constraint");
 	}
-
-	return false;
 }
 
 void NumericMetaConstraint::to_xml(xml_node node)
@@ -202,9 +202,9 @@ const char * NumericMetaConstraint::op_to_name(NumericMetaConstraint::Operator o
 			return "ge";
 		case Operator::Range:
 			return "in";
+		default:
+			throw error("Invalid operator for numeric meta-constraint");
 	}
-
-	throw error("Invalid operator for numeric meta-constraint");
 }
 
 NumericMetaConstraint::Operator NumericMetaConstraint::name_to_op(std::string_view name)

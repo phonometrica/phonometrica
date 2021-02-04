@@ -21,35 +21,30 @@
 
 #include <wx/sizer.h>
 #include <wx/menu.h>
+#include <wx/stattext.h>
 #include <phon/gui/conc/constraint_ctrl.hpp>
 
 namespace phonometrica {
 
-ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int style) :
+ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation) :
 	wxPanel(parent, wxID_ANY)
 {
-	wxArrayString choices;
-	wxSize size(-1, 30);
-	choices.Add("Layer index");
-	choices.Add("Layer name (regex)");
-	location_selector = new wxChoice(this, wxID_ANY, wxDefaultPosition, size, choices);
-	location_selector->SetSelection(0);
-	layer_ctrl = new wxTextCtrl(this, wxID_ANY, _("any"), wxDefaultPosition, size);
-//	auto height = layer_ctrl->GetSize().GetHeight();
-	//location_selector->SetMaxSize(wxSize(-1, height));
-	location_selector->Disable();
-	layer_spin = new wxSpinButton(this, wxID_ANY, wxDefaultPosition, size, wxSP_VERTICAL);
-	layer_spin->SetRange(0, 1000);
-	layer_spin->SetValue(0);
+	wxSize size(-1, 30); // ensure all the controls have the same height
+	layer_ctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(150, size.GetHeight()));
+	layer_ctrl->SetValue(_("index or pattern"));
+	layer_ctrl->SetForegroundColour(wxColor(150,150,150));
+	layer_ctrl->SetToolTip(_("Leave this field empty to search anywhere, type in the index of a specific layer, or use a regular expression "
+						  "to match a layer's name against"));
 	search_ctrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
 	search_ctrl->ShowCancelButton(true);
 	search_ctrl->SetDescriptiveText(_("Search text or pattern"));
+	search_ctrl->SetToolTip(_("Search plain text or a regular expression (click on the magnifying glass to change search options)"));
 	auto menu = new wxMenu;
 	auto regex_id = wxNewId();
-	auto regex_entry = menu->AppendCheckItem(regex_id, _("Use regular expressions"));
+	regex_entry = menu->AppendCheckItem(regex_id, _("Use regular expressions"));
 	regex_entry->Check();
 	auto case_id = wxNewId();
-	auto case_entry = menu->AppendCheckItem(case_id, _("Case-sensitive"));
+	case_entry = menu->AppendCheckItem(case_id, _("Case-sensitive"));
 	search_ctrl->SetMenu(menu);
 
 	wxArrayString operators;
@@ -59,18 +54,42 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int style) :
 	operators.Add("is right-aligned with");
 	operators.Add("precedes");
 	operators.Add("follows");
-	operator_selector = new wxChoice(this, wxID_ANY, wxDefaultPosition, size, operators);
-	operator_selector->Disable();
+	relation_selector = new wxChoice(this, wxID_ANY, wxDefaultPosition, size, operators);
+	relation_selector->Enable(enable_relation);
+	if (enable_relation) {
+		relation_selector->SetSelection(0);
+	}
+	relation_selector->SetToolTip(_("Relation to the following constraint (if any)"));
 
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	auto rb = new wxRadioButton(this, wxID_ANY, wxString(), wxDefaultPosition, wxDefaultSize, style);
-	rb->SetValue(style != 0);
-	sizer->Add(rb, 0, wxLEFT|wxALIGN_CENTER, 5);
-	sizer->Add(location_selector, 0, wxLEFT|wxALIGN_CENTER, 5);
-	sizer->Add(layer_ctrl, 0, wxLEFT|wxTOP|wxALIGN_CENTER, 5);
-	sizer->Add(layer_spin, 0, wxALIGN_CENTER, 0);
-	sizer->Add(search_ctrl, 1, wxEXPAND|wxLEFT|wxTOP|wxBOTTOM, 10);
-	sizer->Add(operator_selector, 0, wxALL|wxALIGN_CENTER, 10);
+
+	auto label = wxString::Format("%d", index);
+	auto num_text = new wxStaticText (this, wxID_ANY, label, wxDefaultPosition, wxSize(25, size.GetHeight()));
+	auto font = num_text->GetFont();
+	font.MakeBold();
+	num_text->SetFont(font);
+	sizer->Add(num_text, 0, wxLEFT|wxTOP|wxALIGN_CENTER, 10);
+	auto txt = new wxStaticText(this, wxID_ANY, _("Layer:"), wxDefaultPosition, size);
+	sizer->Add(txt, 0, wxTOP|wxALIGN_CENTER, 10);
+	sizer->Add(layer_ctrl, 0, wxLEFT|wxTOP, 10);
+	sizer->Add(search_ctrl, 1, wxLEFT|wxTOP|wxBOTTOM, 10);
+	sizer->Add(relation_selector, 0, wxLEFT | wxTOP | wxRIGHT, 10);
 	SetSizer(sizer);
+}
+
+void ConstraintCtrl::EnableRelation(bool value)
+{
+	relation_selector->SetSelection(value ? 0 : wxNOT_FOUND);
+	relation_selector->Enable(value);
+}
+
+bool ConstraintCtrl::UsesRegex() const
+{
+	return regex_entry->IsChecked();
+}
+
+bool ConstraintCtrl::IsCaseSensitive() const
+{
+	return case_entry->IsChecked();
 }
 } // namespace phonometrica
