@@ -31,7 +31,7 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 {
 #ifdef __WXGTK__
 	wxSize size(-1, 30); // ensure all the controls have the same height
-	wxSize layer_size = (150, size.GetHeight());
+	wxSize layer_size(150, size.GetHeight());
 #else
 	auto size = wxDefaultSize;
 	auto layer_size = size;

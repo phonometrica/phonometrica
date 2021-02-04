@@ -50,12 +50,20 @@ void QueryEditor::Prepare()
 	auto scrolled_window = new wxScrolledWindow(this);
 	auto scrolled_sizer = new wxBoxSizer(wxVERTICAL);
 
+#ifdef __WXGTK__
+	const int search_prop = 0;
+	const int prop = 0;
+#else
+	const int search_prop = 2;
+	const int prop = 1;
+#endif
+
 	scrolled_sizer->AddSpacer(5);
 	scrolled_sizer->Add(MakeHeader(scrolled_window), 0, wxEXPAND|wxALL, 10);
 	scrolled_sizer->AddSpacer(5);
-	scrolled_sizer->Add(MakeSearchPanel(scrolled_window), 2, wxEXPAND|wxALL, 0);
-	scrolled_sizer->Add(MakeFileSelector(scrolled_window), 1, wxEXPAND|wxALL, 0);
-	scrolled_sizer->Add(MakeProperties(scrolled_window), 1, wxEXPAND|wxALL, 10);
+	scrolled_sizer->Add(MakeSearchPanel(scrolled_window), search_prop, wxEXPAND|wxALL, 0);
+	scrolled_sizer->Add(MakeFileSelector(scrolled_window), prop, wxEXPAND|wxALL, 0);
+	scrolled_sizer->Add(MakeProperties(scrolled_window), prop, wxEXPAND|wxALL, 10);
 
 	auto buttons = MakeButtons(scrolled_window);
 	//scrolled_sizer->AddStretchSpacer();

@@ -124,11 +124,17 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	vsizer->AddSpacer(20);
 	context_box->SetSizer(vsizer);
 
-
+#ifdef __WXGTK__
+	const int con_prop = 0;
+	const int ctx_prop = 0;
+#else
+	const int con_prop = 2;
+	const int ctx_prop = 1;
+#endif
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(constraint_box, 2, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
-	sizer->Add(context_box, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
+	sizer->Add(constraint_box, con_prop, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
+	sizer->Add(context_box, ctx_prop, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	panel->SetSizer(sizer);
 
 	return panel;
