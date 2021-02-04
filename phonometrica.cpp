@@ -40,17 +40,24 @@ static void initialize(Runtime &rt)
 #if PHON_MACOS
 	using namespace filesystem;
 	auto old_settings = join(user_directory(), "Applications", "Phonometrica");
-	if (exists(old_settings))
+	auto new_settings = Settings::settings_directory();
+	auto new_settings_file = join(new_settings, "settings.phon");
+	if (exists(old_settings) && !exists(new_settings_file))
 	{
 		// Previous Qt-based version may have put some junk in ~/Library/Application Support
 		auto qt_path = join(user_directory(), "Library", "Application Support", "phonometrica");
 		auto webengine_path = join(qt_path, "QtWebEngine");
 		if (exists(qt_path) && exists(webengine_path))
 		{
-			remove_directory(qt_path);
+			remove_directory(qt_path, true);
 		}
-		auto new_settings = Settings::settings_directory();
-		filesystem::rename(old_settings, new_settings);
+
+		try {
+			filesystem::rename(old_settings, new_settings);
+		}
+		catch (...) {
+			// Hope for the best...
+		}
 	}
 #endif // PHON_MACOS
 

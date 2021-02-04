@@ -34,7 +34,7 @@ void CheckListBox::OnMouseOver(wxMouseEvent &e)
 	auto item = HitTest(e.GetPosition());
 	if (item != wxNOT_FOUND)
 	{
-		SetToolTip(m_tooltips.at(item));
+		SetToolTip(m_tooltips[item]);
 	}
 	e.Skip();
 }

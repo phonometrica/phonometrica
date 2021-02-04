@@ -282,7 +282,7 @@ bool remove_directory(const String &dir, bool recursive)
 
 	if (recursive)
 	{
-	    for (auto &name : list_directory(dir))
+	    for (auto &name : list_directory(dir, true))
 	    {
 	        auto path = join(dir, name);
 	        if (is_directory(path)) {
@@ -295,42 +295,40 @@ bool remove_directory(const String &dir, bool recursive)
         }
     }
 
-	bool has_error;
-
 #if PHON_WINDOWS
 	auto p = dir.to_wide();
-	has_error = RemoveDirectoryW((LPCWSTR)p.data()) == 0;
+	auto has_error = RemoveDirectoryW((LPCWSTR)p.data()) == 0;
 #else
 
-    clear_directory(dir);
+//    clear_directory(dir);
+//
+//    auto dirs = list_directory(dir, true);
+//    auto size = dirs.size();
+//
+//    for (intptr_t i = 1; i <= size; ++i)
+//    {
+//        String filename, path;
+//
+//        filename = dirs[i];
+//
+//        if (filename == "." || filename == "..")
+//        {
+//            continue;
+//        }
+//
+//        path = join(dir, filename);
+//
+//        if (is_directory(path))
+//        {
+//            remove_directory(path, recursive);
+//        }
+//        else
+//        {
+//            remove_file(path);
+//        }
+//    }
 
-    auto dirs = list_directory(dir, true);
-    auto size = dirs.size();
-
-    for (intptr_t i = 1; i <= size; ++i)
-    {
-        String filename, path;
-
-        filename = dirs[i];
-
-        if (filename == "." || filename == "..")
-        {
-            continue;
-        }
-
-        path = join(dir, filename);
-
-        if (is_directory(path))
-        {
-            remove_directory(path, recursive);
-        }
-        else
-        {
-            remove_file(path);
-        }
-    }
-
-	has_error = rmdir(dir.data()) != 0;
+	auto has_error = rmdir(dir.data()) != 0;
 #endif
 
 	if (has_error)
@@ -431,6 +429,10 @@ static void read_dir_entries(const String &path, std::function<void(String)> fun
 	{
 		while ((entry = readdir(dir)) != nullptr)
 		{
+			if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, ".."))
+			{
+				continue;
+			}
 			if (include_hidden || entry->d_name[0] != '.')
 			{
 				func(String(entry->d_name));
