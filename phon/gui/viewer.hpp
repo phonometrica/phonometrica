@@ -69,6 +69,8 @@ private:
 
 	void NewScript(const AutoScript &script);
 
+	void OnPageChanged(wxAuiNotebookEvent &);
+
 	// Used to set bindings.
 	MainWindow *main_window = nullptr;
 

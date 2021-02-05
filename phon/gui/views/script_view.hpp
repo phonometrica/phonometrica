@@ -42,7 +42,7 @@ public:
 
 	void AdjustFontSize() override;
 
-	String path() const override;
+	String GetPath() const override;
 
 	bool IsModified() const override;
 

@@ -105,7 +105,7 @@ void TextQuery::parse_metaconstraints_from_xml(xml_node root)
 			auto attr = node.attribute("operator");
 			auto op = DescMetaConstraint::name_to_op(attr.value());
 			String value = node.text().get();
-			add_metaconstraint(std::make_unique<DescMetaConstraint>(op, std::move(value)), false);
+			add_metaconstraint(std::make_shared<DescMetaConstraint>(op, std::move(value)), false);
 		}
 		else if (node.name() == str("FileSelection"))
 		{
@@ -418,6 +418,22 @@ void TextQuery::parse_options_from_xml(xml_node root)
 		}
 
 	}
+}
+
+AutoQuery TextQuery::clone() const
+{
+	auto copy = std::make_shared<TextQuery>(this->parent(), String());
+	copy->m_constraints = m_constraints;
+	copy->m_metaconstraints = m_metaconstraints;
+	copy->selected_annotations = selected_annotations;
+	copy->m_label = m_label;
+
+	copy->m_context = m_context;
+	copy->m_context_length = m_context_length;
+	copy->m_ref_constraint = m_ref_constraint;
+	copy->m_content_modified = true;
+
+	return copy;
 }
 
 } // namespace phonometrica

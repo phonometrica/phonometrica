@@ -624,6 +624,7 @@ void MainWindow::OnRestoreDefaultLayout(wxCommandEvent &)
 	console_item->Check(false);
 	info_item->Check(false);
 	project_item->Check(false);
+	info_panel->Layout();
 }
 
 void MainWindow::OnHideProject(wxCommandEvent &)
@@ -946,6 +947,9 @@ void MainWindow::LoadPlugin(const String &path)
 		delete menu;
 		throw;
 	}
+
+	auto import_dir = filesystem::join(path, "Scripts");
+	runtime.add_import_path(import_dir);
 }
 
 void MainWindow::OnRunScript(wxCommandEvent &)
@@ -1047,6 +1051,8 @@ void MainWindow::OnUninstallPlugin(wxCommandEvent &)
 void MainWindow::UninstallPlugin(int index, bool verbose)
 {
 	auto p = plugins[index];
+	auto import_dir = filesystem::join(p->path(), "Scripts");
+	runtime.remove_import_path(import_dir);
 	filesystem::remove(p->path());
 	String label = p->label();
 	plugins.remove_at(index);

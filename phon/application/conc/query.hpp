@@ -47,7 +47,7 @@ public:
 
 	~Query() override = default;
 
-	void add_metaconstraint(std::unique_ptr<MetaConstraint> m, bool mutate = true);
+	void add_metaconstraint(AutoMetaConstraint m, bool mutate = true);
 
 	void add_constraint(Constraint c, bool mutate = true);
 
@@ -71,13 +71,15 @@ public:
 
 	virtual bool is_intensity_query() const { return false; }
 
-	const Array<std::unique_ptr<MetaConstraint>> &metaconstraints() const { return m_metaconstraints; }
+	const Array<AutoMetaConstraint> &metaconstraints() const { return m_metaconstraints; }
 
 	const Array<AutoAnnotation> &selection() const { return selected_annotations; }
 
 	intptr_t constraint_count() const { return m_constraints.size(); }
 
 	const Constraint &get_constraint(intptr_t i) const { return m_constraints[i]; }
+
+	virtual std::shared_ptr<Query> clone() const = 0;
 
 protected:
 
@@ -86,7 +88,7 @@ protected:
 	bool filter_metadata(const VFile *file) const;
 
 	// Constraints on the metadata.
-	Array<std::unique_ptr<MetaConstraint>> m_metaconstraints;
+	Array<AutoMetaConstraint> m_metaconstraints;
 
 	// Constraints on the data
 	Array<Constraint> m_constraints;

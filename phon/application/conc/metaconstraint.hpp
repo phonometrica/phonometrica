@@ -40,6 +40,8 @@ struct MetaConstraint
 	virtual void to_xml(xml_node node) = 0;
 };
 
+using AutoMetaConstraint = std::shared_ptr<MetaConstraint>;
+
 //----------------------------------------------------------------------------------------------------------------------
 
 struct DescMetaConstraint final : public MetaConstraint

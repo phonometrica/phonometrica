@@ -252,6 +252,9 @@ wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)
 void QueryEditor::OnOk(wxCommandEvent &)
 {
 	ParseQuery();
+	if (GetQuery()->modified()) {
+		Project::updated();
+	}
 	EndModal(wxID_OK);
 }
 
@@ -269,7 +272,9 @@ void QueryEditor::OnSave(wxCommandEvent &e)
 	{
 		OnSaveAs(e);
 	}
-	Project::updated();
+	if (query->modified()) {
+		Project::updated();
+	}
 }
 
 void QueryEditor::OnSaveAs(wxCommandEvent &)

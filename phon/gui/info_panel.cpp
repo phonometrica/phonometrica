@@ -42,9 +42,11 @@ static inline wxFont MakeBold(wxFont font)
 
 
 InfoPanel::InfoPanel(Runtime &rt, wxWindow *parent) :
-		wxScrolledWindow(parent, -1), runtime(rt)
+		InfoPanelBase(parent, -1), runtime(rt)
 {
+#ifdef SCROLLABLE_INFO_PANEL
 	SetScrollRate(5, 10);
+#endif
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	auto header = new wxStaticText(this, wxID_ANY, _("Information"), wxDefaultPosition, wxDefaultSize);
 	header->SetForegroundColour(wxColor(75, 75, 75));

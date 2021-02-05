@@ -26,7 +26,6 @@
 #include <wx/msgdlg.h>
 #include <wx/textdlg.h>
 #include <wx/clipbrd.h>
-#include <wx/button.h>
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/project_manager.hpp>
 #include <phon/include/icons.hpp>
@@ -64,11 +63,21 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	search_ctrl->SetDescriptiveText(_("Search files"));
 	search_ctrl->SetToolTip(_("Find files in your project based on their name or metadata"));
 
+	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
+	hsizer->Add(main_label, 0, wxALIGN_CENTER);
+	hsizer->AddStretchSpacer();
+	menu_btn = new wxButton(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	menu_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(menu));
+	menu_btn->SetMaxSize(wxSize(30, 30));
+	menu_btn->SetToolTip(_("Show project menu"));
+	hsizer->Add(menu_btn, 0, wxRIGHT, 10);
+
+
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 #ifdef __WXGTK__
 	sizer->AddSpacer(2);
 #endif
-	sizer->Add(main_label, 0, wxEXPAND | wxTOP | wxLEFT, 8);
+	sizer->Add(hsizer, 0, wxEXPAND | wxLEFT, 8);
 	sizer->Add(tree, 10, wxEXPAND | wxTOP, 5);
 	sizer->Add(search_ctrl, 0, wxEXPAND|wxALL, 10);
 
@@ -115,6 +124,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &ProjectManager::OnRightClick, this);
 	Bind(wxEVT_TREE_ITEM_MIDDLE_CLICK, &ProjectManager::OnMiddleClick, this);
 	search_ctrl->Bind(wxEVT_TEXT, &ProjectManager::OnQuickSearch, this);
+	menu_btn->Bind(wxEVT_LEFT_DOWN, &ProjectManager::OnProjectContextMenu, this);
 #ifdef __WXMSW__
 	Bind(wxEVT_TREE_ITEM_GETTOOLTIP, &ProjectManager::OnShowToolTip, this);
 #endif
@@ -377,8 +387,12 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 			{
 				auto query = downcast<Query>(file);
 				auto edit_id = wxNewId();
-				menu->Append(edit_id, _("Edit query"));
+				menu->Append(edit_id, _("Edit"));
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { edit_query(query); }, edit_id);
+
+				auto dup_id = wxNewId();
+				menu->Append(dup_id, _("Duplicate"));
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { DuplicateQuery(query); }, dup_id);
 
 				auto rename_id = wxNewId();
 				menu->Append(rename_id, _("Rename..."));
@@ -422,9 +436,10 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 			}
 
 			auto save_id = wxNewId();
-			menu->Append(save_id, _("Save file"));
+			auto label = file->has_path() ? _("Save") : _("Save as...");
+			menu->Append(save_id, label);
 			menu->Enable(save_id, file->modified());
-			Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { file->save(); Project::updated(); }, save_id);
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { SaveFile(file); Project::updated(); }, save_id);
 			menu->AppendSeparator();
 
 			auto clip_id = wxNewId();
@@ -918,6 +933,23 @@ void ProjectManager::RenameQuery(const AutoQuery &query)
 	}
 }
 
+void ProjectManager::DuplicateQuery(const AutoQuery &query)
+{
+	auto label = query->label();
+	label.append(" (copy)");
+	String name = wxGetTextFromUser(_("New query name:"), _("Duplicate query..."), label);
+
+	if (!name.empty())
+	{
+		auto parent = query->parent();
+		if (!parent) parent = Project::get()->queries().get();
+		auto copy = query->clone();
+		copy->set_label(name, true);
+		parent->append(std::move(copy));
+		Project::updated();
+	}
+}
+
 void ProjectManager::OnQuickSearch(wxCommandEvent &e)
 {
 	auto project = Project::get();
@@ -935,6 +967,35 @@ void ProjectManager::OnQuickSearch(wxCommandEvent &e)
 	FillFolder(script_item, *project->scripts());
 	FillFolder(bookmark_item, *project->bookmarks());
 	tree->ExpandAll();
+}
+
+void ProjectManager::SaveFile(const std::shared_ptr<VFile> &file)
+{
+	if (!file->has_path())
+	{
+		FileDialog dlg(this, _("Save file..."), "", "Phonometrica files (*.*)|*.*",
+		               wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+
+		if (dlg.ShowModal() == wxID_CANCEL) {
+			return;
+		}
+		file->set_path(dlg.GetPath(), false);
+	}
+	file->save();
+	Project::updated();
+}
+
+void ProjectManager::OnProjectContextMenu(wxMouseEvent &e)
+{
+	auto menu = new wxMenu;
+	auto expand_entry = menu->Append(wxNewId(), _("Expand project"));
+	auto collapse_entry = menu->Append(wxNewId(), _("Collapse project"));
+	Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { tree->ExpandAll(); }, expand_entry->GetId());
+	Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { tree->CollapseAll(); }, collapse_entry->GetId());
+
+	auto pos =  menu_btn->GetPosition();
+	pos.y +=  menu_btn->GetSize().GetHeight();
+	PopupMenu(menu, pos);
 }
 
 #ifdef __WXMSW__

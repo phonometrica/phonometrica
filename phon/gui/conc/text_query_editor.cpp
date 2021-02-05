@@ -286,7 +286,7 @@ void TextQueryEditor::ParseQuery()
 	if (!desc_ctrl->IsEmpty() || desc_op_choice->GetSelection() != wxNOT_FOUND)
 	{
 		auto op = static_cast<DescMetaConstraint::Operator>(desc_op_choice->GetSelection());
-		auto mc = std::make_unique<DescMetaConstraint>(op, desc_ctrl->GetValue());
+		auto mc = std::make_shared<DescMetaConstraint>(op, desc_ctrl->GetValue());
 		query->add_metaconstraint(std::move(mc), true);
 	}
 
@@ -299,18 +299,18 @@ void TextQueryEditor::ParseQuery()
 		if (type == typeid(bool))
 		{
 			bool value = prop->GetBoolean();
-			query->add_metaconstraint(std::make_unique<BooleanMetaConstraint>(category, value));
+			query->add_metaconstraint(std::make_shared<BooleanMetaConstraint>(category, value));
 		}
 		else if (type == typeid(double))
 		{
 			auto value = prop->GetNumericValue();
 			auto op = static_cast<NumericMetaConstraint::Operator>(prop->GetOperator());
-			query->add_metaconstraint(std::make_unique<NumericMetaConstraint>(category, op, value));
+			query->add_metaconstraint(std::make_shared<NumericMetaConstraint>(category, op, value));
 		}
 		else
 		{
 			auto values = prop->GetTextValues();
-			query->add_metaconstraint(std::make_unique<TextMetaConstraint>(category, values));
+			query->add_metaconstraint(std::make_shared<TextMetaConstraint>(category, values));
 		}
 	}
 

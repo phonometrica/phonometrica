@@ -121,10 +121,26 @@ a Boolean as a second argument: if the value is ``true``, it will force reloadin
     local utils = import("utils", true)
 
 
+Distributing modules as plugins
+-------------------------------
+
+When Phonometrica loads a plugin, its ``Scripts`` directory is automatically added to the the search path for modules. This means that you can 
+put your own modules in this directory and access them from your own scripts, but it also means that other users will be able to load your module 
+using its base name (without the ``.phon`` extension). 
+
+In order to avoid conflicts with other modules, it is recommended to give them a unique name. You could for instance use a prefix which is 
+specific to your plugin. As an example, a utility module for a project named PFC could be named ``pfc-utils.phon``, and a user could load as follows:
+
+.. code:: phon
+
+    local utils = import("pfc-utils")
+
+
+
 Redistributing scripts
 ----------------------
 
-If you intend to redistribute a script, we strongly recommend that you adhere to the following guidelines:
+If you intend to redistribute a script or module, we strongly recommend that you adhere to the following guidelines:
 
 - unless you really need to define global variables, declarea all top-level variables as local so as not to pollute the global namespace
 - if your script is intended to be imported as a module, pack all the symbols you want to export in a ``Module`` object and return it at the end of your script

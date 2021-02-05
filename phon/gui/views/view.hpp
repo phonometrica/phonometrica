@@ -23,8 +23,8 @@
 #define PHONOMETRICA_VIEW_HPP
 
 #include <wx/panel.h>
-#include <phon/string.hpp>
 #include <phon/utils/signal.hpp>
+#include <phon/application/vfs.hpp>
 
 namespace phonometrica {
 
@@ -45,7 +45,7 @@ public:
 
 	virtual void AdjustFontSize() { }
 
-	virtual String path() const { return String(); }
+	virtual String GetPath() const { return String(); }
 
 	virtual bool IsModified() const = 0;
 
@@ -61,7 +61,7 @@ protected:
 
 	void UpdateTitle();
 
-	void AskImportFile(const String &path);
+	bool AskImportFile(const String &path);
 
 };
 

@@ -31,6 +31,7 @@
 #include <phon/file.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/utils/file_system.hpp>
+#include <phon/application/project.hpp>
 
 namespace phonometrica {
 
@@ -109,6 +110,8 @@ void ScriptView::SetupUi()
 
 void ScriptView::Save()
 {
+	auto project = Project::get();
+
 	if (!m_script->has_path())
 	{
 		FileDialog dlg(this, _("Save script as..."), "untitled.phon", "Phonometrica scripts (*.phon)|*.phon", wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
@@ -122,9 +125,15 @@ void ScriptView::Save()
 	m_toolbar->EnableTool(m_save_tool->GetId(), false);
 	UpdateTitle();
 
-	if (m_script->parent() == nullptr) {
-		AskImportFile(m_script->path());
+	if (m_script->parent() == nullptr)
+	{
+		// Update the script with the script created by the project if the file is imported.
+		if (AskImportFile(m_script->path())) {
+			m_script = downcast<Script>(project->get(m_script->path()));
+		}
 	}
+
+	SetToolTip(m_script->path());
 }
 
 void ScriptView::OnModification()
@@ -248,7 +257,7 @@ void ScriptView::AdjustFontSize()
 	m_ctrl->Layout();
 }
 
-String ScriptView::path() const
+String ScriptView::GetPath() const
 {
 	return m_script->path();
 }
@@ -267,6 +276,5 @@ wxString ScriptView::GetLabel() const
 {
 	return m_script->label();
 }
-
 
 } // namespace phonometrica

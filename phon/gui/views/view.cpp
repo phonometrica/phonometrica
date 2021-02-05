@@ -39,16 +39,20 @@ void View::SetTitle(const wxString &title)
 	viewer->SetPageText(viewer->GetSelection(), title);
 }
 
-void View::AskImportFile(const String &path)
+bool View::AskImportFile(const String &path)
 {
-	auto reply = ask_question(_("Would you like to import this annotation into the current project?"), _("Import file?"));
+	auto reply = ask_question(_("Would you like to import this file into the current project?"), _("Import file?"));
 
 	if (reply == wxYES)
 	{
 		auto project = Project::get();
 		project->import_file(path);
 		project->notify_update();
+
+		return true;
 	}
+
+	return false;
 }
 
 bool View::Finalize(bool autosave)

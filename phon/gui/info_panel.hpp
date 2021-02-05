@@ -23,8 +23,14 @@
 #ifndef PHONOMETRICA_INFO_PANEL_HPP
 #define PHONOMETRICA_INFO_PANEL_HPP
 
-#include <wx/simplebook.h>
+//#define SCROLLABLE_INFO_PANEL
+
+#ifdef SCROLLABLE_INFO_PANEL
 #include <wx/scrolwin.h>
+#else
+#include <wx/panel.h>
+#endif
+#include <wx/simplebook.h>
 #include <wx/sizer.h>
 #include <wx/button.h>
 #include <wx/choice.h>
@@ -36,8 +42,13 @@
 
 namespace phonometrica {
 
+#ifdef SCROLLABLE_INFO_PANEL
+using InfoPanelBase = wxScrolledWindow;
+#else
+using InfoPanelBase = wxPanel;
+#endif
 
-class InfoPanel final : public wxScrolledWindow
+class InfoPanel final : public InfoPanelBase
 {
 public:
 

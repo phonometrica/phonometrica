@@ -29,7 +29,7 @@ Query::Query(VFolder *parent, String path) :
 
 }
 
-void Query::add_metaconstraint(std::unique_ptr<MetaConstraint> m, bool mutate)
+void Query::add_metaconstraint(AutoMetaConstraint m, bool mutate)
 {
 	m_metaconstraints.append(std::move(m));
 	if (mutate) m_content_modified = true;

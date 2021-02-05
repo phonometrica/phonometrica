@@ -27,6 +27,7 @@
 #include <wx/treectrl.h>
 #include <wx/srchctrl.h>
 #include <wx/imaglist.h>
+#include <wx/button.h>
 #include <phon/runtime.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/signal.hpp>
@@ -121,7 +122,13 @@ private:
 
 	void RenameQuery(const AutoQuery &query);
 
+	void DuplicateQuery(const AutoQuery &query);
+
+	void SaveFile(const std::shared_ptr<VFile> &file);
+
 	void OnQuickSearch(wxCommandEvent &e);
+
+	void OnProjectContextMenu(wxMouseEvent &e);
 
 #ifdef __WXMSW__
 	void OnShowToolTip(wxTreeEvent &e);
@@ -134,6 +141,8 @@ private:
 	wxStaticText *main_label = nullptr;
 
 	wxTreeItemId root, corpus_item, query_item, script_item, data_item, bookmark_item;
+
+	wxButton *menu_btn;
 
 	int corpus_img, queries_img, datasets_img, scripts_img, bookmarks_img;
 	int annot_img, folder_img, bookmark_img, sound_img, document_img, query_img, script_img, dataset_img;

@@ -33,6 +33,7 @@ Viewer::Viewer(Runtime &rt, wxWindow *parent, MainWindow *win) :
 	SetArtProvider(new TabArtProvider());
 	Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSE, &Viewer::OnCloseView, this);
 	Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSED, &Viewer::OnViewClosed, this);
+	Bind(wxEVT_AUINOTEBOOK_PAGE_CHANGED, &Viewer::OnPageChanged, this);
 }
 
 void Viewer::NewScript()
@@ -82,7 +83,7 @@ void Viewer::OnViewFile(const std::shared_ptr<VFile> &file)
 {
 	for (size_t i = 0; i < GetPageCount(); i++)
 	{
-		if (GetView(i)->path() == file->path())
+		if (GetView(i)->GetPath() == file->path())
 		{
 			SetSelection(i);
 			return;
@@ -137,6 +138,12 @@ bool Viewer::SaveViews(bool autosave)
 	}
 
 	return result;
+}
+
+void Viewer::OnPageChanged(wxAuiNotebookEvent &e)
+{
+	int sel = e.GetSelection();
+	SetPageToolTip(sel, GetView(sel)->GetPath());
 }
 
 } // namespace phonometrica

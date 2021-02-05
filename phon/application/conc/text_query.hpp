@@ -56,6 +56,8 @@ public:
 
 	void set_reference_constraint(int value);
 
+	AutoQuery clone() const override;
+
 private:
 
 	void load() override;
