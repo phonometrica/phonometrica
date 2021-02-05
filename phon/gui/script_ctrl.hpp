@@ -45,6 +45,10 @@ public:
 
 	void InitializeFont();
 
+	void ShowError(intptr_t line_no);
+
+	void WriteNewLine();
+
 	Signal<> notify_modification;
 
 private:
@@ -52,6 +56,10 @@ private:
 	void OnCharAdded(wxStyledTextEvent &);
 
 	void OnChange(wxStyledTextEvent &);
+
+	int error_indicator = 0;
+
+	std::pair<int,int> error_selection;
 };
 
 

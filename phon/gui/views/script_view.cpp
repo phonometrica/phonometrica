@@ -149,6 +149,7 @@ void ScriptView::Run()
 	}
 	catch (RuntimeError &e)
 	{
+		m_ctrl->ShowError(e.line_no());
 		auto msg = utils::format("Error at line %\n", e.line_no());
 		console->ShowErrorMessage(msg);
 		console->ShowErrorMessage(e.what());
@@ -254,7 +255,7 @@ String ScriptView::path() const
 
 bool ScriptView::IsModified() const
 {
-	return m_script->modified() && !m_ctrl->IsEmpty();
+	return m_script->modified();
 }
 
 void ScriptView::DiscardChanges()

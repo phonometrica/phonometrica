@@ -337,7 +337,7 @@ bool VFolder::quick_search(const String &text) const
 		}
 	}
 
-	return label().contains(text);
+	return label().to_lower().contains(text);
 }
 
 

@@ -61,7 +61,7 @@ private:
 
 	void UpdateProject();
 
-	void FillFolder(wxTreeItemId item, VFolder &folder, const String &text = String());
+	void FillFolder(wxTreeItemId item, VFolder &folder);
 
 	void OnItemSelected(wxTreeEvent &);
 
@@ -141,6 +141,8 @@ private:
 	VNodeList dragged_files;
 
 	wxFont mono_font;
+
+	String search_string; // used for quick search
 
 	Runtime &runtime;
 };

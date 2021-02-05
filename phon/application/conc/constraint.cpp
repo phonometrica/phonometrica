@@ -28,8 +28,8 @@ void Constraint::to_xml(xml_node root)
 	auto node = root.append_child("Constraint");
 	node.append_attribute("operator").set_value(op_to_name(op));
 	auto layer_node = node.append_child("Layer");
-	layer_node.append_attribute("type").set_value(by_name ? "regex" : "index");
-	layer_node.append_child(node_pcdata).set_value(by_name ? layer_pattern.data() :String::convert(intptr_t(layer_index)).data());
+	layer_node.append_attribute("type").set_value(use_index() ? "index" : "regex");
+	layer_node.append_child(node_pcdata).set_value(use_index() ? String::convert(intptr_t(layer_index)).data() : layer_pattern.data());
 	auto target_node = node.append_child("Target");
 	target_node.append_attribute("regex").set_value(use_regex);
 	target_node.append_attribute("case_sensitive").set_value(case_sensitive);
@@ -77,5 +77,21 @@ const char *Constraint::op_to_name(Operator op)
 		default:
 			throw error("Invalid constraint operator");
 	}
+}
+
+Constraint &Constraint::operator=(Constraint other) noexcept
+{
+	swap(other);
+	return *this;
+}
+
+void Constraint::swap(Constraint &other) noexcept
+{
+	std::swap(this->op, other.op);
+	std::swap(this->use_regex, other.use_regex);
+	std::swap(this->case_sensitive, other.case_sensitive);
+	std::swap(this->layer_index, other.layer_index);
+	std::swap(this->layer_pattern, other.layer_pattern);
+	std::swap(this->target, other.target);
 }
 } // namespace phonometrica

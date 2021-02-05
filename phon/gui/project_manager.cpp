@@ -176,7 +176,7 @@ void ProjectManager::ClearProject()
 	tree->DeleteChildren(bookmark_item);
 }
 
-void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder, const String &text)
+void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
 {
 	for (int i = 1; i <= folder.size(); i++)
 	{
@@ -184,7 +184,7 @@ void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder, const String
 		auto &node = folder.get(i);
 
 		// Dismiss files and folders that don't match the quick search string.
-		if (!text.empty() && !node->quick_search(text)) {
+		if (!search_string.empty() && !node->quick_search(search_string)) {
 			continue;
 		}
 
@@ -193,7 +193,7 @@ void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder, const String
 			auto &subfolder = dynamic_cast<VFolder&>(*node);
 			auto data = new ItemData(&subfolder);
 			child = tree->AppendItem(item, node->label(), folder_img, folder_img, data);
-			FillFolder(child, subfolder, text);
+			FillFolder(child, subfolder);
 		}
 		else if (node->is_bookmark())
 		{
@@ -231,7 +231,9 @@ void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder, const String
 				img = document_img;
 			}
 			auto data = new ItemData(node.get());
-			child = tree->AppendItem(item, node->label(), img, img, data);
+			auto label = node->label();
+			if (node->modified()) label.append('*');
+			child = tree->AppendItem(item, label, img, img, data);
 		}
 		tree->SetItemFont(child, mono_font);
 	}
@@ -924,14 +926,14 @@ void ProjectManager::OnQuickSearch(wxCommandEvent &e)
 	}
 
 	String text = search_ctrl->GetValue();
-	text = text.to_lower();
+	search_string = text.to_lower();
 	ClearProject();
 
-	FillFolder(corpus_item, *project->corpus(), text);
-	FillFolder(data_item, *project->data(), text);
-	FillFolder(query_item, *project->queries(), text);
-	FillFolder(script_item, *project->scripts(), text);
-	FillFolder(bookmark_item, *project->bookmarks(), text);
+	FillFolder(corpus_item, *project->corpus());
+	FillFolder(data_item, *project->data());
+	FillFolder(query_item, *project->queries());
+	FillFolder(script_item, *project->scripts());
+	FillFolder(bookmark_item, *project->bookmarks());
 	tree->ExpandAll();
 }
 

@@ -33,9 +33,14 @@ class Query : public VFile
 {
 public:
 
-	enum class DescriptionOperator
+	enum class Type
 	{
-
+		Text      = 1,
+		Formant   = 2,
+		Pitch     = 4,
+		Intensity = 8,
+		Duration  = 16,
+		Acoustic  = Formant|Pitch|Intensity|Duration
 	};
 
 	Query(VFolder *parent, String path);
@@ -68,9 +73,11 @@ public:
 
 	const Array<std::unique_ptr<MetaConstraint>> &metaconstraints() const { return m_metaconstraints; }
 
-	const Array<Constraint> &constraints() const { return m_constraints; }
-
 	const Array<AutoAnnotation> &selection() const { return selected_annotations; }
+
+	intptr_t constraint_count() const { return m_constraints.size(); }
+
+	const Constraint &get_constraint(intptr_t i) const { return m_constraints[i]; }
 
 protected:
 

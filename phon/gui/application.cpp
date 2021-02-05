@@ -64,19 +64,25 @@ bool Application::OnExceptionInMainLoop()
 	{
 		return wxAppConsoleBase::OnExceptionInMainLoop();
 	}
+	catch (std::bad_alloc &e)
+	{
+		wxMessageBox(_("Out of memory!"), _("Memory error"), wxICON_ERROR);
+		return false;
+	}
 	catch (std::exception &e)
 	{
-		auto msg = utils::format("Phonometrica generated an error with the following message:\n%\n\n", e.what());
-		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+		auto msg = utils::format("Phonometrica generated an error with the following message:\n%\n\n"
+						   "This error shouldn't have propagated up to this point: Please contact the developers about this problem.", e.what());
+		wxMessageBox(msg, _("Unhandled error"), wxICON_ERROR);
 
 		return true;
 	}
 	catch (...)
 	{
-		auto msg = _("Phonometrica generated an unxpected error."
-			   "It is unable to recover from such errors and is going to crash :-(\n"
+		auto msg = _("Phonometrica generated a non-standard error."
+			   "It is unable to recover from such errors and is going to crash.\n"
 	            "Please contact the developers about this problem.");
-		wxMessageBox(msg, _("Unhandled error"), wxICON_ERROR);
+		wxMessageBox(msg, _("Critical error"), wxICON_ERROR);
 		return false;
 	}
 }

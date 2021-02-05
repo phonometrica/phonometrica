@@ -53,6 +53,10 @@ void ScriptControl::InitializeFont()
 
 void ScriptControl::SetSyntaxHighlighting()
 {
+	error_indicator = 8;
+	IndicatorSetStyle(error_indicator, wxSTC_INDIC_SQUIGGLE);
+	IndicatorSetForeground(error_indicator, *wxRED);
+
     wxColour comment_color(96, 96, 96);
 
     SetLexer(wxSTC_LEX_PYTHON);
@@ -101,10 +105,22 @@ void ScriptControl::HideMargin()
 void ScriptControl::OnChange(wxStyledTextEvent &)
 {
 	notify_modification();
+
+	for (int i = 0; i < GetLineCount(); ++i)
+	{
+		int start = PositionFromLine(i);
+		int end = GetLineEndPosition(i);
+		int len = end - start;
+		SetIndicatorCurrent(error_indicator);
+		IndicatorClearRange(start, len);
+	}
 }
 
 void ScriptControl::OnCharAdded(wxStyledTextEvent &event)
 {
+	static const wxString completion_list("Array assert Boolean break class continue debug do downto else elsif false field Float foreach function Function "
+			"inherits Integer json List local method Module null Number Object option pass phon print Regex repeat return "
+			"Set step String super Table then this throw true until while");
 	constexpr int NEW_LINE = 10;
 	static wxString then(" then"), do_(" do"), func("function "), func2("local function "), else_("else"), elsif("elsif"), tab("\t");
 
@@ -137,22 +153,33 @@ void ScriptControl::OnCharAdded(wxStyledTextEvent &event)
 		{
 			WriteText(tab);
 			pos++;
+			WriteNewLine();
+			for (int i = 0; i < indent; i++) {
+				WriteText(tab);
+			}
+			WriteText("end");
+			WriteNewLine();
 		}
-		SetInsertionPoint(pos);
+		else if (line.EndsWith(else_) || line.EndsWith(elsif))
+		{
+			WriteText(tab);
+			pos++;
+		}
+		//SetInsertionPoint(pos);
+		SetEmptySelection(pos);
 	}
+	else
+	{
+		// Find the word start
+		int current_pos = GetCurrentPos();
+		int start_pos = WordStartPosition(current_pos, true);
 
-//	wxStyledTextCtrl* stc = (wxStyledTextCtrl*)event.GetEventObject();
-//
-//	// Find the word start
-//	int currentPos = stc->GetCurrentPos();
-//	int wordStartPos = stc->WordStartPosition( currentPos, true );
-//
-//	// Display the autocompletion list
-//	int lenEntered = currentPos - wordStartPos;
-//	if (lenEntered > 0)
-//	{
-//		stc->AutoCompShow(lenEntered, "and break do else elsif end false for function if in local nil not or repeat return then true until while");
-//	}
+		// Display the autocompletion list
+		int word_len = current_pos - start_pos;
+		if (word_len > 0) {
+			AutoCompShow(word_len, completion_list);
+		}
+	}
 }
 
 std::pair<int, int> ScriptControl::GetSelectedLines() const
@@ -161,6 +188,25 @@ std::pair<int, int> ScriptControl::GetSelectedLines() const
 	int end = LineFromPosition(GetSelectionEnd());
 
 	return {start, end};
+}
+
+void ScriptControl::ShowError(intptr_t line_no)
+{
+	line_no--; // to base 0
+	int start = PositionFromLine(line_no);
+	int end = GetLineEndPosition(line_no);
+	int len = end - start;
+	SetIndicatorCurrent(error_indicator);
+	IndicatorFillRange(start, len);
+}
+
+void ScriptControl::WriteNewLine()
+{
+#ifdef __WXMSW__
+	WriteText("\r\n");
+#else
+	WriteText("\n");
+#endif
 }
 
 } // namespace phonometrica

@@ -41,26 +41,33 @@ struct Constraint final
 		None
 	};
 
+	Constraint() = default;
+	Constraint(const Constraint &) = default;
+	Constraint(Constraint &&) = default;
+
+	Constraint &operator=(Constraint other) noexcept;
+
+	void swap(Constraint &other) noexcept;
+
 	void to_xml(xml_node root);
 
 	static Operator name_to_op(std::string_view name);
 
 	static const char *op_to_name(Operator op);
 
+	bool use_index() const { return layer_index >= 0; }
+
 	// Relation with the previous constraint, if any.
-	Operator op;
+	Operator op = Operator::None;
 
 	// Use regular expression or plain text search.
-	bool use_regex;
+	bool use_regex = true;
 
 	// Whether the match is case-sensitive.
-	bool case_sensitive;
+	bool case_sensitive = false;
 
-	// If true, use the layer pattern, otherwise use the layer index.
-	bool by_name;
-
-	// Layer index, if using SearchOperator.
-	int layer_index;
+	// Layer index: if this is 0, we search everywhere; if it's a valid index, we use it, otherwise we use the layer's name.
+	int layer_index = -1;
 
 	// Pattern to match a layer's name against. The name must match the pattern exactly.
 	String layer_pattern;

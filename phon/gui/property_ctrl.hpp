@@ -42,7 +42,11 @@ public:
 
     bool GetBoolean() const;
 
+    void SetBoolean(bool value);
+
     std::pair<double, double> GetNumericValue() const;
+
+    void SetNumericValue(int op, std::pair<double,double> value);
 
     int GetOperator() const;
 
@@ -51,6 +55,8 @@ public:
     bool HasSelection() const;
 
 	const String &GetCategory() const;
+
+	void CheckValues(const Array<String> &values);
 
 	Signal<> modified;
 

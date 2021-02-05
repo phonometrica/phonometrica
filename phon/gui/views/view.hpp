@@ -24,6 +24,7 @@
 
 #include <wx/panel.h>
 #include <phon/string.hpp>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
@@ -52,15 +53,13 @@ public:
 
 	virtual wxString GetLabel() const = 0;
 
+	static Signal<> modified;
+
 protected:
 
 	void SetTitle(const wxString &title);
 
 	void UpdateTitle();
-
-	void MakeTitleModified();
-
-	void MakeTitleUnmodified();
 
 	void AskImportFile(const String &path);
 

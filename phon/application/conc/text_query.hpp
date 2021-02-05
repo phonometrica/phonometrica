@@ -62,9 +62,11 @@ private:
 
 	void write() override;
 
-	void metaconstraints_from_xml(xml_node node);
+	void parse_metaconstraints_from_xml(xml_node root);
 
-	void constraints_from_xml(xml_node node);
+	void parse_constraints_from_xml(xml_node root);
+
+	void parse_options_from_xml(xml_node root);
 
 	Context m_context = Context::KWIC;
 

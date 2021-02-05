@@ -291,7 +291,7 @@ void MainWindow::SetBindings()
 	project_manager->files_selected.connect(&InfoPanel::OnSetFileSelection, info_panel);
 	project_manager->execute_script.connect(&Console::RunScript, console);
 	project_manager->edit_query.connect(&MainWindow::EditQuery, this);
-
+	View::modified.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	auto project = Project::get();
 	project->notify_update.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	project->metadata_updated.connect(&ProjectManager::UpdateLabel, project_manager);
@@ -702,9 +702,30 @@ void MainWindow::OnAddFilesToProject(wxCommandEvent &)
 	auto project = Project::get();
 	project->clear_import_flag();
 
-	for (auto &path : paths) {
-		project->import_file(path);
+	String errors;
+
+	for (auto &path : paths)
+	{
+		try
+		{
+			project->import_file(path);
+		}
+		catch (std::exception &e)
+		{
+			errors.append("File ");
+			errors.append(String(path));
+			errors.append(":\n");
+			errors.append(e.what());
+			errors.append('\n');
+		}
 	}
+	if (!errors.empty())
+	{
+		wxString msg = _("The following error(s) occurred while importing files:\n");
+		msg.Append(errors);
+		wxMessageBox(msg, _("Import error"), wxICON_ERROR);
+	}
+
 	ProjectManager::CheckProjectImport();
 	Project::updated();
 	EnableSaveFile(true);
@@ -1533,7 +1554,7 @@ void MainWindow::OnFindInAnnotations(wxCommandEvent &)
 
 void MainWindow::OnMeasureFormants(wxCommandEvent &)
 {
-
+	wxMessageBox(_("Not implemented yet!"), _("Information"), wxICON_INFORMATION);
 }
 
 void MainWindow::OnEditLastQuery(wxCommandEvent &)
@@ -1554,8 +1575,7 @@ void MainWindow::EditQuery(const AutoQuery &q)
 	{
 		TextQueryEditor editor(this, downcast<TextQuery>(q));
 		editor.Prepare();
-		editor.Fit();
-		//editor.SetSize(FromDIP(wxSize(1100, 1000)));
+		editor.SetSize(FromDIP(wxSize(1000, 800)));
 
 		if (editor.ShowModal() == wxID_OK)
 		{

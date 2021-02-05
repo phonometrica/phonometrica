@@ -100,6 +100,7 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	auto ref_label = new wxStaticText(context_box, wxID_ANY, _("Reference constraint:"));
 	ref_spinctrl = new wxSpinCtrl(context_box, wxID_ANY, "1");
 	ref_spinctrl->SetToolTip(_("Select the constraint for which the context should be extracted"));
+	ref_spinctrl->SetRange(1, 1);
 
 	ctx_btn1->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent &) { context_spinctrl->Disable(); ref_spinctrl->Disable(); EnableSaving(true); });
 	ctx_btn2->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent &) { context_spinctrl->Disable(); ref_spinctrl->Enable(); EnableSaving(true); });
@@ -153,18 +154,75 @@ void TextQueryEditor::LoadQuery()
 		name_ctrl->ChangeValue(label);
 	}
 
+	// Load meta-constraints.
 	for (auto &mc : query->metaconstraints())
 	{
-		DescMetaConstraint *desc;
-
-		if ((desc = dynamic_cast<DescMetaConstraint*>(mc.get())))
+		if (auto desc = dynamic_cast<DescMetaConstraint*>(mc.get()))
 		{
 			int op = static_cast<int>(desc->op);
 			desc_op_choice->SetSelection(op);
 			desc_ctrl->ChangeValue(desc->value);
 		}
+		else if (auto cons = dynamic_cast<TextMetaConstraint*>(mc.get()))
+		{
+			for (auto box : properties)
+			{
+				if (box->GetCategory() == cons->category)
+				{
+					if (box->GetType() != typeid(String))
+					{
+						wxMessageBox(_("Invalid text property"), _("Invalid property"), wxICON_ERROR);
+					}
+					else
+					{
+						box->CheckValues(cons->values);
+						break;
+					}
+				}
+			}
+		}
+		else if (auto cons = dynamic_cast<NumericMetaConstraint*>(mc.get()))
+		{
+			for (auto box : properties)
+			{
+				if (box->GetCategory() == cons->category)
+				{
+					if (box->GetType() != typeid(double))
+					{
+						wxMessageBox(_("Invalid numeric property"), _("Invalid property"), wxICON_ERROR);
+					}
+					else
+					{
+						int sel = (cons->op == NumericMetaConstraint::Operator::None) ? -1 : static_cast<int>(cons->op);
+						box->SetNumericValue(sel, cons->value);
+					}
+				}
+			}
+		}
+		else if (auto cons = dynamic_cast<BooleanMetaConstraint*>(mc.get()))
+		{
+			for (auto box : properties)
+			{
+				if (box->GetCategory() == cons->category)
+				{
+					if (box->GetType() != typeid(bool))
+					{
+						wxMessageBox(_("Invalid Boolean property"), _("Invalid property"), wxICON_ERROR);
+					}
+					else
+					{
+						box->SetBoolean(cons->value);
+					}
+				}
+			}
+		}
+		else
+		{
+			wxMessageBox(_("Invalid property type: this should never happen!"), _("Invalid property"), wxICON_ERROR);
+		}
 	}
 
+	// Set file selection
 	for (auto &file : query->selection())
 	{
 		bool found = false;
@@ -182,6 +240,38 @@ void TextQueryEditor::LoadQuery()
 		{
 			auto msg = wxString::Format(_("I couldn't find the following file: %s"), file->path().data());
 			wxMessageBox(msg, _("Missing file"), wxICON_WARNING);
+		}
+	}
+
+	// Load constraints.
+	int count = (int)query->constraint_count();
+	for (int i = 1; i < count; i++)
+	{
+		wxCommandEvent e;
+		OnAddConstraint(e);
+	}
+	for (int i = 1; i <= count; i++)
+	{
+		constraints[i]->LoadConstraint(query->get_constraint(i));
+	}
+
+	// Context
+	switch (query->context())
+	{
+		case TextQuery::Context::Labels:
+		{
+			ctx_btn2->SetValue(true);
+			ref_spinctrl->SetValue(query->reference_constraint());
+		} break;
+		case TextQuery::Context::KWIC:
+		{
+			ctx_btn3->SetValue(true);
+			ref_spinctrl->SetValue(query->reference_constraint());
+			context_spinctrl->SetValue(query->context_length());
+		} break;
+		default:
+		{
+			ctx_btn1->SetValue(true);
 		}
 	}
 }
@@ -248,6 +338,12 @@ void TextQueryEditor::ParseQuery()
 		}
 	}
 	query->set_selection(std::move(annotations));
+
+	// Constraints
+	for (auto &ctrl : constraints)
+	{
+		query->add_constraint(ctrl->ParseConstraint());
+	}
 }
 
 void TextQueryEditor::OnAddConstraint(wxCommandEvent &)
@@ -258,6 +354,7 @@ void TextQueryEditor::OnAddConstraint(wxCommandEvent &)
 	constraints.last()->EnableRelation(true);
 	constraints.append(con);
 	remove_constraint_btn->Enable();
+	ref_spinctrl->SetRange(1, (int)constraints.size());
 }
 
 void TextQueryEditor::OnRemoveConstraint(wxCommandEvent &)
@@ -268,6 +365,7 @@ void TextQueryEditor::OnRemoveConstraint(wxCommandEvent &)
 	this->Layout();
 	constraints.last()->EnableRelation(false);
 	remove_constraint_btn->Enable(constraints.size() != 1);
+	ref_spinctrl->SetRange(1, (int)constraints.size());
 }
 
 } // namespace phonometrica

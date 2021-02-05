@@ -697,22 +697,32 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 	}
 	else if (ext == PHON_EXT_QUERY)
 	{
-//		VFolder *p = m_data.get();
-//
-//		if (static_cast<int>(type) & static_cast<int>(FileType::Query))
-//		{
-//			if (parent->toplevel() == p) {
-//				p = parent.get();
-//			}
-//		}
-//		else
-//		{
-//			return set_import_flag();
-//		}
-//
-//		auto query = std::make_shared<Query>(p, std::move(path));
-//		vfile = upcast<VFile>(query);
-//		p->append(vfile);
+		VFolder *p = m_queries.get();
+		AutoQuery query;
+
+		if (static_cast<int>(type) & static_cast<int>(FileType::Query))
+		{
+			if (parent->toplevel() == p) {
+				p = parent.get();
+			}
+		}
+		else
+		{
+			return set_import_flag();
+		}
+
+		auto query_type = get_query_type(path);
+		if (query_type == Query::Type::Text)
+		{
+			query = std::make_shared<TextQuery>(p, std::move(path));
+		}
+		else
+		{
+			throw error("Cannot parse query file: unsupported query type");
+		}
+
+		vfile = upcast<VFile>(query);
+		p->append(vfile);
 	}
 	else if (ext == ".csv")
 	{
@@ -754,18 +764,11 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 		p->append(vfile);
 //		trigger(script_loaded, dataset->class_name(), script);
 	}
-//	else if (ext == ".txt")
-//	{
-//	    auto doc = std::make_shared<Document>(parent.get(), std::move(path));
-//		vfile = upcast<VFile>(doc);
-//		parent->append(vfile);
-////		trigger(document_loaded, doc->class_name(), doc);
-//	}
 	else
 	{
 		return set_import_flag(); // Ignore unknown files
-	}
 
+	}
 	register_file(vfile->path(), vfile);
 
 	return true;
@@ -1483,7 +1486,46 @@ void Project::initialize_types(Runtime &rt)
 
 void Project::add_query(AutoQuery query)
 {
-	m_queries->append(query, true);
+	m_queries->append(std::move(query), true);
+}
+
+Query::Type Project::get_query_type(const String &path)
+{
+	xml_document doc;
+	xml_node root;
+
+	try
+	{
+		root = read_xml(doc, path);
+	}
+	catch (...)
+	{
+		throw error("Cannot open text query \"%\"", path);
+	}
+
+	if (root.name() != std::string_view("Phonometrica")) {
+		throw error("Invalid XML project root in %", path);
+	}
+
+	auto attr = root.attribute("class");
+
+	if (!attr) {
+		throw error("Missing class attribute in query file");
+	}
+	String klass = attr.value();
+
+	if (klass == "TextQuery")
+		return Query::Type::Text;
+	else if (klass == "FormantQuery")
+		return Query::Type::Formant;
+	else if (klass == "IntensityQuery")
+		return Query::Type::Intensity;
+	else if (klass == "Pitch")
+		return Query::Type::Pitch;
+	else if (klass == "DurationQuery")
+		return Query::Type::Duration;
+	else
+		throw error("Invalid class attribute in query file: %", klass);
 }
 
 } // namespace phonometrica

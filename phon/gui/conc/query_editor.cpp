@@ -74,6 +74,7 @@ void QueryEditor::Prepare()
 	scrolled_window->SetScrollRate(5, 5);
 	main_sizer->Add(scrolled_window, 1, wxEXPAND|wxALL, 0);
 	SetSizer(main_sizer);
+	LoadQuery();
 	prepared = true;
 }
 
@@ -108,8 +109,8 @@ wxBoxSizer *QueryEditor::MakeButtons(wxWindow *parent)
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	save_btn = new wxButton(parent, wxID_ANY, _("Save"));
 	save_as_btn = new wxButton(parent, wxID_ANY, _("Save as..."));
-	auto cancel_btn = new wxButton(parent, wxID_ANY, _("Cancel"));
-	auto ok_btn = new wxButton(parent, wxID_ANY, _("OK"));
+	auto cancel_btn = new wxButton(parent, wxID_CANCEL, _("Cancel"));
+	auto ok_btn = new wxButton(parent, wxID_OK, _("OK"));
 	sizer->Add(save_btn);
 	sizer->AddSpacer(5);
 	sizer->Add(save_as_btn);
@@ -241,8 +242,6 @@ wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)
 	desc_box->SetSizer(dummy_sizer);
 	sizer->Add(desc_box, 3, wxEXPAND|wxRIGHT, 10);
 
-	LoadQuery();
-
 	desc_ctrl->Bind(wxEVT_TEXT, &QueryEditor::OnQueryModified, this);
 	desc_op_choice->Bind(wxEVT_CHOICE, &QueryEditor::OnQueryModified, this);
 	file_list->Bind(wxEVT_CHECKLISTBOX, &QueryEditor::OnQueryModified, this);
@@ -263,16 +262,14 @@ void QueryEditor::OnCancel(wxCommandEvent &)
 
 void QueryEditor::OnSave(wxCommandEvent &e)
 {
+	ParseQuery();
 	auto query = GetQuery();
 
-	if (query)
-	{
-
-	}
-	else
+	if (!query->has_path())
 	{
 		OnSaveAs(e);
 	}
+	Project::updated();
 }
 
 void QueryEditor::OnSaveAs(wxCommandEvent &)
@@ -291,7 +288,6 @@ void QueryEditor::OnSaveAs(wxCommandEvent &)
 
 void QueryEditor::SaveQuery(const String &path)
 {
-	// FIXME check that this makes sense in terms of mutation
 	ParseQuery();
 	auto query = GetQuery();
 	query->set_path(path, true);

@@ -108,7 +108,8 @@ struct NumericMetaConstraint : public PropertyMetaConstraint
 		LessEqual,
 		Greater,
 		GreaterEqual,
-		Range
+		InclusiveRange,
+		ExclusiveRange
 	};
 
 	NumericMetaConstraint(const String &category, Operator op, const std::pair<double,double> &value) :
@@ -127,7 +128,7 @@ struct NumericMetaConstraint : public PropertyMetaConstraint
 
 	Operator op;
 
-	// The second member is only used by Range.
+	// The second member is only used by InclusiveRange.
 	std::pair<double,double> value;
 };
 

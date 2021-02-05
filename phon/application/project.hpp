@@ -215,6 +215,8 @@ private:
 
     bool set_import_flag() { m_import_flag = true; return false; }
 
+    static Query::Type get_query_type(const String &path);
+
     static AutoProject instance;
 
 	Runtime &rt;

@@ -26,6 +26,8 @@
 
 namespace phonometrica {
 
+Signal<> View::modified;
+
 View::View(wxWindow *parent) : wxPanel(parent)
 {
 
@@ -84,5 +86,6 @@ void View::UpdateTitle()
 		title.Append('*');
 	}
 	SetTitle(title);
+	modified();
 }
 } // namespace phonometrica

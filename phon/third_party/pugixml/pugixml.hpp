@@ -298,7 +298,7 @@ namespace pugi
 	class xpath_variable_set;
 	#endif
 
-	// Range-based for loop support
+	// InclusiveRange-based for loop support
 	template <typename It> class xml_object_range
 	{
 	public:
@@ -704,7 +704,7 @@ namespace pugi
 		attribute_iterator attributes_begin() const;
 		attribute_iterator attributes_end() const;
 
-		// Range-based for support
+		// InclusiveRange-based for support
 		xml_object_range<xml_node_iterator> children() const;
 		xml_object_range<xml_named_node_iterator> children(const char_t* name) const;
 		xml_object_range<xml_attribute_iterator> attributes() const;

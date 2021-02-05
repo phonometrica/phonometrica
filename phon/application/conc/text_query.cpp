@@ -38,6 +38,7 @@ void TextQuery::load()
 {
 	xml_document doc;
 	xml_node root;
+	using str = std::string_view;
 
 	try
 	{
@@ -48,13 +49,13 @@ void TextQuery::load()
 		throw error("Cannot open text query \"%\"", m_path);
 	}
 
-	if (root.name() != std::string_view("Phonometrica")) {
+	if (root.name() != str("Phonometrica")) {
 		throw error("Invalid XML project root in %", m_path);
 	}
 
 	auto attr = root.attribute("class");
 
-	if (!attr || attr.as_string() != std::string_view(class_name())) {
+	if (!attr || attr.as_string() != str(class_name())) {
 		throw error("Expected a text query, got a % file instead", attr.as_string());
 	}
 
@@ -68,39 +69,49 @@ void TextQuery::load()
 
 	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
-		if (node.name() == std::string_view("Metadata"))
+		if (node.name() == str("Metadata"))
 		{
 			metadata_from_xml(node);
 		}
-		else if (node.name() == std::string_view("MetaConstraints"))
+		else if (node.name() == str("MetaConstraints"))
 		{
-			metaconstraints_from_xml(node);
+			parse_metaconstraints_from_xml(node);
 		}
-		else if (node.name() == std::string_view("Constraints"))
+		else if (node.name() == str("Constraints"))
 		{
-			constraints_from_xml(node);
+			parse_constraints_from_xml(node);
+		}
+		else if (node.name() == str("Options"))
+		{
+			parse_options_from_xml(node);
+		}
+		else
+		{
+			throw error("Invalid node in text query: %", node.name());
 		}
 	}
 
 	m_loaded = true;
 }
 
-void TextQuery::metaconstraints_from_xml(xml_node root)
+void TextQuery::parse_metaconstraints_from_xml(xml_node root)
 {
+	using str = std::string_view;
+
 	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
-		if (node.name() == std::string_view("Description"))
+		if (node.name() == str("Description"))
 		{
 			auto attr = node.attribute("operator");
 			auto op = DescMetaConstraint::name_to_op(attr.value());
 			String value = node.text().get();
 			add_metaconstraint(std::make_unique<DescMetaConstraint>(op, std::move(value)), false);
 		}
-		else if (node.name() == std::string_view("FileSelection"))
+		else if (node.name() == str("FileSelection"))
 		{
 			for (auto subnode = node.first_child(); subnode; subnode = subnode.next_sibling())
 			{
-				if (subnode.name() != std::string_view("File")) {
+				if (subnode.name() != str("File")) {
 					throw error("Invalid XML node in text query file selection");
 				}
 				String path = subnode.text().get();
@@ -113,12 +124,153 @@ void TextQuery::metaconstraints_from_xml(xml_node root)
 				selected_annotations.append(std::move(annot));
 			}
 		}
+		else if (node.name() == str("Property"))
+		{
+			auto cat_attr = node.attribute("category");
+			if (!cat_attr) {
+				throw error("Missing category in text query property");
+			}
+			String category = cat_attr.value();
+			auto type_attr = node.attribute("type");
+			if (!type_attr) {
+				throw error("Missing type in text query property");
+			}
+			if (type_attr.value() == str("text"))
+			{
+				Array<String> values;
+				for (auto subnode = node.first_child(); subnode; subnode = subnode.next_sibling())
+				{
+					if (subnode.name() != str("Value")) {
+						throw error("Expected a Value node in text property");
+					}
+					values.append(subnode.text().get());
+				}
+				m_metaconstraints.append(std::make_unique<TextMetaConstraint>(category, std::move(values)));
+			}
+			else if (type_attr.value() == str("numeric"))
+			{
+				auto op_node = node.attribute("operator");
+				auto op = NumericMetaConstraint::name_to_op(op_node.value());
+				auto value = std::make_pair<double,double>(0, 0);
+
+				auto first_node = node.first_child();
+				if (!first_node || first_node.name() != str("Value")) {
+					throw error("Expected a Value node in numeric property");
+				}
+				String first_value = first_node.text().get();
+				bool ok;
+				value.first = first_value.to_float(&ok);
+				if (!ok) {
+					throw error("Invalid numeric value in numeric property");
+				}
+				if (op == NumericMetaConstraint::Operator::InclusiveRange || op == NumericMetaConstraint::Operator::ExclusiveRange)
+				{
+					auto second_node = first_node.next_sibling();
+					if (!second_node || second_node.name() != str("Value")) {
+						throw error("Expected a second Value node in numeric property with range operator");
+					}
+					String second_value = second_node.text().get();
+					value.second = second_value.to_float(&ok);
+					if (!ok) {
+						throw error("Invalid numeric value in numeric property");
+					}
+				}
+				m_metaconstraints.append(std::make_unique<NumericMetaConstraint>(category, op, value));
+			}
+			else if (type_attr.value() == str("boolean"))
+			{
+				auto subnode = node.first_child();
+				if (!subnode || subnode.name() != str("Value")) {
+					throw error("Expected a Value node in Boolean property");
+				}
+				bool value = subnode.text().as_bool();
+				m_metaconstraints.append(std::make_unique<BooleanMetaConstraint>(category, value));
+			}
+			else
+			{
+				throw error("Invalid property type in text query: %", node.name());
+			}
+		}
+		else
+		{
+			throw error("Invalid metaconstraint in text query: %", node.name());
+		}
 	}
 }
 
-void TextQuery::constraints_from_xml(xml_node root)
+void TextQuery::parse_constraints_from_xml(xml_node root)
 {
+	using str = std::string_view;
 
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() != str("Constraint"))
+		{
+			throw error("Expected a Constraint node in text query, got: %", node.name());
+		}
+
+		auto op_attr = node.attribute("operator");
+		if (!op_attr) {
+			throw error("Missing operator in Constraint node");
+		}
+		auto op = Constraint::name_to_op(op_attr.value());
+		int layer_index = -1;
+		bool case_sensitive = false, use_regex = true;
+		String layer_pattern, target;
+
+		for (auto subnode = node.first_child(); subnode; subnode = subnode.next_sibling())
+		{
+			if (subnode.name() == str("Layer"))
+			{
+				auto attr = subnode.attribute("type");
+				if (!attr) {
+					throw error("Missing type attribute in Layer node");
+				}
+				if (attr.name() == str("index"))
+				{
+					String text = subnode.text().get();
+					bool ok;
+					layer_index = text.to_int(&ok);
+					if (!ok) {
+						throw error("Invalid index layer_index in Constraint node");
+					}
+				}
+				else
+				{
+					layer_pattern = subnode.text().get();
+				}
+			}
+			else if (subnode.name() == str("Target"))
+			{
+				auto attr = subnode.attribute("regex");
+				if (!attr) {
+					throw error("Missing regex attribute in Target Node");
+				}
+				use_regex = attr.value() == str("true");
+
+				attr = subnode.attribute("case_sensitive");
+				if (!attr) {
+					throw error("Missing case_sensitive attribute in Target Node");
+				}
+				case_sensitive = attr.value() == str("true");
+
+				target = subnode.text().get();
+			}
+			else
+			{
+				throw error("Invalid Constraint subnode in text query: %", subnode.name());
+			}
+		}
+
+		Constraint c;
+		c.case_sensitive = case_sensitive;
+		c.use_regex = use_regex;
+		c.op = op;
+		c.layer_index = layer_index;
+		c.layer_pattern = layer_pattern;
+		c.target = target;
+		m_constraints.append(std::move(c));
+	}
 }
 
 void TextQuery::write()
@@ -203,6 +355,69 @@ int TextQuery::reference_constraint() const
 void TextQuery::set_reference_constraint(int value)
 {
 	m_ref_constraint = value;
+}
+
+void TextQuery::parse_options_from_xml(xml_node root)
+{
+	using str = std::string_view;
+
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == str("Context"))
+		{
+			auto type_attr = node.attribute("type");
+			if (!type_attr) {
+				throw error("Missing type attribute in Context node");
+			}
+			auto type = str(type_attr.value());
+
+			if (type == str("none"))
+			{
+				m_context = Context::None;
+			}
+			else
+			{
+				auto ref_attr = node.attribute("ref");
+				if (!ref_attr) {
+					throw error("Missing ref attribute in Context node");
+				}
+
+				String text = ref_attr.value();
+				bool ok;
+				m_ref_constraint = (int) text.to_int(&ok);
+				if (!ok || m_ref_constraint < 0) {
+					throw error("Invalid index for reference constraint in Context node: %", text);
+				}
+
+				if (type == str("kwic"))
+				{
+					auto len_attr = node.attribute("length");
+					if (!len_attr) {
+						throw error("Missing length attribute in Context node");
+					}
+					text = len_attr.value();
+					m_context_length = (int) text.to_int(&ok);
+					if (!ok || m_context_length < 0) {
+						throw error("Invalid length in Context node: %", text);
+					}
+					m_context = Context::KWIC;
+				}
+				else if (type == str("labels"))
+				{
+					m_context = Context::Labels;
+				}
+				else
+				{
+					throw error("Invalid type in Context node: %", type);
+				}
+			}
+		}
+		else
+		{
+			throw error("Invalid option in text query: %", node.name());
+		}
+
+	}
 }
 
 } // namespace phonometrica

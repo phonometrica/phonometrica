@@ -19,6 +19,7 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <wx/msgdlg.h>
 #include <phon/gui/viewer.hpp>
 #include <phon/gui/tab_art_provider.hpp>
 #include <phon/utils/file_system.hpp>
@@ -91,6 +92,10 @@ void Viewer::OnViewFile(const std::shared_ptr<VFile> &file)
 	if (file->is_script())
 	{
 		NewScript(downcast<Script>(file));
+	}
+	else
+	{
+		wxMessageBox(_("Not implemented yet!"), _("Information"), wxICON_INFORMATION);
 	}
 }
 

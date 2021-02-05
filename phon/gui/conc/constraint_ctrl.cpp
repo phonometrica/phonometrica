@@ -39,7 +39,7 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	layer_ctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, layer_size);
 	layer_ctrl->SetToolTip(_("Leave this field empty to search anywhere, type in the index of a specific layer, or use a regular expression "
 						  "to match a layer's name against"));
-	SetDescriptiveText(false);
+	SetLayerDescriptiveText(false);
 	search_ctrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
 	search_ctrl->ShowCancelButton(true);
 	search_ctrl->SetDescriptiveText(_("Search text or pattern"));
@@ -69,20 +69,20 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 
 	auto label = wxString::Format("%d", index);
-	auto num_text = new wxStaticText (this, wxID_ANY, label, wxDefaultPosition, wxSize(25, size.GetHeight()));
+	auto num_text = new wxStaticText (this, wxID_ANY, label, wxDefaultPosition, wxSize(25, -1));
 	auto font = num_text->GetFont();
 	font.MakeBold();
 	num_text->SetFont(font);
 	sizer->Add(num_text, 0, wxLEFT|wxTOP|wxBOTTOM|wxALIGN_CENTER, 10);
-	auto txt = new wxStaticText(this, wxID_ANY, _("Layer:"), wxDefaultPosition, size);
+	auto txt = new wxStaticText(this, wxID_ANY, _("Layer:"));//, wxDefaultPosition, size);
 	sizer->Add(txt, 0, wxTOP|wxBOTTOM|wxALIGN_CENTER, 10);
 	sizer->Add(layer_ctrl, 0, wxLEFT|wxTOP|wxBOTTOM, 10);
 	sizer->Add(search_ctrl, 1, wxLEFT|wxTOP|wxBOTTOM, 10);
-	sizer->Add(relation_selector, 0, wxLEFT | wxTOP | wxRIGHT, 10);
+	sizer->Add(relation_selector, 0, wxLEFT | wxTOP | wxBOTTOM | wxRIGHT, 10);
 	SetSizer(sizer);
 
-	layer_ctrl->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent &) { SetDescriptiveText(true); });
-	layer_ctrl->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent &) { SetDescriptiveText(false); });
+	layer_ctrl->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent &) { SetLayerDescriptiveText(true); });
+	layer_ctrl->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent &) { SetLayerDescriptiveText(false); });
 }
 
 void ConstraintCtrl::EnableRelation(bool value)
@@ -101,7 +101,7 @@ bool ConstraintCtrl::IsCaseSensitive() const
 	return case_entry->IsChecked();
 }
 
-void ConstraintCtrl::SetDescriptiveText(bool focus)
+void ConstraintCtrl::SetLayerDescriptiveText(bool focus)
 {
 	if (focus)
 	{
@@ -116,5 +116,61 @@ void ConstraintCtrl::SetDescriptiveText(bool focus)
 		layer_ctrl->SetValue(_("Index or pattern"));
 		layer_ctrl->SetForegroundColour(wxColor(175,175,175));
 	}
+}
+
+Constraint ConstraintCtrl::ParseConstraint() const
+{
+	Constraint constraint;
+	constraint.case_sensitive = IsCaseSensitive();
+	constraint.use_regex = UsesRegex();
+	int sel = relation_selector->GetSelection();
+	constraint.op = (sel == wxNOT_FOUND) ? Constraint::Operator::None : static_cast<Constraint::Operator>(sel);
+	constraint.target = search_ctrl->GetValue();
+	String layer = layer_ctrl->GetValue();
+
+	if (layer.empty())
+	{
+		constraint.layer_index = 0;
+	}
+	else
+	{
+		bool ok;
+		intptr_t index = layer.to_int(&ok);
+		if (ok) {
+			constraint.layer_index = index;
+		}
+		else {
+			constraint.layer_pattern = layer;
+		}
+	}
+
+	return constraint;
+}
+
+void ConstraintCtrl::LoadConstraint(const Constraint &constraint)
+{
+	case_entry->Check(constraint.case_sensitive);
+	regex_entry->Check(constraint.use_regex);
+	int sel = (constraint.op == Constraint::Operator::None) ? wxNOT_FOUND : static_cast<int>(constraint.op);
+	relation_selector->SetSelection(sel);
+	if (!constraint.target.empty()) {
+		search_ctrl->ChangeValue(constraint.target);
+	}
+	if (constraint.use_index())
+	{
+		if (constraint.layer_index > 0) {
+			SetLayerText(wxString::Format("%d", constraint.layer_index));
+		}
+	}
+	else
+	{
+		SetLayerText(constraint.layer_pattern);
+	}
+}
+
+void ConstraintCtrl::SetLayerText(const wxString &text)
+{
+	layer_ctrl->SetForegroundColour(search_ctrl->GetForegroundColour());
+	layer_ctrl->SetValue(text);
 }
 } // namespace phonometrica

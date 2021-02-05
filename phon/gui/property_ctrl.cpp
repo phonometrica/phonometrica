@@ -25,6 +25,7 @@
 
 namespace phonometrica {
 
+static const int RANGE_OP = 7;
 
 PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::type_info &type) :
 		wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 200)), type(type), category(category)
@@ -61,7 +62,8 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
     	values.Add("less than or equal");
     	values.Add("greater than");
     	values.Add("greater than or equal");
-    	values.Add("in range");
+    	values.Add("inclusive range");
+    	values.Add("exclusive range");
 	    choicelist = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, values);
 		choicelist->SetSelection(0);
 
@@ -72,7 +74,7 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
         sizer->Add(entry1, 0, wxEXPAND | wxLEFT|wxRIGHT, 10);
         sizer->Add(entry2, 0, wxEXPAND | wxALL, 10);
 		sizer->AddStretchSpacer();
-		choicelist->Bind(wxEVT_CHOICE, [this](wxCommandEvent &e) { entry2->Enable(e.GetSelection() == 7); modified(); });
+		choicelist->Bind(wxEVT_CHOICE, [this](wxCommandEvent &e) { entry2->Enable(e.GetSelection() >= RANGE_OP); modified(); });
     }
     else
     {
@@ -125,7 +127,7 @@ std::pair<double, double> PropertyCtrl::GetNumericValue() const
     }
     result.first = tmp;
 
-    if (choicelist->GetSelection() == 7)
+    if (choicelist->GetSelection() >= RANGE_OP)
     {
     	if (!entry2->GetValue().ToCDouble(&tmp))
     	{
@@ -187,6 +189,38 @@ const String &PropertyCtrl::GetCategory() const
 int PropertyCtrl::GetOperator() const
 {
 	return choicelist->GetSelection();
+}
+
+void PropertyCtrl::CheckValues(const Array<String> &values)
+{
+	for (auto &v : values)
+	{
+		wxString value = v;
+		for (int i = 0; i < checklist->GetCount(); i++)
+		{
+			if (checklist->GetString(i) == value)
+			{
+				checklist->Check(i);
+				break;
+			}
+		}
+	}
+}
+
+void PropertyCtrl::SetNumericValue(int op, std::pair<double, double> value)
+{
+	choicelist->SetSelection(op);
+	entry1->ChangeValue(wxString::FromCDouble(value.first));
+	if (op >= RANGE_OP)
+	{
+		entry2->Enable();
+		entry2->ChangeValue(wxString::FromCDouble(value.second));
+	}
+}
+
+void PropertyCtrl::SetBoolean(bool value)
+{
+	choicelist->SetSelection(value ? 1 : 2);
 }
 
 

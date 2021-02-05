@@ -40,6 +40,10 @@ struct ConstraintCtrl final : public wxPanel
 
 	bool IsCaseSensitive() const;
 
+	Constraint ParseConstraint() const;
+
+	void LoadConstraint(const Constraint &constraint);
+
 	// Displays the layer index or name pattern
 	wxTextCtrl *layer_ctrl;
 
@@ -53,7 +57,9 @@ struct ConstraintCtrl final : public wxPanel
 
 private:
 
-	void SetDescriptiveText(bool focus);
+	void SetLayerDescriptiveText(bool focus);
+
+	void SetLayerText(const wxString &text);
 };
 
 } // namespace phonometrica
