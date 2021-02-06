@@ -75,9 +75,9 @@ void StartView::SetupUi(MainWindow *win)
 	sizer->Add(doc_btn,  1, wxEXPAND|wxALL, padding);
 	sizer->Add(pref_btn, 1, wxEXPAND|wxALL, padding);
 
-	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-	main_sizer->AddSpacer(50);
-	main_sizer->Add(sizer, 1, wxALIGN_CENTER);
+	auto current_sizer = new wxBoxSizer(wxVERTICAL);
+	current_sizer->AddSpacer(50);
+	current_sizer->Add(sizer, 1, wxALIGN_CENTER);
 #endif
 
 	SetSizer(main_sizer);

@@ -188,6 +188,8 @@ private:
 
 	void OnExportMetadata(wxCommandEvent &);
 
+	void OnExportAnnotations(wxCommandEvent &);
+
 	void OnFindInAnnotations(wxCommandEvent &);
 
 	void OnMeasureFormants(wxCommandEvent &);

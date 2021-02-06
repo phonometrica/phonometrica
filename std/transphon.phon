@@ -2,7 +2,7 @@
 # Copyright (C) 2019-2021 Léa Courdès-Murphy <lea.courdes.murphy@gmail.com>, Julien Eychenne <jeychenne@gmail.com>     #
 #                                                                                                                      #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public    #
-# License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any       #
+# License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any       #
 # later version.                                                                                                       #
 #                                                                                                                      #
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied   #
@@ -18,24 +18,6 @@
 #                                                                                                                      #
 ########################################################################################################################
 
-# Setup user interface as a JSON object. Keys don't need to be surrounded by double-quotes if the JSON is constructed
-# directly in a script.
-local default_output = join_path(get_user_directory(), "output.txt")
-local ui = {
-    "title": "TransPhon",
-    "width": 300,
-    "items": [
-        { "type": "label", "text": "Choose output file:" },
-        { "type": "file_selector", "name": "path", "title": "Select text file...", "default": default_output },
-        { "type": "label", "text": "Select layers separated by a comma, or leave empty to process all layers:" },
-        { "type": "field", "name": "layers", "default": "1"},
-        { "type": "label", "text": "Choose annotations:"},
-		# Annotations will be inserted here
-        { "type": "label", "text": "Choose event separator:"},
-        { "type": "radio_buttons", "name": "separator", "values": ["space", "new line", "none"] }    
-    ]
-}
-
 # Insert check list for annotations
 local labels = []
 local values = []
@@ -50,18 +32,32 @@ foreach annot in annotation_files do
 	append(labels, get_base_name(path))
 end
 
-# Create item and insert it at position 6 in the list of items
-local item = { "type": "check_list", "name": "annotations", "labels": labels, "values": values }
-insert(ui.items, 6, item)
+
+# Setup user interface as a JSON object. 
+local default_output = join_path(get_user_directory(), "output.txt")
+local ui = {
+    "title": "TransPhon",
+    "width": 500,
+	"height": 550,
+    "items": [
+        { "type": "label", "text": "Choose output file:" },
+        { "type": "file_selector", "name": "path", "title": "Select text file...", "default": default_output, "save": true },
+        { "type": "label", "text": "Select layers separated by a comma, or leave empty to process all layers:" },
+        { "type": "field", "name": "layers", "default": "1"},
+        { "type": "label", "text": "Choose annotations:"},
+		{ "type": "check_list", "name": "annotations", "labels": labels, "values": values },
+        { "type": "label", "text": "Choose event separator:"},
+        { "type": "radio_buttons", "name": "separator", "values": ["space", "new line", "none"] }    
+    ]
+}
+
 
 # `result` will contain a JSON object if the user pressed "OK", or null otherwise.
 local result = create_dialog(ui)
 
 # Process the result.
 if result then
-#################################################
-################################################# write in the file
-#################################################
+	### Write in the file
 
 	# Open the file in write mode
 	local path = result["path"]
@@ -103,23 +99,18 @@ if result then
 				local n = 0
 		
 				# Create a list depending on the layer chosen		
-				if result["layers"] == "" then
+				if is_empty(result["layers"]) then
 					local nlayer = annotation_files[j].nlayer
 					for l = 1 to nlayer do
 						append(tiers_list, l)
 					end
 				else	
-					# FIXME: rewrite this block with split?												
-					local regex_layer = Regex("[1-9]")
 					local nlayer_temp = result["layers"]
-					repeat
-						match(regex_layer, nlayer_temp)
-						append(tiers_list, int(group(regex_layer)))
-						nlayer_temp = nlayer_temp.remove(regex_layer.group())
-					until match(regex_layer, nlayer_temp) == false		
+					foreach l in split(nlayer_temp, ",") do
+						append(tiers_list, int(l))
+					end
 				end
-				
-				# loop starts
+
 				foreach tier in tiers_list do
 					
 					# Write the title of each layer in the output file
@@ -144,7 +135,7 @@ if result then
 							if sep == 1 then
 								write(output_file, text_in_interval & " ")
 							elsif sep == 2 then
-								write_line(toutput_file, ext_in_interval)				
+								write_line(output_file, ext_in_interval)				
 							elsif sep == 3 then
 								write(output_file, text_in_interval)
 							end
@@ -155,7 +146,6 @@ if result then
 					write_line(output_file, "")
 					write_line(output_file, "")
 				end
-
 			end	
 
 		end	
@@ -167,8 +157,8 @@ if result then
 	close(output_file)
 
 	local show = ask("Annotations have been written to '" & path & "'.\nWould you like to view the file?")
-	
+
 	if show then
-		view_text(path, get_base_name(path), 500)
+		view_text(path, get_base_name(path))
 	end
 end

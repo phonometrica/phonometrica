@@ -5,7 +5,7 @@ static const char *event_script = R"_(
 local bindings = {}
 local slot_id = 0
 
-new_event = function()
+function new_event()
 local id = slot_id
 slot_id += 1
 return "__evt_" & id

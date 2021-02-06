@@ -22,6 +22,7 @@
 #include <wx/checkbox.h>
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/property_ctrl.hpp>
+#include <phon/application/settings.hpp>
 
 namespace phonometrica {
 
@@ -88,6 +89,10 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
         checklist = new wxCheckListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, values);
         checklist->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &) { checklist->SetSelection(-1); });
         checklist->Bind(wxEVT_CHECKLISTBOX, [this](wxCommandEvent &) { modified(); });
+        auto pt = checklist->GetFont().GetPointSize();
+        auto font = Settings::get_mono_font();
+        font.SetPointSize(pt);
+        checklist->SetFont(font);
         sizer->Add(checklist, 1, wxEXPAND | wxALL, 10);
         sizer->AddSpacer(20);
         cb->Bind(wxEVT_CHECKBOX, &PropertyCtrl::OnCheckAllItems, this);
@@ -196,7 +201,7 @@ void PropertyCtrl::CheckValues(const Array<String> &values)
 	for (auto &v : values)
 	{
 		wxString value = v;
-		for (int i = 0; i < checklist->GetCount(); i++)
+		for (int i = 0; i < (int)checklist->GetCount(); i++)
 		{
 			if (checklist->GetString(i) == value)
 			{

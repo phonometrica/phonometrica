@@ -13,40 +13,100 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 02/02/2021                                                                                                 *
+ * Created: 06/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: Create a dialog based on a user-provided JSON object.                                                      *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#ifndef PHONOMETRICA_USER_DIALOG_HPP
+#define PHONOMETRICA_USER_DIALOG_HPP
+
+#include <wx/dialog.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/radiobox.h>
+#include <wx/combobox.h>
+#include <wx/textctrl.h>
+#include <wx/filepicker.h>
 #include <phon/gui/check_list_box.hpp>
+#include <phon/gui/sizer.hpp>
+#include <phon/runtime/json.hpp>
+#include <phon/runtime.hpp>
 
 namespace phonometrica {
 
-CheckListBox::CheckListBox(wxWindow *parent, const wxArrayString &choices, wxArrayString &tooltips) :
-	wxCheckListBox(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices), m_tooltips(tooltips)
+class UserDialog final : public wxDialog
 {
-	Bind(wxEVT_MOTION, &CheckListBox::OnMouseOver, this);
-}
+public:
 
-void CheckListBox::OnMouseOver(wxMouseEvent &e)
-{
-	auto item = HitTest(e.GetPosition());
-	if (item != wxNOT_FOUND)
-	{
-		SetToolTip(m_tooltips[item]);
-	}
-	e.Skip();
-}
+	UserDialog(wxWindow *parent, Runtime &rt, const Json &js);
 
-const wxString &CheckListBox::GetToolTip(size_t i) const
-{
-	return m_tooltips[i];
-}
+	UserDialog(wxWindow *parent, Runtime &rt, const String &str);
 
-String CheckListBox::GetJsonValue(size_t i) const
-{
-	return (i <= m_tooltips.size()) ? m_tooltips[i + 1] : GetString(i);
-}
+	Variant GetJson() const;
+
+private:
+
+	void AddButtons(bool yes_no);
+
+	void OnOk(wxCommandEvent &);
+
+	void OnCancel(wxCommandEvent &);
+
+	bool Parse(const Json &s);
+
+	void ParseItem(Json object);
+
+	String GetName(const Json &item);
+
+	void Add(wxWindow *win);
+
+	void Add(wxSizer *sizer);
+
+	void AddLabel(const Json &item);
+
+	void AddButton(const Json &item);
+
+	void AddCheckBox(const Json &item);
+
+	void AddComboBox(const Json &item);
+
+	void AddLineEdit(const Json &item);
+
+	void AddCheckList(const Json &item);
+
+	void AddRadioButtons(const Json &item);
+
+	void AddFileSelector(const Json &item);
+
+	void AddContainer(const Json &item);
+
+	void AddSpacing(const Json &item);
+
+	wxBoxSizer *current_sizer;
+
+	Dictionary<wxCheckBox*> checkboxes;
+
+	Dictionary<wxComboBox*> comboboxes;
+
+	Dictionary<wxTextCtrl*> fields;
+
+	Dictionary<CheckListBox*> checklists;
+
+	Dictionary<wxRadioBox*> radioboxes;
+
+	Dictionary<wxFilePickerCtrl*> filepickers;
+
+	int sizer_flag = wxEXPAND | wxLEFT | wxTOP | wxRIGHT;
+
+	int sizer_border = 10;
+
+	Runtime &runtime;
+};
 
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_USER_DIALOG_HPP

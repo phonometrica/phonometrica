@@ -28,12 +28,16 @@
 #include <phon/gui/main_window.hpp>
 #include <phon/gui/pref/preferences_editor.hpp>
 #include <phon/gui/dialog.hpp>
+#include <phon/gui/user_dialog.hpp>
+#include <phon/gui/text_viewer.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>
 #include <phon/utils/helpers.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/utils/zip.hpp>
+#include <phon/file.hpp>
+#include <phon/include/transphon_phon.hpp>
 
 namespace phonometrica {
 
@@ -251,6 +255,7 @@ void MainWindow::SetBindings()
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnEditPreferences, this, ID_FILE_PREFERENCES);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnImportMetadata, this, ID_FILE_IMPORT_METADATA);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExportMetadata, this, ID_FILE_EXPORT_METADATA);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExportAnnotations, this, ID_FILE_EXPORT_ANNOTATIONS);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseCurrentView, this, ID_FILE_CLOSE_VIEW);
 
 	// Analysis menu
@@ -744,6 +749,7 @@ void MainWindow::OnAddDirectoryToProject(wxCommandEvent &)
 	project->import_directory(dlg.GetPath());
 	ProjectManager::CheckProjectImport();
 	Project::updated();
+	EnableSaveFile(true);
 }
 
 void MainWindow::OnHelpScripting(wxCommandEvent &)
@@ -1330,6 +1336,32 @@ void MainWindow::SetShellFunctions()
 		return Variant();
 	};
 
+	auto create_dialog1 = [this](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto &s = cast<String>(args[0]);
+		UserDialog dlg(this, rt, s);
+		if (dlg.ShowModal() == wxID_OK) {
+			return dlg.GetJson();
+		}
+		return Variant();
+	};
+
+	auto create_dialog2 = [this](Runtime &rt, std::span<Variant> args) -> Variant {
+		Json js(args[0].resolve());
+		UserDialog dlg(this, rt, js);
+		if (dlg.ShowModal() == wxID_OK) {
+			return dlg.GetJson();
+		}
+		return Variant();
+	};
+
+	auto view_text = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto &path = cast<String>(args[0]);
+		auto &title = cast<String>(args[1]);
+		TextViewer viewer(this, title, File::read_all(path));
+		viewer.ShowModal();
+		return Variant();
+	};
+
 #if 0
 	auto view_annotation1 = [this](Runtime &, std::span<Variant> args) -> Variant {
 		auto &annot = cast<AutoAnnotation>(args[0]);
@@ -1353,25 +1385,6 @@ void MainWindow::SetShellFunctions()
 
 	auto export_metadata = [this](Runtime &, std::span<Variant> args) -> Variant {
 		info_panel->ExportMetadata();
-		return Variant();
-	};
-
-	// TODO: avoid using third-party json library to create dialogs
-	auto create_dialog1 = [this](Runtime &rt, std::span<Variant> args) -> Variant {
-		auto &s = cast<String>(args[0]);
-		UserDialog dlg(rt, s, this);
-		if (dlg.exec() == QDialog::Accepted) {
-			return rt.do_string(dlg.get());
-		}
-		return Variant();
-	};
-
-	auto create_dialog2 = [this](Runtime &rt, std::span<Variant> args) -> Variant {
-		auto s = args[0].to_string();
-		UserDialog dlg(rt, s, this);
-		if (dlg.exec() == QDialog::Accepted) {
-			return rt.do_string(dlg.get());
-		}
 		return Variant();
 	};
 
@@ -1451,8 +1464,7 @@ void MainWindow::SetShellFunctions()
 #endif
 
 #define CLS(T) get_class<T>()
-//	runtime.add_global("view_text", view_text1, { CLS(String), CLS(String) });
-//	runtime.add_global("view_text", view_text2, { CLS(String), CLS(String), CLS(intptr_t), CLS(intptr_t) });
+	runtime.add_global("view_text", view_text, { CLS(String), CLS(String) });
 	runtime.add_global("warning", warning1, { CLS(String) });
 	runtime.add_global("warning", warning2, { CLS(String), CLS(String) });
 	runtime.add_global("alert", alert1, { CLS(String) });
@@ -1468,6 +1480,8 @@ void MainWindow::SetShellFunctions()
 	runtime.add_global("get_input", input, { CLS(String), CLS(String), CLS(String) });
 	runtime.add_global("get_plugin_version", get_plugin_version, { CLS(String) });
 	runtime.add_global("get_plugin_resource", get_plugin_resource, { CLS(String), CLS(String) });
+	runtime.add_global("create_dialog", create_dialog1, { CLS(String) });
+	runtime.add_global("create_dialog", create_dialog2, { CLS(Table) });
 //	runtime.add_global("set_status", set_status1, { CLS(String) });
 //	runtime.add_global("set_status", set_status2, { CLS(String), CLS(intptr_t) });
 //	runtime.add_global("get_current_sound", get_current_sound, { });
@@ -1488,8 +1502,6 @@ void MainWindow::SetShellFunctions()
 //	phon.define(rt, "view_annotation", view_annotation2, { CLS(AutoAnnotation), CLS(intptr_t), CLS(double), CLS(double) });
 //	phon.define(rt, "import_metadata", import_metadata, { });
 //	phon.define(rt, "export_metadata", export_metadata, { });
-//	phon.define(rt, "create_dialog", create_dialog1, { CLS(String) });
-//	phon.define(rt, "create_dialog", create_dialog2, { CLS(Table) });
 //	phon.define(rt, "get_plugin_list", get_plugin_list, { });
 //	phon.define(rt, "transphon", transphon, { });
 #undef CLS
@@ -1588,6 +1600,11 @@ void MainWindow::EditQuery(const AutoQuery &q)
 			last_query = editor.GetQuery();
 		}
 	}
+}
+
+void MainWindow::OnExportAnnotations(wxCommandEvent &)
+{
+	run_script(runtime, transphon);
 }
 
 

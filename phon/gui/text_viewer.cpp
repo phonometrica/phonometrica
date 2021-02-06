@@ -28,7 +28,7 @@
 namespace phonometrica {
 
 TextViewer::TextViewer(wxWindow *parent, const wxString &title, const wxString &text) :
-	wxDialog(parent, wxID_ANY, title)
+	wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	auto ctrl = new wxRichTextCtrl(this);

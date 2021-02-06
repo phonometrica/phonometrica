@@ -33,7 +33,7 @@ CsvDialog::CsvDialog(wxWindow *parent, const wxString &title, bool read) :
 
 	int style = read ? wxFLP_DEFAULT_STYLE : wxFLP_SAVE|wxFLP_OVERWRITE_PROMPT;
 	sizer->Add(new wxStaticText(this, wxID_ANY, _("Choose file:")), 0, wxEXPAND|wxALL, 10);
-	file_picker = new wxFilePickerCtrl(this, wxID_ANY, wxEmptyString, "File:", "CSV (*.csv)|*.csv", wxDefaultPosition, wxDefaultSize, style);
+	file_picker = new wxFilePickerCtrl(this, wxID_ANY, wxEmptyString, "File:", "CSV (*.csv)|*.csv", wxDefaultPosition, wxDefaultSize, style|wxFLP_USE_TEXTCTRL);
 	sizer->Add(file_picker, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
 
 	wxArrayString choices;

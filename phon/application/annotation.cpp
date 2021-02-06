@@ -153,13 +153,15 @@ void Annotation::initialize(Runtime &rt)
     auto annot_get_field = [](Runtime &, std::span<Variant> args) -> Variant  {
         auto &annot = cast<AutoAnnotation>(args[0]);
         auto &key = cast<String>(args[1]);
-		annot->open();
-        
-        if (key == "path") 
+
+	    // Don't open the annotation yet if we just want its path
+	    if (key == "path")
         {
         	return annot->path();
         }
-        else if (key == "sound") 
+	    annot->open();
+
+        if (key == "sound")
         {
 			if (annot->has_sound()) {
 				return make_handle<AutoSound>(annot->sound());
@@ -351,7 +353,7 @@ void Annotation::initialize(Runtime &rt)
 	};
 	
 #define CLS(T) get_class<T>()
-	cls->add_method(rt.get_field_string, annot_get_field, { CLS(String) });
+	cls->add_method(rt.get_field_string, annot_get_field, { CLS(AutoAnnotation), CLS(String) });
 	rt.add_global("add_property", add_property, { CLS(AutoAnnotation), CLS(String), CLS(Object) });
 	rt.add_global("remove_property", remove_property, { CLS(AutoAnnotation), CLS(String) });
 	rt.add_global("get_property", get_property, { CLS(AutoAnnotation), CLS(String) });

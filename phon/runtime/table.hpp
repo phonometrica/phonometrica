@@ -48,6 +48,8 @@ public:
 
 	Storage &data() { return _map; }
 
+	const Storage &data() const { return _map; }
+
 	intptr_t size() const { return intptr_t(_map.size()); }
 
 	Variant &get(const Variant &key);

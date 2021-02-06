@@ -657,13 +657,21 @@ intptr_t Variant::to_integer() const
 			return intptr_t(raw_cast<double>(*this));
 		case Datatype::Boolean:
 			return intptr_t(raw_cast<bool>(*this));
+		case Datatype::String:
+		{
+			bool ok;
+			intptr_t result = raw_cast<String>(*this).to_int(&ok);
+			if (ok) {
+				return result;
+			}
+		} break;
 		case Datatype::Alias:
 			return resolve().to_integer();
 		default:
-			throw error("[Cast error] Value of type % cannot be converted to Integer", class_name());
+			break;
 	}
 
-	return 0;
+	throw error("[Cast error] Value of type % cannot be converted to Integer", class_name());
 }
 
 double Variant::to_float() const
@@ -675,13 +683,21 @@ double Variant::to_float() const
 			return get_number();
 		case Datatype::Boolean:
 			return double(raw_cast<bool>(*this));
+		case Datatype::String:
+		{
+			bool ok;
+			double result = raw_cast<String>(*this).to_float(&ok);
+			if (ok) {
+				return result;
+			}
+		} break;
 		case Datatype::Alias:
 			return resolve().to_float();
 		default:
-			throw error("[Cast error] Value of type % cannot be converted to Float", class_name());
+			break;
 	}
 
-	return 0.0;
+	throw error("[Cast error] Value of type % cannot be converted to Float", class_name());
 }
 
 String Variant::to_json(const String &str) const

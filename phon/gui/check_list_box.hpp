@@ -23,6 +23,7 @@
 #define PHONOMETRICA_CHECK_LIST_BOX_HPP
 
 #include <wx/checklst.h>
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
@@ -33,6 +34,8 @@ public:
 	CheckListBox(wxWindow *parent, const wxArrayString &choices, wxArrayString &tooltips);
 
 	const wxString &GetToolTip(size_t i) const;
+
+	String GetJsonValue(size_t i) const;
 
 protected:
 
