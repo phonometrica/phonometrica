@@ -132,8 +132,6 @@ void ScriptView::Save()
 			m_script = downcast<Script>(project->get(m_script->path()));
 		}
 	}
-
-	SetToolTip(m_script->path());
 }
 
 void ScriptView::OnModification()
@@ -168,6 +166,7 @@ void ScriptView::Run()
 		console->ShowErrorMessage(e.what());
 	}
 	console->AddPrompt();
+	console->ShowLastPosition();
 }
 
 void ScriptView::OnCommentSelection(wxCommandEvent &)

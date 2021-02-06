@@ -118,6 +118,8 @@ public:
 
 	String label() const;
 
+	void set_label(const String &value);
+
 	std::shared_ptr<VFile> get(const String &path);
 
     void register_file(const String &path, std::shared_ptr<VFile> file);
@@ -253,6 +255,9 @@ private:
 	Changelog m_changelog;
 
 	std::unique_ptr<MetaDatabase> m_database;
+
+	// Optional user-defined label for the project
+	String m_label;
 
 	// Flag which checks if the database already existed when it was opened. If the project is not saved, then we discard the database.
 	bool m_database_temp = true;

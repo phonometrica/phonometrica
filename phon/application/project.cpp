@@ -121,9 +121,6 @@ bool Project::has_path() const
 
 void Project::set_path(String value)
 {
-	if (!value.ends_with(PHON_EXT_PROJECT)) {
-		value.append(PHON_EXT_PROJECT);
-	}
 	filesystem::nativize(value);
 	m_directory = filesystem::directory_name(value);
 	m_path = std::move(value);
@@ -177,6 +174,11 @@ void Project::load()
 
 	if (!attr || attr.as_string() != class_tag) {
 	    throw error("[Input/Output] Expected a Project file, got a % file instead", attr.as_string());
+	}
+
+	attr = root.attribute("label");
+	if (attr) {
+		m_label = attr.value();
 	}
 
 	for (auto node = root.first_child(); node; node = node.next_sibling())
@@ -645,8 +647,10 @@ void Project::write()
 	assert(has_path());
 	xml_document doc;
 	auto root = doc.append_child("Phonometrica");
-	auto attr = root.append_attribute("class");
-    attr.set_value("Project");
+	root.append_attribute("class").set_value("Project");
+    if (!m_label.empty()) {
+    	root.append_attribute("label").set_value(m_label.data());
+    }
 
 	// Metadata must come first, so that we can get the metadata file's UUID.
 	auto meta_node = root.append_child("Metadata");
@@ -1146,6 +1150,10 @@ String Project::label() const
 {
 	using namespace filesystem;
 
+	if (!m_label.empty()) {
+		return String::format("Project %s", m_label.data());
+	}
+
     if (m_path.empty())
         return "Untitled project";
 
@@ -1526,6 +1534,12 @@ Query::Type Project::get_query_type(const String &path)
 		return Query::Type::Duration;
 	else
 		throw error("Invalid class attribute in query file: %", klass);
+}
+
+void Project::set_label(const String &value)
+{
+	m_label = value;
+	m_modified = true;
 }
 
 } // namespace phonometrica

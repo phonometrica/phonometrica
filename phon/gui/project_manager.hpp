@@ -130,6 +130,8 @@ private:
 
 	void OnProjectContextMenu(wxMouseEvent &e);
 
+	void OnRenameProject(wxCommandEvent &);
+
 #ifdef __WXMSW__
 	void OnShowToolTip(wxTreeEvent &e);
 #endif

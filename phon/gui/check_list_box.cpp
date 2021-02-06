@@ -46,7 +46,7 @@ const wxString &CheckListBox::GetToolTip(size_t i) const
 
 String CheckListBox::GetJsonValue(size_t i) const
 {
-	return (i <= m_tooltips.size()) ? m_tooltips[i + 1] : GetString(i);
+	return (i <= m_tooltips.size()) ? m_tooltips[i] : GetString(i);
 }
 
 } // namespace phonometrica

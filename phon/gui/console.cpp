@@ -217,4 +217,9 @@ void Console::RunCode(const String &code)
 	AddPrompt();
 }
 
+void Console::ShowLastPosition()
+{
+	text_ctrl->ShowPosition(text_ctrl->GetLastPosition());
+}
+
 } // namespace phonometrica

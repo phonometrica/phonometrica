@@ -46,6 +46,8 @@ public:
 
 	void RunScript(const String &path);
 
+	void ShowLastPosition();
+
 private:
 
 	void SetIO();

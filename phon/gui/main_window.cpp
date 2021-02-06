@@ -1548,12 +1548,15 @@ void MainWindow::SaveProject()
 
 void MainWindow::SaveProjectAs()
 {
-	FileDialog dlg(this, _("Save project as.."), "", "Phonometrica project (*.phon-projet)|*.phon-project",
+	FileDialog dlg(this, _("Save project as.."), "untitled.phon-project", "Phonometrica project (*.phon-projet)|*.phon-project",
 	               wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 	if (dlg.ShowModal() == wxID_CANCEL) {
 		return;
 	}
 	String path = dlg.GetPath();
+	if (!path.ends_with(PHON_EXT_PROJECT)) {
+		path.append(PHON_EXT_PROJECT);
+	}
 	Project::get()->save(path);
 	UpdateRecentProjects(path);
 }

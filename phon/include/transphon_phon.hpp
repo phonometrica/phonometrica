@@ -33,6 +33,7 @@ local ui = {
 local result = create_dialog(ui)
 
 if result then
+local sep = result["separator"]
 
 local path = result["path"]
 local output_file = File(path, "w")
@@ -85,25 +86,22 @@ local layer_title = get_layer_label(annotation_files[j], tier)
 write_line(output_file, "%%%% Layer: " & layer_title)
 write_line(output_file, "")
 
-
-local regex_any_text = Regex("[a-z]")
 local n_interval = get_event_count(annotation_files[j], tier)
 
 for m = 1 to n_interval do
 local text_in_interval = get_event_text(annotation_files[j], tier, m)
 
-if match(regex_any_text, text_in_interval) then
+if is_empty(text_in_interval) then
+continue
+end
 
-local sep = result["separator"]
 if sep == 1 then
 write(output_file, text_in_interval & " ")
 elsif sep == 2 then
-write_line(output_file, ext_in_interval)
+write_line(output_file, text_in_interval)
 elsif sep == 3 then
 write(output_file, text_in_interval)
 end
-end
-
 end
 
 write_line(output_file, "")

@@ -990,12 +990,26 @@ void ProjectManager::OnProjectContextMenu(wxMouseEvent &e)
 	auto menu = new wxMenu;
 	auto expand_entry = menu->Append(wxNewId(), _("Expand project"));
 	auto collapse_entry = menu->Append(wxNewId(), _("Collapse project"));
+	menu->AppendSeparator();
+	auto rename_entry = menu->Append(wxNewId(), _("Rename project..."));
 	Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { tree->ExpandAll(); }, expand_entry->GetId());
 	Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { tree->CollapseAll(); }, collapse_entry->GetId());
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnRenameProject, this, rename_entry->GetId());
 
 	auto pos =  menu_btn->GetPosition();
 	pos.y +=  menu_btn->GetSize().GetHeight();
 	PopupMenu(menu, pos);
+}
+
+void ProjectManager::OnRenameProject(wxCommandEvent &)
+{
+	String name = wxGetTextFromUser(_("New project name:"), _("Rename project..."));
+
+	if (!name.empty())
+	{
+		Project::get()->set_label(name);
+		UpdateLabel();
+	}
 }
 
 #ifdef __WXMSW__

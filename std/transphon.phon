@@ -57,7 +57,7 @@ local result = create_dialog(ui)
 
 # Process the result.
 if result then
-	### Write in the file
+	local sep = result["separator"]
 
 	# Open the file in write mode
 	local path = result["path"]
@@ -119,28 +119,23 @@ if result then
 					write_line(output_file, "")
 				
 					##### Intervals loop
-		
-					# FIXME: rewrite without regex?
-					local regex_any_text = Regex("[a-z]")
 					local n_interval = get_event_count(annotation_files[j], tier)
 			
 					for m = 1 to n_interval do 
 						local text_in_interval = get_event_text(annotation_files[j], tier, m)
 						
-						# Find interval which contains some text
-						if match(regex_any_text, text_in_interval) then
-							
-							# Write the text from each interval in the output file. Type of writing depending on which separator is chosen.
-							local sep = result["separator"]
-							if sep == 1 then
-								write(output_file, text_in_interval & " ")
-							elsif sep == 2 then
-								write_line(output_file, ext_in_interval)				
-							elsif sep == 3 then
-								write(output_file, text_in_interval)
-							end
+						if is_empty(text_in_interval) then
+							continue
 						end
-					
+							
+						# Write the text from each interval in the output file. Type of writing depending on which separator is chosen.
+						if sep == 1 then
+							write(output_file, text_in_interval & " ")
+						elsif sep == 2 then
+							write_line(output_file, text_in_interval)				
+						elsif sep == 3 then
+							write(output_file, text_in_interval)
+						end
 					end
 				
 					write_line(output_file, "")
