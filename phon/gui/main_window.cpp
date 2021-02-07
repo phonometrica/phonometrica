@@ -58,8 +58,12 @@ static const int ID_FILE_EXPORT_METADATA = wxNewId();
 static const int ID_FILE_CLOSE_VIEW = wxID_CLOSE;
 static const int ID_FILE_EXIT = wxID_EXIT;
 
+// Edit menu
+static const int ID_EDIT_FIND = wxID_FIND;
+static const int ID_EDIT_REPLACE = wxID_REPLACE;
+
 // Analysis menu
-static const int ID_ANALYSIS_FIND = wxID_FIND;
+static const int ID_ANALYSIS_FIND = wxNewId();
 static const int ID_ANALYSIS_FORMANTS = wxNewId();
 static const int ID_ANALYSIS_LAST_QUERY = wxNewId();
 
@@ -109,6 +113,7 @@ void MainWindow::MakeMenus()
 
 	menubar = new wxMenuBar;
 	menubar->Append(MakeFileMenu(), _("&File"));
+	menubar->Append(MakeEditMenu(), _("&Edit"));
 	menubar->Append(MakeAnalysisMenu(), _("&Analysis"));
 	menubar->Append(MakeToolsMenu(), _("&Tools"));
 #ifdef __WXMAC__
@@ -174,6 +179,16 @@ wxMenu *MainWindow::MakeFileMenu()
 	PopulateRecentProjects();
 	EnableSaveFile(false);
 	file_menu = menu;
+
+	return menu;
+}
+
+wxMenu *MainWindow::MakeEditMenu()
+{
+	auto menu = new wxMenu;
+
+	menu->Append(ID_EDIT_FIND, _("Find...\tctrl+f"));
+	menu->Append(ID_EDIT_REPLACE, _("Find and replace...\tctrl+r"));
 
 	return menu;
 }
@@ -257,6 +272,10 @@ void MainWindow::SetBindings()
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExportMetadata, this, ID_FILE_EXPORT_METADATA);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExportAnnotations, this, ID_FILE_EXPORT_ANNOTATIONS);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseCurrentView, this, ID_FILE_CLOSE_VIEW);
+
+	// Edit menu
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnFind, this, ID_EDIT_FIND);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnReplace, this, ID_EDIT_REPLACE);
 
 	// Analysis menu
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnFindInAnnotations, this, ID_ANALYSIS_FIND);
@@ -790,21 +809,16 @@ void MainWindow::OnEditPreferences(wxCommandEvent &)
 
 void MainWindow::SetAccelerators()
 {
-	wxAcceleratorEntry entries[5];
+	wxAcceleratorEntry entries[3];
 	auto id_save = wxNewId();
 	auto id_esc = wxNewId();
-	auto id_find = wxNewId();
-	entries[0].Set(wxACCEL_CTRL, (int) 'F', id_find);
-	entries[1].Set(wxACCEL_CTRL, (int) 'E', wxID_EXECUTE);
-	entries[2].Set(wxACCEL_CTRL, (int) 'S', id_save);
-	entries[3].Set(wxACCEL_NORMAL, WXK_ESCAPE, id_esc);
-	entries[4].Set(wxACCEL_CTRL, (int) 'R', wxID_REPLACE);
+	entries[0].Set(wxACCEL_CTRL, (int) 'E', wxID_EXECUTE);
+	entries[1].Set(wxACCEL_CTRL, (int) 'S', id_save);
+	entries[2].Set(wxACCEL_NORMAL, WXK_ESCAPE, id_esc);
 //	entries[2].Set(wxACCEL_SHIFT, (int) 'A', ID_ABOUT);
 
-	wxAcceleratorTable accel(5, entries);
+	wxAcceleratorTable accel(3, entries);
 	SetAcceleratorTable(accel);
-	Bind(wxEVT_MENU, &MainWindow::OnFind, this, id_find);
-	Bind(wxEVT_MENU, &MainWindow::OnReplace, this, wxID_REPLACE);
 	Bind(wxEVT_MENU, &MainWindow::OnExecute, this, wxID_EXECUTE);
 	Bind(wxEVT_MENU, &MainWindow::OnSave, this, id_save);
 	Bind(wxEVT_MENU, &MainWindow::OnEscape, this, id_esc);

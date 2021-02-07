@@ -92,4 +92,14 @@ void View::UpdateTitle()
 	SetTitle(title);
 	modified();
 }
+
+void View::Find()
+{
+	wxMessageBox(_("The current view doesn't support search operations"), _("Unavailable operation"), wxICON_INFORMATION);
+}
+
+void View::Replace()
+{
+	wxMessageBox(_("The current view doesn't support search operations"), _("Unavailable operation"), wxICON_INFORMATION);
+}
 } // namespace phonometrica

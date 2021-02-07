@@ -43,9 +43,9 @@ public:
 
 	virtual void Execute() { }
 
-	virtual void Find() { }
+	virtual void Find();
 
-	virtual void Replace() { }
+	virtual void Replace();
 
 	virtual void Escape() { }
 

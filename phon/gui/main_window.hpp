@@ -62,6 +62,8 @@ private:
 
 	wxMenu *MakeFileMenu();
 
+	wxMenu *MakeEditMenu();
+
 	wxMenu *MakeAnalysisMenu();
 
 	wxMenu *MakeWindowMenu();
