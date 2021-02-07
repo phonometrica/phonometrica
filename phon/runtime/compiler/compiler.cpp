@@ -391,7 +391,7 @@ void Compiler::visit_variable(Variable *node)
 	{
 		if (parsing_argument())
 		{
-			EMIT(Opcode::GetUpvalueArg, *index);
+			EMIT(Opcode::GetUpvalueArg, *index, Instruction(this->visit_arg));
 		}
 		else if (visiting_reference || visiting_assigned_lhs)
 		{

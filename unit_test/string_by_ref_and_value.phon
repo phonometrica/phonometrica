@@ -1,0 +1,16 @@
+local a = "hell"
+local b = a
+local c = ref a
+append(a, "o")
+assert a == "hello"
+assert b == "hell"
+assert c == "hello"
+
+
+local x = "hell"
+local y = ref x
+local z = x
+append(x, "o")
+assert x == "hello"
+assert y == "hello"
+assert z == "hell"

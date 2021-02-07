@@ -119,6 +119,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 
 	tree->Bind(wxEVT_TREE_BEGIN_DRAG, &ProjectManager::OnDragItem, this);
 	tree->Bind(wxEVT_TREE_END_DRAG, &ProjectManager::OnDropItem, this);
+	tree->Bind(wxEVT_KEY_DOWN, &ProjectManager::OnKeyDown, this);
 	Bind(wxEVT_TREE_SEL_CHANGED, &ProjectManager::OnItemSelected, this);
 	Bind(wxEVT_TREE_ITEM_ACTIVATED, &ProjectManager::OnItemDoubleClicked, this);
 	Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &ProjectManager::OnRightClick, this);
@@ -355,6 +356,19 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 			Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnCollapseDirectory, this, collapse_id);
 			menu->AppendSeparator();
 
+			if (folder->toplevel() == Project::get()->scripts().get())
+			{
+				auto script_id = wxNewId();
+				menu->Append(script_id, _("New script"));
+				menu->AppendSeparator();
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,folder](wxCommandEvent &) {
+					wxArrayTreeItemIds sel;
+					tree->GetSelections(sel);
+					tree->Expand(sel.front());
+					new_script(folder.get());
+				}, script_id);
+			}
+
 			if (GetParentDirectory(tree_item) != bookmark_item)
 			{
 				auto add_files_id = wxNewId();
@@ -575,6 +589,41 @@ void ProjectManager::RemoveFile(std::shared_ptr<VFile> &file)
 	}
 
 	Project::get()->remove(file);
+	Project::updated();
+}
+
+void ProjectManager::RemoveFiles(VNodeList files)
+{
+	int result;
+
+	if (files.empty())
+	{
+		return;
+	}
+	else if (files.size() == 1)
+	{
+		if (files.front()->is_folder())
+		{
+			result = ask_question(_("Are you sure you want to remove this folder from the current project?\n"
+			                        "(It won't be deleted from your hard drive.)"), _("Confirm"));
+		}
+		else
+		{
+			result = ask_question(_("Are you sure you want to remove this file from the current project?\n"
+			                        "(It won't be deleted from your hard drive.)"), _("Confirm"));
+		}
+	}
+	else
+	{
+		result = ask_question(_("Are you sure you want to remove these files from the current project?\n"
+						  "(They won't be deleted from your hard drive.)"), _("Confirm"));
+	}
+
+	if (result != wxYES) {
+		return;
+	}
+
+	Project::get()->remove(files);
 	Project::updated();
 }
 
@@ -1009,6 +1058,18 @@ void ProjectManager::OnRenameProject(wxCommandEvent &)
 	{
 		Project::get()->set_label(name);
 		UpdateLabel();
+	}
+}
+
+void ProjectManager::OnKeyDown(wxKeyEvent &e)
+{
+	if (e.GetKeyCode() == WXK_DELETE)
+	{
+		RemoveFiles(GetSelectedItems());
+	}
+	else
+	{
+		e.Skip();
 	}
 }
 

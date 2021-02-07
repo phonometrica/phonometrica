@@ -67,7 +67,7 @@ void ScriptView::SetupUi()
 	m_toolbar->EnableTool(m_save_tool->GetId(), false);
 	m_toolbar->AddSeparator();
 	wxBitmap run_icon(wxBITMAP_PNG_FROM_DATA(start));
-	auto run_tool = m_toolbar->AddTool(-1, _("Run script\tctrl+r"), run_icon, _("Run script or selection (" CTRL_KEY "R)"));
+	auto run_tool = m_toolbar->AddTool(-1, _("Execute script\tctrl+e"), run_icon, _("Execute script or selection (" CTRL_KEY "R)"));
 	sizer->Add(m_toolbar, 0, wxEXPAND | wxALL, 0);
 	m_toolbar->AddSeparator();
 
@@ -90,7 +90,7 @@ void ScriptView::SetupUi()
 	wxBitmap help_icon(wxBITMAP_PNG_FROM_DATA(question));
 	auto help_tool = m_toolbar->AddTool(-1, _("Help"), help_icon, _("Help"));
 
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Run(); }, run_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Execute(); }, run_tool->GetId());
 	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Save(); }, m_save_tool->GetId());
 	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnCommentSelection, this, on_tool->GetId());
 	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnUncommentSelection, this, off_tool->GetId());
@@ -99,19 +99,22 @@ void ScriptView::SetupUi()
 	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnOpenHelp, this, help_tool->GetId());
 	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnViewBytecode, this, bytecode_tool->GetId());
 
+	m_searchbar = new SearchBar(this, _("Find text"), true);
+	m_searchbar->SetMaxSize(wxSize(-1, 30));
+
 	m_ctrl = new ScriptControl(this);
 	m_ctrl->SetSyntaxHighlighting();
 	m_ctrl->SetLineNumbering();
 	sizer->Add(m_ctrl, 1, wxEXPAND, 0);
+	sizer->Add(m_searchbar, 0, wxEXPAND);
 	SetSizer(sizer);
 	m_toolbar->Realize();
     m_ctrl->SetSTCFocus(true);
+    m_searchbar->Hide();
 }
 
 void ScriptView::Save()
 {
-	auto project = Project::get();
-
 	if (!m_script->has_path())
 	{
 		FileDialog dlg(this, _("Save script as..."), "untitled.phon", "Phonometrica scripts (*.phon)|*.phon", wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
@@ -119,19 +122,12 @@ void ScriptView::Save()
 			return;
 		}
 		m_script->set_path(dlg.GetPath(), false);
+		Project::get()->modify();
 	}
 	m_script->set_content(m_ctrl->GetText(), true);
 	m_script->save();
 	m_toolbar->EnableTool(m_save_tool->GetId(), false);
 	UpdateTitle();
-
-	if (m_script->parent() == nullptr)
-	{
-		// Update the script with the script created by the project if the file is imported.
-		if (AskImportFile(m_script->path())) {
-			m_script = downcast<Script>(project->get(m_script->path()));
-		}
-	}
 }
 
 void ScriptView::OnModification()
@@ -144,7 +140,7 @@ void ScriptView::OnModification()
 	}
 }
 
-void ScriptView::Run()
+void ScriptView::Execute()
 {
 	String code = m_ctrl->HasSelection() ? m_ctrl->GetSelectedText() : m_ctrl->GetValue();
 	auto console = runtime.console;
@@ -251,7 +247,7 @@ void ScriptView::OnViewBytecode(wxCommandEvent &)
 
 void ScriptView::AdjustFontSize()
 {
-	// FIXME: this doesn't see to work properly, at least on linux.
+	// FIXME: this doesn't seem to work properly, at least on linux.
 	m_ctrl->InitializeFont();
 	m_ctrl->Layout();
 }
@@ -274,6 +270,35 @@ void ScriptView::DiscardChanges()
 wxString ScriptView::GetLabel() const
 {
 	return m_script->label();
+}
+
+bool ScriptView::Finalize(bool autosave)
+{
+	if (!m_script->anchored()) {
+		m_script->detach(false);
+	}
+	auto result = View::Finalize(autosave);
+	if (result) Project::updated();
+	return result;
+}
+
+void ScriptView::Find()
+{
+	m_searchbar->SetSearch();
+	Layout();
+}
+
+void ScriptView::Replace()
+{
+	m_searchbar->SetSearchAndReplace();
+	Layout();
+}
+
+void ScriptView::Escape()
+{
+	m_searchbar->Hide();
+	m_ctrl->SetFocus();
+	Layout();
 }
 
 } // namespace phonometrica

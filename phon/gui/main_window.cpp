@@ -133,7 +133,7 @@ wxMenu *MainWindow::MakeFileMenu()
 {
 	auto menu = new wxMenu;
 
-	menu->Append(ID_FILE_NEW_SCRIPT, _("New script...\tctrl+n"));
+	menu->Append(ID_FILE_NEW_SCRIPT, _("New script\tctrl+n"));
 	menu->AppendSeparator();
 
 	menu->Append(ID_FILE_OPEN_PROJECT, _("Open project...\tCtrl+o"));
@@ -295,6 +295,7 @@ void MainWindow::SetBindings()
 	project_manager->view_file.connect(&Viewer::OnViewFile, viewer);
 	project_manager->files_selected.connect(&InfoPanel::OnSetFileSelection, info_panel);
 	project_manager->execute_script.connect(&Console::RunScript, console);
+	project_manager->new_script.connect(&Viewer::NewScriptWithParent, viewer);
 	project_manager->edit_query.connect(&MainWindow::EditQuery, this);
 	View::modified.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	auto project = Project::get();
@@ -789,30 +790,54 @@ void MainWindow::OnEditPreferences(wxCommandEvent &)
 
 void MainWindow::SetAccelerators()
 {
-	wxAcceleratorEntry entries[4];
-	auto id_run = wxNewId();
+	wxAcceleratorEntry entries[5];
 	auto id_save = wxNewId();
-	entries[0].Set(wxACCEL_CTRL, (int) 'R', id_run);
-	entries[1].Set(wxACCEL_CTRL, (int) 'S', id_save);
-//	entries[2].Set(wxACCEL_CTRL, (int) 'K', wxID_CLOSE);
+	auto id_esc = wxNewId();
+	auto id_find = wxNewId();
+	entries[0].Set(wxACCEL_CTRL, (int) 'F', id_find);
+	entries[1].Set(wxACCEL_CTRL, (int) 'E', wxID_EXECUTE);
+	entries[2].Set(wxACCEL_CTRL, (int) 'S', id_save);
+	entries[3].Set(wxACCEL_NORMAL, WXK_ESCAPE, id_esc);
+	entries[4].Set(wxACCEL_CTRL, (int) 'R', wxID_REPLACE);
 //	entries[2].Set(wxACCEL_SHIFT, (int) 'A', ID_ABOUT);
-//	entries[3].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_CUT);
-	wxAcceleratorTable accel(2, entries);
+
+	wxAcceleratorTable accel(5, entries);
 	SetAcceleratorTable(accel);
-	Bind(wxEVT_MENU, &MainWindow::OnRun, this, id_run);
+	Bind(wxEVT_MENU, &MainWindow::OnFind, this, id_find);
+	Bind(wxEVT_MENU, &MainWindow::OnReplace, this, wxID_REPLACE);
+	Bind(wxEVT_MENU, &MainWindow::OnExecute, this, wxID_EXECUTE);
 	Bind(wxEVT_MENU, &MainWindow::OnSave, this, id_save);
+	Bind(wxEVT_MENU, &MainWindow::OnEscape, this, id_esc);
 }
 
-void MainWindow::OnRun(wxCommandEvent &)
+void MainWindow::OnExecute(wxCommandEvent &)
 {
 	auto view = viewer->GetCurrentView();
-	view->Run();
+	view->Execute();
+}
+
+void MainWindow::OnFind(wxCommandEvent &)
+{
+	auto view = viewer->GetCurrentView();
+	view->Find();
+}
+
+void MainWindow::OnReplace(wxCommandEvent &)
+{
+	auto view = viewer->GetCurrentView();
+	view->Replace();
 }
 
 void MainWindow::OnSave(wxCommandEvent &)
 {
 	auto view = viewer->GetCurrentView();
 	view->Save();
+}
+
+void MainWindow::OnEscape(wxCommandEvent &)
+{
+	auto view = viewer->GetCurrentView();
+	view->Escape();
 }
 
 void MainWindow::LoadPluginsAndScripts(const String &root)
@@ -1362,6 +1387,11 @@ void MainWindow::SetShellFunctions()
 		return Variant();
 	};
 
+	auto launch_browser = [](Runtime &, std::span<Variant> args) -> Variant {
+		wxLaunchDefaultBrowser(cast<String>(args[0]));
+		return Variant();
+	};
+
 #if 0
 	auto view_annotation1 = [this](Runtime &, std::span<Variant> args) -> Variant {
 		auto &annot = cast<AutoAnnotation>(args[0]);
@@ -1482,6 +1512,7 @@ void MainWindow::SetShellFunctions()
 	runtime.add_global("get_plugin_resource", get_plugin_resource, { CLS(String), CLS(String) });
 	runtime.add_global("create_dialog", create_dialog1, { CLS(String) });
 	runtime.add_global("create_dialog", create_dialog2, { CLS(Table) });
+	runtime.add_global("launch_browser", launch_browser, { CLS(String) });
 //	runtime.add_global("set_status", set_status1, { CLS(String) });
 //	runtime.add_global("set_status", set_status2, { CLS(String), CLS(intptr_t) });
 //	runtime.add_global("get_current_sound", get_current_sound, { });
@@ -1609,6 +1640,5 @@ void MainWindow::OnExportAnnotations(wxCommandEvent &)
 {
 	run_script(runtime, transphon);
 }
-
 
 } // namespace phonometrica

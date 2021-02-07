@@ -13,72 +13,60 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 13/01/2021                                                                                                 *
+ * Created: 07/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: The viewer occupies the center of the main window. It is a notebook that can display views as tabs, like   *
- * in a web browser.                                                                                                   *
+ * Purpose: Find/Replace dialog.                                                                                       *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_VIEWER_HPP
-#define PHONOMETRICA_VIEWER_HPP
+#ifndef PHONOMETRICA_SEARCH_BAR_HPP
+#define PHONOMETRICA_SEARCH_BAR_HPP
 
-#include <wx/aui/auibook.h>
-#include <phon/runtime.hpp>
-#include <phon/gui/views/script_view.hpp>
-#include <phon/gui/views/start_view.hpp>
-#include <phon/application/annotation.hpp>
-#include <phon/application/sound.hpp>
-#include <phon/application/script.hpp>
+#include <wx/panel.h>
+#include <wx/menu.h>
+#include <wx/srchctrl.h>
+#include <wx/textctrl.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
-class MainWindow;
-
-class Viewer final : public wxAuiNotebook
+class SearchBar : public wxPanel
 {
 public:
 
-	Viewer(Runtime &rt, wxWindow *parent, MainWindow *win);
+	SearchBar(wxWindow *parent, const wxString &description, bool replace);
 
-	void SetStartView();
+	bool UsesRegex() const;
 
-	void NewScript();
+	bool IsCaseSensitive() const;
 
-	void NewScriptWithParent(VFolder *parent);
+	bool HasReplace() const;
 
-	void CloseCurrentView();
+	String GetSearchText() const;
 
-	View *GetCurrentView();
+	String GetReplacementText() const;
 
-	void OnViewFile(const std::shared_ptr<VFile> &file);
+	void SetSearch();
 
-	void AdjustFontSize();
+	void SetSearchAndReplace();
 
-	bool SaveViews(bool autosave);
+protected:
 
-private:
+	void FocusSearch();
 
-	void AddView(View *view, const wxString &title);
+	wxSearchCtrl *search_ctrl;
 
-	void CloseView(int index, bool remove);
+	wxTextCtrl *repl_ctrl;
 
-	View *GetView(size_t i) { return dynamic_cast<View*>(GetPage(i)); }
+	wxMenuItem *case_entry, *regex_entry;
 
-	void OnCloseView(wxAuiNotebookEvent &);
-
-	void OnViewClosed(wxAuiNotebookEvent &);
-
-	void NewScript(const AutoScript &script);
-
-	void OnPageChanged(wxAuiNotebookEvent &);
-
-	// Used to set bindings.
-	MainWindow *main_window = nullptr;
-
-	Runtime &runtime;
+	wxCheckBox *repl_checkbox;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_VIEWER_HPP
+
+
+#endif // PHONOMETRICA_SEARCH_BAR_HPP

@@ -176,7 +176,7 @@ void ScriptControl::OnCharAdded(wxStyledTextEvent &event)
 
 		// Display the autocompletion list
 		int word_len = current_pos - start_pos;
-		if (word_len > 0) {
+		if (word_len > 1) {
 			AutoCompShow(word_len, completion_list);
 		}
 	}

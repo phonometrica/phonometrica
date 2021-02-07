@@ -1,0 +1,5 @@
+local x = "hell"
+local y = x
+append(x, "o")
+assert x == "hello"
+assert y == "hell"

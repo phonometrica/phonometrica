@@ -880,6 +880,21 @@ void Project::remove(VFileList &files)
 	}
 }
 
+void Project::remove(VNodeList &files)
+{
+	for (auto &file : files)
+	{
+		if (file->is_folder())
+		{
+			remove(downcast<VFolder>(file));
+		}
+		else
+		{
+			remove(downcast<VFile>(file));
+		}
+	}
+}
+
 const std::shared_ptr<VFolder> & Project::data() const
 {
 	return m_data;
@@ -1188,7 +1203,7 @@ void Project::updated()
 	get()->notify_update();
 }
 
-void Project::remove(std::shared_ptr<VFolder> &folder)
+void Project::remove(const std::shared_ptr<VFolder> &folder)
 {
     for (intptr_t i = folder->size(); i > 0; i--)
     {
@@ -1211,10 +1226,10 @@ void Project::remove(std::shared_ptr<VFolder> &folder)
     folder->detach();
 }
 
-void Project::remove(std::shared_ptr<VFile> &file)
+void Project::remove(const std::shared_ptr<VFile> &folder)
 {
-    file->detach();
-    m_files.erase(file->path());
+    folder->detach();
+    m_files.erase(folder->path());
     m_modified = true;
 }
 

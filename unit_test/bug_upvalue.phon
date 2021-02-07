@@ -1,0 +1,11 @@
+local s1 = "hello"
+
+local function test()
+	local s2 = "blabla"
+	local s3 = " world"
+	append(s1, s3)
+end
+
+assert s1 == "hello"
+test()
+assert s1 == "hello world"

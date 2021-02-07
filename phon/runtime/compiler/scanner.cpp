@@ -208,7 +208,6 @@ void Scanner::scan_string(char32_t end)
 // Read one token from the source code
 Token Scanner::read_token()
 {
-    RETRY:
     m_spelling.clear();
     skip_white();
 
@@ -269,11 +268,19 @@ Token Scanner::read_token()
             return Token(m_spelling, m_line_no, false);
         }
     }
+    case U'#':
+    {
+	    do skip(); while (m_char != '\n' && m_char != Token::ETX);
+		if (m_char == Token::ETX) {
+			return Token(Token::Lexeme::Eot, "EOT", m_line_no);
+		}
+		[[fallthrough]];
+    }
     case U'\n':
 	{
+		intptr_t line_no = m_line_no;
 		accept();
-		// We return the previous line because after accept() we are already pointing to the beginning of the following line.
-		return Token(Token::Lexeme::Eol, String(), m_line_no - 1);
+		return Token(Token::Lexeme::Eol, String(), line_no);
 	}
     case U'"':
     {
@@ -409,13 +416,6 @@ Token Scanner::read_token()
     {
         accept();
         return Token(Token::Lexeme::Dot, ".", m_line_no);
-    }
-    case U'#':
-    {
-        // Skip comment and read next token
-        do skip(); while (m_char != '\n' && m_char != Token::ETX);
-        if (m_char != Token::ETX) skip(); // handle case when the file ends with a comment without a new line.
-        goto RETRY;
     }
     case U'!':
     {

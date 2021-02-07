@@ -1,0 +1,17 @@
+# utils.phon
+local m = Module("utils")
+m.version = "0.1"
+m.author = "John Smith"
+
+# Calculate the perimeter of a rectangle
+m.perimeter = function(length as Number, width as Number)
+    return 2 * length + 2 * width
+end
+
+# Calculate the area of a rectangle
+m.area = function(length as Number, width as Number)
+    return length * width
+end
+
+# Export the module
+return m

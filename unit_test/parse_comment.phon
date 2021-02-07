@@ -1,0 +1,5 @@
+local x = "hell" # [1, 2]
+local y = x
+
+# The comment at the end of the first line must not cause a syntax error (Invalid declaration)
+# on the following line, and this one shouldn't either even though there is no line feed at the end.

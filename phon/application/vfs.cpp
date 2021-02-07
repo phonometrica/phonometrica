@@ -79,12 +79,12 @@ void VNode::discard_changes()
 	m_content_modified = false;
 }
 
-void VNode::detach()
+void VNode::detach(bool mutate)
 {
 	if (m_parent)
 	{
-		m_parent->remove(this->shared_from_this(), true);
-		set_parent(nullptr);
+		m_parent->remove(this->shared_from_this(), mutate);
+		set_parent(nullptr, mutate);
 	}
 }
 
@@ -403,7 +403,6 @@ void VFile::save()
 	{
 		throw error("Could not save file \"%\": %", m_path, e.what());
 	}
-
 }
 
 bool VFile::is_file() const
@@ -667,5 +666,11 @@ bool VFile::quick_search(const String &text) const
 
 	return label().to_lower().contains(text) ||  m_description.to_lower().contains(text);
 }
+
+bool VFile::anchored() const
+{
+	return has_path();
+}
+
 
 } // namespace phonometrica

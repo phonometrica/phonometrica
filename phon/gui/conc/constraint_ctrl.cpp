@@ -45,11 +45,11 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	search_ctrl->SetDescriptiveText(_("Search text or pattern"));
 	search_ctrl->SetToolTip(_("Search plain text or a regular expression (click on the magnifying glass to change search options)"));
 	auto menu = new wxMenu;
+	auto case_id = wxNewId();
+	case_entry = menu->AppendCheckItem(case_id, _("Case-sensitive"));
 	auto regex_id = wxNewId();
 	regex_entry = menu->AppendCheckItem(regex_id, _("Use regular expressions"));
 	regex_entry->Check();
-	auto case_id = wxNewId();
-	case_entry = menu->AppendCheckItem(case_id, _("Case-sensitive"));
 	search_ctrl->SetMenu(menu);
 
 	wxArrayString operators;

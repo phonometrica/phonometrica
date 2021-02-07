@@ -25,6 +25,7 @@
 #include <wx/toolbar.h>
 #include <phon/gui/views/view.hpp>
 #include <phon/gui/script_ctrl.hpp>
+#include <phon/gui/search_bar.hpp>
 #include <phon/runtime.hpp>
 #include <phon/application/script.hpp>
 
@@ -38,7 +39,7 @@ public:
 
 	void Save() override;
 
-	void Run() override;
+	void Execute() override;
 
 	void AdjustFontSize() override;
 
@@ -49,6 +50,14 @@ public:
 	void DiscardChanges() override;
 
 	wxString GetLabel() const override;
+
+	bool Finalize(bool autosave) override;
+
+	void Find() override;
+
+	void Replace() override;
+
+	void Escape() override;
 
 private:
 
@@ -77,6 +86,8 @@ private:
 	wxToolBar *m_toolbar;
 
 	wxToolBarToolBase *m_save_tool;
+
+	SearchBar *m_searchbar;
 
 	AutoScript m_script;
 

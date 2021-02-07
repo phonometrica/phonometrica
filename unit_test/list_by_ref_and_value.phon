@@ -1,0 +1,17 @@
+local a = [1, 2]
+local b = a
+local c = ref a
+append(a, 3)
+assert len(a) == 3
+assert len(b) == 2
+assert len(c) == 3
+
+
+local x = [1, 2]
+local y = ref x
+local z = x
+append(x, 3)
+assert len(x) == 3
+assert len(y) == 3
+assert len(z) == 2
+

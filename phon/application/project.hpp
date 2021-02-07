@@ -98,9 +98,11 @@ public:
 
 	void remove(VFileList &files);
 
-	void remove(std::shared_ptr<VFile> &folder);
+	void remove(VNodeList &files);
 
-	void remove(std::shared_ptr<VFolder> &folder);
+	void remove(const std::shared_ptr<VFile> &folder);
+
+	void remove(const std::shared_ptr<VFolder> &folder);
 
 	bool has_uuid() const;
 

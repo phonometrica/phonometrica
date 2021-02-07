@@ -54,6 +54,8 @@ public:
 
 	Signal<const AutoQuery &> edit_query;
 
+	Signal<VFolder*> new_script;
+
 private:
 
 	void Populate();
@@ -75,6 +77,8 @@ private:
 	void RemoveDirectory(std::shared_ptr<VFolder> &folder);
 
 	void RemoveFile(std::shared_ptr<VFile> &file);
+
+	void RemoveFiles(VNodeList files);
 
 	void RenameDirectory(const std::shared_ptr<VFolder> &folder);
 
@@ -131,6 +135,8 @@ private:
 	void OnProjectContextMenu(wxMouseEvent &e);
 
 	void OnRenameProject(wxCommandEvent &);
+
+	void OnKeyDown(wxKeyEvent &e);
 
 #ifdef __WXMSW__
 	void OnShowToolTip(wxTreeEvent &e);

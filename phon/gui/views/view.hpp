@@ -36,12 +36,18 @@ public:
 
 	// This method is called before the view is destroyed. It returns true
 	// if the view can be closed, false if it must be kept open.
-	bool Finalize(bool autosave);
+	virtual bool Finalize(bool autosave);
 
 	// These methods can be overriden to respond to accelerators such as ctrl+s (save) or ctrl+r (run)
 	virtual void Save() { }
 
-	virtual void Run() { }
+	virtual void Execute() { }
+
+	virtual void Find() { }
+
+	virtual void Replace() { }
+
+	virtual void Escape() { }
 
 	virtual void AdjustFontSize() { }
 

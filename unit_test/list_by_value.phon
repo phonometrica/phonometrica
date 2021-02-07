@@ -1,0 +1,5 @@
+local x = [1, 2]
+local y = x
+append(x, 3)
+assert len(x) == 3
+assert len(y) == 2

@@ -23,6 +23,7 @@
 #include <phon/gui/viewer.hpp>
 #include <phon/gui/tab_art_provider.hpp>
 #include <phon/utils/file_system.hpp>
+#include <phon/application/project.hpp>
 
 namespace phonometrica {
 
@@ -38,8 +39,20 @@ Viewer::Viewer(Runtime &rt, wxWindow *parent, MainWindow *win) :
 
 void Viewer::NewScript()
 {
-	auto view = new ScriptView(runtime, std::make_shared<Script>(nullptr), this);
+	NewScriptWithParent(nullptr);
+}
+
+void Viewer::NewScriptWithParent(VFolder *parent)
+{
+	if (!parent) {
+		parent = Project::get()->scripts().get();
+	}
+	auto script = std::make_shared<Script>(parent);
+	auto view = new ScriptView(runtime, script, this);
 	AddView(view, _("Untitled script"));
+	// Don't mutate the folder because this is an empty script
+	parent->append(std::move(script), false);
+	Project::updated();
 }
 
 void Viewer::AddView(View *view, const wxString &title)

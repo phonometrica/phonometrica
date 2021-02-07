@@ -148,9 +148,15 @@ private:
 
 	void SetAccelerators();
 
-	void OnRun(wxCommandEvent &);
+	void OnExecute(wxCommandEvent &);
+
+	void OnFind(wxCommandEvent &);
+
+	void OnReplace(wxCommandEvent &);
 
 	void OnSave(wxCommandEvent &);
+
+	void OnEscape(wxCommandEvent &);
 
 	void LoadPluginsAndScripts(const String &root);
 
