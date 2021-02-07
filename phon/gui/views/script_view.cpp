@@ -97,7 +97,7 @@ void ScriptView::SetupUi()
 	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnViewBytecode, this, bytecode_tool->GetId());
 
 	m_searchbar = new SearchBar(this, _("Find text"), true);
-	m_searchbar->SetMaxSize(wxSize(-1, 30));
+	m_searchbar->SetMaxSize(wxSize(-1, 40));
 
 	m_ctrl = new ScriptControl(this);
 	m_ctrl->SetSyntaxHighlighting();

@@ -31,7 +31,7 @@ SearchBar::SearchBar(wxWindow *parent, const wxString &description, bool replace
 	wxPanel(parent, wxID_ANY)
 {
 	const int spacing = 1;
-	const int height = 30;
+	const int height = 40;
 	auto sizer = new HBoxSizer;
 
 	search_ctrl = new wxSearchCtrl(this, wxID_ANY);
@@ -61,9 +61,9 @@ SearchBar::SearchBar(wxWindow *parent, const wxString &description, bool replace
 	sizer->Add(search_ctrl, 1, wxLEFT, spacing+5);
 	sizer->Add(repl_checkbox, 0, wxLEFT|wxALIGN_CENTER, spacing+5);
 	sizer->Add(repl_ctrl, 1, wxLEFT, spacing);
-	sizer->Add(find_btn, 0, wxLEFT, spacing);
-	sizer->Add(repl_btn, 0, wxLEFT, spacing);
-	sizer->Add(repl_all_btn, 0, wxLEFT|wxRIGHT, spacing);
+	sizer->Add(find_btn, 0, wxLEFT|wxALIGN_CENTER, spacing);
+	sizer->Add(repl_btn, 0, wxLEFT|wxALIGN_CENTER, spacing);
+	sizer->Add(repl_all_btn, 0, wxLEFT|wxALIGN_CENTER|wxRIGHT, spacing);
 	sizer->Add(icn, 0, wxALIGN_CENTER);
 	SetSizer(sizer);
 
@@ -115,4 +115,5 @@ void SearchBar::SetSearchAndReplace()
 	Show();
 	FocusSearch();
 }
+
 } // namespace phonometrica
