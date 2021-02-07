@@ -49,7 +49,7 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
 	    values.Add("false");
 	    choicelist = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, values);
         choicelist->SetSelection(0);
-        sizer->Add(choicelist, 1, wxEXPAND | wxALL, 10);
+        sizer->Add(choicelist, 0, wxEXPAND | wxALL, 10);
         sizer->AddStretchSpacer();
         choicelist->Bind(wxEVT_CHOICE, [this](wxCommandEvent &e) { modified(); });
     }

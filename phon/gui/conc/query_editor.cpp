@@ -212,6 +212,9 @@ wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)
 	new_font.SetPointSize(old_font.GetPointSize());
 	file_list->SetFont(new_font);
 
+#ifdef __WXMSW__
+	file_sizer->AddSpacer(20);
+#endif
 	file_sizer->Add(file_list, 1, wxEXPAND|wxALL, 10);
 	file_sizer->AddSpacer(10);
 	file_box->SetSizer(file_sizer);
@@ -237,6 +240,9 @@ wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)
 	desc_ctrl = new wxTextCtrl(desc_box, wxID_ANY);
 	desc_sizer->Add(desc_ctrl, 1, wxEXPAND, 0);
 	auto dummy_sizer = new wxBoxSizer(wxVERTICAL);
+#ifdef __WXMSW__
+    dummy_sizer->AddSpacer(20);
+#endif
 	dummy_sizer->Add(desc_sizer, 0, wxEXPAND|wxALL, 10);
 	dummy_sizer->AddStretchSpacer();
 	desc_box->SetSizer(dummy_sizer);

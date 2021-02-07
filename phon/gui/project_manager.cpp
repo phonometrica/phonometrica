@@ -79,7 +79,12 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 #endif
 	sizer->Add(hsizer, 0, wxEXPAND | wxLEFT, 8);
 	sizer->Add(tree, 10, wxEXPAND | wxTOP, 5);
-	sizer->Add(search_ctrl, 0, wxEXPAND|wxALL, 10);
+#ifdef __WXMSW__
+	int search_spacing = 2;
+#else
+    int search_spacing = 10;
+#endif
+	sizer->Add(search_ctrl, 0, wxEXPAND|wxALL, search_spacing);
 
 	SetSizer(sizer);
 	auto images = new wxImageList(16, 16);
