@@ -179,6 +179,8 @@ public:
 
 	bool quick_search(const String &text) const override;
 
+	void sort();
+
 protected:
 
     void set_modified(bool value);

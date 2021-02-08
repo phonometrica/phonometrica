@@ -420,6 +420,14 @@ void Settings::post_initialize()
 		mono_font = MONOSPACE_FONT;
 	}
 #endif
+
+	// Ensure newly added settings are available
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key)).data();
+
+	if (!settings.contains("autohints")) {
+		settings["autohints"] = true;
+	}
 }
 
 } // namespace phonometrica

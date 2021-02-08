@@ -133,6 +133,12 @@ String Spreadsheet::get_cell(intptr_t i, intptr_t j) const
 	}
 }
 
+const char *Spreadsheet::class_name() const
+{
+	// TODO: rename to Spreadsheet once refactoring is done
+	return "Dataset";
+}
+
 Spreadsheet::Type Spreadsheet::Column::find_type(const std::type_info &t) const
 {
 	if (t == typeid(String))

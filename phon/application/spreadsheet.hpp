@@ -38,6 +38,8 @@ public:
 
 	String get_cell(intptr_t i, intptr_t j) const override;
 
+	const char *class_name() const override;
+
 	intptr_t row_count() const override { return nrow; }
 
 	intptr_t column_count() const override { return ncol; }

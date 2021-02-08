@@ -1611,7 +1611,7 @@ void MainWindow::OnFindInAnnotations(wxCommandEvent &)
 {
 	TextQueryEditor editor(this);
 	editor.Prepare();
-	editor.SetSize(FromDIP(wxSize(1000, 800)));
+	editor.SetSize(FromDIP(wxSize(1100, 850)));
 
 	if (editor.ShowModal() == wxID_OK)
 	{
@@ -1642,7 +1642,7 @@ void MainWindow::EditQuery(const AutoQuery &q)
 	{
 		TextQueryEditor editor(this, downcast<TextQuery>(q));
 		editor.Prepare();
-		editor.SetSize(FromDIP(wxSize(1000, 800)));
+		editor.SetSize(FromDIP(wxSize(1100, 850)));
 
 		if (editor.ShowModal() == wxID_OK)
 		{

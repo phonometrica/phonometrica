@@ -40,9 +40,17 @@ ScriptControl::ScriptControl(wxWindow *parent) :
 	InitializeCallTips();
     StyleClearAll();
 	SetTabWidth(TAB_WIDTH);
+
+	selection_style = error_indicator + 1;
+	IndicatorSetStyle(selection_style, wxSTC_INDIC_ROUNDBOX);
+	IndicatorSetAlpha(selection_style, 100);
+	IndicatorSetUnder(selection_style, true);
+	IndicatorSetForeground(selection_style, *wxRED);
+
 	Bind(wxEVT_STC_CHARADDED, &ScriptControl::OnCharAdded, this);
 	Bind(wxEVT_STC_CHANGE, &ScriptControl::OnChange, this);
 	Bind(wxEVT_STC_CALLTIP_CLICK, &ScriptControl::OnCallTipClicked, this);
+//	Bind(wxEVT_STC_DOUBLECLICK, &ScriptControl::OnDoubleClick, this);
 }
 
 void ScriptControl::InitializeFont()
@@ -285,6 +293,27 @@ void ScriptControl::OnCallTipClicked(wxStyledTextEvent &e)
 	}
 
 	CallTipShow(calltip_position, *current_calltip);
+}
+
+void ScriptControl::OnDoubleClick(wxStyledTextEvent &e)
+{
+	int start_pos = WordStartPosition(e.GetPosition(), true);
+	int end_pos = WordEndPosition(e.GetPosition(), true);
+	SetSelection(start_pos, end_pos);
+	int max_pos = (int)GetLastPosition();
+	IndicatorClearRange(0, max_pos);
+	auto selected_text = GetSelectedText();
+	int sel_size  = selected_text.size();
+
+	int pos;
+	int curr = 0;
+	SetIndicatorCurrent(selection_style);
+
+	while ((pos = FindText(curr, max_pos, selected_text)) != -1)
+	{
+		IndicatorFillRange(pos, sel_size);
+		curr = pos + sel_size;
+	}
 }
 
 } // namespace phonometrica

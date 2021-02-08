@@ -13,86 +13,33 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 01/02/2021                                                                                                 *
+ * Created: 08/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: Represents the result of a text query.                                                                     *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/application/conc/text_match.hpp>
+#ifndef PHONOMETRICA_TEXT_CONCORDANCE_HPP
+#define PHONOMETRICA_TEXT_CONCORDANCE_HPP
+
+#include <phon/application/conc/concordance.hpp>
+#include <phon/application/conc/match.hpp>
 
 namespace phonometrica {
 
-double TextMatch::start_time() const
+class TextConcordance : public Concordance
 {
-	const Match *match = this;
-	auto value = (std::numeric_limits<double>::max)();
+public:
 
-	while (match)
-	{
-		auto t = match->event()->start_time();
-		if (t < value) value = t;
-		match = match->next();
-	}
+	TextConcordance(VFolder *parent, const String &path = String());
 
-	return value;
-}
+protected:
 
-double TextMatch::end_time() const
-{
-	const Match *match = this;
-	double value = 0;
+	Array<std::unique_ptr<Match>> m_matches;
+};
 
-	while (match)
-	{
-		auto t = match->event()->end_time();
-		if (t > value) value = t;
-		match = match->next();
-	}
-
-	return value;
-}
-
-bool TextMatch::operator<(const TextMatch &other) const
-{
-	int cmp;
-
-	// First compare file names.
-	cmp = this->annotation()->path().compare(other.annotation()->path());
-
-	if (cmp < 0) {
-		return true;
-	}
-	else if (cmp > 0) {
-		return false;
-	}
-
-	// Next, compare tier in the file
-	cmp = (this->layer_index() - other.layer_index());
-
-	if (cmp < 0) {
-		return true;
-	}
-	else if (cmp > 0) {
-		return false;
-	}
-
-	// Next, Compare temporal position
-	double delta = (this->start_time() - other.start_time());
-
-	if (delta < 0) {
-		return true;
-	}
-	else if (delta > 0) {
-		return false;
-	}
-
-	// Finally compare position in the event.
-	return this->offset() < other.offset();
-}
-
-size_t TextMatch::hash() const
-{
-	return annotation()->path().hash() + std::hash<int>{}(layer_index()) + text().hash() + std::hash<int>{}(offset());
-}
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_TEXT_CONCORDANCE_HPP

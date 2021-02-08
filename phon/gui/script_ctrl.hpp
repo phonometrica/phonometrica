@@ -69,7 +69,11 @@ private:
 
 	void OnCallTipClicked(wxStyledTextEvent &e);
 
+	void OnDoubleClick(wxStyledTextEvent &e);
+
 	int error_indicator = 0;
+
+	int selection_style = 0;
 
 	bool has_hints = false;
 

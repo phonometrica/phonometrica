@@ -29,6 +29,8 @@ phon.settings = {
 
 "autoload": false,
 
+"autohints": true,
+
 "enable_mouse_tracking": true,
 
 "sound_plots": {

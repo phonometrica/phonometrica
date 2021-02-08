@@ -24,7 +24,9 @@ TODO:
 Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers. 
 - improve Dataset
 - std::bad_alloc: ouvre un fichier son -> catch and rethrow
-
+- option pour réouvrir les vues qui étaient ouvertes en quittant ?
+- signal/slot (create_signal(), connect(), disconnect(), emit())
+- Edit menu (find, replace, undo, redo)
 - raccourcis play/pause stop, ajout/suppression d'ancres
 
 - Export to plain text, lorsque l’on sélectionne un autre chemin d’accès il n’y a pas l’extension .txt
@@ -32,11 +34,13 @@ Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers
 - mac : vérifier settings / edit preferences
 - mac : bug aléatoire quand on clique play
 - espace pour jouer une occurrence
-
+- recherches formantiques, mettre les unités dans la view plutôt que dans le query editor
 - complex queries (if possible, otherwise 0.9)
+
 
 Version 0.9.0:
 
+- project metadata dans le panel info
 - measure pitch and intensity
 - settings: possibilité de sauvagarde périodique des annotations (peut-être fichier buffer ?)
 - touchpad en plus de la molette dans les annotations ? 

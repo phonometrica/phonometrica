@@ -122,8 +122,9 @@ void ScriptView::SetupUi()
 
     m_searchbar->execute.connect(&ScriptView::OnFindText, this);
 
-    m_toolbar->ToggleTool(hint_tool->GetId(), true);
-    stc->ActivateHints(true);
+    bool autohints = Settings::get_boolean("autohints");
+    m_toolbar->ToggleTool(hint_tool->GetId(), autohints);
+    stc->ActivateHints(autohints);
 }
 
 void ScriptView::Save()

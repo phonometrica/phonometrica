@@ -41,10 +41,16 @@ wxPanel *PreferencesEditor::MakeGeneralPanel()
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	m_autoload_checkbox = new wxCheckBox(panel, wxID_ANY, _("Load most recent project on startup"));
 	m_autoload_checkbox->SetValue(Settings::get_boolean("autoload"));
-	sizer->Add(m_autoload_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM|wxTOP, 10);
+
 	m_autosave_checkbox = new wxCheckBox(panel, wxID_ANY, _("Automatically save project on exit"));
 	m_autosave_checkbox->SetValue(Settings::get_boolean("autosave"));
-	sizer->Add(m_autosave_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
+
+	m_autohints_checkbox = new wxCheckBox(panel, wxID_ANY, _("Activate syntax hints in script views by default"));
+	m_autohints_checkbox->SetValue(Settings::get_boolean("autohints"));
+
+	sizer->Add(m_autoload_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM|wxTOP, 10);
+	sizer->Add(m_autosave_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
+	sizer->Add(m_autohints_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
 	sizer->AddStretchSpacer(1);
 	sizer->AddSpacer(10);
 
@@ -60,7 +66,7 @@ wxPanel *PreferencesEditor::MakeAppearancePanel()
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	hsizer->Add(new wxStaticText(panel, wxID_ANY, _("Monospaced (fixed-width) font:"), wxDefaultPosition, wxDefaultSize), 0, wxALIGN_CENTER, 0);
 	hsizer->AddSpacer(10);
-	m_font_picker = new wxFontPickerCtrl(panel, wxID_ANY, Settings::get_mono_font());
+	m_font_picker = new wxFontPickerCtrl(panel, wxID_ANY, Settings::get_mono_font(), wxDefaultPosition, wxDefaultSize, 0);
 	hsizer->Add(m_font_picker, 1, wxEXPAND, 0);
 	sizer->Add(hsizer, 0, wxEXPAND|wxALL, 10);
 	sizer->AddStretchSpacer();
@@ -74,6 +80,7 @@ void PreferencesEditor::DoOk()
 	// General panel
 	Settings::set_value("autoload", m_autoload_checkbox->GetValue());
 	Settings::set_value("autosave", m_autosave_checkbox->GetValue());
+	Settings::set_value("autohints", m_autohints_checkbox->GetValue());
 
 	// Appearance panel
 	auto old_font = Settings::get_mono_font();

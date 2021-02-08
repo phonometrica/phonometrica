@@ -359,6 +359,9 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 			auto collapse_id = wxNewId();
 			menu->Append(collapse_id, _("Collapse content"));
 			Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnCollapseDirectory, this, collapse_id);
+			auto sort_id = wxNewId();
+			menu->Append(sort_id, _("Sort content"));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [folder](wxCommandEvent &) { folder->sort(); Project::updated(); }, sort_id);
 			menu->AppendSeparator();
 
 			if (folder->toplevel() == Project::get()->scripts().get())
@@ -410,7 +413,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { edit_query(query); }, edit_id);
 
 				auto dup_id = wxNewId();
-				menu->Append(dup_id, _("Duplicate"));
+				menu->Append(dup_id, _("Duplicate..."));
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { DuplicateQuery(query); }, dup_id);
 
 				auto rename_id = wxNewId();

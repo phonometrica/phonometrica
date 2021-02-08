@@ -25,7 +25,7 @@
 #ifndef PHONOMETRICA_MATCH_HPP
 #define PHONOMETRICA_MATCH_HPP
 
-#include <phon/application/agraph.hpp>
+#include <phon/application/annotation.hpp>
 
 namespace phonometrica {
 
@@ -33,38 +33,50 @@ class Match
 {
 public:
 
+	struct Target
+	{
+		// Event where the match occurred.
+		AutoEvent event;
+
+		// Matched text.
+		String value;
+
+		// Index of the layer in which the match was found.
+		int layer;
+
+		// Offset where the match occurred in the event.
+		int offset;
+
+		// Next target in a complex query (null in a simple query).
+		std::unique_ptr<Target> next;
+	};
+
 	Match(const AutoEvent &e, String target, int layer, int offset);
 
-	const AutoEvent &event() const { return m_event; }
+	const AutoEvent &get_event(intptr_t i) const;
 
-	Match *next() const { return m_next.get(); }
+	int get_layer(intptr_t i) const;
 
-	int layer_index() const { return m_layer_index; }
+	int get_offset(intptr_t i) const;
 
-	int offset() const { return m_offset; }
+	String get_target(intptr_t i) const;
 
-	String text() const { return m_target; }
+	void append(std::unique_ptr<Target> m);
 
-	void append_match(std::unique_ptr<Match> m);
+	const AutoAnnotation &annotation() const;
 
 protected:
 
-	// Event where the match occurred.
-	AutoEvent m_event;
+	Target *get(intptr_t i) const;
 
-	// Matched text.
-	String m_target;
+	// Annotation in which the match was found.
+	AutoAnnotation m_annot;
 
-	// Index of the layer in which the match was found.
-	int m_layer_index;
-
-	// Offset where the match occurred in the event.
-	int m_offset;
-
-	// Next match in a complex query (may be null).
-	std::unique_ptr<Match> m_next;
+	// First (and possibly unique) target.
+	std::unique_ptr<Target> m_target;
 };
 
+using AutoMatch = std::unique_ptr<Match>;
 
 } // namespace phonometrica
 

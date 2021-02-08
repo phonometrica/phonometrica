@@ -15,7 +15,9 @@
  *                                                                                                                     *
  * Created: 28/02/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: tabular dataset, where each column represents a variable and each row represents an observation.           *
+ * Purpose: Abstract base class for tabular datasets, where each column represents a variable and each row represents  *
+ * an observation. Derived classes are Spreadsheet, which represents a CSV file, and Concordance, which is the base    *
+ * for all the types of concordances available in Phonometrica.                                                        *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -23,7 +25,6 @@
 #define PHONOMETRICA_DATASET_HPP
 
 #include <phon/application/vfs.hpp>
-
 
 namespace phonometrica {
 
@@ -33,15 +34,7 @@ class Dataset : public VFile
 {
 public:
 
-	enum Type {
-		Undefined,
-		Native,
-		Csv
-	};
-
 	explicit Dataset(VFolder *parent, String path = String());
-
-	const char *class_name() const override;
 
 	bool is_dataset() const override;
 
@@ -57,11 +50,11 @@ public:
 
 	virtual bool empty() const = 0;
 
-	virtual bool is_query_table() const { return false; }
+	virtual bool is_concordance() const { return false; }
 
 	virtual bool is_spreadsheet() const { return false; }
 
-	virtual void to_csv(const String &path, const String &sep = "\t");
+	virtual void to_csv(const String &path, const String &sep);
 
 	static void initialize(Runtime &rt);
 
@@ -69,12 +62,7 @@ private:
 
 	void save_metadata() override;
 
-	Type guess_type() const;
-
 	bool uses_external_metadata() const override;
-
-
-	Type m_type = Undefined;
 
 };
 

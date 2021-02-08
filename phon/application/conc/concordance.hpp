@@ -13,49 +13,29 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 01/02/2021                                                                                                 *
+ * Created: 08/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Text match in an annotation.                                                                               *
+ * Purpose: base class for all the types of concordances available in Phonometrica (text query, formant query, etc.)   *                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_TEXT_MATCH_HPP
-#define PHONOMETRICA_TEXT_MATCH_HPP
+#ifndef PHONOMETRICA_CONCORDANCE_HPP
+#define PHONOMETRICA_CONCORDANCE_HPP
 
-#include <phon/application/conc/match.hpp>
-#include <phon/application/annotation.hpp>
+#include <phon/application/dataset.hpp>
 
 namespace phonometrica {
 
-class TextMatch : public Match
+class Concordance : public Dataset
 {
 public:
 
-	TextMatch() = default;
-
-	double start_time() const;
-
-	double end_time() const;
-
-	double duration() const { return 1000 * (end_time() - start_time()); }
-
-	bool operator<(const TextMatch &other) const;
-
-	const AutoAnnotation &annotation() const { return m_annot; }
-
-	size_t hash() const;
-
-	String left(intptr_t len) const;
-
-	String right(intptr_t len) const;
-
-private:
-
-	// Annotation in which the match was found.
-	AutoAnnotation m_annot;
+	Concordance(VFolder *parent, const String &path = String());
 
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_TEXT_MATCH_HPP
+
+
+#endif // PHONOMETRICA_CONCORDANCE_HPP
