@@ -32,10 +32,12 @@ static Variant table_init(Runtime &rt, std::span<Variant>)
 	return make_handle<Table>(&rt);
 }
 
-static Variant table_get_item(Runtime &, std::span<Variant> args)
+static Variant table_get_item(Runtime &rt, std::span<Variant> args)
 {
 	auto &tab = cast<Table>(args[0]);
-	return tab.get(args[1]);
+	auto &value = tab.get(args[1]);
+
+	return rt.needs_reference() ?  value.make_alias() : value.resolve();
 }
 
 static Variant table_get_field(Runtime &rt, std::span<Variant> args)

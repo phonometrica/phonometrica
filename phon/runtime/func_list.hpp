@@ -36,15 +36,13 @@ static Variant list_init(Runtime &rt, std::span<Variant>)
 static Variant list_get_item(Runtime &rt, std::span<Variant> args)
 {
 	auto &lst = cast<List>(args[0]).items();
-	if (args.size() > 2) {
-		throw error("[Index error] List does not support multidimensional indexing");
-	}
 	if (!check_type<intptr_t>(args[1])) {
 		throw error("[Index error] List index must be an Integer, not a %", args[1].class_name());
 	}
 	auto i = cast<intptr_t>(args[1]);
+	auto &value = lst.at(i);
 
-	return rt.needs_reference() ? lst.at(i).make_alias() : lst.at(i).resolve();
+	return rt.needs_reference() ? value.make_alias() : value.resolve();
 }
 
 static Variant list_get_field(Runtime &rt, std::span<Variant> args)

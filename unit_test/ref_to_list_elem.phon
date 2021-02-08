@@ -1,0 +1,14 @@
+# Reference to an element in a list
+local lst = [1, 2, {"hello": "world"}]
+local tab1 = ref lst[3]
+local tab2 = lst[3]
+tab1["foo"] = "bar"
+
+assert len(last(lst)) == 2
+assert len(tab1) == 2
+assert len(tab2) == 1
+
+# print lst
+# print tab1
+# print tab2
+ 

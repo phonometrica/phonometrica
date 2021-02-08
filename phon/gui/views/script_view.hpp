@@ -81,7 +81,11 @@ private:
 
 	void OnViewBytecode(wxCommandEvent &);
 
-	ScriptControl *m_ctrl;
+	void OnActivateHints(wxCommandEvent &);
+
+	void OnFindText();
+
+	ScriptControl *stc;
 
 	wxToolBar *m_toolbar;
 

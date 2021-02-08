@@ -51,9 +51,9 @@ ScriptView::ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent) 
 		}
 
 		auto content = File::read_all(script->path());
-		m_ctrl->SetText(content);
+		stc->SetText(content);
 	}
-	m_ctrl->notify_modification.connect(&ScriptView::OnModification, this);
+	stc->notify_modification.connect(&ScriptView::OnModification, this);
 }
 
 void ScriptView::SetupUi()
@@ -67,7 +67,7 @@ void ScriptView::SetupUi()
 	m_toolbar->EnableTool(m_save_tool->GetId(), false);
 
 	wxBitmap run_icon(wxBITMAP_PNG_FROM_DATA(start));
-	auto run_tool = m_toolbar->AddTool(-1, _("Execute script\tctrl+e"), run_icon, _("Execute script or selection (" CTRL_KEY "R)"));
+	auto run_tool = m_toolbar->AddTool(-1, _("Execute script\tctrl+e"), run_icon, _("Execute script or selection (" CTRL_KEY "↵)"));
 	sizer->Add(m_toolbar, 0, wxEXPAND | wxALL, 0);
 
 	wxBitmap on_icon(wxBITMAP_PNG_FROM_DATA(toggle_on));
@@ -80,9 +80,14 @@ void ScriptView::SetupUi()
 	wxBitmap unident_icon(wxBITMAP_PNG_FROM_DATA(double_left));
 	auto unindent_tool = m_toolbar->AddTool(-1, _("Unindent selection"), unident_icon, _("Unindent line or selection"));
 
+	wxBitmap hint_icon(wxBITMAP_PNG_FROM_DATA(hint));
+	auto hint_tool = m_toolbar->AddCheckTool(-1, _("Hint"), hint_icon, hint_icon, _("Activate auto-completion and call tips"));
+
 	wxBitmap bytecode_icon(wxBITMAP_PNG_FROM_DATA(eye));
 	auto bytecode_tool = m_toolbar->AddTool(-1, _("View bytecode"), bytecode_icon, _("View bytecode"));
 	m_toolbar->AddStretchableSpace();
+
+
 
 	wxBitmap help_icon(wxBITMAP_PNG_FROM_DATA(question));
 	auto help_tool = m_toolbar->AddTool(-1, _("Help"), help_icon, _("Help"));
@@ -95,19 +100,30 @@ void ScriptView::SetupUi()
 	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnUnindentSelection, this, unindent_tool->GetId());
 	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnOpenHelp, this, help_tool->GetId());
 	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnViewBytecode, this, bytecode_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnActivateHints, this, hint_tool->GetId());
 
 	m_searchbar = new SearchBar(this, _("Find text"), true);
-	m_searchbar->SetMaxSize(wxSize(-1, 40));
+#ifdef __WXMAC__
+	const int height = 40;
+#else
+	const int height = 30;
+#endif
+	m_searchbar->SetMaxSize(wxSize(-1, height));
 
-	m_ctrl = new ScriptControl(this);
-	m_ctrl->SetSyntaxHighlighting();
-	m_ctrl->SetLineNumbering();
-	sizer->Add(m_ctrl, 1, wxEXPAND, 0);
+	stc = new ScriptControl(this);
+	stc->SetSyntaxHighlighting();
+	stc->SetLineNumbering();
+	sizer->Add(stc, 1, wxEXPAND, 0);
 	sizer->Add(m_searchbar, 0, wxEXPAND);
 	SetSizer(sizer);
 	m_toolbar->Realize();
-    m_ctrl->SetSTCFocus(true);
+    stc->SetSTCFocus(true);
     m_searchbar->Hide();
+
+    m_searchbar->execute.connect(&ScriptView::OnFindText, this);
+
+    m_toolbar->ToggleTool(hint_tool->GetId(), true);
+    stc->ActivateHints(true);
 }
 
 void ScriptView::Save()
@@ -121,7 +137,7 @@ void ScriptView::Save()
 		m_script->set_path(dlg.GetPath(), false);
 		Project::get()->modify();
 	}
-	m_script->set_content(m_ctrl->GetText(), true);
+	m_script->set_content(stc->GetText(), true);
 	m_script->save();
 	m_toolbar->EnableTool(m_save_tool->GetId(), false);
 	UpdateTitle();
@@ -139,7 +155,7 @@ void ScriptView::OnModification()
 
 void ScriptView::Execute()
 {
-	String code = m_ctrl->HasSelection() ? m_ctrl->GetSelectedText() : m_ctrl->GetValue();
+	String code = stc->HasSelection() ? stc->GetSelectedText() : stc->GetValue();
 	auto console = runtime.console;
 	console->AppendNewLine();
 
@@ -149,7 +165,7 @@ void ScriptView::Execute()
 	}
 	catch (RuntimeError &e)
 	{
-		m_ctrl->ShowError(e.line_no());
+		stc->ShowError(e.line_no());
 		auto msg = utils::format("Error at line %\n", e.line_no());
 		console->ShowErrorMessage(msg);
 		console->ShowErrorMessage(e.what());
@@ -184,28 +200,28 @@ void ScriptView::OnUnindentSelection(wxCommandEvent &)
 
 void ScriptView::AddStartCharacter(const wxString &s)
 {
-	auto sel = m_ctrl->GetSelectedLines();
+	auto sel = stc->GetSelectedLines();
 	if (sel.first < 0) return;
 
 	for (int ln = sel.first; ln <= sel.second; ln++)
 	{
-		int pos = m_ctrl->PositionFromLine(ln);
-		m_ctrl->InsertText(pos, s);
+		int pos = stc->PositionFromLine(ln);
+		stc->InsertText(pos, s);
 	}
 }
 
 void ScriptView::RemoveStartCharacter(const wxString &s)
 {
-	auto sel = m_ctrl->GetSelectedLines();
+	auto sel = stc->GetSelectedLines();
 	if (sel.first < 0) return;
 
 	for (int ln = sel.first; ln <= sel.second; ln++)
 	{
-		auto line = m_ctrl->GetLine(ln);
+		auto line = stc->GetLine(ln);
 		if (line.StartsWith(s))
 		{
-			int pos = m_ctrl->PositionFromLine(ln);
-			m_ctrl->Replace(pos, pos + (long)s.size(), wxEmptyString);
+			int pos = stc->PositionFromLine(ln);
+			stc->Replace(pos, pos + (long)s.size(), wxEmptyString);
 		}
 	}
 }
@@ -228,7 +244,7 @@ void ScriptView::OnViewBytecode(wxCommandEvent &)
 			buffer.append(s);
 		};
 
-		auto closure = runtime.compile_string(m_ctrl->GetValue());
+		auto closure = runtime.compile_string(stc->GetValue());
 		runtime.disassemble(*closure, "main");
 		TextViewer viewer(this, _("Bytecode viewer"), buffer);
 		viewer.SetSize(FromDIP(wxSize(700, 400)));
@@ -245,8 +261,8 @@ void ScriptView::OnViewBytecode(wxCommandEvent &)
 void ScriptView::AdjustFontSize()
 {
 	// FIXME: this doesn't seem to work properly, at least on linux.
-	m_ctrl->InitializeFont();
-	m_ctrl->Layout();
+	stc->InitializeFont();
+	stc->Layout();
 }
 
 String ScriptView::GetPath() const
@@ -282,20 +298,50 @@ bool ScriptView::Finalize(bool autosave)
 void ScriptView::Find()
 {
 	m_searchbar->SetSearch();
-	Layout();
 }
 
 void ScriptView::Replace()
 {
 	m_searchbar->SetSearchAndReplace();
-	Layout();
 }
 
 void ScriptView::Escape()
 {
+	if (stc->HasFocus())
+	{
+		stc->CallTipCancel();
+		stc->AutoCompCancel();
+	}
+
 	m_searchbar->Hide();
-	m_ctrl->SetFocus();
+	stc->SetFocus();
 	Layout();
+}
+
+void ScriptView::OnFindText()
+{
+	int pos = stc->GetCurrentPos();
+	auto target = m_searchbar->GetSearchText();
+	int flags = m_searchbar->IsCaseSensitive() ? wxSTC_FIND_MATCHCASE : 0;
+
+
+	int start = stc->FindText(pos, (int)stc->GetLastPosition(), target, flags);
+	if (start < 0) {
+		wxMessageBox(_("Text not found!"), _("Find text"));
+		return;
+	}
+	pos = int(start + target.size());
+	stc->SetSelection(start, pos);
+	stc->SetCurrentPos(pos);
+	int line = stc->LineFromPosition(pos);
+	if (line > stc->GetFirstVisibleLine() + stc->LinesOnScreen()) {
+		stc->ScrollToLine(line);
+	}
+}
+
+void ScriptView::OnActivateHints(wxCommandEvent &e)
+{
+	stc->ActivateHints(e.IsChecked());
 }
 
 } // namespace phonometrica

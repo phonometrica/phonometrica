@@ -20,7 +20,6 @@
  ***********************************************************************************************************************/
 
 #include <wx/statbmp.h>
-#include <wx/stattext.h>
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/search_bar.hpp>
 #include <phon/include/icons.hpp>
@@ -31,48 +30,49 @@ SearchBar::SearchBar(wxWindow *parent, const wxString &description, bool replace
 	wxPanel(parent, wxID_ANY)
 {
 	const int spacing = 1;
+#ifdef __WXMAC__
 	const int height = 40;
+#else
+	const int height = 30;
+#endif
 	auto sizer = new HBoxSizer;
 
-	search_ctrl = new wxSearchCtrl(this, wxID_ANY);
+	search_ctrl = new wxSearchCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 	search_ctrl->SetDescriptiveText(description);
 	search_ctrl->SetSize(FromDIP(wxSize(-1, height)));
 	search_ctrl->ShowCancelButton(true);
 	auto menu = new wxMenu;
 	auto case_id = wxNewId();
 	case_entry = menu->AppendCheckItem(case_id, _("Case-sensitive"));
-	auto regex_id = wxNewId();
-	regex_entry = menu->AppendCheckItem(regex_id, _("Use regular expressions"));
+//	auto regex_id = wxNewId();
+//	regex_entry = menu->AppendCheckItem(regex_id, _("Use regular expressions"));
 	search_ctrl->SetMenu(menu);
 
-	repl_checkbox = new wxCheckBox(this, wxID_ANY, _("Replace:"));
-	repl_checkbox->SetValue(replace);
-	repl_checkbox->SetSize(FromDIP(wxSize(-1, height)));
 	repl_ctrl = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
 	repl_ctrl->Enable(replace);
 	repl_ctrl->SetSize(FromDIP(wxSize(-1, height)));
 	auto find_btn = new wxButton(this, wxID_ANY, _("Find"));
-	auto repl_btn = new wxButton(this, wxID_ANY, _("Replace"));
-	auto repl_all_btn = new wxButton(this, wxID_ANY, _("Replace all"));
-	auto icn = new wxStaticBitmap(this, wxID_ANY, wxBITMAP_PNG_FROM_DATA(close));
+	replace_btn = new wxButton(this, wxID_ANY, _("Replace"));
+	replace_all_btn = new wxButton(this, wxID_ANY, _("Replace all"));
+	auto icon = new wxStaticBitmap(this, wxID_ANY, wxBITMAP_PNG_FROM_DATA(close));
 
 	sizer->AddSpacer(5);
-	sizer->Add(new wxStaticText(this, wxID_ANY, _("Find:")), 0, wxLEFT|wxALIGN_CENTER, spacing);
-	sizer->Add(search_ctrl, 1, wxLEFT, spacing+5);
-	sizer->Add(repl_checkbox, 0, wxLEFT|wxALIGN_CENTER, spacing+5);
-	sizer->Add(repl_ctrl, 1, wxLEFT, spacing);
+	sizer->Add(search_ctrl, 1, 0, 0);
 	sizer->Add(find_btn, 0, wxLEFT|wxALIGN_CENTER, spacing);
-	sizer->Add(repl_btn, 0, wxLEFT|wxALIGN_CENTER, spacing);
-	sizer->Add(repl_all_btn, 0, wxLEFT|wxALIGN_CENTER|wxRIGHT, spacing);
-	sizer->Add(icn, 0, wxALIGN_CENTER);
+	sizer->Add(repl_ctrl, 1, wxLEFT, spacing);
+	sizer->Add(replace_btn, 0, wxLEFT | wxALIGN_CENTER, spacing);
+	sizer->Add(replace_all_btn, 0, wxLEFT | wxALIGN_CENTER | wxRIGHT, spacing);
+	sizer->Add(icon, 0, wxALIGN_CENTER);
 	SetSizer(sizer);
 
-	repl_checkbox->Bind(wxEVT_CHECKBOX, [=](wxCommandEvent &e) { repl_ctrl->Enable(repl_checkbox->GetValue()); });
+	icon->Bind(wxEVT_LEFT_UP, &SearchBar::OnClickCloseButton, this);
+	find_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &) { execute(); });
+	search_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &) { execute(); });
 }
 
 bool SearchBar::UsesRegex() const
 {
-	return regex_entry->IsChecked();
+	return regex_entry != nullptr && regex_entry->IsChecked();
 }
 
 bool SearchBar::IsCaseSensitive() const
@@ -80,17 +80,17 @@ bool SearchBar::IsCaseSensitive() const
 	return case_entry->IsChecked();
 }
 
-bool SearchBar::HasReplace() const
+bool SearchBar::HasReplacementText() const
 {
-	return repl_checkbox->GetValue();
+	return repl_ctrl->IsEnabled();
 }
 
-String SearchBar::GetSearchText() const
+wxString SearchBar::GetSearchText() const
 {
 	return search_ctrl->GetValue();
 }
 
-String SearchBar::GetReplacementText() const
+wxString SearchBar::GetReplacementText() const
 {
 	return repl_ctrl->GetValue();
 }
@@ -102,18 +102,31 @@ void SearchBar::FocusSearch()
 
 void SearchBar::SetSearch()
 {
-	repl_checkbox->SetValue(false);
-	repl_ctrl->Enable(false);
+	EnableReplace(false);
 	Show();
+	GetParent()->Layout();
 	FocusSearch();
 }
 
 void SearchBar::SetSearchAndReplace()
 {
-	repl_checkbox->SetValue(true);
-	repl_ctrl->Enable(true);
+	EnableReplace(true);
 	Show();
+	GetParent()->Layout();
 	FocusSearch();
+}
+
+void SearchBar::OnClickCloseButton(wxMouseEvent &)
+{
+	Hide();
+	GetParent()->Layout();
+}
+
+void SearchBar::EnableReplace(bool value)
+{
+	repl_ctrl->Enable(value);
+	replace_btn->Enable(value);
+	replace_all_btn->Enable(value);
 }
 
 } // namespace phonometrica

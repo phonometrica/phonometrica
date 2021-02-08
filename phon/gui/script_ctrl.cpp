@@ -37,10 +37,12 @@ ScriptControl::ScriptControl(wxWindow *parent) :
         wxStyledTextCtrl(parent, wxNewId(), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_RICH2|wxTE_PROCESS_ENTER)
 {
 	InitializeFont();
+	InitializeCallTips();
     StyleClearAll();
 	SetTabWidth(TAB_WIDTH);
 	Bind(wxEVT_STC_CHARADDED, &ScriptControl::OnCharAdded, this);
 	Bind(wxEVT_STC_CHANGE, &ScriptControl::OnChange, this);
+	Bind(wxEVT_STC_CALLTIP_CLICK, &ScriptControl::OnCallTipClicked, this);
 }
 
 void ScriptControl::InitializeFont()
@@ -168,16 +170,35 @@ void ScriptControl::OnCharAdded(wxStyledTextEvent &event)
 		//SetInsertionPoint(pos);
 		SetEmptySelection(pos);
 	}
-	else
+	else if (has_hints)
 	{
-		// Find the word start
-		int current_pos = GetCurrentPos();
-		int start_pos = WordStartPosition(current_pos, true);
-
-		// Display the autocompletion list
-		int word_len = current_pos - start_pos;
-		if (word_len > 1) {
-			AutoCompShow(word_len, completion_list);
+		if (event.GetKey() == '(')
+		{
+			int current_pos =  GetCurrentPos();
+			int end_pos = current_pos - 1; // ignore '('
+			int start_pos = WordStartPosition(end_pos, true);
+			auto txt = GetSubstring(start_pos, end_pos);
+			SetEmptySelection(current_pos);
+			auto it = calltips.find(txt);
+			if (it != calltips.end())
+			{
+				// Point to the first tip
+				calltip_position = current_pos;
+				calltip_list = &it->second;
+				current_calltip = calltip_list->begin();
+				CallTipShow(current_pos, *current_calltip);
+			}
+		}
+		else
+		{
+			// Find the word start
+			int current_pos = GetCurrentPos();
+			int start_pos = WordStartPosition(current_pos, true);
+			// Display the autocompletion list
+			int word_len = current_pos - start_pos;
+			if (word_len > 1) {
+				AutoCompShow(word_len, completion_list);
+			}
 		}
 	}
 }
@@ -207,6 +228,63 @@ void ScriptControl::WriteNewLine()
 #else
 	WriteText("\n");
 #endif
+}
+
+wxString ScriptControl::GetSubstring(int from, int to)
+{
+	SetSelectionStart(from);
+	SetSelectionEnd(to);
+	auto txt = GetSelectedText();
+	ClearSelections();
+
+	return txt;
+}
+
+void ScriptControl::InitializeCallTips()
+{
+	std::vector<std::pair<const char*, std::vector<wxString>>> function_declarations = {
+			{ "split",  {
+				"split(ref str as String, delim as String)\nReturns a List of strings which have been split at each occurrence of the substring delim."
+			}},
+			{ "append", {
+				"append(ref str as String, suffix as String)\nInserts suffix as the end of str.\002",
+				"append(ref list as List, item as Object)\nInserts item at the end of list.\001"
+			}}
+	};
+
+	for (auto &def : function_declarations) {
+		calltips[def.first] = std::move(def.second);
+	}
+}
+
+void ScriptControl::ActivateHints(bool value)
+{
+	has_hints = value;
+	if (!has_hints)
+	{
+		AutoCompCancel();
+		CallTipCancel();
+	}
+}
+
+void ScriptControl::OnCallTipClicked(wxStyledTextEvent &e)
+{
+	int pos = e.GetPosition();
+
+	if (pos == 0)
+	{
+		return;
+	}
+	else if (pos == 1)
+	{
+		--current_calltip;
+	}
+	else // pos == 2
+	{
+		++current_calltip;
+	}
+
+	CallTipShow(calltip_position, *current_calltip);
 }
 
 } // namespace phonometrica

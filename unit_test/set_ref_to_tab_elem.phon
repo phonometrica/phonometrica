@@ -1,0 +1,6 @@
+local tab1 = { "hello": "world", "john": "smith", "test": { "pi": 3.14, "e": 2.72} }
+local tab2 = tab1["test"]
+
+tab1["test"]["phi"] = 1.62
+print tab1
+print tab2

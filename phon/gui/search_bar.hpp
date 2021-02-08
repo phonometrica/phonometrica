@@ -27,8 +27,7 @@
 #include <wx/srchctrl.h>
 #include <wx/textctrl.h>
 #include <wx/button.h>
-#include <wx/checkbox.h>
-#include <phon/string.hpp>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
@@ -42,27 +41,33 @@ public:
 
 	bool IsCaseSensitive() const;
 
-	bool HasReplace() const;
+	wxString GetSearchText() const;
 
-	String GetSearchText() const;
+	bool HasReplacementText() const;
 
-	String GetReplacementText() const;
+	wxString GetReplacementText() const;
 
 	void SetSearch();
 
 	void SetSearchAndReplace();
 
+	Signal<> execute;
+
 protected:
 
 	void FocusSearch();
+
+	void OnClickCloseButton(wxMouseEvent &);
+
+	void EnableReplace(bool value);
 
 	wxSearchCtrl *search_ctrl;
 
 	wxTextCtrl *repl_ctrl;
 
-	wxMenuItem *case_entry, *regex_entry;
+	wxButton *replace_btn, *replace_all_btn;
 
-	wxCheckBox *repl_checkbox;
+	wxMenuItem *case_entry = nullptr, *regex_entry = nullptr;
 };
 
 } // namespace phonometrica

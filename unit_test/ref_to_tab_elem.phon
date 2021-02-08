@@ -1,0 +1,8 @@
+local tab1 = { "hello": "world", "john": "smith", "test": { "pi": 3.14, "e": 2.72} }
+local tab2 = tab1["test"]
+local tab3 = ref tab1["test"]
+
+tab3["phi"] = 1.62
+assert len(tab1["test"]) == 3
+assert len(tab2) == 2
+assert len(tab3) == 3

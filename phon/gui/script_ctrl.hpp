@@ -22,6 +22,7 @@
 #ifndef PHONOMETRICA_SCRIPT_CONTROL_HPP
 #define PHONOMETRICA_SCRIPT_CONTROL_HPP
 
+#include <unordered_map>
 #include <wx/stc/stc.h>
 #include <phon/utils/signal.hpp>
 
@@ -49,17 +50,38 @@ public:
 
 	void WriteNewLine();
 
+	void ActivateHints(bool value);
+
 	Signal<> notify_modification;
 
 private:
+
+	using CallTipList = std::vector<wxString>;
+	using CallTipMap = std::unordered_map<wxString, CallTipList>;
 
 	void OnCharAdded(wxStyledTextEvent &);
 
 	void OnChange(wxStyledTextEvent &);
 
+	wxString GetSubstring(int from, int to);
+
+	void InitializeCallTips();
+
+	void OnCallTipClicked(wxStyledTextEvent &e);
+
 	int error_indicator = 0;
 
+	bool has_hints = false;
+
 	std::pair<int,int> error_selection;
+
+	CallTipMap calltips;
+
+	int calltip_position = 0;
+
+	CallTipList *calltip_list = nullptr;
+
+	CallTipList::iterator current_calltip;
 };
 
 

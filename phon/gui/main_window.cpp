@@ -809,15 +809,16 @@ void MainWindow::OnEditPreferences(wxCommandEvent &)
 
 void MainWindow::SetAccelerators()
 {
-	wxAcceleratorEntry entries[3];
+	wxAcceleratorEntry entries[4];
 	auto id_save = wxNewId();
 	auto id_esc = wxNewId();
-	entries[0].Set(wxACCEL_CTRL, (int) 'E', wxID_EXECUTE);
-	entries[1].Set(wxACCEL_CTRL, (int) 'S', id_save);
-	entries[2].Set(wxACCEL_NORMAL, WXK_ESCAPE, id_esc);
+	entries[0].Set(wxACCEL_CTRL, (int) WXK_RETURN, wxID_EXECUTE);
+	entries[1].Set(wxACCEL_CTRL, (int) WXK_NUMPAD_ENTER, wxID_EXECUTE);
+	entries[2].Set(wxACCEL_CTRL, (int) 'S', id_save);
+	entries[3].Set(wxACCEL_NORMAL, WXK_ESCAPE, id_esc);
 //	entries[2].Set(wxACCEL_SHIFT, (int) 'A', ID_ABOUT);
 
-	wxAcceleratorTable accel(3, entries);
+	wxAcceleratorTable accel(4, entries);
 	SetAcceleratorTable(accel);
 	Bind(wxEVT_MENU, &MainWindow::OnExecute, this, wxID_EXECUTE);
 	Bind(wxEVT_MENU, &MainWindow::OnSave, this, id_save);
