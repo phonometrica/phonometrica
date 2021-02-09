@@ -47,7 +47,7 @@ void Query::add_constraint(Constraint c, bool mutate)
 	if (mutate) m_content_modified = true;
 }
 
-Array<AutoAnnotation> Query::filter_annotations(const Array<AutoAnnotation> &candidates) const
+Array<AutoAnnotation> Query::filter_annotations(Array<AutoAnnotation> candidates) const
 {
 	if (m_metaconstraints.empty()) {
 		return candidates;
@@ -57,7 +57,7 @@ Array<AutoAnnotation> Query::filter_annotations(const Array<AutoAnnotation> &can
 	for (auto &candidate : candidates)
 	{
 		if (filter_metadata(candidate.get())) {
-			result.append(candidate);
+			result.append(std::move(candidate));
 		}
 	}
 
@@ -514,8 +514,12 @@ AutoQuery Query::clone() const
 AutoConcordance Query::execute()
 {
 	Array<AutoMatch> result;
-	Array<AutoAnnotation> annotations = selected_annotations.empty() ? Project::get()->annotations() : selected_annotations;
-	annotations = filter_annotations(annotations);
+	auto tmp = selected_annotations.empty() ? Project::get()->annotations() : selected_annotations;
+	auto annotations = filter_annotations(std::move(tmp));
+
+	for (auto &c : m_constraints) {
+		c.compile();
+	}
 
 	int count = (int)annotations.size(), t = 0;
 	wxProgressDialog progress(_("Executing query"), _("Processing annotations"), count);
@@ -523,10 +527,6 @@ AutoConcordance Query::execute()
 #ifdef PHON_TIMING
 	auto first_time = clock();
 #endif
-
-	for (auto &c : m_constraints) {
-		c.compile();
-	}
 
 	for (auto &annot : annotations)
 	{
@@ -553,7 +553,7 @@ AutoConcordance Query::execute()
 	return std::make_unique<Concordance>(m_constraints.size(), std::move(result), nullptr);
 }
 
-Array<AutoMatch> Query::find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches) const
+Array<AutoMatch> Query::find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, Array<int> &blacklist, Constraint::Operator op) const
 {
 	if (constraint.use_index())
 	{
@@ -561,45 +561,41 @@ Array<AutoMatch> Query::find_matches(const Annotation &annot, const Constraint &
 		{
 			Array<AutoMatch> new_matches;
 
-			for (intptr_t i = 1; i <= annot.layer_count(); i++)
-			{
-				for (auto &m : find_matches(annot, constraint, std::move(matches), i)) {
-					new_matches.append(std::move(m));
-				}
+			for (intptr_t i = 1; i <= annot.layer_count(); i++) {
+				matches = find_matches(annot, constraint, std::move(matches), i, blacklist, op);
 			}
 
 			return new_matches;
 		}
 		else
 		{
-			return find_matches(annot, constraint, std::move(matches), constraint.layer_index);
+			return find_matches(annot, constraint, std::move(matches), constraint.layer_index, blacklist, op);
 		}
 	}
 	else
 	{
-		Array<AutoMatch> new_matches;
 		auto &layers = annot.layers();
 
 		for (intptr_t i = 1; i <= layers.size(); i++)
 		{
 			auto &layer = layers[i];
 
-//			if (constraint.layer_regex->match(layer->label))
-//			{
-//				for (auto &m : find_matches(annot, constraint, std::move(matches), i)) {
-//					new_matches.append(std::move(m));
-//				}
-//			}
+			if (constraint.layer_regex->match(layer->label))
+			{
+				matches = find_matches(annot, constraint, std::move(matches), i, blacklist, op);
+			}
 		}
 
-		return new_matches;
+		return matches;
 	}
 }
 
-Array<AutoMatch> Query::find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> old_matches, intptr_t layer) const
+Array<AutoMatch> Query::find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, intptr_t layer, Array<int> &blacklist, Constraint::Operator op) const
 {
+//	if (blacklist.contains(layer) && constraint.op != Constraint::Operator::Precedence && )
+
 	auto &events = annot.get_layer_events(layer);
-	Array<AutoMatch> matches;
+	Array<AutoMatch> new_matches;
 #if 0
 	static String sep(" ");
 	auto re = constraint.regex.get();
@@ -630,56 +626,19 @@ Array<AutoMatch> Query::find_matches(const Annotation &annot, const Constraint &
 	return matches;
 }
 
-Array<AutoMatch> Query::search(const Annotation &annot, const Constraint &constraint, Regex *layer_pattern) const
-{
-#if 0
-	for (auto &layer : annot.layers())
-	{
-		Array<AutoMatch> subset;
-
-		if (layer_pattern)
-		{
-			if (layer_pattern->match(layer->label))
-			{
-				if (op == Opcode::Matches)
-					subset = find_matches(settings, annot, layer->index, std::true_type());
-				else
-					subset = find_matches(settings, annot, layer->index, std::false_type());
-			}
-		}
-		else if (layer_index == 0 || layer_index == layer->index)
-		{
-			if (op == Opcode::Matches)
-				subset = find_matches(settings, annot, layer->index, std::true_type());
-			else
-				subset = find_matches(settings, annot, layer->index, std::false_type());
-		}
-
-		for (auto it = subset.begin(); it != subset.end(); )
-		{
-#if PHON_MACOS
-			results.insert(*it); it++;
-#else
-			results.insert(std::move(subset.extract(it++)));
-#endif
-		}
-	}
-#endif
-
-	return Array<AutoMatch>();
-}
-
 Array<AutoMatch> Query::search(const Annotation &annot)
 {
-	Array<AutoMatch> matches;
-	matches = find_matches(annot, m_constraints[1], std::move(matches));
+	// We maintain a blacklist of layer indices, so that we don't scan the same layer twice
+	Array<int> blacklist;
+
+	auto matches = find_matches(annot, m_constraints[1], Array<AutoMatch>(), blacklist, Constraint::Operator::None);
 
 	for (intptr_t i = 2; i <= m_constraints.size(); i++)
 	{
 		if (matches.empty()) {
-			break;
+			return matches;
 		}
-		matches = find_matches(annot, m_constraints[i], std::move(matches));
+		matches = find_matches(annot, m_constraints[i], std::move(matches), blacklist, m_constraints[i-1].op);
 	}
 
 	return matches;

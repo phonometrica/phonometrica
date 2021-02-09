@@ -119,17 +119,15 @@ protected:
 
 	void parse_options_from_xml(xml_node root);
 
-	Array<AutoAnnotation> filter_annotations(const Array<AutoAnnotation> &candidates) const;
+	Array<AutoAnnotation> filter_annotations(Array<AutoAnnotation> candidates) const;
 
 	bool filter_metadata(const VFile *file) const;
 
 	Array<AutoMatch> search(const Annotation &annot);
 
-	Array<AutoMatch> search(const Annotation &annot, const Constraint &constraint, Regex *layer_pattern) const;
+	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, Array<int> &blacklist, Constraint::Operator op) const;
 
-	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches) const;
-
-	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, intptr_t layer) const;
+	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, intptr_t layer, Array<int> &blacklist, Constraint::Operator op) const;
 
 	// Constraints on the metadata
 	Array<AutoMetaConstraint> m_metaconstraints;

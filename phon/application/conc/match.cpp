@@ -26,7 +26,6 @@ namespace phonometrica {
 
 Match::Match(const AutoEvent &e, String target, int layer, int offset)
 {
-	m_target = std::make_unique<Target>();
 	m_target->event = e;
 	m_target->value = std::move(target);
 	m_target->layer = layer,
@@ -83,5 +82,6 @@ const AutoAnnotation &Match::annotation() const
 {
 	return m_annot;
 }
+
 
 } // namespace phonometrica

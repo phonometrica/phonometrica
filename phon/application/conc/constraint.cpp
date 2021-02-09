@@ -23,6 +23,30 @@
 
 namespace phonometrica {
 
+Constraint::Constraint(const Constraint &other) :
+		layer_pattern(other.layer_pattern), target(other.target)
+{
+	this->op = other.op;
+	this->use_regex = other.use_regex;
+	this->case_sensitive = other.case_sensitive;
+	this->layer_index = other.layer_index;
+	if (other.regex) {
+		regex = std::make_unique<Regex>(other.regex->pattern(), other.regex->flags());
+	}
+	if (other.layer_regex) {
+		layer_regex = std::make_unique<Regex>(other.layer_regex->pattern(), other.regex->flags());
+	}
+}
+
+Constraint::Constraint(Constraint &&other) :
+		layer_pattern(other.layer_pattern), target(other.target),
+		regex(std::move(other.regex)), layer_regex(std::move(other.layer_regex))
+{
+	this->op = other.op;
+	this->use_regex = other.use_regex;
+	this->case_sensitive = other.case_sensitive;
+	this->layer_index = other.layer_index;
+}
 void Constraint::to_xml(xml_node root)
 {
 	auto node = root.append_child("Constraint");
@@ -93,23 +117,26 @@ void Constraint::swap(Constraint &other) noexcept
 	std::swap(this->layer_index, other.layer_index);
 	std::swap(this->layer_pattern, other.layer_pattern);
 	std::swap(this->target, other.target);
+	std::swap(this->regex, other.regex);
+	std::swap(this->layer_regex, other.layer_regex);
 }
 
 void Constraint::compile()
 {
-//	if (use_regex && !regex)
-//	{
-//		if (case_sensitive) {
-//			regex = std::make_unique<Regex>(target);
-//		}
-//		else {
-//			regex = std::make_unique<Regex>(target, Regex::Caseless);
-//		}
-//
-//		if (!use_index() && !layer_regex)
-//		{
-//			layer_regex = std::make_unique<Regex>(layer_pattern);
-//		}
-//	}
+	if (use_regex && !regex)
+	{
+		if (case_sensitive) {
+			regex = std::make_unique<Regex>(target);
+		}
+		else {
+			regex = std::make_unique<Regex>(target, Regex::Caseless);
+		}
+
+		if (!use_index() && !layer_regex)
+		{
+			layer_regex = std::make_unique<Regex>(layer_pattern);
+		}
+	}
 }
+
 } // namespace phonometrica

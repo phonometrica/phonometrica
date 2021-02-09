@@ -1,5 +1,20 @@
-
 static const char *autocompletion_list =
-		"Array assert Boolean break class continue debug do downto else elsif false field Float foreach function Function "
-  "inherits Integer json List local method Module null Number Object option pass phon print Regex repeat return "
-  "Set step String super Table then this throw true until while";
+	"acos alert append Array asin assert atan atan2 bark_to_hertz Boolean "
+	"break ceil char chi2_test class clear clear_directory close connect contains "
+	"continue corr count create_directory create_signal debug disconnect do downto else "
+	"elsif emit ends_with erb_to_hertz exists f_test false field find find_back "
+	"Float floor foreach Function function genericize get_annotation get_annotations get_application_directory get_base_name "
+	"get_current_annotation get_current_directory get_current_sound get_end get_extension get_full_path get_input get_path_separator get_selected_annotations get_selected_sounds "
+	"get_selection_duration get_sound get_sounds get_start get_temp_directory get_temp_name get_user_directory get_window_duration group has_match "
+	"hertz_to_bark hertz_to_erb hertz_to_mel hertz_to_semitones info inherits insert Integer intersect is_directory "
+	"is_empty is_file is_sorted join join_path json left List list_directory local "
+	"log10 log2 logit ltrim match mean mel_to_hertz method Module nativize "
+	"null Number Object open open_directory_dialog open_file_dialog option parse pass phon "
+	"poisson prepend print random read_file read_line read_lines read_matrix Regex remove "
+	"remove_at remove_directory remove_file remove_first remove_last rename repeat replace replace_at replace_first "
+	"replace_last report_chi2 report_formants report_intensity report_pitch return reverse rewind right round "
+	"rtrim sample save_file_dialog seek semitones_to_hertz Set set_status shift shuffle slice "
+	"sort sorted_find sorted_insert split split_extension sqrt starts_with step String stringify "
+	"strip_extension subtract super t_test t_test1 Table tell then this throw "
+	"to_lower to_upper trim true unite until view_text warning while write "
+	"write_line write_lines write_matrix";

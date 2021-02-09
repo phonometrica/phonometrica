@@ -43,8 +43,8 @@ struct Constraint final
 	};
 
 	Constraint() = default;
-	Constraint(const Constraint &) = default;
-	Constraint(Constraint &&) = default;
+	Constraint(const Constraint &other);
+	Constraint(Constraint &&other);
 
 	Constraint &operator=(Constraint other) noexcept;
 
@@ -79,7 +79,7 @@ struct Constraint final
 	String target;
 
 	// Cached regexes
-//	std::unique_ptr<Regex> regex, layer_regex;
+	std::unique_ptr<Regex> regex, layer_regex;
 };
 
 } // namespace phonometrica
