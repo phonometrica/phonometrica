@@ -197,6 +197,10 @@ void ScriptControl::OnCharAdded(wxStyledTextEvent &event)
 				CallTipShow(current_pos, *current_calltip);
 			}
 		}
+		else if (event.GetKey() == ')')
+        {
+		    CallTipCancel();
+        }
 		else
 		{
 			// Find the word start
