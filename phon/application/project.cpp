@@ -37,12 +37,13 @@ AutoProject Project::instance;
 
 static String event_module_name("event");
 static String emit_name("emit");
-static String annotation_loaded("__evt_annotation_loaded");
-static String sound_loaded("__evt_sound_loaded");
-static String document_loaded("__evt_document_loaded");
-static String script_loaded("__evt_script_loaded");
-static String dataset_loaded("__evt_dataset_loaded");
-static String project_loaded("__evt_project_loaded");
+static String annotation_imported("__SIGNAL_ANNOTATION_IMPORTED");
+static String sound_imported("__SIGNAL_SOUND_IMPORTED");
+static String annotation_loaded("__SIGNAL_ANNOTATION_LOADED");
+static String sound_loaded("__SIGNAL_SOUND_LOADED");
+static String script_loaded("__SIGNAL_SCRIPT_LOADED");
+static String dataset_loaded("__SIGNAL_DATASET_LOADED");
+static String project_loaded("__SIGNAL_PROJECT_LOADED");
 // application variables
 static const std::string_view VAR_APPDIR("$PHON_APPDIR");
 static const std::string_view VAR_HOME("$HOME");
@@ -220,7 +221,7 @@ void Project::load()
 	m_database_temp = false;
 	bind_annotations();
 	notify_update();
-	trigger(project_loaded);
+	emit(project_loaded);
 }
 
 const std::shared_ptr<VFolder> & Project::corpus() const
@@ -271,13 +272,13 @@ void Project::parse_corpus(xml_node root, VFolder *folder, bool emitting)
 			{
 				auto annot = std::make_shared<Annotation>(folder, std::move(path));
 				vfile = upcast<VFile>(annot);
-                trigger(annotation_loaded, make_handle<AutoAnnotation>(std::move(annot)));
+				emit(annotation_loaded, make_handle<AutoAnnotation>(std::move(annot)));
 			}
 			else if (cls == "Sound")
 			{
 				auto sound = std::make_shared<Sound>(folder, std::move(path));
 				vfile = upcast<VFile>(sound);
-				trigger(sound_loaded, make_handle<AutoSound>(std::move(sound)));
+				emit(sound_loaded, make_handle<AutoSound>(std::move(sound)));
 			}
 			else
 			{
@@ -377,8 +378,7 @@ void Project::parse_scripts(xml_node root, VFolder *folder)
 				auto script = std::make_shared<Script>(folder, std::move(path));
 				folder->append(script, false);
 				register_file(script->path(), script);
-				// TODO: trigger action when a script is loaded
-				//trigger(script_loaded, make_handle<AutoScript>(script));
+				emit(script_loaded, make_handle<AutoScript>(script));
 			}
 			else
 			{
@@ -420,8 +420,6 @@ void Project::parse_queries(xml_node root, VFolder *folder)
 				auto query = std::make_shared<TextQuery>(folder, std::move(path));
 				folder->append(query, false);
 				register_file(query->path(), query);
-				// TODO: trigger action when a query is loaded
-				//trigger(query_loaded, make_handle<AutoQuery>(query));
 			}
 			else
 			{
@@ -465,7 +463,7 @@ void Project::parse_data(xml_node root, VFolder *folder)
 				dataset->from_xml(node, m_directory);
 				folder->append(dataset, false);
 				register_file(dataset->path(), dataset);
-				trigger(dataset_loaded, make_handle<AutoDataset>(std::move(dataset)));
+//				emit(dataset_loaded, make_handle<AutoDataset>(std::move(dataset)));
 			}
 			else
 			{
@@ -690,14 +688,14 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 	    auto annot = std::make_shared<Annotation>(parent.get(), std::move(path));
 		vfile = upcast<VFile>(annot);
 		parent->append(vfile);
-        trigger(annotation_loaded, make_handle<AutoAnnotation>(annot));
+		emit(annotation_loaded, make_handle<AutoAnnotation>(annot));
 	}
 	else if (Sound::supports_format(ext) && (static_cast<int>(type)&static_cast<int>(FileType::Sound)))
 	{
 	    auto sound = std::make_shared<Sound>(parent.get(), std::move(path));
 		vfile = upcast<VFile>(sound);
 		parent->append(vfile);
-//		trigger(sound_loaded, sound->class_name(), sound);
+		emit(sound_loaded, make_handle<AutoSound>(sound));
 	}
 	else if (ext == PHON_EXT_QUERY)
 	{
@@ -746,7 +744,7 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 		auto dataset = std::make_shared<Spreadsheet>(p, std::move(path));
 		vfile = upcast<VFile>(dataset);
 		p->append(vfile);
-//		trigger(dataset_loaded, dataset->class_name(), dataset);
+//		emit(dataset_loaded, make_handle<AutoSpreadsheet>(std::move(dataset)));
 	}
 	else if ((ext == PHON_EXT_SCRIPT || ext == ".phon-script"))
 	{
@@ -766,7 +764,7 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
         auto script = std::make_shared<Script>(p, std::move(path));
 		vfile = upcast<VFile>(script);
 		p->append(vfile);
-//		trigger(script_loaded, dataset->class_name(), script);
+		emit(script_loaded, make_handle<AutoScript>(std::move(script)));
 	}
 	else
 	{
@@ -804,8 +802,20 @@ String Project::import_file(String path)
 	filesystem::nativize(path);
 
 	// Assume that the file will be added to the corpus. add_file() will change the parent if necessary.
-	if (add_file(path, m_corpus, FileType::Any)) {
+	if (add_file(path, m_corpus, FileType::Any))
+	{
         m_modified = true;
+        auto &f = m_files[path];
+        if (f->is_annotation())
+        {
+        	auto handle = make_handle<AutoAnnotation>(downcast<Annotation>(f));
+	        emit(annotation_imported, std::move(handle));
+        }
+        else if (f->is_sound())
+        {
+        	auto handle = make_handle<AutoSound>(downcast<Sound>(f));
+        	emit(sound_imported, std::move(handle));
+        }
 	}
 	// Try to find a sound that matches the annotation's name.
 	set_default_bindings();
@@ -1238,19 +1248,19 @@ bool Project::is_root(const VFolder *folder) const
     return folder == m_corpus.get() || folder == m_scripts.get() || folder == m_queries.get() || folder == m_data.get() || folder == m_bookmarks.get();
 }
 
-void Project::trigger(const String &event, Variant value)
+void Project::emit(const String &signal, Variant value)
 {
-//    rt.push(rt[emit_name]);
-//    rt.push(event);
-//    rt.push(std::move(value));
-//    rt.call(2);
+    rt.push(rt[emit_name]);
+    rt.push(signal);
+    rt.push(std::move(value));
+    rt.call(2);
 }
 
-void Project::trigger(const String &event)
+void Project::emit(const String &signal)
 {
-//    rt.push(rt[emit_name]);
-//    rt.push(event);
-//    rt.call(1);
+    rt.push(rt[emit_name]);
+    rt.push(signal);
+    rt.call(1);
 }
 
 void Project::import_metadata(const String &path, const String &separator)
@@ -1504,7 +1514,8 @@ void Project::initialize_types(Runtime &rt)
 {
 	Annotation::initialize(rt);
 	Sound::initialize(rt);
-	Dataset::initialize(rt);
+//	Dataset::initialize(rt);
+//	Spreadsheet::initialize(rt);
 }
 
 void Project::add_query(AutoQuery query)

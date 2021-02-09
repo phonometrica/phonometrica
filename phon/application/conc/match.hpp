@@ -15,10 +15,9 @@
  *                                                                                                                     *
  * Created: 01/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Match is the base class for all matches: it represents a line of concordance. For simple queries with      *
- * a single constraint, there is a single match; for complex queries with two or more constraints, the match is        *
- * represented as a linked list of matches. Match only contains information about the location of the match in a file, *
- * but not about the file itself: this information is stored in derived classes (see TextMatch).                       *
+ * Purpose: a Match represents a line of concordance. Each match has one or more targets: For simple queries with      *
+ * a single constraint, there is a single target; for complex queries with two or more constraints, the match contains *
+ * a linked list of targets.                                                                                           *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -29,7 +28,7 @@
 
 namespace phonometrica {
 
-class Match
+class Match final
 {
 public:
 

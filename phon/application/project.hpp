@@ -209,9 +209,9 @@ private:
 
 	const std::shared_ptr<VFile> & get_file_handle(const String &path, std::string_view msg);
 
-	void trigger(const String &event, Variant value);
+	void emit(const String &signal, Variant value);
 
-    void trigger(const String &event);
+    void emit(const String &signal);
 
     void tag_file(std::shared_ptr<VFile> &file, const String &category, const String &value);
 

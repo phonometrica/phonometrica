@@ -113,6 +113,8 @@ public:
 
 	static bool has_category(const String &category);
 
+	static intptr_t category_count();
+
 private:
 
 	static std::set<Property> known_properties;

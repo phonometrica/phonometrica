@@ -20,7 +20,7 @@
  ***********************************************************************************************************************/
 
 #include <phon/file.hpp>
-#include <phon/runtime/runtime.hpp>
+#include <phon/runtime.hpp>
 #include <phon/application/script.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>

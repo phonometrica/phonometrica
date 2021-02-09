@@ -15,7 +15,7 @@
  *                                                                                                                     *
  * Created: 08/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: base class for all the types of concordances available in Phonometrica (text query, formant query, etc.)   *                                                                                                *
+ * Purpose: a Concordance represents the result of a query.                                                            *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -23,6 +23,7 @@
 #define PHONOMETRICA_CONCORDANCE_HPP
 
 #include <phon/application/dataset.hpp>
+#include <phon/application/conc/match.hpp>
 
 namespace phonometrica {
 
@@ -30,8 +31,27 @@ class Concordance : public Dataset
 {
 public:
 
-	Concordance(VFolder *parent, const String &path = String());
+	Concordance(intptr_t target_count, VFolder *parent, const String &path = String());
 
+	const char *class_name() const override;
+
+	intptr_t target_count() const { return m_target_count; }
+
+	String get_header(intptr_t j) const override;
+
+	String get_cell(intptr_t i, intptr_t j) const override;
+
+	intptr_t row_count() const override;
+
+	intptr_t column_count() const override;
+
+	bool empty() const override;
+
+protected:
+
+	Array<std::unique_ptr<Match>> m_matches;
+
+	intptr_t m_target_count;
 };
 
 } // namespace phonometrica

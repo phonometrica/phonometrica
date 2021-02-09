@@ -1,6 +1,6 @@
 {
     "name" : "PFC",
-    "version": "0.9",
+    "version": "1.0",
     "description":  [
         "Plugin for the PFC project.\n",
         "See http://www.projet-pfc.net"
@@ -8,7 +8,6 @@
 
     "actions" : [
         { "name": "Add metadata", "target": "add_metadata.phon" },
-        { "name": "Go to website", "target": "website.phon" },
-        { "name": "Test", "target": "test.phon" }
+        { "name": "Go to website", "target": "website.phon" }
     ]
 }

@@ -39,7 +39,7 @@ TextQueryEditor::TextQueryEditor(wxWindow *parent) :
 }
 
 TextQueryEditor::TextQueryEditor(wxWindow *parent, AutoTextQuery q) :
-	QueryEditor(parent, _("Query editor")), query(std::move(q))
+	QueryEditor(parent, _("Find in annotations...")), query(std::move(q))
 {
 
 }

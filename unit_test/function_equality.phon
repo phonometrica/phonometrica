@@ -1,0 +1,13 @@
+local function test1()
+	print "hello"
+end
+
+local function test2()
+	print "world"
+end
+
+local f1 = test1
+
+assert f1 == test1
+assert test1 != test2
+

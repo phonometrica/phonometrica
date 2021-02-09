@@ -22,6 +22,8 @@
 #include <wx/settings.h>
 #include <phon/gui/script_ctrl.hpp>
 #include <phon/application/settings.hpp>
+#include <phon/include/function_declarations.hpp>
+#include <phon/include/autocompletion_list.hpp>
 
 namespace phonometrica {
 
@@ -128,9 +130,7 @@ void ScriptControl::OnChange(wxStyledTextEvent &)
 
 void ScriptControl::OnCharAdded(wxStyledTextEvent &event)
 {
-	static const wxString completion_list("Array assert Boolean break class continue debug do downto else elsif false field Float foreach function Function "
-			"inherits Integer json List local method Module null Number Object option pass phon print Regex repeat return "
-			"Set step String super Table then this throw true until while");
+	static const wxString completion_list(autocompletion_list);
 	constexpr int NEW_LINE = 10;
 	static wxString then(" then"), do_(" do"), func("function "), func2("local function "), else_("else"), elsif("elsif"), tab("\t");
 
@@ -250,16 +250,6 @@ wxString ScriptControl::GetSubstring(int from, int to)
 
 void ScriptControl::InitializeCallTips()
 {
-	std::vector<std::pair<const char*, std::vector<wxString>>> function_declarations = {
-			{ "split",  {
-				"split(ref str as String, delim as String)\nReturns a List of strings which have been split at each occurrence of the substring delim."
-			}},
-			{ "append", {
-				"append(ref str as String, suffix as String)\nInserts suffix as the end of str.\002",
-				"append(ref list as List, item as Object)\nInserts item at the end of list.\001"
-			}}
-	};
-
 	for (auto &def : function_declarations) {
 		calltips[def.first] = std::move(def.second);
 	}

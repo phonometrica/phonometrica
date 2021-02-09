@@ -413,4 +413,9 @@ bool Property::has_category(const String &category)
 	return known_categories.find(category) != known_categories.end();
 }
 
+intptr_t Property::category_count()
+{
+	return (intptr_t) known_categories.size();
+}
+
 } // namespace phonometrica

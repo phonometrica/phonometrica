@@ -23,9 +23,39 @@
 
 namespace phonometrica {
 
-Concordance::Concordance(VFolder *parent, const String &path) :
+Concordance::Concordance(intptr_t target_count, VFolder *parent, const String &path) :
 	Dataset(parent, path)
 {
+	m_target_count = target_count;
+}
 
+const char *Concordance::class_name() const
+{
+	return "Concordance";
+}
+
+bool Concordance::empty() const
+{
+	return m_matches.empty();
+}
+
+String Concordance::get_header(intptr_t j) const
+{
+	return String();
+}
+
+String Concordance::get_cell(intptr_t i, intptr_t j) const
+{
+	return String();
+}
+
+intptr_t Concordance::row_count() const
+{
+	return m_matches.size();
+}
+
+intptr_t Concordance::column_count() const
+{
+	return 0;
 }
 } // namespace phonometrica

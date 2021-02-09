@@ -15,7 +15,7 @@ end
 
 local default_output = join_path(get_user_directory(), "output.txt")
 local ui = {
-"title": "TransPhon",
+"title": "Export annotations to plain text...",
 "width": 500,
 "height": 550,
 "items": [

@@ -147,8 +147,7 @@ bool Annotation::uses_external_metadata() const
 
 void Annotation::initialize(Runtime &rt)
 {
-	auto cls = rt.create_type<AutoAnnotation>("Annotation", rt.get_object_class());
-	rt.add_global("Annotation", cls);
+	auto cls = rt.add_standard_type<AutoAnnotation>("Annotation");
 
     auto annot_get_field = [](Runtime &, std::span<Variant> args) -> Variant  {
         auto &annot = cast<AutoAnnotation>(args[0]);

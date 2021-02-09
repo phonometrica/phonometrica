@@ -14,80 +14,83 @@
 #                                                                                                                      #
 # Created: 23/02/2019                                                                                                  #
 #                                                                                                                      #
-# purpose: a simple event/callback (a.k.a signal/slot) mechanism. Events are unique identifiers generated with         #
-# new_event(). An event can be connected/disconnected to/from a number of callbacks. Callbacks can be pure             #
-# Phonometrica functions or C++ functions exposed to the scripting engine. Phonometrica's callbacks are allowed to     #
-# return a value. Values returned by all the callbacks connected to an event are collected into a list, which is       #
+# purpose: a simple signal/slot (a.k.a event/callback) mechanism. Signals are unique identifiers generated with        #
+# create_signal(). A signal can be connected/disconnected to/from a number of slots. Slots can be pure                 #
+# Phonometrica functions or C++ functions exposed to the scripting engine. Phonometrica's slots are allowed to         #
+# return a value. Values returned by all the slots connected to an event are collected into a list, which is           #
 # returned by emit().                                                                                                  #
 #                                                                                                                      #
 ########################################################################################################################
 
-# Table mapping an event ID to a list of callbacks
+# Table mapping a signal to a list of callbacks
 local bindings = {}
 local slot_id = 0
 
-# Create a new event id (this function will be added by the C++ code)
-function new_event() 
-    local id = slot_id
-    slot_id += 1
-    return "__evt_" & id
+# Create a new signal, which is represented as a string
+function create_signal() 
+	local id = slot_id
+	slot_id += 1
+	
+	return "__SIGNAL_" & id
 end
 
-# connect an event to a slot
+# Connect a signal to a slot
 function connect(id as String, slot as Function)
-    local callbacks = ref get(bindings, id)
+	if not contains(bindings, id) then
+		bindings[id] = [ slot ]
+	else
+		local callbacks	= ref bindings[id]
 
-    if callbacks then
-        # Check whether the event is already there
-        foreach s in callbacks do
-            if slot == s then
-                return
-            end
-        end
+		# Check whether the signal is already there
+		foreach s in callbacks do
+			if slot == s then
+				return
+			end
+		end
 
-        append(callbacks, slot)
-    else
-        bindings[id] = [ slot ]
-    end
+		append(callbacks, slot)
+	end
 end
 
-# disconnect an event from a slot
+# Disconnect a signal from a slot
 function disconnect(id as String, slot as Function)
-    local callbacks = ref get(bindings, id)
+	if contains(bindings, id) then
+		local callbacks = ref bindings[id]
 
-    if callbacks then
-        for i = callbacks.length downto 1 do
-            if callbacks[i] == slot then
-                remove_at(callbacks, i)
-                return
-            end
-        end
-    end
+		for i = callbacks.length downto 1 do
+			if callbacks[i] == slot then
+				remove_at(callbacks, i)
+				return
+			end
+		end
+	end
 end
 
-# emit an event, with a number of arguments which will be passed to each slot the event is connected to.
+# Emit a signal, with an argument which will be passed to each slot the event is connected to.
 function emit(id as String, args as Object)
-    local callbacks = ref get(bindings, id)
-
-    if callbacks then
+	if contains(bindings, id) then
+		local callbacks = bindings[id]
 		local result = []
 
-        foreach callback in callbacks do
+		foreach callback in callbacks do
 			append(result, callback(args))
-        end
+		end
 
 		return result
-    end
+	end
 end
 
+# Emit a signal without any argument
 function emit(id as String)
-    emit(id, null)
+	emit(id, null)
 end
+
 
 # Define standard events
-EVT_ANNOTATION_LOADED = "__evt_annotation_loaded"
-EVT_SOUND_LOADED = "__evt_sound_loaded"
-EVT_SCRIPT_LOADED = "__evt_document_loaded"
-EVT_DOCUMENT_LOADED = "__evt_script_loaded"
-EVT_DATASET_LOADED = "__evt_dataset_loaded"
-EVT_PROJECT_LOADED = "__evt_project_loaded"
+SIGNAL_ANNOTATION_IMPORTED = "__SIGNAL_ANNOTATION_IMPORTED"
+SIGNAL_SOUND_IMPORTED = "__SIGNAL_SOUND_IMPORTED"
+SIGNAL_ANNOTATION_LOADED = "__SIGNAL_ANNOTATION_LOADED"
+SIGNAL_SOUND_LOADED = "__SIGNAL_SOUND_LOADED"
+SIGNAL_SCRIPT_LOADED = "__SIGNAL_SCRIPT_LOADED"
+SIGNAL_DATASET_LOADED = "__SIGNAL_DATASET_LOADED"
+SIGNAL_PROJECT_LOADED = "__SIGNAL_PROJECT_LOADED"

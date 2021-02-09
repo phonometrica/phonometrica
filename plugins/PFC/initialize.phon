@@ -1,0 +1,2 @@
+local pfc = import("pfc-utils")
+#connect(SIGNAL_ANNOTATION_IMPORTED, pfc.add_metadata)

@@ -46,7 +46,7 @@ Get or set the current directory.
 .. function:: get_full_path(relative_path)  
     
     
-Turns a relative path into an absolute path.
+Turn a relative path into an absolute path.
 
 
 ------------
@@ -65,13 +65,13 @@ Get the name of a directory where temporary files can be written.
 
 .. function:: get_temp_name()  
     
-Returns the name of a temporary file which is guaranteed to be unique.
+Return the name of a temporary file which is guaranteed to be unique.
 
 ------------
 
 .. function:: get_base_name(path as String)  
     
-Returns the file name part of ``path``, stripping all directories.
+Return the file name part of ``path``, stripping all directories.
 
 .. code:: phon
 
@@ -108,37 +108,38 @@ Remove a file. If the file could not be removed, an error is thrown.
     
 Remove ``path``, which can be either a file or a directory. If ``path`` could not be removed, an error is thrown.
 
+------------
 
 .. function:: list_directory(path as String)
 
-Returns a table containing the files in ``path``. Hidden files are not included.
+Return a table containing the files in ``path``. Hidden files are not included.
 
 ------------
 
 .. function:: list_directory(path as String, include_hidden as Boolean)
 
-Returns a table containing the files in ``path``. If ``include_hidden`` is ``true``, hidden files are included. If it is ``false`` or is missing,
+Return a table containing the files in ``path``. If ``include_hidden`` is ``true``, hidden files are included. If it is ``false`` or is missing,
 hidden files are not included.
 
 ------------
 
 .. function:: exists(path as String)
 
-Returns ``true`` if the path exists, ``false`` otherwise.
+Return ``true`` if the path exists, ``false`` otherwise.
 
 
 ------------
 
 .. function:: is_file(path as String)
 
-Returns ``true`` if ``path`` exists and is a file, ``false`` otherwise.
+Return ``true`` if ``path`` exists and is a file, ``false`` otherwise.
 
 ------------
 
 .. function:: is_directory(path as String)
 
 
-Returns ``true`` if ``path`` exists and is a directory, ``false`` otherwise.
+Return ``true`` if ``path`` exists and is a directory, ``false`` otherwise.
     
 ------------
 
@@ -156,36 +157,37 @@ Get the file's extension, starting with a dot.
 
 .. function:: strip_extension(path as String)
 
-Returns ``path`` without extension.
+Return ``path`` without extension.
 
 ------------
 
 .. function:: split_extension(path as String)
 
-Returns a table whose first element is ``path`` with the extension removed, and whose second element is the extension.
+Return a table whose first element is ``path`` with the extension removed, and whose second element is the extension.
 
 ------------
 
-.. function:: build_path(...)
+.. function:: join_path(s1 as String, s2 as String)
 
-Concatenate the arguments using the native path separator and returns the resulting path name.
+Concatenate ``s1`` and ``s2`` using the native path separator and returns the resulting path name.
+
 
 ------------
-(path)
+
 .. function:: genericize(path as String)
 
-On Windows, this function converts the native path separator to the generic separator``"/". On platforms that use the generic separator, it does nothing.
+On Windows, this function converts the native path separator to the generic separator ``/``. On platforms that use the generic separator, it does nothing.
 
 ------------
 
 .. function:: nativize(path as String)
 
-On Windows, this function converts the generic path separator to the native separator``"\\". On platforms that use the generic separator, it does nothing.
+On Windows, this function converts the generic path separator to the native separator ``\\``. On platforms that use the generic separator, it does nothing.
 
  
 ------------
 
-.. function:: rename(old_name, new_name)
+.. function:: rename(old_name as String, new_name as String)
 
 Renames a file. If the file could not be renamed, an error is raised.
 

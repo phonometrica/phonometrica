@@ -118,6 +118,10 @@ private:
 
 using AutoSpreadsheet = std::shared_ptr<Spreadsheet>;
 
+namespace traits {
+template<> struct maybe_cyclic<AutoSpreadsheet> : std::false_type { };
+}
+
 } // namespace phonometrica
 
 #endif // PHONOMETRICA_SPREADSHEET_HPP

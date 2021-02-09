@@ -433,8 +433,7 @@ std::vector<double> Sound::get_intensity(intptr_t start_pos, intptr_t end_pos, d
 
 void Sound::initialize(Runtime &rt)
 {
-	auto cls = rt.create_type<AutoSound>("Sound", rt.get_object_class());
-	rt.add_global("Sound", cls);
+	auto cls = rt.add_standard_type<AutoSound>("Sound");
 
 	auto sound_get_field = [](Runtime &, std::span<Variant> args) -> Variant {
 		auto &sound = cast<AutoSound>(args[0]);

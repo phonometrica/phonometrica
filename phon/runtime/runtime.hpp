@@ -100,7 +100,7 @@ class Runtime final
 			auto obj1 = reinterpret_cast<const TObject<T> *>(o1);
 			auto obj2 = reinterpret_cast<const TObject<T> *>(o2);
 
-			return meta::equal(obj1->value(), obj2->value());
+			return o1->clonable() ? meta::equal(obj1->value(), obj2->value()) : (o1 == o2);
 		}
 	};
 
@@ -146,6 +146,15 @@ public:
 		}
 
 		return klass;
+	}
+
+	template<class T>
+	Handle<Class> add_standard_type(const char *name)
+	{
+		auto cls = create_type<T>(name, get_object_class());
+		add_global(name, cls);
+
+		return cls;
 	}
 
 	template<class T, class... Args>

@@ -952,8 +952,11 @@ void MainWindow::LoadPlugin(const String &path)
 		}
 	};
 
+	auto import_dir = filesystem::join(path, "Scripts");
+
 	try
 	{
+		runtime.add_import_path(import_dir);
 		auto plugin = std::make_shared<Plugin>(runtime, path, script_callback);
 
 		if (plugin->has_entries())
@@ -990,12 +993,10 @@ void MainWindow::LoadPlugin(const String &path)
 	}
 	catch (...)
 	{
+		runtime.remove_import_path(import_dir);
 		delete menu;
 		throw;
 	}
-
-	auto import_dir = filesystem::join(path, "Scripts");
-	runtime.add_import_path(import_dir);
 }
 
 void MainWindow::OnRunScript(wxCommandEvent &)
@@ -1096,14 +1097,18 @@ void MainWindow::OnUninstallPlugin(wxCommandEvent &)
 
 void MainWindow::UninstallPlugin(int index, bool verbose)
 {
-	auto p = plugins[index];
-	auto import_dir = filesystem::join(p->path(), "Scripts");
+	String import_dir, label;
+	{
+		auto p = plugins[index];
+		filesystem::remove(p->path());
+		import_dir = filesystem::join(p->path(), "Scripts");
+		label = p->label();
+		plugins.remove_at(index);
+		auto item = tools_menu->Remove(p->menu_id());
+		delete item;
+	}
+	// The plugin is finalized at this point, so removing the import path is safe.
 	runtime.remove_import_path(import_dir);
-	filesystem::remove(p->path());
-	String label = p->label();
-	plugins.remove_at(index);
-	auto item = tools_menu->Remove(p->menu_id());
-	delete item;
 
 	if (plugins.empty())
 	{

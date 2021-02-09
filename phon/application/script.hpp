@@ -60,6 +60,10 @@ private:
 
 using AutoScript = std::shared_ptr<Script>;
 
+namespace traits {
+template<> struct maybe_cyclic<AutoScript> : std::false_type { };
+}
+
 } // namespace phonometrica
 
 #endif // PHONOMETRICA_SCRIPT_HPP

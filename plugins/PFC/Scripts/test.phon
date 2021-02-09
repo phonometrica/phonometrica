@@ -1,5 +1,0 @@
-local utils = import("pfc-utils")
-local l = 100
-local w = 30
-print "The perimeter of a rectangle with length = ", l, " and width = ", w, " is ", utils.perimeter(l, w)
-print "The area of a rectangle with length = ", l, " and width = ", w, " is ", utils.area(l, w)
