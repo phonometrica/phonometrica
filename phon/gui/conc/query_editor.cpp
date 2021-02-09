@@ -130,12 +130,19 @@ wxBoxSizer *QueryEditor::MakeButtons(wxWindow *parent)
 	return sizer;
 }
 
-void QueryEditor::Execute()
+AutoConcordance QueryEditor::Execute()
 {
 	if (!prepared) {
 		throw error("Internal error: you must call Prepare() before executing a query");
 	}
+	ParseQuery();
+	auto query = GetQuery();
 
+	if (query->modified()) {
+		Project::updated();
+	}
+
+	return query->execute();
 }
 
 void QueryEditor::OnOpenHelp(wxCommandEvent &)
@@ -257,10 +264,6 @@ wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)
 
 void QueryEditor::OnOk(wxCommandEvent &)
 {
-	ParseQuery();
-	if (GetQuery()->modified()) {
-		Project::updated();
-	}
 	EndModal(wxID_OK);
 }
 

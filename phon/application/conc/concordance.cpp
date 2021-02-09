@@ -23,8 +23,8 @@
 
 namespace phonometrica {
 
-Concordance::Concordance(intptr_t target_count, VFolder *parent, const String &path) :
-	Dataset(parent, path)
+Concordance::Concordance(intptr_t target_count, Array<AutoMatch> matches, VFolder *parent, const String &path) :
+	Dataset(parent, path), m_matches(std::move(matches))
 {
 	m_target_count = target_count;
 }
@@ -57,5 +57,15 @@ intptr_t Concordance::row_count() const
 intptr_t Concordance::column_count() const
 {
 	return 0;
+}
+
+void Concordance::load()
+{
+
+}
+
+void Concordance::write()
+{
+
 }
 } // namespace phonometrica

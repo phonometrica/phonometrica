@@ -29,7 +29,7 @@
 #include <phon/application/spreadsheet.hpp>
 #include <phon/application/metadata.hpp>
 #include <phon/application/database.hpp>
-#include <phon/application/conc/text_query.hpp>
+#include <phon/application/conc/query.hpp>
 #include <phon/utils/signal.hpp>
 #include <phon/error.hpp>
 #include <phon/dictionary.hpp>

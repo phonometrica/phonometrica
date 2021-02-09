@@ -24,6 +24,7 @@
 
 #include <phon/string.hpp>
 #include <phon/utils/xml.hpp>
+#include <phon/regex.hpp>
 
 namespace phonometrica {
 
@@ -57,6 +58,8 @@ struct Constraint final
 
 	bool use_index() const { return layer_index >= 0; }
 
+	void compile();
+
 	// Relation with the previous constraint, if any.
 	Operator op = Operator::None;
 
@@ -74,6 +77,9 @@ struct Constraint final
 
 	// Target text or pattern.
 	String target;
+
+	// Cached regexes
+//	std::unique_ptr<Regex> regex, layer_regex;
 };
 
 } // namespace phonometrica

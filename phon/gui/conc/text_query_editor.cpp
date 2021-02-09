@@ -33,12 +33,12 @@
 namespace phonometrica {
 
 TextQueryEditor::TextQueryEditor(wxWindow *parent) :
-	TextQueryEditor(parent, std::make_shared<TextQuery>(nullptr, String()))
+	TextQueryEditor(parent, std::make_shared<Query>(nullptr, String()))
 {
 
 }
 
-TextQueryEditor::TextQueryEditor(wxWindow *parent, AutoTextQuery q) :
+TextQueryEditor::TextQueryEditor(wxWindow *parent, AutoQuery q) :
 	QueryEditor(parent, _("Find in annotations...")), query(std::move(q))
 {
 
@@ -258,12 +258,12 @@ void TextQueryEditor::LoadQuery()
 	// Context
 	switch (query->context())
 	{
-		case TextQuery::Context::Labels:
+		case Query::Context::Labels:
 		{
 			ctx_btn2->SetValue(true);
 			ref_spinctrl->SetValue(query->reference_constraint());
 		} break;
-		case TextQuery::Context::KWIC:
+		case Query::Context::KWIC:
 		{
 			ctx_btn3->SetValue(true);
 			ref_spinctrl->SetValue(query->reference_constraint());
@@ -317,12 +317,12 @@ void TextQueryEditor::ParseQuery()
 	// Context options
 	if (ctx_btn2->GetValue())
 	{
-		query->set_context(TextQuery::Context::Labels);
+		query->set_context(Query::Context::Labels);
 		query->set_reference_constraint(ref_spinctrl->GetValue());
 	}
 	else if (ctx_btn3->GetValue())
 	{
-		query->set_context(TextQuery::Context::KWIC);
+		query->set_context(Query::Context::KWIC);
 		query->set_context_length(context_spinctrl->GetValue());
 		query->set_reference_constraint(ref_spinctrl->GetValue());
 	}

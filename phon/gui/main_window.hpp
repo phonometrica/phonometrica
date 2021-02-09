@@ -86,8 +86,6 @@ private:
 
 	void SetupUi();
 
-	void EnableSaveFile(bool value);
-
 	void EnableRecentProjects(bool value);
 
 	void ShowAllPanels();
@@ -245,7 +243,7 @@ private:
 	wxMenuBar *menubar = nullptr;
 	wxMenu *file_menu = nullptr, *recent_submenu = nullptr, *tools_menu = nullptr;
 
-	wxMenuItem *recent_item = nullptr, *last_item = nullptr, *save_item = nullptr, *save_as_item = nullptr;
+	wxMenuItem *recent_item = nullptr, *last_item = nullptr;
 	wxMenuItem *project_item = nullptr, *info_item = nullptr, *console_item = nullptr;
 	wxMenuItem *tool_separator = nullptr;
 

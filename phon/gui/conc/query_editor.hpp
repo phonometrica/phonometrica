@@ -41,7 +41,7 @@ public:
 
 	void Prepare();
 
-	void Execute();
+	AutoConcordance Execute();
 
 	virtual AutoQuery GetQuery() const = 0;
 

@@ -155,8 +155,8 @@ wxMenu *MainWindow::MakeFileMenu()
 	                         _("Open the last project that was used in the previous session"));
 	menu->AppendSeparator();
 
-	save_item = menu->Append(ID_FILE_SAVE, _("Save project\tCtrl+Shift+s"));
-	save_as_item = menu->Append(ID_FILE_SAVE_AS, _("Save project as..."));
+	menu->Append(ID_FILE_SAVE, _("Save project\tCtrl+Shift+s"));
+	menu->Append(ID_FILE_SAVE_AS, _("Save project as..."));
 	menu->AppendSeparator();
 
 	menu->Append(ID_FILE_PREFERENCES, _("Preferences..."));
@@ -177,7 +177,6 @@ wxMenu *MainWindow::MakeFileMenu()
 	menu->Append(ID_FILE_EXIT, _("Quit\tCtrl+q"));
 
 	PopulateRecentProjects();
-	EnableSaveFile(false);
 	file_menu = menu;
 
 	return menu;
@@ -214,7 +213,7 @@ wxMenu *MainWindow::MakeWindowMenu()
 
 void MainWindow::PopulateWindowMenu(wxMenu *menu)
 {
-	project_item = menu->AppendCheckItem(ID_WINDOW_HIDE_PROJECT, _("Hide project panel\tctrl+Left"));
+	project_item = menu->AppendCheckItem(ID_WINDOW_HIDE_PROJECT, _("Hide project panel\tctrl+i"));
 	info_item = menu->AppendCheckItem(ID_WINDOW_HIDE_INFO, _("Hide information panel\tctrl+Right"));
 	console_item = menu->AppendCheckItem(ID_WINDOW_HIDE_CONSOLE, _("Hide console\tctrl+Down"));
 	menu->AppendSeparator();
@@ -372,12 +371,6 @@ bool MainWindow::Finalize()
 	Destroy();
 
 	return true;
-}
-
-void MainWindow::EnableSaveFile(bool value)
-{
-	save_item->Enable(value);
-	save_as_item->Enable(value);
 }
 
 void MainWindow::EnableRecentProjects(bool value)
@@ -754,7 +747,6 @@ void MainWindow::OnAddFilesToProject(wxCommandEvent &)
 
 	ProjectManager::CheckProjectImport();
 	Project::updated();
-	EnableSaveFile(true);
 }
 
 void MainWindow::OnAddDirectoryToProject(wxCommandEvent &)
@@ -769,7 +761,6 @@ void MainWindow::OnAddDirectoryToProject(wxCommandEvent &)
 	project->import_directory(dlg.GetPath());
 	ProjectManager::CheckProjectImport();
 	Project::updated();
-	EnableSaveFile(true);
 }
 
 void MainWindow::OnHelpScripting(wxCommandEvent &)
@@ -1189,7 +1180,6 @@ void MainWindow::OpenProject(const String &path)
 {
 	Project::get()->open(path);
 	UpdateRecentProjects(path);
-	EnableSaveFile(true);
 }
 
 void MainWindow::OpenMostRecentProject()
@@ -1210,17 +1200,24 @@ void MainWindow::OpenMostRecentProject()
 void MainWindow::OnCloseProject(wxCommandEvent &)
 {
 	Project::close();
-	EnableSaveFile(false);
 }
 
 void MainWindow::OnSaveProject(wxCommandEvent &)
 {
+	if (Project::get()->empty()) {
+		wxMessageBox(_("Cannot save empty project!"), _("Empty project"), wxICON_INFORMATION);
+		return;
+	}
 	viewer->SaveViews(false);
 	SaveProject();
 }
 
 void MainWindow::OnSaveProjectAs(wxCommandEvent &)
 {
+	if (Project::get()->empty()) {
+		wxMessageBox(_("Cannot save empty project!"), _("Empty project"), wxICON_INFORMATION);
+		return;
+	}
 	viewer->SaveViews(false);
 	SaveProjectAs();
 }
@@ -1645,7 +1642,7 @@ void MainWindow::EditQuery(const AutoQuery &q)
 {
 	if (q->is_text_query())
 	{
-		TextQueryEditor editor(this, downcast<TextQuery>(q));
+		TextQueryEditor editor(this, downcast<Query>(q));
 		editor.Prepare();
 		editor.SetSize(FromDIP(wxSize(1100, 850)));
 

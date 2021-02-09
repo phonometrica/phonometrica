@@ -392,7 +392,7 @@ void Project::parse_queries(xml_node root, VFolder *folder)
 {
 	static const std::string_view folder_tag("VFolder");
 	static const std::string_view file_tag("VFile");
-	static const std::string_view text_query_tag("TextQuery");
+	static const std::string_view text_query_tag("Query");
 
 	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
@@ -417,7 +417,7 @@ void Project::parse_queries(xml_node root, VFolder *folder)
 
 			if (cls == text_query_tag)
 			{
-				auto query = std::make_shared<TextQuery>(folder, std::move(path));
+				auto query = std::make_shared<Query>(folder, std::move(path));
 				folder->append(query, false);
 				register_file(query->path(), query);
 			}
@@ -716,7 +716,7 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 		auto query_type = get_query_type(path);
 		if (query_type == Query::Type::Text)
 		{
-			query = std::make_shared<TextQuery>(p, std::move(path));
+			query = std::make_shared<Query>(p, std::move(path));
 		}
 		else
 		{
@@ -1548,7 +1548,7 @@ Query::Type Project::get_query_type(const String &path)
 	}
 	String klass = attr.value();
 
-	if (klass == "TextQuery")
+	if (klass == "Query")
 		return Query::Type::Text;
 	else if (klass == "FormantQuery")
 		return Query::Type::Formant;

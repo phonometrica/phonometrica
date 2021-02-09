@@ -94,4 +94,22 @@ void Constraint::swap(Constraint &other) noexcept
 	std::swap(this->layer_pattern, other.layer_pattern);
 	std::swap(this->target, other.target);
 }
+
+void Constraint::compile()
+{
+//	if (use_regex && !regex)
+//	{
+//		if (case_sensitive) {
+//			regex = std::make_unique<Regex>(target);
+//		}
+//		else {
+//			regex = std::make_unique<Regex>(target, Regex::Caseless);
+//		}
+//
+//		if (!use_index() && !layer_regex)
+//		{
+//			layer_regex = std::make_unique<Regex>(layer_pattern);
+//		}
+//	}
+}
 } // namespace phonometrica

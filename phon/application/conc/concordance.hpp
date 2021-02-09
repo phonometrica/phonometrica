@@ -31,7 +31,7 @@ class Concordance : public Dataset
 {
 public:
 
-	Concordance(intptr_t target_count, VFolder *parent, const String &path = String());
+	Concordance(intptr_t target_count, Array<AutoMatch> matches, VFolder *parent, const String &path = String());
 
 	const char *class_name() const override;
 
@@ -49,13 +49,17 @@ public:
 
 protected:
 
-	Array<std::unique_ptr<Match>> m_matches;
+	void load() override;
+
+	void write() override;
+
+	Array<AutoMatch> m_matches;
 
 	intptr_t m_target_count;
 };
 
+using AutoConcordance = std::unique_ptr<Concordance>;
+
 } // namespace phonometrica
-
-
 
 #endif // PHONOMETRICA_CONCORDANCE_HPP

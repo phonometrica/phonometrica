@@ -26,7 +26,7 @@
 #include <wx/spinctrl.h>
 #include <phon/gui/conc/query_editor.hpp>
 #include <phon/gui/conc/constraint_ctrl.hpp>
-#include <phon/application/conc/text_query.hpp>
+#include <phon/application/conc/query.hpp>
 
 class wxRadioButton;
 
@@ -38,7 +38,7 @@ public:
 
 	explicit TextQueryEditor(wxWindow *parent);
 
-	explicit TextQueryEditor(wxWindow *parent, AutoTextQuery q);
+	explicit TextQueryEditor(wxWindow *parent, AutoQuery q);
 
 	AutoQuery GetQuery() const override;
 
@@ -64,7 +64,7 @@ private:
 
 	wxSpinCtrl *context_spinctrl, *ref_spinctrl;
 
-	AutoTextQuery query;
+	AutoQuery query;
 
 	Array<ConstraintCtrl*> constraints;
 };

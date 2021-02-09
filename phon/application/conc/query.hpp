@@ -15,8 +15,8 @@
  *                                                                                                                     *
  * Created: 01/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Base class for a all queries. A Query is a blueprint for the search engine. Each execution of a given      *
- * query produces a Concordance.                                                                                       *
+ * Purpose: Base class for a all queries. By default, searches for matches in a set of annotations. Subclasses can     *
+ * additionally take phonetic measurements.                                                                            *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -26,6 +26,8 @@
 #include <phon/application/annotation.hpp>
 #include <phon/application/conc/metaconstraint.hpp>
 #include <phon/application/conc/constraint.hpp>
+#include <phon/application/conc/concordance.hpp>
+#include <phon/regex.hpp>
 
 namespace phonometrica {
 
@@ -43,9 +45,18 @@ public:
 		Acoustic  = Formant|Pitch|Intensity|Duration
 	};
 
+	enum class Context
+	{
+		None,   // no context
+		Labels, // labels from surrounding events
+		KWIC    // keyword in context
+	};
+
 	Query(VFolder *parent, String path);
 
 	~Query() override = default;
+
+	const char *class_name() const override { return "Query"; }
 
 	void add_metaconstraint(AutoMetaConstraint m, bool mutate = true);
 
@@ -61,7 +72,10 @@ public:
 
 	virtual void clear();
 
-	virtual bool is_text_query() const { return false; }
+	virtual AutoConcordance execute();
+
+	// Note: subclasses must override this method and return false
+	virtual bool is_text_query() const { return true; }
 
 	virtual bool is_duration_query() const { return false; }
 
@@ -79,15 +93,45 @@ public:
 
 	const Constraint &get_constraint(intptr_t i) const { return m_constraints[i]; }
 
-	virtual std::shared_ptr<Query> clone() const = 0;
+	virtual std::shared_ptr<Query> clone() const;
+
+	int context_length() const;
+
+	void set_context_length(int context_length);
+
+	Context context() const;
+
+	void set_context(Context context);
+
+	int reference_constraint() const;
+
+	void set_reference_constraint(int value);
 
 protected:
+
+	void load() override;
+
+	void write() override;
+
+	void parse_metaconstraints_from_xml(xml_node root);
+
+	void parse_constraints_from_xml(xml_node root);
+
+	void parse_options_from_xml(xml_node root);
 
 	Array<AutoAnnotation> filter_annotations(const Array<AutoAnnotation> &candidates) const;
 
 	bool filter_metadata(const VFile *file) const;
 
-	// Constraints on the metadata.
+	Array<AutoMatch> search(const Annotation &annot);
+
+	Array<AutoMatch> search(const Annotation &annot, const Constraint &constraint, Regex *layer_pattern) const;
+
+	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches) const;
+
+	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, intptr_t layer) const;
+
+	// Constraints on the metadata
 	Array<AutoMetaConstraint> m_metaconstraints;
 
 	// Constraints on the data
@@ -98,6 +142,15 @@ protected:
 
 	// Label set by the user
 	String m_label;
+
+	// Type of context for the reference constraint
+	Context m_context = Context::KWIC;
+
+	// Reference constraint
+	int m_ref_constraint;
+
+	// Context length, for KWIC mode
+	int m_context_length = 0;
 };
 
 
