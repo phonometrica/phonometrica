@@ -281,7 +281,7 @@ void ScriptControl::OnCallTipClicked(wxStyledTextEvent &e)
 	{
 		++current_calltip;
 	}
-
+	CallTipCancel();
 	CallTipShow(calltip_position, *current_calltip);
 }
 

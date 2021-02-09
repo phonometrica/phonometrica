@@ -213,7 +213,7 @@ wxMenu *MainWindow::MakeWindowMenu()
 
 void MainWindow::PopulateWindowMenu(wxMenu *menu)
 {
-	project_item = menu->AppendCheckItem(ID_WINDOW_HIDE_PROJECT, _("Hide project panel\tctrl+i"));
+	project_item = menu->AppendCheckItem(ID_WINDOW_HIDE_PROJECT, _("Hide project panel\tctrl+Left"));
 	info_item = menu->AppendCheckItem(ID_WINDOW_HIDE_INFO, _("Hide information panel\tctrl+Right"));
 	console_item = menu->AppendCheckItem(ID_WINDOW_HIDE_CONSOLE, _("Hide console\tctrl+Down"));
 	menu->AppendSeparator();
@@ -643,6 +643,7 @@ void MainWindow::OnRestoreDefaultLayout(wxCommandEvent &)
 	info_item->Check(false);
 	project_item->Check(false);
 	info_panel->Layout();
+	viewer->GetCurrentView()->Layout();
 }
 
 void MainWindow::OnHideProject(wxCommandEvent &)

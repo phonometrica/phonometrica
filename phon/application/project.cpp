@@ -378,7 +378,7 @@ void Project::parse_scripts(xml_node root, VFolder *folder)
 				auto script = std::make_shared<Script>(folder, std::move(path));
 				folder->append(script, false);
 				register_file(script->path(), script);
-				emit(script_loaded, make_handle<AutoScript>(script));
+//				emit(script_loaded, make_handle<AutoScript>(script));
 			}
 			else
 			{
