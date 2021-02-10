@@ -428,6 +428,12 @@ void Settings::post_initialize()
 	if (!settings.contains("autohints")) {
 		settings["autohints"] = true;
 	}
+	if (!settings.contains("restore_views"))
+	{
+		settings["restore_views"] = true;
+		settings["recent_views"] = make_handle<List>(runtime);
+		settings["selected_view"] = intptr_t(-1);
+	}
 }
 
 } // namespace phonometrica

@@ -57,13 +57,15 @@ public:
 
 	bool SaveViews(bool autosave);
 
+	View *GetView(size_t i) { return dynamic_cast<View*>(GetPage(i)); }
+
+	Signal<> request_console;
+
 private:
 
 	void AddView(View *view, const wxString &title);
 
 	void CloseView(int index, bool remove);
-
-	View *GetView(size_t i) { return dynamic_cast<View*>(GetPage(i)); }
 
 	void OnCloseView(wxAuiNotebookEvent &);
 

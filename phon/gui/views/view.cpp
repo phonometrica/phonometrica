@@ -27,6 +27,7 @@
 namespace phonometrica {
 
 Signal<> View::modified;
+Signal<> View::request_console;
 
 View::View(wxWindow *parent) : wxPanel(parent)
 {

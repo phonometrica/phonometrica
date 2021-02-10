@@ -103,7 +103,7 @@ void ScriptControl::SetLineNumbering()
 
 void ScriptControl::AddTypeNames()
 {
-    wxString keywords = "Array Boolean Float Function Integer json List Module Number Object phon Regex Set String Table";
+    wxString keywords = "Array Boolean File Float Function Integer json List Module Number Object phon Regex Set String Table";
     SetKeyWords(1, keywords);
 }
 

@@ -62,7 +62,8 @@ void Viewer::AddView(View *view, const wxString &title)
 
 void Viewer::NewScript(const AutoScript &script)
 {
-	AddView(new ScriptView(runtime, script, this), script->label());
+	auto view = new ScriptView(runtime, script, this);
+	AddView(view, script->label());
 }
 
 void Viewer::CloseCurrentView()

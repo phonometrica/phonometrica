@@ -204,6 +204,8 @@ private:
 
 	void EditQuery(const AutoQuery &q);
 
+	void OnRequestConsole();
+
 	void SetShellFunctions();
 
 	void SaveProject();

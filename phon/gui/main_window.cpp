@@ -316,6 +316,7 @@ void MainWindow::SetBindings()
 	project_manager->new_script.connect(&Viewer::NewScriptWithParent, viewer);
 	project_manager->edit_query.connect(&MainWindow::EditQuery, this);
 	View::modified.connect(&ProjectManager::OnProjectUpdated, project_manager);
+	View::request_console.connect(&MainWindow::OnRequestConsole, this);
 	auto project = Project::get();
 	project->notify_update.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	project->metadata_updated.connect(&ProjectManager::UpdateLabel, project_manager);
@@ -344,6 +345,28 @@ bool MainWindow::Finalize()
 	bool autosave = Settings::get_boolean("autosave");
 	auto project = Project::get();
 
+	bool restore_views = Settings::get_boolean("restore_views");
+	Array<Variant> views;
+	if (restore_views)
+	{
+		for (size_t i = 0; i < viewer->GetPageCount(); i++)
+		{
+			auto view = viewer->GetView(i);
+			if (view->IsStartView())
+			{
+				views.append("start");
+			}
+			else
+			{
+				String path = view->GetPath();
+				if (!path.empty()) {
+					views.append(path);
+				}
+			}
+		}
+		Settings::set_value("selected_view", intptr_t(viewer->GetSelection()));
+	}
+
 	if (!viewer->SaveViews(autosave)) {
 		return false;
 	}
@@ -366,6 +389,9 @@ bool MainWindow::Finalize()
 				SaveProject();
 			}
 		}
+	}
+	if (restore_views) {
+		Settings::set_value("recent_views", std::move(views));
 	}
 	SaveGeometry();
 	Destroy();
@@ -435,6 +461,28 @@ void MainWindow::PostInitialize()
 	{
 		OpenMostRecentProject();
 	}
+
+	if (Settings::get_boolean("restore_views"))
+	{
+		try
+		{
+			auto &views = Settings::get_list("recent_views");
+			for (auto &view : views)
+			{
+				auto path = cast<String>(view);
+				auto vfile = Project::get()->get(path);
+				if (vfile) {
+					viewer->OnViewFile(vfile);
+				}
+			}
+			auto sel = (size_t) Settings::get_int("selected_view");
+			viewer->SetSelection(sel);
+		}
+		catch (...)
+		{
+			Settings::set_value("recent_views", make_handle<List>(&runtime));
+		}
+	}
 }
 
 void MainWindow::ShowAllPanels()
@@ -478,6 +526,22 @@ void MainWindow::OpenDocumentation(String page)
 
 void MainWindow::SetStartView()
 {
+	// Don't set the start view if the user wants views from the previous session to be restored
+	// and the start view isn't one of them.
+	if (Settings::get_boolean("restore_views"))
+	{
+		try
+		{
+			auto &views = Settings::get_list("recent_views");
+			if (!views.contains("start")) {
+				return;
+			}
+		}
+		catch (...)
+		{
+			// do nothing
+		}
+	}
 	viewer->SetStartView();
 }
 
@@ -1657,6 +1721,16 @@ void MainWindow::EditQuery(const AutoQuery &q)
 void MainWindow::OnExportAnnotations(wxCommandEvent &)
 {
 	run_script(runtime, transphon);
+}
+
+void MainWindow::OnRequestConsole()
+{
+	if (Settings::get_number("console_ratio") == 0)
+	{
+		console_item->Check(false);
+		wxCommandEvent e;
+		OnHideConsole(e);
+	}
 }
 
 } // namespace phonometrica

@@ -51,6 +51,8 @@ public:
 
 	virtual void AdjustFontSize() { }
 
+	virtual bool IsStartView() const { return false; }
+
 	virtual String GetPath() const { return String(); }
 
 	virtual bool IsModified() const = 0;
@@ -60,6 +62,8 @@ public:
 	virtual wxString GetLabel() const = 0;
 
 	static Signal<> modified;
+
+	static Signal<> request_console;
 
 protected:
 

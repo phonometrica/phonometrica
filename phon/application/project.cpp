@@ -764,7 +764,7 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
         auto script = std::make_shared<Script>(p, std::move(path));
 		vfile = upcast<VFile>(script);
 		p->append(vfile);
-		emit(script_loaded, make_handle<AutoScript>(std::move(script)));
+		//emit(script_loaded, make_handle<AutoScript>(std::move(script)));
 	}
 	else
 	{

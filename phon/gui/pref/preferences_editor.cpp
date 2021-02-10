@@ -42,6 +42,11 @@ wxPanel *PreferencesEditor::MakeGeneralPanel()
 	m_autoload_checkbox = new wxCheckBox(panel, wxID_ANY, _("Load most recent project on startup"));
 	m_autoload_checkbox->SetValue(Settings::get_boolean("autoload"));
 
+	m_restore_views_checkbox = new wxCheckBox(panel, wxID_ANY, _("Restore open views on startup"));
+	m_restore_views_checkbox->SetValue(Settings::get_boolean("restore_views"));
+	m_restore_views_checkbox->Enable(Settings::get_boolean("autoload"));
+	m_autoload_checkbox->Bind(wxEVT_CHECKBOX, [=](wxCommandEvent &e) { m_restore_views_checkbox->Enable(e.IsChecked()); });
+
 	m_autosave_checkbox = new wxCheckBox(panel, wxID_ANY, _("Automatically save project on exit"));
 	m_autosave_checkbox->SetValue(Settings::get_boolean("autosave"));
 
@@ -49,6 +54,7 @@ wxPanel *PreferencesEditor::MakeGeneralPanel()
 	m_autohints_checkbox->SetValue(Settings::get_boolean("autohints"));
 
 	sizer->Add(m_autoload_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM|wxTOP, 10);
+	sizer->Add(m_restore_views_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	sizer->Add(m_autosave_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	sizer->Add(m_autohints_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
 	sizer->AddStretchSpacer(1);
@@ -81,6 +87,7 @@ void PreferencesEditor::DoOk()
 	Settings::set_value("autoload", m_autoload_checkbox->GetValue());
 	Settings::set_value("autosave", m_autosave_checkbox->GetValue());
 	Settings::set_value("autohints", m_autohints_checkbox->GetValue());
+	Settings::set_value("restore_views", m_restore_views_checkbox->GetValue());
 
 	// Appearance panel
 	auto old_font = Settings::get_mono_font();

@@ -225,7 +225,7 @@ bool Variant::operator==(const Variant &other) const
 
 	if (v1.data_type() == v2.data_type())
 	{
-		switch (v1.data_type())
+		switch (data_type())
 		{
 			case Datatype::String:
 			{
@@ -279,13 +279,9 @@ bool Variant::operator==(const Variant &other) const
 
 		return meta::equal(x, y);
 	}
-	else if (v1.is_null() || v2.is_null()) {
-		return false;
-	}
 
-	throw error("[Type error] Cannot compare values of type % and %", this->class_name(), other.class_name());
+	return false;
 }
-
 
 int Variant::compare(const Variant &other) const
 {

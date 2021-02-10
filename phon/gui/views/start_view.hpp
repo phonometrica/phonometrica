@@ -44,6 +44,8 @@ public:
 
 	wxString GetLabel() const override { return _("Start"); }
 
+	bool IsStartView() const override { return true; }
+
 private:
 
 	void SetupUi(MainWindow *win);

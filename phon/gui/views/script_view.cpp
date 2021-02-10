@@ -160,6 +160,7 @@ void ScriptView::OnModification()
 
 void ScriptView::Execute()
 {
+	request_console();
 	String code = stc->HasSelection() ? stc->GetSelectedText() : stc->GetValue();
 	auto console = runtime.console;
 	console->AppendNewLine();

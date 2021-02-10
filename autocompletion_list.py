@@ -6,7 +6,7 @@ import re, sys
 
 directory  = sys.argv[1]
 
-lst_types = ["Array", "Boolean", "Float", "Function", "Integer", "List", "Module", "Number", "Object", "Regex", "Set", "String", "Table"]
+lst_types = ["Array", "Boolean", "File", "Float", "Function", "Integer", "List", "Module", "Number", "Object", "Regex", "Set", "String", "Table"]
 lst_mots_cles = ["assert", "break", "class", "continue", "debug", "do", "downto", "else", "elsif", "false", "field", "foreach", "function", "inherits", "json", "local", "method", "null", "option", "pass", "phon", "print", "repeat", "return", "step", "super", "then", "this", "throw", "true", "until", "while"]
 lst_functions = []
 
