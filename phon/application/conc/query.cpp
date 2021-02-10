@@ -513,6 +513,15 @@ AutoQuery Query::clone() const
 
 AutoConcordance Query::execute()
 {
+	auto result = search();
+	if (result.empty()) return nullptr;
+	auto parent = Project::get()->data().get();
+
+	return std::make_shared<Concordance>(m_constraints.size(), m_context, std::move(result), parent);
+}
+
+Array<AutoMatch> Query::search()
+{
 	Array<AutoMatch> result;
 	auto tmp = selected_annotations.empty() ? Project::get()->annotations() : selected_annotations;
 	auto annotations = filter_annotations(std::move(tmp));
@@ -522,7 +531,7 @@ AutoConcordance Query::execute()
 	}
 
 	int count = (int)annotations.size(), t = 0;
-	wxProgressDialog progress(_("Executing query"), _("Processing annotations"), count);
+	wxProgressDialog progress(_("Executing query"), _("Processing annotations..."), count);
 
 #ifdef PHON_TIMING
 	auto first_time = clock();
@@ -532,10 +541,10 @@ AutoConcordance Query::execute()
 	{
 		// Cancelled by user?
 		if (!progress.Update(t++)) {
-			return nullptr;
+			return result;
 		}
 		annot->open();
-		auto matches = search(*annot);
+		auto matches = search_annotation(*annot);
 
 		result.reserve(result.size() + matches.size());
 		for (auto &m : matches) {
@@ -550,10 +559,29 @@ AutoConcordance Query::execute()
 	std::cerr << "Average per annotation: " << (total/annotations.size()) << " ms\n";
 #endif
 
-	return std::make_unique<Concordance>(m_constraints.size(), std::move(result), nullptr);
+	return result;
 }
 
-Array<AutoMatch> Query::find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, Array<int> &blacklist, Constraint::Operator op) const
+Array<AutoMatch> Query::search_annotation(const Annotation &annot)
+{
+	// We maintain a list of the layer indices we have already seen, so that we don't scan the same layer twice
+	Array<int> seen;
+
+	auto matches = find_matches(annot, m_constraints[1], Array<AutoMatch>(), seen, Constraint::Operator::None);
+
+	for (intptr_t i = 2; i <= m_constraints.size(); i++)
+	{
+		if (matches.empty()) {
+			return matches;
+		}
+		matches = find_matches(annot, m_constraints[i], std::move(matches), seen, m_constraints[i - 1].op);
+	}
+
+	return matches;
+}
+
+Array<AutoMatch>
+Query::find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, Array<int> &blacklist, Constraint::Operator op) const
 {
 	if (constraint.use_index())
 	{
@@ -590,59 +618,211 @@ Array<AutoMatch> Query::find_matches(const Annotation &annot, const Constraint &
 	}
 }
 
-Array<AutoMatch> Query::find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, intptr_t layer, Array<int> &blacklist, Constraint::Operator op) const
+Array<AutoMatch>
+Query::find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, intptr_t layer_index, Array<int> &seen, Constraint::Operator op) const
 {
-//	if (blacklist.contains(layer) && constraint.op != Constraint::Operator::Precedence && )
+	using Op = Constraint::Operator;
 
-	auto &events = annot.get_layer_events(layer);
-	Array<AutoMatch> new_matches;
-#if 0
-	static String sep(" ");
-	auto re = constraint.regex.get();
-
-	for (intptr_t i = 1; i <= events.size(); i++)
+	// Case 1: invalid index
+	if (layer_index > annot.layer_count()) {
+		throw error("Cannot access layer % in annotation with % layers", layer_index, annot.layer_count());
+	}
+	// Case 2. First (and possibly unique) constraint: create matches
+	if (op == Op::None)
 	{
-		auto &event = events[i];
-		int match_index = 0;
-		auto &text = event->text();
-		auto it = text.begin();
+		assert(matches.empty());
+		auto &events = annot.get_layer_events(layer_index);
 
-		while (re->match(text, it))
+		for (auto &event : events)
 		{
-			auto labels = find_extra_labels(annot, events, event, i);
-			auto matched_text = re->capture(0);
-			auto start = re->capture_start_iter(0);
-			auto end = re->capture_end_iter(0);
-			it = end;
-
-			auto match = std::make_unique<Match>();(annot, layer_index, event, matched_text, ++match_index, left, right);
-
+			intptr_t pos = 0;
+			std::unique_ptr<Match::Target> target;
+			while (true)
+			{
+				target = find_target(event, constraint, 0, pos);
+				if (target) {
+					matches.append(std::make_unique<Match>(std::move(target)));
+				}
+				else {
+					break;
+				}
 			}
-
-			matches.insert(std::move(match));
 		}
+		seen.append(layer_index);
+
+		return matches;
 	}
-#endif
-	return matches;
-}
-
-Array<AutoMatch> Query::search(const Annotation &annot)
-{
-	// We maintain a blacklist of layer indices, so that we don't scan the same layer twice
-	Array<int> blacklist;
-
-	auto matches = find_matches(annot, m_constraints[1], Array<AutoMatch>(), blacklist, Constraint::Operator::None);
-
-	for (intptr_t i = 2; i <= m_constraints.size(); i++)
+	// Case 3. Hierarchical relation across layers: keep the layers that match the new constraint
+	// and append a target to them
+	if (Constraint::is_hierarchical(op))
 	{
-		if (matches.empty()) {
-			return matches;
+		if (seen.contains(layer_index)) {
+			// The user mistakenly chose a layer_index that was already processed
+			throw error("[Query error] Two constraints in a hierarchical relation refer to the same layer_index (layer_index %)", layer_index);
 		}
-		matches = find_matches(annot, m_constraints[i], std::move(matches), blacklist, m_constraints[i-1].op);
+		Array<AutoMatch> new_matches;
+
+		switch (op)
+		{
+			case Op::Dominance:
+			case Op::StrictDominance:
+			{
+				for (auto &match : matches)
+				{
+					auto &previous_target = match->last_target();
+					auto start = previous_target.event->start_time();
+					auto end = previous_target.event->end_time();
+					auto events = annot.get_slice(layer_index, start, end);
+
+					for (auto &event : events)
+					{
+						if (op == Op::StrictDominance && (event->start_time() <= start || event->end_time() >= end))
+						{
+							continue;
+						}
+						intptr_t pos = 0;
+						auto target = find_target(event, constraint, layer_index, pos);
+						if (target)
+						{
+							previous_target.next = std::move(target);
+							new_matches.append(std::move(match));
+						}
+					}
+				}
+			} break;
+			case Op::LeftAlignment:
+			{
+				for (auto &match : matches)
+				{
+					auto &previous_target = match->last_target();
+					auto time = previous_target.event->start_time();
+					auto event = annot.find_event_starting_at(layer_index, time);
+					if (event)
+					{
+						intptr_t pos = 0;
+						auto target = find_target(event, constraint, layer_index, pos);
+						if (target)
+						{
+							previous_target.next = std::move(target);
+							new_matches.append(std::move(match));
+						}
+					}
+				}
+			} break;
+			case Op::RightAlignment:
+			{
+				for (auto &match : matches)
+				{
+					auto &previous_target = match->last_target();
+					auto time = previous_target.event->end_time();
+					auto event = annot.find_event_ending_at(layer_index, time);
+					if (event)
+					{
+						intptr_t pos = 0;
+						auto target = find_target(event, constraint, layer_index, pos);
+						if (target)
+						{
+							previous_target.next = std::move(target);
+							new_matches.append(std::move(match));
+						}
+					}
+				}
+			} break;
+			case Op::Precedence:
+			{
+				for (auto &match : matches)
+				{
+					auto &previous_target = match->last_target();
+					auto time = previous_target.event->start_time();
+					auto event = annot.find_previous_event(layer_index, time);
+					if (event)
+					{
+						intptr_t pos = 0;
+						auto target = find_target(event, constraint, layer_index, pos);
+						if (target)
+						{
+							previous_target.next = std::move(target);
+							new_matches.append(std::move(match));
+						}
+					}
+				}
+			} break;
+			case Op::Subsequence:
+			{
+				for (auto &match : matches)
+				{
+					auto &previous_target = match->last_target();
+					auto time = previous_target.event->end_time();
+					auto event = annot.find_next_event(layer_index, time);
+					if (event)
+					{
+						intptr_t pos = 0;
+						auto target = find_target(event, constraint, layer_index, pos);
+						if (target)
+						{
+							previous_target.next = std::move(target);
+							new_matches.append(std::move(match));
+						}
+					}
+				}
+			} break;
+			default:
+				break;
+		}
+		seen.append(layer_index);
+
+		return new_matches;
 	}
 
-	return matches;
+	return Array<AutoMatch>();
 }
 
+std::unique_ptr<Match::Target>
+Query::find_target(const AutoEvent &event, const Constraint &constraint, intptr_t layer_index, intptr_t &pos) const
+{
+	if (constraint.use_regex)
+	{
+		auto &re = *constraint.regex;
+		auto &text = event->text();
+		auto it = text.begin() + pos;
+		if (re.match(event->text(), it))
+		{
+			auto matched_text = re.capture(0);
+			auto offset = intptr_t (re.capture_start_iter(0) - text.begin());
+			pos = intptr_t (re.capture_end_iter(0) - text.begin());
+
+			return std::make_unique<Match::Target>(event, std::move(matched_text), layer_index, offset);
+		}
+	}
+	else if (constraint.case_sensitive)
+	{
+		auto &text = event->text();
+		auto it = text.begin() + pos;
+		if ((it = text.find(constraint.target, it)) != text.end())
+		{
+			auto offset = intptr_t (it - text.begin());
+			pos = offset + constraint.target.size();
+
+			return std::make_unique<Match::Target>(event, constraint.target, layer_index, offset);
+		}
+	}
+	else
+	{
+		auto &text = event->text();
+		auto it = text.begin() + pos;
+		if ((it = text.ifind(constraint.target, it)) != text.end())
+		{
+			auto offset = intptr_t (it - text.begin());
+			String::const_iterator end = it;
+			text.advance(end, constraint.target.grapheme_count());
+			String value(it, intptr_t(end-it));
+			pos = intptr_t(end - text.begin());
+
+			return  std::make_unique<Match::Target>(event, std::move(value), layer_index, offset);
+		}
+	}
+
+	return nullptr;
+}
 
 } // namespace phonometrica

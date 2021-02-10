@@ -45,12 +45,7 @@ public:
 		Acoustic  = Formant|Pitch|Intensity|Duration
 	};
 
-	enum class Context
-	{
-		None,   // no context
-		Labels, // labels from surrounding events
-		KWIC    // keyword in context
-	};
+	using Context = Concordance::Context;
 
 	Query(VFolder *parent, String path);
 
@@ -123,11 +118,17 @@ protected:
 
 	bool filter_metadata(const VFile *file) const;
 
-	Array<AutoMatch> search(const Annotation &annot);
+	Array<AutoMatch> search();
+
+	Array<AutoMatch> search_annotation(const Annotation &annot);
 
 	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, Array<int> &blacklist, Constraint::Operator op) const;
 
-	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, intptr_t layer, Array<int> &blacklist, Constraint::Operator op) const;
+	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, intptr_t layer_index, Array<int> &seen, Constraint::Operator op) const;
+
+	std::unique_ptr<Match::Target>
+	find_target(const AutoEvent &event, const Constraint &constraint, intptr_t layer_index,
+	            intptr_t &pos) const;
 
 	// Constraints on the metadata
 	Array<AutoMetaConstraint> m_metaconstraints;

@@ -74,6 +74,8 @@ public:
 
 	virtual bool is_dataset() const;
 
+	virtual bool is_concordance() const;
+
 	virtual bool is_file() const;
 
 	virtual bool is_folder() const;

@@ -139,4 +139,9 @@ void Constraint::compile()
 	}
 }
 
+bool Constraint::is_hierarchical(Constraint::Operator op)
+{
+	return op < Operator::Precedence;
+}
+
 } // namespace phonometrica

@@ -920,4 +920,70 @@ AutoEvent AGraph::find_enclosing_event(const AutoEvent &e, intptr_t layer_index)
 	return nullptr;
 }
 
+std::span<AutoEvent> AGraph::get_slice(intptr_t layer_index, double start_time, double end_time) const
+{
+	Array<AutoEvent> events;
+	auto &layer = m_layers.at(layer_index);
+	auto first_event = layer->find_event(start_time);
+	auto last_event = first_event;
+
+	while (last_event != layer->events.end() && (*last_event)->end_time() <= end_time) {
+		last_event++;
+	}
+
+	return std::span<AutoEvent>(first_event, last_event);
+}
+
+AutoEvent AGraph::find_event_starting_at(intptr_t layer_index, double time) const
+{
+	// Find event whose left boundary is exactly at 'time'.
+	auto &layer = m_layers.at(layer_index);
+	auto it = std::lower_bound(layer->events.begin(), layer->events.end(), time, EventLess());
+
+	if (it == layer->events.end() || (*it)->start_time() != time) {
+		return nullptr;
+	}
+
+	return *it;
+}
+
+AutoEvent AGraph::find_event_ending_at(intptr_t layer_index, double time) const
+{
+	// Find event whose right boundary is exactly at 'time'.
+	auto &layer = m_layers.at(layer_index);
+	auto it = std::lower_bound(layer->events.begin(), layer->events.end(), time, EventLessEqual());
+
+	if (it == layer->events.end() || (*it)->end_time() != time) {
+		return nullptr;
+	}
+
+	return *it;
+}
+
+AutoEvent AGraph::find_previous_event(intptr_t layer_index, double time) const
+{
+	// Find event whose right boundary is no greater than 'time'.
+	auto &layer = m_layers.at(layer_index);
+	auto it = std::lower_bound(layer->events.begin(), layer->events.end(), time, EventLess());
+
+	if (it == layer->events.begin()) {
+		return nullptr;
+	}
+
+	return *(--it);
+}
+
+AutoEvent AGraph::find_next_event(intptr_t layer_index, double time) const
+{
+	// Find event whose left boundary is no less than 'time'.
+	auto &layer = m_layers.at(layer_index);
+	auto it = std::lower_bound(layer->events.begin(), layer->events.end(), time, EventLess());
+
+	if (it == layer->events.end() || ((*it)->is_instant() && (*it)->start_time() == time)) {
+		return nullptr;
+	}
+
+	return *it;
+}
+
 } // namespace phonometrica

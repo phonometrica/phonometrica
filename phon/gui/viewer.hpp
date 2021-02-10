@@ -51,7 +51,7 @@ public:
 
 	View *GetCurrentView();
 
-	void OnViewFile(const std::shared_ptr<VFile> &file);
+	void ViewFile(const std::shared_ptr<VFile> &file);
 
 	void AdjustFontSize();
 

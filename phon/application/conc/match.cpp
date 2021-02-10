@@ -23,13 +23,15 @@
 
 namespace phonometrica {
 
-
-Match::Match(const AutoEvent &e, String target, int layer, int offset)
+Match::Target::Target(const AutoEvent &e, String value, intptr_t layer, intptr_t offset) :
+		event(e), value(std::move(value)), layer(layer), offset(offset)
 {
-	m_target->event = e;
-	m_target->value = std::move(target);
-	m_target->layer = layer,
-	m_target->offset = offset;
+
+}
+
+Match::Match(std::unique_ptr<Target> t) : m_target(std::move(t))
+{
+
 }
 
 Match::Target *Match::get(intptr_t i) const
@@ -51,22 +53,27 @@ const AutoEvent &Match::get_event(intptr_t i) const
 	return get(i)->event;
 }
 
-int Match::get_layer(intptr_t i) const
+intptr_t Match::get_layer(intptr_t i) const
 {
 	return get(i)->layer;
 }
 
-int Match::get_offset(intptr_t i) const
+intptr_t Match::get_offset(intptr_t i) const
 {
 	return get(i)->offset;
 }
 
-String Match::get_target(intptr_t i) const
+String Match::get_value(intptr_t i) const
 {
 	return get(i)->value;
 }
 
-void Match::append(std::unique_ptr<Target> new_target)
+const AutoAnnotation &Match::annotation() const
+{
+	return m_annot;
+}
+
+Match::Target &Match::last_target()
 {
 	auto t = m_target.get();
 
@@ -75,13 +82,7 @@ void Match::append(std::unique_ptr<Target> new_target)
 		t = t->next.get();
 	}
 
-	t->next = std::move(new_target);
+	return *t;
 }
-
-const AutoAnnotation &Match::annotation() const
-{
-	return m_annot;
-}
-
 
 } // namespace phonometrica

@@ -13,67 +13,41 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 08/02/2021                                                                                                 *
+ * Created: 10/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: Controller for a concordance.                                                                              *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#ifndef PHONOMETRICA_CONCORDANCE_CONTROLLER_HPP
+#define PHONOMETRICA_CONCORDANCE_CONTROLLER_HPP
+
+#include <phon/gui/ctrl/data_controller.hpp>
 #include <phon/application/conc/concordance.hpp>
 
 namespace phonometrica {
 
-Concordance::Concordance(intptr_t target_count, Context ctx, Array<AutoMatch> matches, VFolder *parent, const String &path) :
-	Dataset(parent, path), m_matches(std::move(matches))
+class ConcordanceController : public DataController
 {
-	m_target_count = target_count;
-	m_context_type = ctx;
-}
+public:
 
-const char *Concordance::class_name() const
-{
-	return "Concordance";
-}
+	explicit ConcordanceController(AutoConcordance conc);
 
-bool Concordance::empty() const
-{
-	return m_matches.empty();
-}
+	int GetNumberRows() override;
 
-String Concordance::get_header(intptr_t j) const
-{
-	return String();
-}
+	int GetNumberCols() override;
 
-String Concordance::get_cell(intptr_t i, intptr_t j) const
-{
-	return m_matches[i]->get_value(j);
-}
+	wxString GetValue(int row, int col) override;
 
-void Concordance::set_cell(intptr_t i, intptr_t j, const String &value)
-{
+	void SetValue(int row, int col, const wxString &value) override;
 
-}
+protected:
 
-intptr_t Concordance::row_count() const
-{
-	return m_matches.size();
-//	return m_context_type == Context::None ? m_matches.size() : m_matches.size() + 2;
-}
-
-intptr_t Concordance::column_count() const
-{
-	return 0;
-}
-
-void Concordance::load()
-{
-
-}
-
-void Concordance::write()
-{
-
-}
+	AutoConcordance m_conc;
+};
 
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_CONCORDANCE_CONTROLLER_HPP

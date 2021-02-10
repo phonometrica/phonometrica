@@ -310,7 +310,7 @@ void MainWindow::SetBindings()
 	viewer_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnViewerSashMoved, this);
 	info_splitter->Bind(wxEVT_SPLITTER_SASH_POS_CHANGED, &MainWindow::OnInfoSashMoved, this);
 
-	project_manager->view_file.connect(&Viewer::OnViewFile, viewer);
+	project_manager->view_file.connect(&Viewer::ViewFile, viewer);
 	project_manager->files_selected.connect(&InfoPanel::OnSetFileSelection, info_panel);
 	project_manager->execute_script.connect(&Console::RunScript, console);
 	project_manager->new_script.connect(&Viewer::NewScriptWithParent, viewer);
@@ -470,9 +470,12 @@ void MainWindow::PostInitialize()
 			for (auto &view : views)
 			{
 				auto path = cast<String>(view);
+				if (path == "start") {
+					continue;
+				}
 				auto vfile = Project::get()->get(path);
 				if (vfile) {
-					viewer->OnViewFile(vfile);
+					viewer->ViewFile(vfile);
 				}
 			}
 			auto sel = (size_t) Settings::get_int("selected_view");
@@ -1680,9 +1683,8 @@ void MainWindow::OnFindInAnnotations(wxCommandEvent &)
 	editor.Prepare();
 	editor.SetSize(FromDIP(wxSize(1100, 850)));
 
-	if (editor.ShowModal() == wxID_OK)
-	{
-		last_query = editor.GetQuery();
+	if (editor.ShowModal() == wxID_OK) {
+		RunQuery(editor);
 	}
 }
 
@@ -1711,9 +1713,8 @@ void MainWindow::EditQuery(const AutoQuery &q)
 		editor.Prepare();
 		editor.SetSize(FromDIP(wxSize(1100, 850)));
 
-		if (editor.ShowModal() == wxID_OK)
-		{
-			last_query = editor.GetQuery();
+		if (editor.ShowModal() == wxID_OK) {
+			RunQuery(editor);
 		}
 	}
 }
@@ -1730,6 +1731,17 @@ void MainWindow::OnRequestConsole()
 		console_item->Check(false);
 		wxCommandEvent e;
 		OnHideConsole(e);
+	}
+}
+
+void MainWindow::RunQuery(QueryEditor &editor)
+{
+	auto conc = editor.ExecuteQuery();
+	last_query = editor.GetQuery();
+	if (conc)
+	{
+		viewer->ViewFile(std::move(conc));
+		Project::updated();
 	}
 }
 

@@ -44,6 +44,8 @@ public:
 
 	virtual String get_cell(intptr_t i, intptr_t j) const = 0;
 
+	virtual void set_cell(intptr_t i, intptr_t j, const String &value) = 0;
+
 	virtual intptr_t row_count() const = 0;
 
 	virtual intptr_t column_count() const = 0;

@@ -103,6 +103,8 @@ public:
 
 	void discard_changes() override;
 
+	std::span<AutoEvent> get_slice(intptr_t layer_index, double start_time, double end_time) const;
+
 	void duplicate_layer(intptr_t index, intptr_t new_index);
 
 	String get_layer_label(intptr_t index);
@@ -112,6 +114,14 @@ public:
 	AutoEvent find_enclosing_event(const AutoEvent &e, intptr_t layer) const;
 
 	bool content_modified() const override;
+
+	AutoEvent find_event_starting_at(intptr_t layer_index, double time) const;
+
+	AutoEvent find_event_ending_at(intptr_t layer_index, double time) const;
+
+	AutoEvent find_previous_event(intptr_t layer_index, double time) const;
+
+	AutoEvent find_next_event(intptr_t layer_index, double time) const;
 
 protected:
 

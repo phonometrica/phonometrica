@@ -13,67 +13,31 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 08/02/2021                                                                                                 *
+ * Created: 10/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: To present dataset to the user, we adopt the model/view/controller (MVC) approach. The controller is a     *
+ * bridge between the model (the dataset itself) and the view.                                                         *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/application/conc/concordance.hpp>
+#ifndef PHONOMETRICA_DATA_CONTROLLER_HPP
+#define PHONOMETRICA_DATA_CONTROLLER_HPP
+
+#include <wx/grid.h>
 
 namespace phonometrica {
 
-Concordance::Concordance(intptr_t target_count, Context ctx, Array<AutoMatch> matches, VFolder *parent, const String &path) :
-	Dataset(parent, path), m_matches(std::move(matches))
+class DataController : public wxGridTableBase
 {
-	m_target_count = target_count;
-	m_context_type = ctx;
-}
+public:
 
-const char *Concordance::class_name() const
-{
-	return "Concordance";
-}
+protected:
 
-bool Concordance::empty() const
-{
-	return m_matches.empty();
-}
+};
 
-String Concordance::get_header(intptr_t j) const
-{
-	return String();
-}
-
-String Concordance::get_cell(intptr_t i, intptr_t j) const
-{
-	return m_matches[i]->get_value(j);
-}
-
-void Concordance::set_cell(intptr_t i, intptr_t j, const String &value)
-{
-
-}
-
-intptr_t Concordance::row_count() const
-{
-	return m_matches.size();
-//	return m_context_type == Context::None ? m_matches.size() : m_matches.size() + 2;
-}
-
-intptr_t Concordance::column_count() const
-{
-	return 0;
-}
-
-void Concordance::load()
-{
-
-}
-
-void Concordance::write()
-{
-
-}
 
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_DATA_CONTROLLER_HPP

@@ -204,6 +204,8 @@ private:
 
 	void EditQuery(const AutoQuery &q);
 
+	void RunQuery(QueryEditor &editor);
+
 	void OnRequestConsole();
 
 	void SetShellFunctions();

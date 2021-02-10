@@ -563,4 +563,29 @@ AutoEvent Annotation::find_enclosing_event(const AutoEvent &e, intptr_t layer) c
 	return m_graph.find_enclosing_event(e, layer);
 }
 
+std::span<AutoEvent> Annotation::get_slice(intptr_t layer_index, double start_time, double end_time) const
+{
+	return m_graph.get_slice(layer_index, start_time, end_time);
+}
+
+AutoEvent Annotation::find_event_starting_at(intptr_t layer_index, double time) const
+{
+	return m_graph.find_event_starting_at(layer_index, time);
+}
+
+AutoEvent Annotation::find_event_ending_at(intptr_t layer_index, double time) const
+{
+	return m_graph.find_event_ending_at(layer_index, time);
+}
+
+AutoEvent Annotation::find_previous_event(intptr_t layer_index, double time) const
+{
+	return m_graph.find_previous_event(layer_index, time);
+}
+
+AutoEvent Annotation::find_next_event(intptr_t layer_index, double time) const
+{
+	return m_graph.find_next_event(layer_index, time);
+}
+
 } // namespace phonometrica

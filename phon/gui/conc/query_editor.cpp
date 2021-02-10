@@ -64,10 +64,8 @@ void QueryEditor::Prepare()
 	scrolled_sizer->Add(MakeSearchPanel(scrolled_window), search_prop, wxEXPAND|wxALL, 0);
 	scrolled_sizer->Add(MakeFileSelector(scrolled_window), prop, wxEXPAND|wxALL, 0);
 	scrolled_sizer->Add(MakeProperties(scrolled_window), prop, wxEXPAND|wxALL, 10);
-
-	auto buttons = MakeButtons(scrolled_window);
-	//scrolled_sizer->AddStretchSpacer();
-	scrolled_sizer->Add(buttons, 0, wxEXPAND|wxALL, 10);
+	scrolled_sizer->AddStretchSpacer();
+	scrolled_sizer->Add(MakeButtons(scrolled_window), 0, wxEXPAND|wxALL, 10);
 
 	scrolled_window->SetSizer(scrolled_sizer);
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -130,7 +128,7 @@ wxBoxSizer *QueryEditor::MakeButtons(wxWindow *parent)
 	return sizer;
 }
 
-AutoConcordance QueryEditor::Execute()
+AutoConcordance QueryEditor::ExecuteQuery()
 {
 	if (!prepared) {
 		throw error("Internal error: you must call Prepare() before executing a query");

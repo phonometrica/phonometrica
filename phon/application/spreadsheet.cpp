@@ -133,6 +133,32 @@ String Spreadsheet::get_cell(intptr_t i, intptr_t j) const
 	}
 }
 
+void Spreadsheet::set_cell(intptr_t i, intptr_t j, const String &value)
+{
+	auto col = m_columns[j].get();
+
+	switch (col->type())
+	{
+		case Type::Numeric:
+		{
+			bool ok;
+			double result = value.to_float(&ok);
+			if (!ok) {
+				throw error("Invalid numeric value in cell (%, %)", i, j);
+			}
+			cast_num(col)->set(i, result);
+		}
+		break;
+		case Type::Boolean:
+		{
+			cast_bool(col)->set(i, value.to_bool());
+		}
+		break;
+		default:
+			cast_string(col)->set(i, value);
+	}
+}
+
 const char *Spreadsheet::class_name() const
 {
 	// TODO: rename to Spreadsheet once refactoring is done

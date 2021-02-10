@@ -31,15 +31,26 @@ class Concordance : public Dataset
 {
 public:
 
-	Concordance(intptr_t target_count, Array<AutoMatch> matches, VFolder *parent, const String &path = String());
+	enum class Context
+	{
+		None,   // no context
+		Labels, // labels from surrounding events
+		KWIC    // keyword in context
+	};
+
+	Concordance(intptr_t target_count, Context ctx, Array<AutoMatch> matches, VFolder *parent, const String &path = String());
 
 	const char *class_name() const override;
+
+	bool is_concordance() const override { return true; }
 
 	intptr_t target_count() const { return m_target_count; }
 
 	String get_header(intptr_t j) const override;
 
 	String get_cell(intptr_t i, intptr_t j) const override;
+
+	void set_cell(intptr_t i, intptr_t j, const String &value);
 
 	intptr_t row_count() const override;
 
@@ -49,16 +60,23 @@ public:
 
 protected:
 
+
+
 	void load() override;
 
 	void write() override;
 
 	Array<AutoMatch> m_matches;
 
+	// Left and right context
+	Array<std::pair<String,String>> m_context;
+
 	intptr_t m_target_count;
+
+	Context m_context_type;
 };
 
-using AutoConcordance = std::unique_ptr<Concordance>;
+using AutoConcordance = std::shared_ptr<Concordance>;
 
 } // namespace phonometrica
 

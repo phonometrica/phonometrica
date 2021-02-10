@@ -60,6 +60,8 @@ struct Constraint final
 
 	void compile();
 
+	static bool is_hierarchical(Operator op);
+
 	// Relation with the previous constraint, if any.
 	Operator op = Operator::None;
 

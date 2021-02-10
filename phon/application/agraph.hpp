@@ -272,6 +272,16 @@ public:
 
 	AutoEvent find_enclosing_event(const AutoEvent &e, intptr_t layer) const;
 
+	std::span<AutoEvent> get_slice(intptr_t layer_index, double start_time, double end_time) const;
+
+	AutoEvent find_event_starting_at(intptr_t layer, double time) const;
+
+	AutoEvent find_event_ending_at(intptr_t layer, double time) const;
+
+	AutoEvent find_previous_event(intptr_t layer_index, double time) const;
+
+	AutoEvent find_next_event(intptr_t layer_index, double time) const;
+
 private:
 
 	void append_event(intptr_t layer_index, Anchor *start, Anchor *end, const String &text);
@@ -339,6 +349,11 @@ struct EventLessEqual
 	bool operator()(double lhs, const AutoEvent &rhs) const
 	{
 		return lhs <= rhs->start_time();
+	}
+
+	bool operator()(const AutoEvent &lhs, double rhs) const
+	{
+		return lhs->start_time() <= rhs;
 	}
 };
 

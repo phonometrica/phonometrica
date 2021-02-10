@@ -21,6 +21,7 @@
 
 #include <wx/msgdlg.h>
 #include <phon/gui/viewer.hpp>
+#include <phon/gui/views/concordance_view.hpp>
 #include <phon/gui/tab_art_provider.hpp>
 #include <phon/utils/file_system.hpp>
 #include <phon/application/project.hpp>
@@ -93,7 +94,7 @@ View *Viewer::GetCurrentView()
 	return GetView(GetSelection());
 }
 
-void Viewer::OnViewFile(const std::shared_ptr<VFile> &file)
+void Viewer::ViewFile(const std::shared_ptr<VFile> &file)
 {
 	for (size_t i = 0; i < GetPageCount(); i++)
 	{
@@ -107,6 +108,11 @@ void Viewer::OnViewFile(const std::shared_ptr<VFile> &file)
 	if (file->is_script())
 	{
 		NewScript(downcast<Script>(file));
+	}
+	else if (file->is_concordance())
+	{
+		auto conc = downcast<Concordance>(file);
+		AddView(new ConcordanceView(this, std::move(conc)), conc->label());
 	}
 	else
 	{
