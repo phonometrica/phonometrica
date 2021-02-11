@@ -38,37 +38,37 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 
 	auto sizer = new VBoxSizer;
 
-	m_toolbar = new wxToolBar(this, wxID_ANY);
-	m_toolbar->SetToolBitmapSize(wxSize(24, 24));
+	m_toolbar = new ToolBar(this);
 
 	auto save_icon = ICN(save);
-	m_save_tool = m_toolbar->AddTool(wxID_ANY, _("Save concordance\tctrl+s"), save_icon, _("Save concordance (" CTRL_KEY "S)"));
-	auto csv_tool = m_toolbar->AddTool(wxID_ANY, _("Export concordance to CSV"), ICN(export_csv), _("Export concordance to CSV"));
-	m_toolbar->EnableTool(m_save_tool->GetId(), false);
+	m_save_tool = m_toolbar->AddButton(save_icon, _("Save concordance... (" CTRL_KEY "S)"));
+	auto csv_tool = m_toolbar->AddButton(ICN(export_csv), _("Export concordance to CSV..."));
 	m_toolbar->AddSeparator();
 
 	auto play_icon = ICN(play);
-	m_play_tool = m_toolbar->AddTool(wxID_ANY, _("Play selection"), play_icon, _("Play selection"));
+	m_play_tool = m_toolbar->AddButton(play_icon, _("Play selection"));
 
-	auto stop_tool = m_toolbar->AddTool(wxID_ANY, _("Stop playing"), ICN(stop), _("Stop playing"));
-	auto praat_tool = m_toolbar->AddTool(wxID_ANY, _("Open selection in Praat"), ICN(praat), _("Open selection in Praat"));
+	auto stop_tool = m_toolbar->AddButton(ICN(stop), _("Stop playing"));
+	auto praat_tool = m_toolbar->AddButton(ICN(praat), _("Open selection in Praat"));
 	m_toolbar->AddSeparator();
 
-	auto view_tool = m_toolbar->AddTool(wxID_ANY, _("Open match in annotation"), ICN(eye), _("Open match in annotation"));
+	auto view_tool = m_toolbar->AddButton(ICN(eye), _("Open match in annotation"));
 
-	m_col_tool = m_toolbar->AddTool(wxID_ANY, _("Show/hide columns"), ICN(select_column), _("Show/hide columns"), wxITEM_DROPDOWN);
-	auto menu = new wxMenu;
-	auto info_tool = menu->AppendCheckItem(wxID_ANY, _("Show file information"));
-//	auto ctx_tool = menu->AppendCheckItem(wxID_ANY, _("Show context"));
-	auto meta_tool = menu->AppendCheckItem(wxID_ANY, _("Show metadata"));
-	info_tool->Check(true);
-//	ctx_tool->Check(true);
-	meta_tool->Check(true);
-	m_toolbar->SetDropdownMenu(m_col_tool->GetId(), menu);
+	m_col_tool = m_toolbar->AddButton(ICN(select_column), _("Show/hide columns"));
+//	auto menu = new wxMenu;
+//	auto info_tool = menu->AppendCheckItem(wxID_ANY, _("Show file information"));
+////	auto ctx_tool = menu->AppendCheckItem(wxID_ANY, _("Show context"));
+//	auto meta_tool = menu->AppendCheckItem(wxID_ANY, _("Show metadata"));
+//	info_tool->Check(true);
+////	ctx_tool->Check(true);
+//	meta_tool->Check(true);
+//	m_toolbar->SetDropdownMenu(m_col_tool->GetId(), menu);
 
-	auto bookmark_tool = m_toolbar->AddTool(wxID_ANY, _("Bookmark match"), ICN(favorite24), _("Bookmark match"));
+	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite24), _("Bookmark match"));
+	m_toolbar->AddStretchableSpace();
+	m_toolbar->AddHelpButton();
 
-	m_toolbar->Realize();
+
 
 	m_grid = new wxGrid(this, wxID_ANY);
 	auto ctrl = new ConcordanceController(m_conc);
@@ -97,7 +97,7 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	auto label_sizer = new HBoxSizer;
 	label_sizer->Add(count_label, 0, wxEXPAND);
 	label_sizer->AddStretchSpacer();
-	sizer->Add(m_toolbar, 0, wxEXPAND, 0);
+	sizer->Add(m_toolbar, 0, wxEXPAND|wxTOP, 10);
 	sizer->AddSpacer(5);
 	sizer->Add(label_sizer, 0, wxEXPAND|wxLEFT, 10);
 	sizer->AddSpacer(5);
@@ -105,13 +105,13 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	SetSizer(sizer);
 
 	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ConcordanceView::OnSave, this, m_save_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ConcordanceView::OnPlaySelection, this, m_play_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ConcordanceView::OnStopPlaying, this, stop_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ConcordanceView::OnOpenInPraat, this, praat_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ConcordanceView::OnExportToCsv, this, csv_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ConcordanceView::OnViewMatch, this, view_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnPlaySelection, this, m_play_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnStopPlaying, this, stop_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnOpenInPraat, this, praat_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnExportToCsv, this, csv_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnViewMatch, this, view_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnBookmarkMatch, this, bookmark_tool->GetId());
 //	m_toolbar->Bind(wxEVT_TOOL_DROPDOWN, &ConcordanceView::OnColumnButtonClicked, this, m_col_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ConcordanceView::OnBookmarkMatch, this, bookmark_tool->GetId());
 	m_grid->Bind(wxEVT_KEY_DOWN, &ConcordanceView::OnKeyDown, this);
 
 #undef ICN

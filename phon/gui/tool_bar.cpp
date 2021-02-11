@@ -13,73 +13,60 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 10/02/2021                                                                                                 *
+ * Created: 11/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Display a concordance (i.e. the result of a query).                                                        *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_CONCORDANCE_VIEW_HPP
-#define PHONOMETRICA_CONCORDANCE_VIEW_HPP
-
-#include <wx/stattext.h>
+#include <wx/bitmap.h>
+#include <phon/gui/sizer.hpp>
 #include <phon/gui/tool_bar.hpp>
-#include <phon/gui/views/view.hpp>
-#include <phon/gui/ctrl/concordance_controller.hpp>
+#include <phon/include/icons.hpp>
 
 namespace phonometrica {
 
-class ConcordanceView : public View
+
+ToolBar::ToolBar(wxWindow *parent) :
+	wxWindow(parent, wxID_ANY), button_size(30, 30)
 {
-public:
+	SetSizer(new HBoxSizer);
+}
 
-	ConcordanceView(wxWindow *parent, AutoConcordance conc);
+void ToolBar::AddSeparator()
+{
+	GetSizer()->AddSpacer(5);
+}
 
-	virtual bool IsModified() const override;
+void ToolBar::AddStretchableSpace()
+{
+	GetSizer()->AddStretchSpacer();
+}
 
-	virtual void DiscardChanges() override;
+wxButton *ToolBar::AddButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
+{
+	auto btn = new wxButton(this, id, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	btn->SetBitmap(bitmap);
+	btn->SetMaxSize(button_size);
+	btn->SetToolTip(tooltip);
+	GetSizer()->Add(btn, 0, wxLEFT, 10);
 
-	virtual wxString GetLabel() const override;
+	return btn;
+}
 
-	virtual String GetPath() const override;
+wxToggleButton *ToolBar::AddToggleButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
+{
+	auto btn = new wxToggleButton(this, id, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	btn->SetBitmap(bitmap);
+	btn->SetMaxSize(button_size);
+	btn->SetToolTip(tooltip);
+	GetSizer()->Add(btn, 0, wxLEFT, 10);
 
-protected:
+	return btn;
+}
 
-	void OnSave(wxCommandEvent &);
-
-	void OnPlaySelection(wxCommandEvent &);
-
-	void OnStopPlaying(wxCommandEvent &);
-
-	void OnOpenInPraat(wxCommandEvent &);
-
-	void OpenInPraat(int row);
-
-	void OnKeyDown(wxKeyEvent &e);
-
-	void OnExportToCsv(wxCommandEvent &);
-
-	void OnViewMatch(wxCommandEvent &);
-
-	void OnBookmarkMatch(wxCommandEvent &);
-
-	void OnColumnButtonClicked(wxCommandEvent &);
-
-	void PlayMatch(int row);
-
-	wxGrid *m_grid;
-
-	wxStaticText *count_label;
-
-	ToolBar *m_toolbar;
-
-	wxButton *m_save_tool, *m_play_tool, *m_col_tool;
-
-	AutoConcordance m_conc;
-};
-
+wxButton *ToolBar::AddHelpButton()
+{
+	return AddButton(wxBITMAP_PNG_FROM_DATA(question), _("Help"));
+}
 } // namespace phonometrica
-
-
-
-#endif // PHONOMETRICA_CONCORDANCE_VIEW_HPP
