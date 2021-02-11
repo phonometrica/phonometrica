@@ -166,16 +166,16 @@ void Concordance::find_kwic_context()
 	for (auto &match : m_matches)
 	{
 		auto target = match->reference_target();
+		auto annot = match->annotation().get();
 		std::pair<String, String> ctx;
 		if (target)
 		{
-			auto &events = match->annotation()->get_layer_events(target->layer);
-			auto i = match->annotation()->get_event_index(target->layer, target->start_time());
+			auto i = annot->get_event_index(target->layer, target->start_time());
 			assert(i != 0);
 			auto offset = target->offset;
-			ctx.first = Annotation::left_context(events, i, offset, m_context_length, sep);
+			ctx.first = annot->left_context(target->layer, i, offset, m_context_length, sep);
 			offset += target->value.size();
-			ctx.second = Annotation::right_context(events, i, offset, m_context_length, sep);
+			ctx.second = annot->right_context(target->layer, i, offset, m_context_length, sep);
 		}
 		m_context.append(std::move(ctx));
 	}

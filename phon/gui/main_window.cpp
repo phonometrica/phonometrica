@@ -91,7 +91,7 @@ static const int ID_HELP_ACKNOWLEDGEMENTS = wxNewId();
 static const int ID_HELP_SOUND_INFO = wxNewId();
 
 MainWindow::MainWindow(Runtime &rt, const wxString &title) :
-		wxFrame(nullptr, wxNewId(), title), runtime(rt)
+		wxFrame(nullptr, wxNewId(), title), runtime(rt), editor_size(1100, 850)
 {
 	wxSize size(1200, 800);
 	SetSize(FromDIP(size));
@@ -536,7 +536,7 @@ void MainWindow::SetStartView()
 		try
 		{
 			auto &views = Settings::get_list("recent_views");
-			if (!views.contains("start")) {
+			if (!views.empty() && !views.contains("start")) {
 				return;
 			}
 		}
@@ -1681,7 +1681,7 @@ void MainWindow::OnFindInAnnotations(wxCommandEvent &)
 {
 	TextQueryEditor editor(this);
 	editor.Prepare();
-	editor.SetSize(FromDIP(wxSize(1100, 850)));
+	editor.SetSize(FromDIP(editor_size));
 
 	if (editor.ShowModal() == wxID_OK) {
 		RunQuery(editor);
@@ -1712,7 +1712,7 @@ void MainWindow::EditQuery(const AutoQuery &q)
 		TextQueryEditor editor(this, downcast<Query>(q));
 		editor.Prepare();
 		editor.LoadQuery();
-		editor.SetSize(FromDIP(wxSize(1100, 850)));
+		editor.SetSize(FromDIP(editor_size));
 
 		if (editor.ShowModal() == wxID_OK) {
 			RunQuery(editor);
@@ -1737,11 +1737,19 @@ void MainWindow::OnRequestConsole()
 
 void MainWindow::RunQuery(QueryEditor &editor)
 {
-	auto conc = editor.ExecuteQuery();
-	last_query = editor.GetQuery();
-	viewer->ViewFile(std::move(conc));
-	Project::updated();
-
+	try
+	{
+		auto conc = editor.ExecuteQuery();
+		last_query = editor.GetQuery();
+		viewer->ViewFile(std::move(conc));
+		Project::updated();
+	}
+	catch (std::exception &e)
+	{
+		auto msg = _("The following error occurred while running the query: ");
+		msg.Append(wxString::FromUTF8(e.what()));
+		wxMessageBox(msg, _("Query error"), wxICON_ERROR);
+	}
 }
 
 } // namespace phonometrica

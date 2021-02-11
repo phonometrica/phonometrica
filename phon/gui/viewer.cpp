@@ -120,7 +120,8 @@ void Viewer::ViewFile(const std::shared_ptr<VFile> &file)
 		}
 		else
 		{
-			AddView(new ConcordanceView(this, std::move(conc)), conc->label());
+			auto label = conc->label();
+			AddView(new ConcordanceView(this, std::move(conc)), label);
 		}
 	}
 	else

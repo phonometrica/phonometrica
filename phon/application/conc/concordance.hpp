@@ -51,7 +51,7 @@ public:
 
 	String get_cell(intptr_t i, intptr_t j) const override;
 
-	void set_cell(intptr_t i, intptr_t j, const String &value);
+	void set_cell(intptr_t i, intptr_t j, const String &value) override;
 
 	intptr_t row_count() const override;
 

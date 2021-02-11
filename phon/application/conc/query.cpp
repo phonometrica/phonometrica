@@ -540,12 +540,19 @@ Array<AutoMatch> Query::search()
 		if (!progress.Update(t++)) {
 			return result;
 		}
-		annot->open();
-		auto matches = search_annotation(annot);
+		try
+		{
+			annot->open();
+			auto matches = search_annotation(annot);
 
-		result.reserve(result.size() + matches.size());
-		for (auto &m : matches) {
-			result.append(std::move(m));
+			result.reserve(result.size() + matches.size());
+			for (auto &m : matches) {
+				result.append(std::move(m));
+			}
+		}
+		catch (std::exception &e)
+		{
+			throw error("error in annotation %: %", annot->path(), e.what());
 		}
 	}
 

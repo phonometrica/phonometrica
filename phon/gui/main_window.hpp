@@ -251,6 +251,8 @@ private:
 	wxMenuItem *project_item = nullptr, *info_item = nullptr, *console_item = nullptr;
 	wxMenuItem *tool_separator = nullptr;
 
+	wxSize editor_size;
+
 	Array<AutoPlugin> plugins;
 
 	AutoQuery last_query;

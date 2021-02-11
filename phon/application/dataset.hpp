@@ -52,7 +52,7 @@ public:
 
 	virtual bool empty() const = 0;
 
-	virtual bool is_concordance() const { return false; }
+	bool is_concordance() const override { return false; }
 
 	virtual bool is_spreadsheet() const { return false; }
 

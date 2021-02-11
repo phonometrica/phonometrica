@@ -377,38 +377,56 @@ bool Annotation::content_modified() const
 	return m_graph.modified() || VFile::content_modified();
 }
 
-String Annotation::left_context(const EventList &events, intptr_t i, intptr_t offset, intptr_t length, const String &separator)
+String Annotation::left_context(intptr_t layer, intptr_t event, intptr_t offset, intptr_t length, const String &separator) const
 {
-	String context(length);
-	auto it = events[i]->text().begin() + offset;
-	context.append(events[i]->text().rmid(it, length));
-
-	while (context.grapheme_count() != length && --i > 0)
+	try
 	{
-		auto &label = events[i]->text();
-		auto prefix = label.right(length - context.grapheme_count() - separator.size());
-		context.prepend(separator);
-		context.prepend(prefix);
-	}
+		String context(length);
+		auto &events = get_layer_events(layer);
+		auto it = events[event]->text().begin() + offset;
+		context.append(events[event]->text().rmid(it, length));
 
-	return context;
+		while (context.grapheme_count() != length && --event > 0)
+		{
+			auto &label = events[event]->text();
+			auto prefix = label.right(length - context.grapheme_count() - separator.size());
+			context.prepend(separator);
+			context.prepend(prefix);
+		}
+
+		return context;
+	}
+	catch (std::exception &e)
+	{
+		throw error("Could not extract left context in annotation % in evnt % on layer %: %",
+					path(), event, layer, e.what());
+	}
 }
 
-String Annotation::right_context(const EventList &events, intptr_t i, intptr_t offset, intptr_t length, const String &separator)
+String Annotation::right_context(intptr_t layer, intptr_t event, intptr_t offset, intptr_t length, const String &separator) const
 {
-	String context(length);
-	auto it = events[i]->text().begin() + offset;
-	context.append(events[i]->text().mid(it, length));
-
-	while (context.grapheme_count() != length && ++i <= events.size())
+	try
 	{
-		auto &label = events[i]->text();
-		auto suffix = label.left(length - context.grapheme_count() - separator.size());
-		context.append(separator);
-		context.append(suffix);
-	}
+		String context(length);
+		auto &events = get_layer_events(layer);
+		auto it = events[event]->text().begin() + offset;
+		context.append(events[event]->text().mid(it, length));
 
-	return context;
+		while (context.grapheme_count() != length && ++event <= events.size())
+		{
+			auto &label = events[event]->text();
+			auto suffix = label.left(length - context.grapheme_count() - separator.size());
+			context.append(separator);
+			context.append(suffix);
+		}
+
+		return context;
+	}
+	catch (std::exception &e)
+	{
+		throw error("Could not extract right context in annotation % in event % on layer %: %",
+					path(), event, layer, e.what());
+	}
 }
 
 void Annotation::set_event_text(AutoEvent &event, const String &new_text)
