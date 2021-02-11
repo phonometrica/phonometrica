@@ -2,5 +2,4 @@
 - on Windows, removing a constraint resets the context to none
 - on macOS, the search control in the search bar doesn't respond to Esc
 - layout is not always properly refreshed (project manager and info panel)
-- 
 

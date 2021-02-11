@@ -93,10 +93,10 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	ctx_btn1->SetToolTip(_("Don't extract any context"));
 	ctx_btn2->SetToolTip(_("Extract labels from surrounding events"));
 	ctx_btn3->SetToolTip(_("Extract fixed-sized left and right contexts"));
-	context_spinctrl = new wxSpinCtrl(context_box, wxID_ANY);
+	context_spinctrl = new wxSpinCtrl(context_box, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS); //, 1, 100, 40);
 	context_spinctrl->SetToolTip(_("Number of characters in the left and right contexts"));
 	context_spinctrl->SetRange(1, 1000);
-	context_spinctrl->SetValue((int)Settings::get_int("match_window_length"));
+	context_spinctrl->SetValue(Settings::get_int("match_window_length"));
 	auto ref_label = new wxStaticText(context_box, wxID_ANY, _("Reference constraint:"));
 	ref_spinctrl = new wxSpinCtrl(context_box, wxID_ANY, "1");
 	ref_spinctrl->SetToolTip(_("Select the constraint for which the context should be extracted"));
@@ -137,6 +137,7 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	sizer->Add(constraint_box, con_prop, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	sizer->Add(context_box, ctx_prop, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	panel->SetSizer(sizer);
+	constraints.first()->search_ctrl->SetFocus();
 
 	return panel;
 }
@@ -283,7 +284,7 @@ void TextQueryEditor::ParseQuery()
 	query->set_label(name_ctrl->GetValue(), false);
 
 	// Meta-constraints
-	if (!desc_ctrl->IsEmpty() || desc_op_choice->GetSelection() != wxNOT_FOUND)
+	if (!desc_ctrl->IsEmpty())
 	{
 		auto op = static_cast<DescMetaConstraint::Operator>(desc_op_choice->GetSelection());
 		auto mc = std::make_shared<DescMetaConstraint>(op, desc_ctrl->GetValue());
@@ -355,6 +356,7 @@ void TextQueryEditor::OnAddConstraint(wxCommandEvent &)
 	constraints.append(con);
 	remove_constraint_btn->Enable();
 	ref_spinctrl->SetRange(1, (int)constraints.size());
+	con->search_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &) { EndModal(wxID_OK); }); // &TextQueryEditor::OnOk, this);
 }
 
 void TextQueryEditor::OnRemoveConstraint(wxCommandEvent &)

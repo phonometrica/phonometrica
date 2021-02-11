@@ -672,7 +672,7 @@ void Project::write()
 	write_xml(doc, m_path);
 }
 
-bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, FileType type)
+bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, FileType type, bool importing)
 {
 	if (m_files.find(path) != m_files.end())
 	{
@@ -688,14 +688,24 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 	    auto annot = std::make_shared<Annotation>(parent.get(), std::move(path));
 		vfile = upcast<VFile>(annot);
 		parent->append(vfile);
-		emit(annotation_loaded, make_handle<AutoAnnotation>(annot));
+		if (importing) {
+			emit(annotation_imported, make_handle<AutoAnnotation>(annot));
+		}
+		else {
+			emit(annotation_loaded, make_handle<AutoAnnotation>(annot));;
+		}
 	}
 	else if (Sound::supports_format(ext) && (static_cast<int>(type)&static_cast<int>(FileType::Sound)))
 	{
 	    auto sound = std::make_shared<Sound>(parent.get(), std::move(path));
 		vfile = upcast<VFile>(sound);
 		parent->append(vfile);
-		emit(sound_loaded, make_handle<AutoSound>(sound));
+		if (importing) {
+			emit(sound_imported, make_handle<AutoSound>(sound));
+		}
+		else {
+			emit(sound_loaded, make_handle<AutoSound>(sound));
+		}
 	}
 	else if (ext == PHON_EXT_QUERY)
 	{
@@ -789,7 +799,7 @@ const String &Project::uuid() const
 void Project::import_directory(String path)
 {
 	filesystem::nativize(path);
-	add_folder(std::move(path), m_corpus);
+	add_folder(std::move(path), m_corpus, true);
 	bind_annotations();
 	// Try to find a sound that matches the annotation's name.
 	set_default_bindings();
@@ -802,7 +812,7 @@ String Project::import_file(String path)
 	filesystem::nativize(path);
 
 	// Assume that the file will be added to the corpus. add_file() will change the parent if necessary.
-	if (add_file(path, m_corpus, FileType::Any))
+	if (add_file(path, m_corpus, FileType::Any, false))
 	{
         m_modified = true;
         auto &f = m_files[path];
@@ -823,7 +833,7 @@ String Project::import_file(String path)
 	return path;
 }
 
-void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent)
+void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent, bool importing)
 {
 	auto content = filesystem::list_directory(path);
 	bool toplevel = (parent == m_corpus);
@@ -842,11 +852,11 @@ void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent)
 		{
 			auto subfolder = std::make_shared<VFolder>(parent.get(), name);
 			parent->append(subfolder);
-			add_folder(file, subfolder);
+			add_folder(file, subfolder, importing);
 		}
 		else
 		{
-			add_file(file, parent, FileType::Any);
+			add_file(file, parent, FileType::Any, importing);
 		}
 
 		if (toplevel) {
@@ -1443,7 +1453,7 @@ void Project::set_default_bindings()
 					path.append('.').append(ext);
 					if (filesystem::exists(path))
 					{
-						add_file(path, m_corpus, FileType::Any);
+						add_file(path, m_corpus, FileType::Any, false);
 						auto sound = std::dynamic_pointer_cast<Sound>(m_files[path]);
 						// Mutate the annotation, so that its metadata are saved.
 						annot->set_sound(sound, true);

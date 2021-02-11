@@ -282,6 +282,8 @@ public:
 
 	AutoEvent find_next_event(intptr_t layer_index, double time) const;
 
+	intptr_t get_event_index(intptr_t layer_index, double time) const;
+
 private:
 
 	void append_event(intptr_t layer_index, Anchor *start, Anchor *end, const String &text);
@@ -346,14 +348,14 @@ struct EventLessEqual
         return lhs->end_time() <= rhs->start_time();
     }
 
-	bool operator()(double lhs, const AutoEvent &rhs) const
+	bool operator()(double time, const AutoEvent &rhs) const
 	{
-		return lhs <= rhs->start_time();
+		return time <= rhs->start_time();
 	}
 
-	bool operator()(const AutoEvent &lhs, double rhs) const
+	bool operator()(const AutoEvent &lhs, double time) const
 	{
-		return lhs->start_time() <= rhs;
+		return lhs->end_time() <= time;
 	}
 };
 

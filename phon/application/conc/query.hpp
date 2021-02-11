@@ -102,6 +102,8 @@ public:
 
 	void set_reference_constraint(int value);
 
+	bool empty();
+
 protected:
 
 	void load() override;
@@ -120,15 +122,18 @@ protected:
 
 	Array<AutoMatch> search();
 
-	Array<AutoMatch> search_annotation(const Annotation &annot);
+	Array<AutoMatch> search_annotation(const AutoAnnotation &annot);
 
-	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, Array<int> &blacklist, Constraint::Operator op) const;
+	Array <AutoMatch> find_matches(const AutoAnnotation &annot, const Constraint &constraint, Array <AutoMatch> matches,
+	                               Array<int> &blacklist, Constraint::Operator op, bool is_ref) const;
 
-	Array<AutoMatch> find_matches(const Annotation &annot, const Constraint &constraint, Array<AutoMatch> matches, intptr_t layer_index, Array<int> &seen, Constraint::Operator op) const;
+	Array <AutoMatch> find_matches(const AutoAnnotation &annot, const Constraint &constraint, Array <AutoMatch> matches,
+	                               intptr_t layer_index,
+	                               Array<int> &seen, Constraint::Operator op, bool is_ref) const;
 
 	std::unique_ptr<Match::Target>
-	find_target(const AutoEvent &event, const Constraint &constraint, intptr_t layer_index,
-	            intptr_t &pos) const;
+	find_target(const AutoEvent &event, const Constraint &constraint, intptr_t layer_index, intptr_t &pos,
+	            bool is_ref) const;
 
 	// Constraints on the metadata
 	Array<AutoMetaConstraint> m_metaconstraints;

@@ -762,7 +762,7 @@ void ProjectManager::OnAddFilesToDirectory(wxCommandEvent &e)
 
 	for (auto &path : paths)
 	{
-		project->add_file(path, folder, type);
+		project->add_file(path, folder, type, false);
 	}
 	tree->Expand(GetSelectedId());
 	CheckProjectImport();

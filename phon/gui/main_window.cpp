@@ -1711,6 +1711,7 @@ void MainWindow::EditQuery(const AutoQuery &q)
 	{
 		TextQueryEditor editor(this, downcast<Query>(q));
 		editor.Prepare();
+		editor.LoadQuery();
 		editor.SetSize(FromDIP(wxSize(1100, 850)));
 
 		if (editor.ShowModal() == wxID_OK) {
@@ -1738,10 +1739,14 @@ void MainWindow::RunQuery(QueryEditor &editor)
 {
 	auto conc = editor.ExecuteQuery();
 	last_query = editor.GetQuery();
-	if (conc)
+	if (!conc->empty())
 	{
 		viewer->ViewFile(std::move(conc));
 		Project::updated();
+	}
+	else
+	{
+		wxMessageBox(_("No match found!"), _("Empty concordance"), wxICON_INFORMATION);
 	}
 }
 

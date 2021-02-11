@@ -42,11 +42,11 @@ public:
 
 	AutoQuery GetQuery() const override;
 
+	void LoadQuery() override;
+
 private:
 
 	wxPanel *MakeSearchPanel(wxWindow *parent) override;
-
-	void LoadQuery() override;
 
 	void ParseQuery() override;
 

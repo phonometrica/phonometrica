@@ -986,4 +986,17 @@ AutoEvent AGraph::find_next_event(intptr_t layer_index, double time) const
 	return *it;
 }
 
+intptr_t AGraph::get_event_index(intptr_t layer_index, double time) const
+{
+	// Find event whose left boundary is exactly at 'time'.
+	auto &layer = m_layers.at(layer_index);
+	auto it = std::lower_bound(layer->events.begin(), layer->events.end(), time, EventLessEqual());
+
+	if (it == layer->events.end() || (*it)->start_time() != time) {
+		return 0;
+	}
+
+	return intptr_t(it - layer->events.begin()) + 1;
+}
+
 } // namespace phonometrica

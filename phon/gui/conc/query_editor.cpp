@@ -72,7 +72,6 @@ void QueryEditor::Prepare()
 	scrolled_window->SetScrollRate(5, 5);
 	main_sizer->Add(scrolled_window, 1, wxEXPAND|wxALL, 0);
 	SetSizer(main_sizer);
-	LoadQuery();
 	prepared = true;
 }
 

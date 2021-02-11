@@ -377,11 +377,11 @@ bool Annotation::content_modified() const
 	return m_graph.modified() || VFile::content_modified();
 }
 
-String Annotation::left_context(const EventList &events, intptr_t i, String::const_iterator start, intptr_t length,
-                                const String &separator)
+String Annotation::left_context(const EventList &events, intptr_t i, intptr_t offset, intptr_t length, const String &separator)
 {
 	String context(length);
-	context.append(events[i]->text().rmid(start, length));
+	auto it = events[i]->text().begin() + offset;
+	context.append(events[i]->text().rmid(it, length));
 
 	while (context.grapheme_count() != length && --i > 0)
 	{
@@ -394,11 +394,11 @@ String Annotation::left_context(const EventList &events, intptr_t i, String::con
 	return context;
 }
 
-String Annotation::right_context(const EventList &events, intptr_t i, String::const_iterator end, intptr_t length,
-                                 const String &separator)
+String Annotation::right_context(const EventList &events, intptr_t i, intptr_t offset, intptr_t length, const String &separator)
 {
 	String context(length);
-	context.append(events[i]->text().mid(end, length));
+	auto it = events[i]->text().begin() + offset;
+	context.append(events[i]->text().mid(it, length));
 
 	while (context.grapheme_count() != length && ++i <= events.size())
 	{
@@ -586,6 +586,11 @@ AutoEvent Annotation::find_previous_event(intptr_t layer_index, double time) con
 AutoEvent Annotation::find_next_event(intptr_t layer_index, double time) const
 {
 	return m_graph.find_next_event(layer_index, time);
+}
+
+intptr_t Annotation::get_event_index(intptr_t layer_index, double time) const
+{
+	return m_graph.get_event_index(layer_index, time);
 }
 
 } // namespace phonometrica

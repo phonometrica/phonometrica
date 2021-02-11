@@ -23,6 +23,25 @@
 
 namespace phonometrica {
 
+
+ConcCellAttrProvider::ConcCellAttrProvider(const wxFont &match_font)
+{
+	m_match_attr = new wxGridCellAttr();
+	m_normal_attr = new wxGridCellAttr();
+//		m_match_attr->SetRenderer(new wxGridCellFloatRenderer(-1, 3));
+	m_match_attr->SetTextColour(*wxRED);
+	m_match_attr->SetFont(match_font);
+	m_match_attr->SetAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
+	m_normal_attr->SetAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
+}
+
+wxGridCellAttr *ConcCellAttrProvider::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind kind) const
+{
+	return (col == 5) ? m_match_attr->Clone() : m_normal_attr->Clone();
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+
 ConcordanceController::ConcordanceController(AutoConcordance conc) :
 	DataController(), m_conc(std::move(conc))
 {
@@ -41,11 +60,17 @@ int ConcordanceController::GetNumberCols()
 
 wxString ConcordanceController::GetValue(int row, int col)
 {
-	return m_conc->get_cell(row, col);
+	return m_conc->get_cell(row + 1, col + 1);
 }
 
 void ConcordanceController::SetValue(int row, int col, const wxString &value)
 {
-	m_conc->set_cell(row, col, value);
+	m_conc->set_cell(row + 1, col + 1, value);
 }
+
+wxString ConcordanceController::GetColLabelValue(int col)
+{
+	return m_conc->get_header(col + 1);
+}
+
 } // namespace phonometrica

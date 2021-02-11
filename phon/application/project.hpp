@@ -148,7 +148,7 @@ public:
 
 	void bind_annotation(const AutoAnnotation &annot, const String &sound_file);
 
-	bool add_file(String path, const std::shared_ptr<VFolder> &parent, FileType type);
+	bool add_file(String path, const std::shared_ptr<VFolder> &parent, FileType type, bool importing);
 
 	void clear_import_flag() { m_import_flag = false; }
 
@@ -195,7 +195,7 @@ private:
 	void write_data(xml_node root);
 	void write_queries(xml_node root);
 
-	void add_folder(String path, const std::shared_ptr<VFolder> &parent);
+	void add_folder(String path, const std::shared_ptr<VFolder> &parent, bool importing);
 
 	void bind_annotations();
 

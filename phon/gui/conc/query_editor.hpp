@@ -45,6 +45,8 @@ public:
 
 	virtual AutoQuery GetQuery() const = 0;
 
+	virtual void LoadQuery() = 0;
+
 protected:
 
 	static int GenerateId() { return ++id; }
@@ -74,8 +76,6 @@ protected:
 	void OnQueryModified(wxCommandEvent &);
 
 	void EnableSaving(bool value);
-
-	virtual void LoadQuery() = 0;
 
 	virtual void ParseQuery() = 0;
 

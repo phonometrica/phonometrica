@@ -81,11 +81,11 @@ public:
 
 	void set_event_text(AutoEvent &event, const String &new_text);
 
-	static String left_context(const EventList &events, intptr_t i, String::const_iterator start, intptr_t length,
-	                    const String &separator = String());
+	static String left_context(const EventList &events, intptr_t i, intptr_t offset, intptr_t length,
+	                           const String &separator = String());
 
-	static String right_context(const EventList &events, intptr_t i, String::const_iterator end, intptr_t length,
-	                    const String &separator = String());
+	static String right_context(const EventList &events, intptr_t i, intptr_t offset, intptr_t length,
+	                            const String &separator = String());
 
 	void write_as_native(const String &path = String());
 
@@ -122,6 +122,8 @@ public:
 	AutoEvent find_previous_event(intptr_t layer_index, double time) const;
 
 	AutoEvent find_next_event(intptr_t layer_index, double time) const;
+
+	intptr_t get_event_index(intptr_t layer_index, double time) const;
 
 protected:
 

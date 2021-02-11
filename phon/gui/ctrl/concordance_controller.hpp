@@ -27,6 +27,26 @@
 
 namespace phonometrica {
 
+class ConcCellAttrProvider: public wxGridCellAttrProvider
+{
+public:
+	ConcCellAttrProvider(const wxFont &match_font);
+
+	~ConcCellAttrProvider() override
+	{
+		m_match_attr->DecRef();
+		m_normal_attr->DecRef();
+	}
+
+	wxGridCellAttr *GetAttr(int row, int col, wxGridCellAttr::wxAttrKind  kind) const override;
+
+private:
+	wxGridCellAttr *m_match_attr, *m_normal_attr;
+};
+
+
+//---------------------------------------------------------------------------------------------------------------------
+
 class ConcordanceController : public DataController
 {
 public:
@@ -40,6 +60,8 @@ public:
 	wxString GetValue(int row, int col) override;
 
 	void SetValue(int row, int col, const wxString &value) override;
+
+	wxString GetColLabelValue(int col) override;
 
 protected:
 

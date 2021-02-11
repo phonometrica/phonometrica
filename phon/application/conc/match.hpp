@@ -34,7 +34,7 @@ public:
 
 	struct Target
 	{
-		Target(const AutoEvent &e, String value, intptr_t layer, intptr_t offset);
+		Target(const AutoEvent &e, String value, intptr_t layer, intptr_t offset, bool is_ref);
 
 		// Event where the match occurred.
 		AutoEvent event;
@@ -43,16 +43,19 @@ public:
 		String value;
 
 		// Index of the layer in which the match was found.
-		intptr_t layer;
+		int layer;
 
 		// Offset where the match occurred in the event.
-		intptr_t offset;
+		int offset;
+
+		// Does this target come from a reference constraint?
+		bool is_reference;
 
 		// Next target in a complex query (null in a simple query).
 		std::unique_ptr<Target> next;
 	};
 
-	Match(std::unique_ptr<Target> t);
+	Match(const AutoAnnotation &annot, std::unique_ptr<Target> t);
 
 	const AutoEvent &get_event(intptr_t i) const;
 
@@ -65,6 +68,8 @@ public:
 	const AutoAnnotation &annotation() const;
 
 	Target & last_target();
+
+	Target *reference_target() const;
 
 protected:
 

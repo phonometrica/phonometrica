@@ -38,7 +38,8 @@ public:
 		KWIC    // keyword in context
 	};
 
-	Concordance(intptr_t target_count, Context ctx, Array<AutoMatch> matches, VFolder *parent, const String &path = String());
+	Concordance(intptr_t target_count, Context ctx, intptr_t context_length, Array <AutoMatch> matches, VFolder *parent,
+	            const String &path = String());
 
 	const char *class_name() const override;
 
@@ -58,20 +59,32 @@ public:
 
 	bool empty() const override;
 
+	void find_context();
+
+	bool has_context() const;
+
 protected:
-
-
 
 	void load() override;
 
 	void write() override;
+
+	void find_label_context();
+
+	String get_left_context(intptr_t i) const;
+
+	String get_right_context(intptr_t i) const;
+
+	void find_kwic_context();
 
 	Array<AutoMatch> m_matches;
 
 	// Left and right context
 	Array<std::pair<String,String>> m_context;
 
-	intptr_t m_target_count;
+	int m_target_count;
+
+	int m_context_length;
 
 	Context m_context_type;
 };

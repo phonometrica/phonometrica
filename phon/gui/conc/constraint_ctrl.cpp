@@ -128,7 +128,7 @@ Constraint ConstraintCtrl::ParseConstraint() const
 	constraint.target = search_ctrl->GetValue();
 	String layer = layer_ctrl->GetValue();
 
-	if (layer.empty())
+	if (layer.empty() || layer == String(_("Index or pattern")))
 	{
 		constraint.layer_index = 0;
 	}

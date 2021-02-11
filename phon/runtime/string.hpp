@@ -240,6 +240,7 @@ public:
 	bool contains(Substring substring) const;
 	bool contains(char32_t codepoint) const;
 	static bool contains(Substring haystack, Substring needle);
+	bool icontains(Substring substring) const;
 
 	String &trim();
 	String &ltrim();

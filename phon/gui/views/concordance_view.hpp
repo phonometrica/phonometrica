@@ -22,6 +22,7 @@
 #ifndef PHONOMETRICA_CONCORDANCE_VIEW_HPP
 #define PHONOMETRICA_CONCORDANCE_VIEW_HPP
 
+#include <wx/stattext.h>
 #include <phon/gui/views/view.hpp>
 #include <phon/gui/ctrl/concordance_controller.hpp>
 
@@ -44,6 +45,8 @@ public:
 protected:
 
 	wxGrid *m_grid;
+
+	wxStaticText *count_label;
 
 	AutoConcordance m_conc;
 };

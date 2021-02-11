@@ -23,13 +23,14 @@
 
 namespace phonometrica {
 
-Match::Target::Target(const AutoEvent &e, String value, intptr_t layer, intptr_t offset) :
-		event(e), value(std::move(value)), layer(layer), offset(offset)
+Match::Target::Target(const AutoEvent &e, String value, intptr_t layer, intptr_t offset, bool is_ref) :
+		event(e), value(std::move(value)), layer((int)layer), offset((int)offset), is_reference(is_ref)
 {
 
 }
 
-Match::Match(std::unique_ptr<Target> t) : m_target(std::move(t))
+Match::Match(const AutoAnnotation &annot, std::unique_ptr<Target> t) :
+	m_annot(annot), m_target(std::move(t))
 {
 
 }
@@ -83,6 +84,21 @@ Match::Target &Match::last_target()
 	}
 
 	return *t;
+}
+
+Match::Target *Match::reference_target() const
+{
+	auto t = m_target.get();
+
+	do {
+		if (t->is_reference) {
+			return t;
+		}
+		t = t->next.get();
+	}
+	while (t);
+
+	return nullptr;
 }
 
 } // namespace phonometrica

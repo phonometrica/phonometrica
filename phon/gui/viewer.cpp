@@ -98,7 +98,8 @@ void Viewer::ViewFile(const std::shared_ptr<VFile> &file)
 {
 	for (size_t i = 0; i < GetPageCount(); i++)
 	{
-		if (GetView(i)->GetPath() == file->path())
+		auto path = file->path();
+		if (!path.empty() && GetView(i)->GetPath() == path)
 		{
 			SetSelection(i);
 			return;

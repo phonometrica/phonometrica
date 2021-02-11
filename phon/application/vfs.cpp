@@ -342,7 +342,7 @@ bool VFolder::quick_search(const String &text) const
 		}
 	}
 
-	return label().to_lower().contains(text);
+	return label().icontains(text);
 }
 
 void VFolder::sort()
@@ -671,12 +671,12 @@ bool VFile::quick_search(const String &text) const
 {
 	for (auto &prop : m_properties)
 	{
-		if (prop.value().to_lower().contains(text)) {
+		if (prop.value().icontains(text)) {
 			return true;
 		}
 	}
 
-	return label().to_lower().contains(text) ||  m_description.to_lower().contains(text);
+	return label().icontains(text) ||  m_description.icontains(text);
 }
 
 bool VFile::anchored() const

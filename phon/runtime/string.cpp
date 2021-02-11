@@ -33,6 +33,8 @@
 #include <phon/third_party/utf8proc/utf8proc.h>
 #include <phon/third_party/sol/unicode.hpp>
 #include <phon/third_party/utf8.hpp>
+#include "string.hpp"
+
 
 #define MAX_FORMAT_BUFFER 256
 
@@ -1671,6 +1673,11 @@ void String::shrink_to_fit()
 		tmp.adjust(this->size());
 		swap(tmp);
 	}
+}
+
+bool String::icontains(Substring substring) const
+{
+	return ifind(substring, begin()) != cend();
 }
 
 } // namespace phonometrica
