@@ -63,6 +63,10 @@ public:
 
 	bool has_context() const;
 
+	bool is_match(intptr_t col) const;
+
+	Match &get_match(intptr_t i);
+
 protected:
 
 	void load() override;

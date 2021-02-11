@@ -30,7 +30,7 @@ namespace phonometrica {
 class ConcCellAttrProvider: public wxGridCellAttrProvider
 {
 public:
-	ConcCellAttrProvider(const wxFont &match_font);
+	ConcCellAttrProvider(const Concordance &conc, const wxFont &match_font);
 
 	~ConcCellAttrProvider() override
 	{
@@ -41,6 +41,9 @@ public:
 	wxGridCellAttr *GetAttr(int row, int col, wxGridCellAttr::wxAttrKind  kind) const override;
 
 private:
+
+	const Concordance &m_conc;
+
 	wxGridCellAttr *m_match_attr, *m_normal_attr;
 };
 

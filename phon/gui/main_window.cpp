@@ -1739,15 +1739,9 @@ void MainWindow::RunQuery(QueryEditor &editor)
 {
 	auto conc = editor.ExecuteQuery();
 	last_query = editor.GetQuery();
-	if (!conc->empty())
-	{
-		viewer->ViewFile(std::move(conc));
-		Project::updated();
-	}
-	else
-	{
-		wxMessageBox(_("No match found!"), _("Empty concordance"), wxICON_INFORMATION);
-	}
+	viewer->ViewFile(std::move(conc));
+	Project::updated();
+
 }
 
 } // namespace phonometrica

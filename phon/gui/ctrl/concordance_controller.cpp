@@ -24,7 +24,7 @@
 namespace phonometrica {
 
 
-ConcCellAttrProvider::ConcCellAttrProvider(const wxFont &match_font)
+ConcCellAttrProvider::ConcCellAttrProvider(const Concordance &conc, const wxFont &match_font) : m_conc(conc)
 {
 	m_match_attr = new wxGridCellAttr();
 	m_normal_attr = new wxGridCellAttr();
@@ -37,7 +37,7 @@ ConcCellAttrProvider::ConcCellAttrProvider(const wxFont &match_font)
 
 wxGridCellAttr *ConcCellAttrProvider::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind kind) const
 {
-	return (col == 5) ? m_match_attr->Clone() : m_normal_attr->Clone();
+	return m_conc.is_match(col+1) ? m_match_attr->Clone() : m_normal_attr->Clone();
 }
 
 //---------------------------------------------------------------------------------------------------------------------

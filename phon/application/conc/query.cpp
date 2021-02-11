@@ -301,7 +301,7 @@ void Query::parse_constraints_from_xml(xml_node root)
 				if (!attr) {
 					throw error("Missing type attribute in Layer node");
 				}
-				if (attr.name() == str("index"))
+				if (attr.value() == str("index"))
 				{
 					String text = subnode.text().get();
 					bool ok;

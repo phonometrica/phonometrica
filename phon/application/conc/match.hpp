@@ -36,6 +36,10 @@ public:
 	{
 		Target(const AutoEvent &e, String value, intptr_t layer, intptr_t offset, bool is_ref);
 
+		double start_time() const { return event->start_time(); }
+
+		double end_time() const { return event->end_time(); }
+
 		// Event where the match occurred.
 		AutoEvent event;
 

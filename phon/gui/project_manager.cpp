@@ -419,6 +419,12 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 				auto rename_id = wxNewId();
 				menu->Append(rename_id, _("Rename..."));
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { RenameQuery(query); }, rename_id);
+				menu->AppendSeparator();
+
+				auto exe_id = wxNewId();
+				menu->Append(exe_id, _("Execute"));
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,query](wxCommandEvent &) { view_file(query->execute()); Project::updated(); });
+				menu->AppendSeparator();
 			}
 			else
 			{

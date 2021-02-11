@@ -23,6 +23,7 @@
 #define PHONOMETRICA_CONCORDANCE_VIEW_HPP
 
 #include <wx/stattext.h>
+#include <wx/toolbar.h>
 #include <phon/gui/views/view.hpp>
 #include <phon/gui/ctrl/concordance_controller.hpp>
 
@@ -44,9 +45,35 @@ public:
 
 protected:
 
+	void OnSave(wxCommandEvent &);
+
+	void OnPlaySelection(wxCommandEvent &);
+
+	void OnStopPlaying(wxCommandEvent &);
+
+	void OnOpenInPraat(wxCommandEvent &);
+
+	void OpenInPraat(int row);
+
+	void OnKeyDown(wxKeyEvent &e);
+
+	void OnExportToCsv(wxCommandEvent &);
+
+	void OnViewMatch(wxCommandEvent &);
+
+	void OnBookmarkMatch(wxCommandEvent &);
+
+	void OnColumnButtonClicked(wxCommandEvent &);
+
+	void PlayMatch(int row);
+
 	wxGrid *m_grid;
 
 	wxStaticText *count_label;
+
+	wxToolBar *m_toolbar;
+
+	wxToolBarToolBase *m_save_tool, *m_play_tool, *m_col_tool;
 
 	AutoConcordance m_conc;
 };

@@ -275,11 +275,16 @@ void TextQueryEditor::LoadQuery()
 			ctx_btn1->SetValue(true);
 		}
 	}
+
+	EnableSaving(false);
 }
 
 void TextQueryEditor::ParseQuery()
 {
 	assert(query);
+	if (!save_btn->IsEnabled()) {
+		return; // query has not been modified, nothing to do.
+	}
 	query->clear();
 	query->set_label(name_ctrl->GetValue(), false);
 

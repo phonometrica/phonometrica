@@ -20,6 +20,7 @@
  ***********************************************************************************************************************/
 
 #include <phon/application/conc/concordance.hpp>
+#include <phon/application/project.hpp>
 
 namespace phonometrica {
 
@@ -63,8 +64,15 @@ String Concordance::get_header(intptr_t j) const
 			return "Match";
 		case 7:
 			return "Right context";
-		default:
-			return String();
+		case 8:
+			return "Description";
+		default: // properties
+		{
+			auto col = j - 9; // first property starts at 0
+			auto it = Property::get_categories().begin();
+			std::advance(it, col);
+			return *it;
+		}
 	}
 }
 
@@ -77,17 +85,24 @@ String Concordance::get_cell(intptr_t i, intptr_t j) const
 		case 2:
 			return String::convert(m_matches[i]->get_layer(1));
 		case 3:
-			return String::convert(m_matches[i]->get_event(1)->start_time());
+			return String::format("%.6f", m_matches[i]->get_event(1)->start_time());
 		case 4:
-			return String::convert(m_matches[i]->get_event(1)->end_time());
+			return String::format("%.6f", m_matches[i]->get_event(1)->end_time());
 		case 5:
 			return get_left_context(i);
 		case 6:
 			return m_matches[i]->get_value(1);
 		case 7:
 			return get_right_context(i);
-		default:
-			return String();
+		case 8:
+			return m_matches[i]->annotation()->description();
+		default: // properties
+		{
+			auto col = j - 9; // first property starts at 0
+			auto it = Property::get_categories().begin();
+			std::advance(it, col);
+			return m_matches[i]->annotation()->get_property_value(*it);
+		}
 	}
 }
 
@@ -105,8 +120,9 @@ intptr_t Concordance::column_count() const
 {
 	int n = BASE_COLUMN_COUNT; // file, layer, start time, end time
 	if (m_context_type != Context::None) {
-		n += 2; // left and right context
+		n += 3; // left and right context + description
 	}
+	n += (int) Property::category_count();
 
 	return n + m_target_count;
 }
@@ -154,7 +170,7 @@ void Concordance::find_kwic_context()
 		if (target)
 		{
 			auto &events = match->annotation()->get_layer_events(target->layer);
-			auto i = match->annotation()->get_event_index(target->layer, target->event->start_time());
+			auto i = match->annotation()->get_event_index(target->layer, target->start_time());
 			assert(i != 0);
 			auto offset = target->offset;
 			ctx.first = Annotation::left_context(events, i, offset, m_context_length, sep);
@@ -175,7 +191,7 @@ void Concordance::find_label_context()
 		{
 			auto &annot = *match->annotation();
 			auto &events = annot.get_layer_events(target->layer);
-			auto i = annot.get_event_index(target->layer, target->event->start_time());
+			auto i = annot.get_event_index(target->layer, target->start_time());
 			assert(i != 0);
 			ctx.first = (i == 1) ? String() : events[i-1]->text();
 			ctx.second = (i == events.size()) ? String() : events[i+1]->text();
@@ -192,6 +208,16 @@ String Concordance::get_left_context(intptr_t i) const
 String Concordance::get_right_context(intptr_t i) const
 {
 	return has_context() ? m_context[i].second : String();
+}
+
+bool Concordance::is_match(intptr_t col) const
+{
+	return col > 5 && col <= 5 + m_target_count;
+}
+
+Match &Concordance::get_match(intptr_t i)
+{
+	return *m_matches[i];
 }
 
 } // namespace phonometrica

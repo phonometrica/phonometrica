@@ -61,7 +61,7 @@ void open_textgrid(const String &tgd, const String &snd = String());
 
 void open_sound(const String &path);
 
-void open_interval(intptr_t tier, double xmin, const String &textgrid, const String &sound);
+void open_interval(intptr_t tier, intptr_t interval, const String &textgrid, const String &sound);
 
 }} // namespace phonometrica::praat
 
