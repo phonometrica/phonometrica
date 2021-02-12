@@ -22,7 +22,7 @@
 #ifndef PHONOMETRICA_SCRIPT_VIEW_HPP
 #define PHONOMETRICA_SCRIPT_VIEW_HPP
 
-#include <wx/toolbar.h>
+#include <phon/gui/tool_bar.hpp>
 #include <phon/gui/views/view.hpp>
 #include <phon/gui/script_ctrl.hpp>
 #include <phon/gui/search_bar.hpp>
@@ -87,9 +87,9 @@ private:
 
 	ScriptControl *stc;
 
-	wxToolBar *m_toolbar;
+	ToolBar *m_toolbar;
 
-	wxToolBarToolBase *m_save_tool;
+	wxButton *m_save_tool;
 
 	SearchBar *m_searchbar;
 

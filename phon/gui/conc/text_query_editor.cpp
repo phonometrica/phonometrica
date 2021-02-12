@@ -55,6 +55,7 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	constraints.append(con);
 	constraint_sizer->Add(con, 0, wxEXPAND);
 	con->search_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
+	con->search_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &){ EndModal(wxID_OK); });
 	con->layer_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
 	con->relation_selector->Bind(wxEVT_CHOICE, [this](wxCommandEvent &){ EnableSaving(true); });
 
@@ -321,6 +322,10 @@ void TextQueryEditor::ParseQuery()
 	}
 
 	// Context options
+	if (ctx_btn1->GetValue())
+	{
+		query->set_context(Query::Context::None);
+	}
 	if (ctx_btn2->GetValue())
 	{
 		query->set_context(Query::Context::Labels);
@@ -361,7 +366,10 @@ void TextQueryEditor::OnAddConstraint(wxCommandEvent &)
 	constraints.append(con);
 	remove_constraint_btn->Enable();
 	ref_spinctrl->SetRange(1, (int)constraints.size());
-	con->search_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &) { EndModal(wxID_OK); }); // &TextQueryEditor::OnOk, this);
+	con->search_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
+	con->search_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &){ EndModal(wxID_OK); });
+	con->layer_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
+	con->relation_selector->Bind(wxEVT_CHOICE, [this](wxCommandEvent &){ EnableSaving(true); });
 }
 
 void TextQueryEditor::OnRemoveConstraint(wxCommandEvent &)

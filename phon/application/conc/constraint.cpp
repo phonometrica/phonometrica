@@ -66,6 +66,8 @@ Constraint::Operator Constraint::name_to_op(std::string_view name)
 		return Operator::Dominance;
 	if (name == "strict dominance")
 		return Operator::StrictDominance;
+	if (name == "alignment")
+		return Operator::Alignment;
 	if (name == "left-alignment")
 		return Operator::LeftAlignment;
 	if (name == "right-alignment")
@@ -88,6 +90,8 @@ const char *Constraint::op_to_name(Operator op)
 			return "dominance";
 		case Operator::StrictDominance:
 			return "strict dominance";
+		case Operator::Alignment:
+			return "alignment";
 		case Operator::LeftAlignment:
 			return "left-alignment";
 		case Operator::RightAlignment:

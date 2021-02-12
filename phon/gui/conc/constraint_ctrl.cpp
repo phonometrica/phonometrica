@@ -55,6 +55,7 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	wxArrayString operators;
 	operators.Add("dominates");
 	operators.Add("strictly dominates");
+	operators.Add("is aligned with");
 	operators.Add("is left-aligned with");
 	operators.Add("is right-aligned with");
 	operators.Add("precedes");

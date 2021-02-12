@@ -34,8 +34,9 @@ Annotation::Annotation(VFolder *parent, String path) :
 		VFile(parent, std::move(path))
 {
 	m_type = guess_type();
-	// Native annotations must be opened in order to display metadata.
-	if (is_native()) open();
+	// Native files are loaded in 2 steps: first, we load the metadata when the file is created. Next,
+	// we load the graph when open() is called.
+	if (is_native() && has_path()) preload();
 }
 
 const char *Annotation::class_name() const
@@ -46,6 +47,35 @@ const char *Annotation::class_name() const
 bool Annotation::is_annotation() const
 {
 	return true;
+}
+
+void Annotation::preload()
+{
+	assert(!m_path.empty());
+	static std::string_view project_tag("Phonometrica");
+	static std::string_view class_tag = class_name();
+	static std::string_view meta_tag = "Metadata";
+
+	xml_document doc;
+	auto root = read_xml(doc, m_path);
+
+	if (root.name() != project_tag) {
+		throw error("Invalid XML project root in %", m_path);
+	}
+
+	auto attr = root.attribute("class");
+
+	if (!attr || attr.as_string() != class_tag) {
+		throw error("[Input/Output] Expected an annotation file, got a % file instead", attr.as_string());
+	}
+
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == meta_tag)
+		{
+			metadata_from_xml(node);
+		}
+	}
 }
 
 void Annotation::load()
@@ -471,7 +501,6 @@ void Annotation::read_from_native()
 	assert(!m_path.empty());
 	static std::string_view project_tag("Phonometrica");
 	static std::string_view class_tag = class_name();
-	static std::string_view meta_tag = "Metadata";
 	static std::string_view graph_tag = "Graph";
 
 	xml_document doc;
@@ -489,11 +518,7 @@ void Annotation::read_from_native()
 
 	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
-		if (node.name() == meta_tag)
-		{
-			metadata_from_xml(node);
-		}
-		else if (node.name() == graph_tag)
+		if (node.name() == graph_tag)
 		{
 			m_graph.from_xml(node);
 		}

@@ -59,52 +59,48 @@ ScriptView::ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent) 
 void ScriptView::SetupUi()
 {
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	m_toolbar = new wxToolBar(this, wxID_ANY);
-	m_toolbar->SetToolBitmapSize(wxSize(24, 24));
+	m_toolbar = new ToolBar(this);
 
 	wxBitmap save_icon(wxBITMAP_PNG_FROM_DATA(save));
-	m_save_tool = m_toolbar->AddTool(wxID_ANY, _("Save script\tctrl+s"), save_icon, _("Save script (" CTRL_KEY "S)"));
-	m_toolbar->EnableTool(m_save_tool->GetId(), false);
+	m_save_tool = m_toolbar->AddButton(save_icon, _("Save script (" CTRL_KEY "S)"));
+	m_save_tool->Disable();
 	m_toolbar->AddSeparator();
 
 	wxBitmap run_icon(wxBITMAP_PNG_FROM_DATA(start));
-	auto run_tool = m_toolbar->AddTool(-1, _("Execute script\tctrl+e"), run_icon, _("Execute script or selection (" CTRL_KEY "↵)"));
-	sizer->Add(m_toolbar, 0, wxEXPAND | wxALL, 0);
+	auto run_tool = m_toolbar->AddButton(run_icon, _("Execute script or selection (" CTRL_KEY "↵)"));
+	sizer->Add(m_toolbar, 0, wxEXPAND | wxALL, 10);
 	m_toolbar->AddSeparator();
 
 	wxBitmap off_icon(wxBITMAP_PNG_FROM_DATA(toggle_off));
-	auto on_tool = m_toolbar->AddTool(-1, _("Comment selection"), off_icon, _("Comment line or selection"));
+	auto on_tool = m_toolbar->AddButton(off_icon, _("Comment line or selection"));
 	wxBitmap on_icon(wxBITMAP_PNG_FROM_DATA(toggle_on));
-	auto off_tool = m_toolbar->AddTool(-1, _("Uncomment selection"), on_icon, _("Uncomment line or selection"));
+	auto off_tool = m_toolbar->AddButton(on_icon, _("Uncomment line or selection"));
 
 	wxBitmap ident_icon(wxBITMAP_PNG_FROM_DATA(double_right));
-	auto ident_tool = m_toolbar->AddTool(-1, _("Indent selection"), ident_icon, _("Indent line or selection"));
+	auto ident_tool = m_toolbar->AddButton(ident_icon, _("Indent line or selection"));
 	wxBitmap unident_icon(wxBITMAP_PNG_FROM_DATA(double_left));
-	auto unindent_tool = m_toolbar->AddTool(-1, _("Unindent selection"), unident_icon, _("Unindent line or selection"));
+	auto unindent_tool = m_toolbar->AddButton(unident_icon, _("Unindent line or selection"));
 	m_toolbar->AddSeparator();
 
 	wxBitmap hint_icon(wxBITMAP_PNG_FROM_DATA(hint));
-	auto hint_tool = m_toolbar->AddCheckTool(-1, _("Hint"), hint_icon, hint_icon, _("Activate auto-completion and call tips"));
+	auto hint_tool = m_toolbar->AddToggleButton(hint_icon, _("Activate auto-completion and call tips"));
 	m_toolbar->AddSeparator();
 
 	wxBitmap bytecode_icon(wxBITMAP_PNG_FROM_DATA(eye));
-	auto bytecode_tool = m_toolbar->AddTool(-1, _("View bytecode"), bytecode_icon, _("View bytecode"));
+	auto bytecode_tool = m_toolbar->AddButton(bytecode_icon, _("View bytecode"));
 	m_toolbar->AddStretchableSpace();
+	auto help_tool = m_toolbar->AddHelpButton();
 
 
-
-	wxBitmap help_icon(wxBITMAP_PNG_FROM_DATA(question));
-	auto help_tool = m_toolbar->AddTool(-1, _("Help"), help_icon, _("Help"));
-
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Execute(); }, run_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, [this](wxCommandEvent&) { this->Save(); }, m_save_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnCommentSelection, this, on_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnUncommentSelection, this, off_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnIndentSelection, this, ident_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnUnindentSelection, this, unindent_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnOpenHelp, this, help_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnViewBytecode, this, bytecode_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ScriptView::OnActivateHints, this, hint_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent&) { this->Execute(); }, run_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent&) { this->Save(); }, m_save_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ScriptView::OnCommentSelection, this, on_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ScriptView::OnUncommentSelection, this, off_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ScriptView::OnIndentSelection, this, ident_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ScriptView::OnUnindentSelection, this, unindent_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ScriptView::OnOpenHelp, this, help_tool->GetId());
+	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ScriptView::OnViewBytecode, this, bytecode_tool->GetId());
+	m_toolbar->Bind(wxEVT_TOGGLEBUTTON, &ScriptView::OnActivateHints, this, hint_tool->GetId());
 
 	m_searchbar = new SearchBar(this, _("Find text"), true);
 #ifdef __WXMAC__
@@ -120,14 +116,13 @@ void ScriptView::SetupUi()
 	sizer->Add(stc, 1, wxEXPAND, 0);
 	sizer->Add(m_searchbar, 0, wxEXPAND);
 	SetSizer(sizer);
-	m_toolbar->Realize();
     stc->SetSTCFocus(true);
     m_searchbar->Hide();
 
     m_searchbar->execute.connect(&ScriptView::OnFindText, this);
 
     bool autohints = Settings::get_boolean("autohints");
-    m_toolbar->ToggleTool(hint_tool->GetId(), autohints);
+    hint_tool->SetValue(autohints);
     stc->ActivateHints(autohints);
 }
 
@@ -135,7 +130,7 @@ void ScriptView::Save()
 {
 	if (!m_script->has_path())
 	{
-		FileDialog dlg(this, _("Save script as..."), "untitled.phon", "Phonometrica scripts (*.phon)|*.phon", wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+		FileDialog dlg(this, _("Save script as..."), "untitled.phon", "Phonometrica script (*.phon)|*.phon", wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 		if (dlg.ShowModal() != wxID_OK) {
 			return;
 		}
@@ -144,7 +139,7 @@ void ScriptView::Save()
 	}
 	m_script->set_content(stc->GetText(), true);
 	m_script->save();
-	m_toolbar->EnableTool(m_save_tool->GetId(), false);
+	m_save_tool->Disable();
 	UpdateTitle();
 }
 
@@ -154,7 +149,7 @@ void ScriptView::OnModification()
 	{
 		m_script->set_pending_modifications();
 		UpdateTitle();
-		m_toolbar->EnableTool(m_save_tool->GetId(), true);
+		m_save_tool->Enable();
 	}
 }
 

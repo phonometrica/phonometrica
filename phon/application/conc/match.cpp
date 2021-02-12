@@ -101,4 +101,39 @@ Match::Target *Match::reference_target() const
 	return nullptr;
 }
 
+void Match::to_xml(xml_node root) const
+{
+	auto node = root.append_child("Match");
+	add_data_node(node, "Annotation", m_annot->path().data());
+	auto targets_node = node.append_child("Targets");
+	auto target = m_target.get();
+
+	while (target)
+	{
+		auto index = m_annot->get_event_index(target->layer, target->start_time());
+		assert(index != 0);
+		auto subnode = targets_node.append_child("Target");
+		subnode.append_attribute("layer").set_value(target->layer);
+		subnode.append_attribute("event").set_value(index);
+		subnode.append_attribute("offset").set_value(target->offset);
+		subnode.append_attribute("ref").set_value(target->is_reference ? "true" : "false");
+		subnode.append_child(node_pcdata).set_value(target->value.data());
+		target = target->next.get();
+	}
+}
+
+bool Match::valid()
+{
+	return m_annot != nullptr && m_target != nullptr;
+}
+
+void Match::append(std::unique_ptr<Target> next)
+{
+	auto t = m_target.get();
+
+	while (t) {
+		t = t->next.get();
+	}
+}
+
 } // namespace phonometrica

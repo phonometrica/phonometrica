@@ -148,7 +148,7 @@ protected:
 	String m_label;
 
 	// Type of context for the reference constraint
-	Context m_context = Context::KWIC;
+	Context m_context = Context::None;
 
 	// Reference constraint
 	int m_ref_constraint;

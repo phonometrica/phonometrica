@@ -423,7 +423,7 @@ void Project::parse_queries(xml_node root, VFolder *folder)
 			}
 			else
 			{
-				throw error("Invalid query type \"%\" in VFile XML entry", node.name());
+				throw error("Invalid query type \"%\" in VFile XML entry", cls);
 			}
 		}
 	}
@@ -465,9 +465,15 @@ void Project::parse_data(xml_node root, VFolder *folder)
 				register_file(dataset->path(), dataset);
 //				emit(dataset_loaded, make_handle<AutoDataset>(std::move(dataset)));
 			}
+			else if (cls == std::string_view("Concordance"))
+			{
+				auto conc = std::make_shared<Concordance>(folder, std::move(path));
+				folder->append(conc, false);
+				register_file(conc->path(), conc);
+			}
 			else
 			{
-				throw error("Invalid class \"%\" in VFile XML entry", node.name());
+				throw error("Invalid class \"%\" in VFile XML entry", cls);
 			}
 		}
 	}
@@ -734,6 +740,25 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 		}
 
 		vfile = upcast<VFile>(query);
+		p->append(vfile);
+	}
+	else if (ext == PHON_EXT_CONCORDANCE)
+	{
+		VFolder *p = m_scripts.get();
+
+		if (static_cast<int>(type) & static_cast<int>(FileType::Dataset))
+		{
+			if (parent->toplevel() == p) {
+				p = parent.get();
+			}
+		}
+		else
+		{
+			return set_import_flag();
+		}
+
+		auto conc = std::make_shared<Concordance>(p, std::move(path));
+		vfile = upcast<VFile>(conc);
 		p->append(vfile);
 	}
 	else if (ext == ".csv")

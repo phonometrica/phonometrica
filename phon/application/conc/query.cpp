@@ -513,8 +513,14 @@ AutoQuery Query::clone() const
 
 AutoConcordance Query::execute()
 {
-	auto parent = Project::get()->data().get();
-	return std::make_shared<Concordance>(m_constraints.size(), m_context, m_context_length, search(), parent);
+	auto conc = std::make_shared<Concordance>(m_constraints.size(), m_context, m_context_length, search(), nullptr);
+	auto label = this->label();
+	if (label.starts_with("Query ")) {
+		label.replace_first("Query ", "Concordance ");
+	}
+	conc->set_label(label, false);
+
+	return conc;
 }
 
 Array<AutoMatch> Query::search()
@@ -684,6 +690,25 @@ Query::find_matches(const AutoAnnotation &annot, const Constraint &constraint, A
 						{
 							continue;
 						}
+						intptr_t pos = 0;
+						auto target = find_target(event, constraint, layer_index, pos, is_ref);
+						if (target)
+						{
+							previous_target.next = std::move(target);
+							new_matches.append(std::move(match));
+						}
+					}
+				}
+			} break;
+			case Op::Alignment:
+			{
+				for (auto &match : matches)
+				{
+					auto &previous_target = match->last_target();
+					auto time = previous_target.event->start_time();
+					auto event = annot->find_event_starting_at(layer_index, time);
+					if (event && event->end_time() == previous_target.end_time())
+					{
 						intptr_t pos = 0;
 						auto target = find_target(event, constraint, layer_index, pos, is_ref);
 						if (target)

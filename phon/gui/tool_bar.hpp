@@ -39,9 +39,13 @@ public:
 
 	wxButton *AddButton(const wxBitmap &bitmap, const wxString &tooltip, int id = wxID_ANY);
 
+	wxButton *AddMenuButton(const wxBitmap &bitmap, const wxString &tooltip, int id = wxID_ANY);
+
 	wxToggleButton *AddToggleButton(const wxBitmap &bitmap, const wxString &tooltip, int id = wxID_ANY);
 
 	wxButton *AddHelpButton();
+
+	void ShowMenu(wxButton *button, wxMenu *menu);
 
 protected:
 

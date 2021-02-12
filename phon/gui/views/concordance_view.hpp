@@ -35,13 +35,15 @@ public:
 
 	ConcordanceView(wxWindow *parent, AutoConcordance conc);
 
-	virtual bool IsModified() const override;
+	bool IsModified() const override;
 
-	virtual void DiscardChanges() override;
+	void DiscardChanges() override;
 
-	virtual wxString GetLabel() const override;
+	wxString GetLabel() const override;
 
-	virtual String GetPath() const override;
+	String GetPath() const override;
+
+	void Save() override;
 
 protected:
 
@@ -63,7 +65,13 @@ protected:
 
 	void OnBookmarkMatch(wxCommandEvent &);
 
-	void OnColumnButtonClicked(wxCommandEvent &);
+	void OnHelp(wxCommandEvent &);
+
+	void OnColumnButtonClicked(wxMouseEvent &);
+
+	void ShowFileInfo();
+
+	void ShowMetadata();
 
 	void PlayMatch(int row);
 
@@ -76,6 +84,8 @@ protected:
 	wxButton *m_save_tool, *m_play_tool, *m_col_tool;
 
 	AutoConcordance m_conc;
+
+	bool m_show_file_info = true, m_show_metadata = false;
 };
 
 } // namespace phonometrica

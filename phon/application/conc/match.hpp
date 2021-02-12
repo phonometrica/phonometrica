@@ -25,6 +25,7 @@
 #define PHONOMETRICA_MATCH_HPP
 
 #include <phon/application/annotation.hpp>
+#include <phon/utils/xml.hpp>
 
 namespace phonometrica {
 
@@ -59,6 +60,8 @@ public:
 		std::unique_ptr<Target> next;
 	};
 
+	Match() = default;
+
 	Match(const AutoAnnotation &annot, std::unique_ptr<Target> t);
 
 	const AutoEvent &get_event(intptr_t i) const;
@@ -74,6 +77,12 @@ public:
 	Target & last_target();
 
 	Target *reference_target() const;
+
+	void to_xml(xml_node root) const;
+
+	bool valid();
+
+	void append(std::unique_ptr<Target> next);
 
 protected:
 

@@ -38,6 +38,8 @@ public:
 		KWIC    // keyword in context
 	};
 
+	Concordance(VFolder *parent, const String &path);
+
 	Concordance(intptr_t target_count, Context ctx, intptr_t context_length, Array <AutoMatch> matches, VFolder *parent,
 	            const String &path = String());
 
@@ -67,11 +69,27 @@ public:
 
 	Match &get_match(intptr_t i);
 
+	bool is_file_info_column(intptr_t col) const;
+
+	bool is_metadata_column(intptr_t col) const;
+
+	String label() const override;
+
+	void set_label(String value, bool mutate);
+
+	void modify();
+
 protected:
+
+	void preload();
 
 	void load() override;
 
 	void write() override;
+
+	void parse_options_from_xml(xml_node root);
+
+	void parse_matches_from_xml(xml_node root);
 
 	void find_label_context();
 
@@ -81,16 +99,22 @@ protected:
 
 	void find_kwic_context();
 
+	int match_region_size() const;
+
+	int context_column_count() const;
+
 	Array<AutoMatch> m_matches;
 
 	// Left and right context
 	Array<std::pair<String,String>> m_context;
 
-	int m_target_count;
+	String m_label;
 
-	int m_context_length;
+	int m_target_count = 0;
 
-	Context m_context_type;
+	int m_context_length = 0;
+
+	Context m_context_type = Context::None;
 };
 
 using AutoConcordance = std::shared_ptr<Concordance>;

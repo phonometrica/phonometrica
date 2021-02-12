@@ -80,6 +80,7 @@ PropertyCtrl::PropertyCtrl(wxWindow *parent, const String &category, const std::
     else
     {
     	auto cb = new wxCheckBox(this, wxID_ANY, wxString());
+    	cb->SetToolTip(_("Check all values"));
     	head_sizer->Add(cb, 0, wxRIGHT|wxTOP, 10);
         wxArrayString values;
 

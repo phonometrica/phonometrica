@@ -28,6 +28,7 @@
 #include <phon/include/icons.hpp>
 #include <phon/application/macros.hpp>
 #include <phon/application/praat.hpp>
+#include <phon/application/project.hpp>
 
 namespace phonometrica {
 
@@ -54,21 +55,11 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 
 	auto view_tool = m_toolbar->AddButton(ICN(eye), _("Open match in annotation"));
 
-	m_col_tool = m_toolbar->AddButton(ICN(select_column), _("Show/hide columns"));
-//	auto menu = new wxMenu;
-//	auto info_tool = menu->AppendCheckItem(wxID_ANY, _("Show file information"));
-////	auto ctx_tool = menu->AppendCheckItem(wxID_ANY, _("Show context"));
-//	auto meta_tool = menu->AppendCheckItem(wxID_ANY, _("Show metadata"));
-//	info_tool->Check(true);
-////	ctx_tool->Check(true);
-//	meta_tool->Check(true);
-//	m_toolbar->SetDropdownMenu(m_col_tool->GetId(), menu);
+	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
 
 	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite24), _("Bookmark match"));
 	m_toolbar->AddStretchableSpace();
-	m_toolbar->AddHelpButton();
-
-
+	auto help_tool = m_toolbar->AddHelpButton();
 
 	m_grid = new wxGrid(this, wxID_ANY);
 	auto ctrl = new ConcordanceController(m_conc);
@@ -89,6 +80,7 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	ctrl->SetAttrProvider(prov);
 	m_grid->SetTable(ctrl, true);
 	m_grid->AutoSizeColumns();
+	m_grid->SetDefaultRowSize(30);
 	m_grid->DisableDragRowSize();
 	m_grid->SetSelectionMode(wxGrid::wxGridSelectRows);
 	m_grid->SetCellHighlightPenWidth(0);
@@ -102,16 +94,16 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	sizer->Add(m_grid, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	SetSizer(sizer);
 
-	m_toolbar->Bind(wxEVT_COMMAND_TOOL_CLICKED, &ConcordanceView::OnSave, this, m_save_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnPlaySelection, this, m_play_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnStopPlaying, this, stop_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnOpenInPraat, this, praat_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnExportToCsv, this, csv_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnViewMatch, this, view_tool->GetId());
-	m_toolbar->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnBookmarkMatch, this, bookmark_tool->GetId());
-//	m_toolbar->Bind(wxEVT_TOOL_DROPDOWN, &ConcordanceView::OnColumnButtonClicked, this, m_col_tool->GetId());
+	m_save_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnSave, this);
+	m_play_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnPlaySelection, this);
+	stop_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnStopPlaying, this);
+	praat_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnOpenInPraat, this);
+	csv_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnExportToCsv, this);
+	view_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnViewMatch, this);
+	bookmark_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnBookmarkMatch, this);
+	help_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnHelp, this);
+	m_col_tool->Bind(wxEVT_LEFT_DOWN, &ConcordanceView::OnColumnButtonClicked, this);
 	m_grid->Bind(wxEVT_KEY_DOWN, &ConcordanceView::OnKeyDown, this);
-
 #undef ICN
 }
 
@@ -137,7 +129,7 @@ String ConcordanceView::GetPath() const
 
 void ConcordanceView::OnSave(wxCommandEvent &)
 {
-
+	Save();
 }
 
 void ConcordanceView::OnPlaySelection(wxCommandEvent &)
@@ -258,8 +250,62 @@ void ConcordanceView::OnBookmarkMatch(wxCommandEvent &)
 
 }
 
-void ConcordanceView::OnColumnButtonClicked(wxCommandEvent &e)
+void ConcordanceView::OnColumnButtonClicked(wxMouseEvent &)
 {
-	e.Skip();
+	auto menu = new wxMenu;
+	auto info_tool = menu->AppendCheckItem(wxID_ANY, _("Show file information"));
+	auto meta_tool = menu->AppendCheckItem(wxID_ANY, _("Show metadata"));
+	info_tool->Check(m_show_file_info);
+	meta_tool->Check(m_show_metadata);
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent &) { m_show_file_info = !m_show_file_info; ShowFileInfo(); }, info_tool->GetId());
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent &) { m_show_metadata = !m_show_metadata; ShowMetadata(); }, meta_tool->GetId());
+
+	m_toolbar->ShowMenu(m_col_tool, menu);
+}
+
+void ConcordanceView::ShowFileInfo()
+{
+
+}
+
+void ConcordanceView::ShowMetadata()
+{
+
+}
+
+void ConcordanceView::Save()
+{
+	if (!m_conc->has_path())
+	{
+		auto label = m_conc->label();
+		label.append(PHON_EXT_CONCORDANCE);
+		FileDialog dlg(this, _("Save concordance as..."), label, "Phonometrica concordance (*.phon-conc)|*.phon-conc",
+				 wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+		if (dlg.ShowModal() != wxID_OK) {
+			return;
+		}
+		auto path = dlg.GetPath();
+		if (!path.ends_with(PHON_EXT_CONCORDANCE)) {
+			path.append(PHON_EXT_CONCORDANCE);
+		}
+		m_conc->set_path(path, true);
+		m_conc->modify();
+		Project::get()->modify();
+	}
+	if (!m_conc->parent())
+	{
+		auto folder = Project::get()->data().get();
+		folder->append(m_conc);
+		Project::updated();
+	}
+	m_conc->save();
+	m_save_tool->Disable();
+	UpdateTitle();
+}
+
+void ConcordanceView::OnHelp(wxCommandEvent &)
+{
+	auto url = Settings::get_documentation_page("query.html");
+	wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
 }
 } // namespace phonometrica

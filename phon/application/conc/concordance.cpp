@@ -21,10 +21,19 @@
 
 #include <phon/application/conc/concordance.hpp>
 #include <phon/application/project.hpp>
+#include <phon/utils/xml.hpp>
 
 namespace phonometrica {
 
-static const int BASE_COLUMN_COUNT = 4;
+// file, layer, start time, end time
+static const int FILE_INFO_COLUMN_COUNT = 4;
+
+
+Concordance::Concordance(VFolder *parent, const String &path) :
+	Dataset(parent, path)
+{
+	preload();
+}
 
 Concordance::Concordance(intptr_t target_count, Context ctx, intptr_t context_length, Array <AutoMatch> matches, VFolder *parent, const String &path) :
 	Dataset(parent, path), m_matches(std::move(matches))
@@ -34,6 +43,7 @@ Concordance::Concordance(intptr_t target_count, Context ctx, intptr_t context_le
 	m_context_length = (int) context_length;
 	m_context.reserve(m_matches.size());
 	find_context();
+	m_loaded = true;
 }
 
 const char *Concordance::class_name() const
@@ -48,62 +58,114 @@ bool Concordance::empty() const
 
 String Concordance::get_header(intptr_t j) const
 {
-	switch (j)
+	// The logic of this function is the same as that of get_cell(). See comments there.
+	if (j == 1) {
+		return "File";
+	}
+	else if (j == 2) {
+		return "Layer";
+	}
+	else if (j == 3) {
+		return "Start time";
+	}
+	else if (j == 4) {
+		return "End time";
+	}
+	else if (j == 5 && has_context()) {
+		return "Left context";
+	}
+
+	j -= FILE_INFO_COLUMN_COUNT;
+	if (has_context()) j--;
+
+	// We are now ready to consume the match: j starts at 1.
+	if (j <= m_target_count)
 	{
-		case 1:
-			return "File";
-		case 2:
-			return "Layer";
-		case 3:
-			return "Start time";
-		case 4:
-			return "End time";
-		case 5:
-			return "Left context";
-		case 6:
+		if (m_target_count == 1) {
 			return "Match";
-		case 7:
-			return "Right context";
-		case 8:
-			return "Description";
-		default: // properties
-		{
-			auto col = j - 9; // first property starts at 0
-			auto it = Property::get_categories().begin();
-			std::advance(it, col);
-			return *it;
+		}
+		else {
+			return String::format("Match %d", (int) j);
 		}
 	}
+
+	j -= m_target_count;
+	if (has_context())
+	{
+		if (j == 1) {
+			return "Right context";
+		}
+		j--;
+	}
+
+	// We are now ready to consume the properties. Switch to base 0 because
+	// we'll use an iterator.
+	j--;
+
+	if (j < Property::category_count())
+	{
+		auto it = Property::get_categories().begin();
+		std::advance(it, j);
+		return *it;
+	}
+	assert(j == Property::category_count());
+
+	return "Description";
 }
 
 String Concordance::get_cell(intptr_t i, intptr_t j) const
 {
-	switch (j)
-	{
-		case 1:
-			return m_matches[i]->annotation()->label();
-		case 2:
-			return String::convert(m_matches[i]->get_layer(1));
-		case 3:
-			return String::format("%.6f", m_matches[i]->get_event(1)->start_time());
-		case 4:
-			return String::format("%.6f", m_matches[i]->get_event(1)->end_time());
-		case 5:
-			return get_left_context(i);
-		case 6:
-			return m_matches[i]->get_value(1);
-		case 7:
-			return get_right_context(i);
-		case 8:
-			return m_matches[i]->annotation()->description();
-		default: // properties
-		{
-			auto col = j - 9; // first property starts at 0
-			auto it = Property::get_categories().begin();
-			std::advance(it, col);
-			return m_matches[i]->annotation()->get_property_value(*it);
-		}
+	// First handle information columns: these are fixed.
+	if (j == 1) {
+		return m_matches[i]->annotation()->label();
 	}
+	else if (j == 2) {
+		return String::convert(m_matches[i]->get_layer(1));
+	}
+	else if (j == 3) {
+		return String::format("%.6f", m_matches[i]->get_event(1)->start_time());
+	}
+	else if (j == 4) {
+		return String::format("%.6f", m_matches[i]->get_event(1)->end_time());
+	}
+	else if (j == 5 && has_context()) {
+		return get_left_context(i);
+	}
+
+	// At this point, j == 5 if we have no context or 6 if we have one because we consumed the left context.
+	j -= FILE_INFO_COLUMN_COUNT;
+	if (has_context()) j--;
+
+	// We are now ready to consume the match: j starts at 1.
+	if (j <= m_target_count) {
+		return m_matches[i]->get_value(j);
+	}
+
+	// We now consume the right context if we have one
+	j -= m_target_count;
+	if (has_context())
+	{
+		if (j == 1) {
+			return get_right_context(i);
+		}
+		j--;
+	}
+
+	// We are now ready to consume the properties. Switch to base 0 because
+	// we'll use an iterator.
+	j--;
+
+	if (j < Property::category_count())
+	{
+		auto it = Property::get_categories().begin();
+		std::advance(it, j);
+		return m_matches[i]->annotation()->get_property_value(*it);
+	}
+
+	// We now reach the description
+	assert(j == Property::category_count());
+
+	return m_matches[i]->annotation()->description();
 }
 
 void Concordance::set_cell(intptr_t i, intptr_t j, const String &value)
@@ -118,23 +180,265 @@ intptr_t Concordance::row_count() const
 
 intptr_t Concordance::column_count() const
 {
-	int n = BASE_COLUMN_COUNT; // file, layer, start time, end time
-	if (m_context_type != Context::None) {
-		n += 3; // left and right context + description
-	}
-	n += (int) Property::category_count();
-
-	return n + m_target_count;
+	// Add 1 for description.
+	return FILE_INFO_COLUMN_COUNT + context_column_count() + m_target_count + Property::category_count() + 1;
 }
+
+
+void Concordance::preload()
+{
+	xml_document doc;
+	xml_node root;
+	using str = std::string_view;
+
+	try
+	{
+		root = read_xml(doc, m_path);
+	}
+	catch (...)
+	{
+		throw error("Cannot open text query \"%\"", m_path);
+	}
+
+	if (root.name() != str("Phonometrica")) {
+		throw error("Invalid XML project root in %", m_path);
+	}
+
+	auto attr = root.attribute("class");
+
+	if (!attr || attr.as_string() != str(class_name())) {
+		throw error("Expected a concordance, got a % file instead", attr.as_string());
+	}
+	attr = root.attribute("label");
+	if (attr) {
+		set_label(attr.value(), false);
+	}
+
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == str("Metadata"))
+		{
+			metadata_from_xml(node);
+		}
+	}
+}
+
 
 void Concordance::load()
 {
+	xml_document doc;
+	xml_node root;
+	using str = std::string_view;
 
+	try
+	{
+		root = read_xml(doc, m_path);
+	}
+	catch (...)
+	{
+		throw error("Cannot open text query \"%\"", m_path);
+	}
+
+	if (root.name() != str("Phonometrica")) {
+		throw error("Invalid XML project root in %", m_path);
+	}
+
+	auto attr = root.attribute("class");
+
+	if (!attr || attr.as_string() != str(class_name())) {
+		throw error("Expected a concordance, got a % file instead", attr.as_string());
+	}
+
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == str("Options"))
+		{
+			parse_options_from_xml(node);
+		}
+		else if (node.name() == str("Matches"))
+		{
+			parse_matches_from_xml(node);
+		}
+	}
+
+	find_context();
+}
+
+void Concordance::parse_options_from_xml(xml_node root)
+{
+	using str = std::string_view;
+
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == str("Context"))
+		{
+			auto attr = node.attribute("type");
+
+			if (attr.value() == str("labels"))
+			{
+				m_context_type = Context::Labels;
+			}
+			else if (attr.value() == str("kwic"))
+			{
+				m_context_type = Context::KWIC;
+				attr = node.attribute("length");
+				if (!attr) {
+					throw error("KWIC context in concordance requires a length attribute");
+				}
+				m_context_length = attr.as_int();
+				if (m_context_length < 1) {
+					throw error("Invalid context length in KWIC concordance: %", m_context_length);
+				}
+			}
+			else
+			{
+				m_context_type = Context::None;
+			}
+		}
+		else
+		{
+			throw error("Invalid option for concordance: %", node.name());
+		}
+	}
+}
+
+void Concordance::parse_matches_from_xml(xml_node root)
+{
+	using str = std::string_view;
+
+	auto attr = root.attribute("count");
+	if (attr)
+	{
+		int size = attr.as_int();
+		if (size > 0) m_matches.reserve(size);
+	}
+	attr = root.attribute("length");
+	if (!attr) {
+		throw error("Matches node has no 'length' attribute");
+	}
+	m_target_count = attr.as_int();
+	if (m_target_count < 1) {
+		throw error("Invalid length in Match node");
+	}
+
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() != str("Match")) {
+			throw error("Expected a Match, got a % in concordance", node.name());
+		}
+		AutoAnnotation annot;
+		std::unique_ptr<Match::Target> first_target;
+		Match::Target *last_target = nullptr;
+		String path;
+
+		for (auto subnode = node.first_child(); subnode; subnode = subnode.next_sibling())
+		{
+			if (subnode.name() == str("Annotation"))
+			{
+				path = subnode.text().get();
+				annot = downcast<Annotation>(Project::get()->get(path));
+			}
+			else if (subnode.name() == str("Targets"))
+			{
+				if (!annot) {
+					throw error("A match was found in file '%' but this file is no longer in the current project", path);
+				}
+				annot->open();
+
+				for (auto target_node = subnode.first_child(); target_node; target_node = target_node.next_sibling())
+				{
+					attr = target_node.attribute("layer");
+					if (!attr) {
+						throw error("Missing 'layer' attribute in concordance target");
+					}
+					int layer = attr.as_int();
+					attr = target_node.attribute("event");
+					if (layer < 1 || layer > annot->size()) {
+						throw error("Invalid layer index (%) in match", layer);
+					}
+					if (!attr) {
+						throw error("Missing 'event' attribute in concordance target");
+					}
+					int index = attr.as_int();
+					auto &events = annot->get_layer_events(layer);
+					if (index < 1 || index > events.size()) {
+						throw error("Invalid event index (%) in layer with % events", index, events.size());
+					}
+					auto event = events[index];
+					attr = target_node.attribute("offset");
+					if (!attr) {
+						throw error("Missing 'offset' attribute in concordance target");
+					}
+					int offset = attr.as_int();
+					attr = target_node.attribute("ref");
+					if (!attr) {
+						throw error("Missing 'ref' attribute in concordance target");
+					}
+					bool is_ref = attr.as_bool();
+					String value = target_node.text().get();
+
+					if (last_target)
+					{
+						last_target->next = std::make_unique<Match::Target>(event, value, layer, offset, is_ref);
+						last_target = last_target->next.get();
+					}
+					else
+					{
+						first_target = std::make_unique<Match::Target>(event, value, layer, offset, is_ref);
+						last_target = first_target.get();
+					}
+				}
+			}
+			else
+			{
+				throw error("Invalid node in Match", subnode.name());
+			}
+		}
+
+		assert(first_target);
+		m_matches.append(std::make_unique<Match>(annot, std::move(first_target)));
+	}
 }
 
 void Concordance::write()
 {
+	xml_document doc;
 
+	auto root = doc.append_child("Phonometrica");
+	root.append_attribute("class").set_value(class_name());
+	root.append_attribute("label").set_value(m_label.data());
+	root.append_attribute("type").set_value("text");
+	auto metadata_node = root.append_child("Metadata");
+	metadata_to_xml(metadata_node);
+
+	auto option_node = root.append_child("Options");
+	auto ctx_node = option_node.append_child("Context");
+	auto type_attr = ctx_node.append_attribute("type");
+
+	switch (m_context_type)
+	{
+		case Context::Labels:
+		{
+			type_attr.set_value("labels");
+		} break;
+		case Context::KWIC:
+		{
+			type_attr.set_value("kwic");
+			ctx_node.append_attribute("length").set_value(m_context_length);
+		} break;
+		default:
+			type_attr.set_value("none");
+	}
+
+	auto matches_node = root.append_child("Matches");
+	matches_node.append_attribute("count").set_value(m_matches.size());
+	matches_node.append_attribute("length").set_value(m_target_count);
+	for (auto &match : m_matches)
+	{
+		match->to_xml(matches_node);
+	}
+
+	write_xml(doc, m_path);
 }
 
 bool Concordance::has_context() const
@@ -181,6 +485,17 @@ void Concordance::find_kwic_context()
 	}
 }
 
+bool Concordance::is_file_info_column(intptr_t col) const
+{
+	return col < FILE_INFO_COLUMN_COUNT;
+}
+
+bool Concordance::is_metadata_column(intptr_t col) const
+{
+	intptr_t bound = FILE_INFO_COLUMN_COUNT + m_target_count + context_column_count();
+	return col > bound;
+}
+
 void Concordance::find_label_context()
 {
 	for (auto &match : m_matches)
@@ -212,12 +527,41 @@ String Concordance::get_right_context(intptr_t i) const
 
 bool Concordance::is_match(intptr_t col) const
 {
-	return col > 5 && col <= 5 + m_target_count;
+	intptr_t lower = FILE_INFO_COLUMN_COUNT + int(has_context()); // add 1 column for the left context
+	intptr_t upper = lower + m_target_count;
+
+	return col > lower && col <= upper;
 }
 
 Match &Concordance::get_match(intptr_t i)
 {
 	return *m_matches[i];
+}
+
+int Concordance::match_region_size() const
+{
+	return m_target_count + context_column_count();
+}
+
+int Concordance::context_column_count() const
+{
+	return has_context() ? 2 : 0;
+}
+
+String Concordance::label() const
+{
+	return m_label.empty() ? VFile::label() : m_label;
+}
+
+void Concordance::set_label(String value, bool mutate)
+{
+	m_label = std::move(value);
+	if (mutate) m_content_modified = true;
+}
+
+void Concordance::modify()
+{
+	m_content_modified = true;
 }
 
 } // namespace phonometrica

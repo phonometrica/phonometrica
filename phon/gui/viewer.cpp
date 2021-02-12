@@ -96,6 +96,8 @@ View *Viewer::GetCurrentView()
 
 void Viewer::ViewFile(const std::shared_ptr<VFile> &file)
 {
+	file->open();
+
 	for (size_t i = 0; i < GetPageCount(); i++)
 	{
 		auto path = file->path();

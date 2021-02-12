@@ -91,7 +91,7 @@ static const int ID_HELP_ACKNOWLEDGEMENTS = wxNewId();
 static const int ID_HELP_SOUND_INFO = wxNewId();
 
 MainWindow::MainWindow(Runtime &rt, const wxString &title) :
-		wxFrame(nullptr, wxNewId(), title), runtime(rt), editor_size(1100, 850)
+		wxFrame(nullptr, wxNewId(), title), editor_size(1100, 850), runtime(rt)
 {
 	wxSize size(1200, 800);
 	SetSize(FromDIP(size));

@@ -127,6 +127,8 @@ protected:
 
 	void read_from_native();
 
+	void preload();
+
 	void load() override;
 
 	void write() override;

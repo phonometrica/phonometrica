@@ -107,7 +107,8 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	script_img = images->Add(wxBITMAP_PNG_FROM_DATA(script));
 	document_img = images->Add(wxBITMAP_PNG_FROM_DATA(document));
 	query_img = images->Add(wxBITMAP_PNG_FROM_DATA(query));
-	dataset_img = images->Add(wxBITMAP_PNG_FROM_DATA(dataset));
+	conc_img = images->Add(wxBITMAP_PNG_FROM_DATA(dataset));
+	csv_img = images->Add(wxBITMAP_PNG_FROM_DATA(csv));
 	tree->SetImageList(images);
 	root = tree->AddRoot(_("Project"));
 #if PHON_LINUX
@@ -234,9 +235,13 @@ void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
 			{
 				img = script_img;
 			}
+			else if (vfile.is_concordance())
+			{
+				img = conc_img;
+			}
 			else if (vfile.is_dataset())
 			{
-				img = dataset_img;
+				img = csv_img;
 			}
 			else if (vfile.is_query())
 			{

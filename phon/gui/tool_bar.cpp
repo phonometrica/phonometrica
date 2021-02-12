@@ -69,4 +69,17 @@ wxButton *ToolBar::AddHelpButton()
 {
 	return AddButton(wxBITMAP_PNG_FROM_DATA(question), _("Help"));
 }
+
+void ToolBar::ShowMenu(wxButton *button, wxMenu *menu)
+{
+	auto pos = ClientToScreen(button->GetPosition());
+	pos.y +=  button->GetSize().GetHeight();
+	this->PopupMenu(menu, ScreenToClient(pos));
+}
+
+wxButton *ToolBar::AddMenuButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
+{
+	// This method doesn't do anything special, but indicates that the menu has a drop-down menu
+	return AddButton(bitmap, tooltip, id);
+}
 } // namespace phonometrica

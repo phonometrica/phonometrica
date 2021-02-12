@@ -35,6 +35,7 @@ struct Constraint final
 	{
 		Dominance = 0,
 		StrictDominance,
+		Alignment,
 		LeftAlignment,
 		RightAlignment,
 		Precedence,
