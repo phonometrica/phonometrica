@@ -187,8 +187,9 @@ void Viewer::UpdateCurrentView()
 void Viewer::SetupCommandProcessor(wxMenu *menu)
 {
 	cmd_proc.SetEditMenu(menu);
-	cmd_proc.SetUndoAccelerator("Undo\tctrl+z");
-	cmd_proc.SetRedoAccelerator("Redo\tctrl+y");
+//	cmd_proc.SetUndoAccelerator("Undo\tctrl+z");
+//	cmd_proc.SetRedoAccelerator("Redo\tctrl+y");
+	cmd_proc.Initialize();
 }
 
 } // namespace phonometrica

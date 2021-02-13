@@ -570,11 +570,12 @@ void Concordance::modify()
 
 AutoMatch Concordance::remove_match(intptr_t row)
 {
-	AutoMatch m(m_matches.take_at(row));
+	auto m = m_matches.at(row).release();
+	m_matches.remove_at(row);
 	modify();
 	file_modified();
 
-	return m;
+	return AutoMatch(m);
 }
 
 void Concordance::restore_match(intptr_t row, AutoMatch m)

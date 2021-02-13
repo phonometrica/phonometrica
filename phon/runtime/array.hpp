@@ -733,7 +733,7 @@ public:
 	T take_at(const_iterator pos)
 	{
 		assert(ndim() == 1);
-		T value = std::move(*pos);
+		T value(std::move(*pos));
 		remove_at(pos);
 
 		return value;
