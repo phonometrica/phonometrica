@@ -307,11 +307,14 @@ void Concordance::parse_matches_from_xml(xml_node root)
 	using str = std::string_view;
 
 	auto attr = root.attribute("count");
-	if (attr)
-	{
-		int size = attr.as_int();
-		if (size > 0) m_matches.reserve(size);
+	if (!attr){
+		throw error("Matches node has no 'count' attribute");
 	}
+	int size = attr.as_int();
+	if (size > 0) m_matches.reserve(size);
+	auto msg = String("Opening concordance %1").arg(label());
+	request_progress(msg, "Loading matches...", size);
+
 	attr = root.attribute("length");
 	if (!attr) {
 		throw error("Matches node has no 'length' attribute");
@@ -320,12 +323,13 @@ void Concordance::parse_matches_from_xml(xml_node root)
 	if (m_target_count < 1) {
 		throw error("Invalid length in Match node");
 	}
-
+	int count = 1;
 	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
 		if (node.name() != str("Match")) {
 			throw error("Expected a Match, got a % in concordance", node.name());
 		}
+		update_progress(count++);
 		AutoAnnotation annot;
 		std::unique_ptr<Match::Target> first_target;
 		Match::Target *last_target = nullptr;
@@ -562,6 +566,22 @@ void Concordance::set_label(String value, bool mutate)
 void Concordance::modify()
 {
 	m_content_modified = true;
+}
+
+AutoMatch Concordance::remove_match(intptr_t row)
+{
+	AutoMatch m(m_matches.take_at(row));
+	modify();
+	file_modified();
+
+	return m;
+}
+
+void Concordance::restore_match(intptr_t row, AutoMatch m)
+{
+	m_matches.insert(row, std::move(m));
+	modify();
+	file_modified();
 }
 
 } // namespace phonometrica

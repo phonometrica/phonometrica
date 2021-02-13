@@ -257,6 +257,7 @@ if (WITH_GUI)
             phon/gui/pref/*.cpp
             phon/gui/conc/*.cpp
             phon/gui/ctrl/*.cpp
+            phon/gui/cmd/*.cpp
             phon/third_party/pugixml/pugixml.cpp
             phon/third_party/rtaudio/RtAudio.cpp
             phon/third_party/sqlite/sqlite3.c

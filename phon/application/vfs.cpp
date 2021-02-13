@@ -27,6 +27,10 @@
 
 namespace phonometrica {
 
+Signal<const String &, const String &, int> VNode::request_progress;
+Signal<int> VNode::update_progress;
+Signal<> VFile::file_modified;
+
 VNode::VNode(VFolder *parent) :
 		m_parent(parent)
 {

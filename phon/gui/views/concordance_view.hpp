@@ -75,6 +75,8 @@ protected:
 
 	void PlayMatch(int row);
 
+	void OnDeleteRows(wxCommandEvent &);
+
 	wxGrid *m_grid;
 
 	wxStaticText *count_label;

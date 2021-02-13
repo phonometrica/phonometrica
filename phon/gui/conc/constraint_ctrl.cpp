@@ -22,7 +22,10 @@
 #include <wx/sizer.h>
 #include <wx/menu.h>
 #include <wx/stattext.h>
+#include <wx/checkbox.h>
 #include <phon/gui/conc/constraint_ctrl.hpp>
+
+#define NEW_DESIGN
 
 namespace phonometrica {
 
@@ -52,15 +55,26 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	regex_entry->Check();
 	search_ctrl->SetMenu(menu);
 
-	wxArrayString operators;
-	operators.Add("dominates");
-	operators.Add("strictly dominates");
-	operators.Add("is aligned with");
-	operators.Add("is left-aligned with");
-	operators.Add("is right-aligned with");
-	operators.Add("precedes");
-	operators.Add("follows");
-	relation_selector = new wxChoice(this, wxID_ANY, wxDefaultPosition, size, operators);
+#ifdef NEW_DESIGN
+	wxArrayString search_operators;
+	search_operators.Add("equals");
+	search_operators.Add("contains");
+	search_operators.Add("matches");
+	auto operator_selector = new wxChoice(this, wxID_ANY, wxDefaultPosition, size, search_operators);
+	operator_selector->SetSelection(1);
+
+	auto case_checkbox = new wxCheckBox(this, wxID_ANY, _("case sensitive"));
+#endif
+
+	wxArrayString relation_operators;
+	relation_operators.Add("dominates");
+	relation_operators.Add("strictly dominates");
+	relation_operators.Add("is aligned with");
+	relation_operators.Add("is left-aligned with");
+	relation_operators.Add("is right-aligned with");
+	relation_operators.Add("precedes");
+	relation_operators.Add("follows");
+	relation_selector = new wxChoice(this, wxID_ANY, wxDefaultPosition, size, relation_operators);
 	relation_selector->Enable(enable_relation);
 	if (enable_relation) {
 		relation_selector->SetSelection(0);
@@ -78,7 +92,13 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	auto txt = new wxStaticText(this, wxID_ANY, _("Layer:"));//, wxDefaultPosition, size);
 	sizer->Add(txt, 0, wxTOP|wxBOTTOM|wxALIGN_CENTER, 10);
 	sizer->Add(layer_ctrl, 0, wxLEFT|wxTOP|wxBOTTOM, 10);
+#ifdef NEW_DESIGN
+	sizer->Add(operator_selector, 0, wxLEFT|wxTOP|wxBOTTOM, 10);
+#endif
 	sizer->Add(search_ctrl, 1, wxLEFT|wxTOP|wxBOTTOM, 10);
+#ifdef NEW_DESIGN
+	sizer->Add(case_checkbox, 0, wxLEFT|wxTOP|wxBOTTOM|wxALIGN_CENTER, 10);
+#endif
 	sizer->Add(relation_selector, 0, wxLEFT | wxTOP | wxBOTTOM | wxRIGHT, 10);
 	SetSizer(sizer);
 

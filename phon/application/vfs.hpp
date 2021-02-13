@@ -30,6 +30,7 @@
 #include <phon/application/property.hpp>
 #include <phon/utils/xml.hpp>
 #include <phon/utils/memory.hpp>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
@@ -97,6 +98,10 @@ public:
 	virtual bool contains(const VNode *node) const { return false; }
 
 	virtual bool quick_search(const String &text) const { return true; }
+
+	static Signal<const String &, const String &, int> request_progress;
+
+	static Signal<int> update_progress;
 
 protected:
 
@@ -257,6 +262,9 @@ public:
 	bool quick_search(const String &text) const override;
 
 	bool anchored() const;
+
+	// Send this signal to notify the current view that the file has been modified
+	static Signal<> file_modified;
 
 protected:
 

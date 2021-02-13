@@ -13,99 +13,41 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 13/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: see header.                                                                                                *
+ * Purpose: Delete a match in a concordance.                                                                           *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/gui/views/view.hpp>
-#include <phon/gui/viewer.hpp>
-#include <phon/gui/dialog.hpp>
-#include <phon/application/project.hpp>
+#ifndef PHONOMETRICA_DELETE_MATCH_COMMAND_HPP
+#define PHONOMETRICA_DELETE_MATCH_COMMAND_HPP
+
+#include <wx/cmdproc.h>
+#include <phon/application/conc/concordance.hpp>
 
 namespace phonometrica {
 
-Signal<> View::modified;
-Signal<> View::request_console;
-
-View::View(wxWindow *parent) : wxPanel(parent)
+class DeleteMatchCommand final : public wxCommand
 {
+public:
 
-}
+	DeleteMatchCommand(const AutoConcordance &conc, intptr_t row);
 
-void View::SetTitle(const wxString &title)
-{
-	auto viewer = dynamic_cast<Viewer*>(GetParent());
-	viewer->SetPageText(viewer->GetSelection(), title);
-}
+	bool Do() override;
 
-bool View::AskImportFile(const String &path)
-{
-	auto reply = ask_question(_("Would you like to import this file into the current project?"), _("Import file?"));
+	bool Undo() override;
 
-	if (reply == wxYES)
-	{
-		auto project = Project::get();
-		project->import_file(path);
-		project->notify_update();
+private:
 
-		return true;
-	}
+	AutoConcordance m_conc;
 
-	return false;
-}
+	AutoMatch m_match;
 
-bool View::Finalize(bool autosave)
-{
-	if (this->IsModified())
-	{
-		if (autosave)
-		{
-			this->Save();
-		}
-		else
-		{
-			auto reply =  wxMessageBox(_("The current script has unsaved modifications. Would you like to save it?"), _("Save script?"),
-			                           wxCANCEL|wxYES|wxNO|wxYES_DEFAULT|wxICON_QUESTION);
+	intptr_t m_row;
+};
 
-			if (reply == wxCANCEL) {
-				return false;
-			}
-			if (reply == wxYES) {
-				this->Save();
-			}
-			else if (reply == wxNO) {
-				this->DiscardChanges();
-			}
-		}
-	}
-	return true;
-}
-
-void View::UpdateTitle()
-{
-	auto title = GetLabel();
-
-	if (this->IsModified()) {
-		title.Append('*');
-	}
-	SetTitle(title);
-	modified();
-}
-
-void View::Find()
-{
-	wxMessageBox(_("The current view doesn't support search operations"), _("Unavailable operation"), wxICON_INFORMATION);
-}
-
-void View::Replace()
-{
-	wxMessageBox(_("The current view doesn't support search operations"), _("Unavailable operation"), wxICON_INFORMATION);
-}
-
-void View::SetCommandProcessor(wxCommandProcessor *cp)
-{
-	cmd_proc = cp;
-}
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_DELETE_MATCH_COMMAND_HPP

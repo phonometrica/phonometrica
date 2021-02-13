@@ -79,6 +79,10 @@ public:
 
 	void modify();
 
+	AutoMatch remove_match(intptr_t row);
+
+	void restore_match(intptr_t row, AutoMatch m);
+
 protected:
 
 	void preload();

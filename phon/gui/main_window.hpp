@@ -26,6 +26,8 @@
 #include <wx/menu.h>
 #include <wx/splitter.h>
 #include <wx/accel.h>
+#include <wx/progdlg.h>
+#include <wx/cmdproc.h>
 #include <phon/runtime.hpp>
 #include <phon/gui/project_manager.hpp>
 #include <phon/gui/viewer.hpp>
@@ -208,6 +210,10 @@ private:
 
 	void OnRequestConsole();
 
+	void OnRequestProgress(const String &title, const String &msg, int count);
+
+	void OnUpdateProgress(int i);
+
 	void SetShellFunctions();
 
 	void SaveProject();
@@ -245,11 +251,14 @@ private:
 
 
 	wxMenuBar *menubar = nullptr;
-	wxMenu *file_menu = nullptr, *recent_submenu = nullptr, *tools_menu = nullptr;
+	wxMenu *file_menu = nullptr, *recent_submenu = nullptr, *tools_menu = nullptr, *edit_menu = nullptr;
 
 	wxMenuItem *recent_item = nullptr, *last_item = nullptr;
 	wxMenuItem *project_item = nullptr, *info_item = nullptr, *console_item = nullptr;
 	wxMenuItem *tool_separator = nullptr;
+
+
+	std::unique_ptr<wxProgressDialog> progress_dialog;
 
 	wxSize editor_size;
 

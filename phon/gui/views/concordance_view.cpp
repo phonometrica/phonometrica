@@ -24,6 +24,7 @@
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/views/concordance_view.hpp>
+#include <phon/gui/cmd/delete_match_command.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/application/macros.hpp>
@@ -55,6 +56,7 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 
 	auto view_tool = m_toolbar->AddButton(ICN(eye), _("Open match in annotation"));
 
+	auto del_row_tool = m_toolbar->AddButton(ICN(delete_row), _("Delete selected row(s)"));
 	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
 
 	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite24), _("Bookmark match"));
@@ -100,6 +102,7 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	praat_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnOpenInPraat, this);
 	csv_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnExportToCsv, this);
 	view_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnViewMatch, this);
+	del_row_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnDeleteRows, this);
 	bookmark_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnBookmarkMatch, this);
 	help_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnHelp, this);
 	m_col_tool->Bind(wxEVT_LEFT_DOWN, &ConcordanceView::OnColumnButtonClicked, this);
@@ -307,5 +310,17 @@ void ConcordanceView::OnHelp(wxCommandEvent &)
 {
 	auto url = Settings::get_documentation_page("query.html");
 	wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
+}
+
+void ConcordanceView::OnDeleteRows(wxCommandEvent &)
+{
+	int shift = 0;
+
+	for (int i : m_grid->GetSelectedRows())
+	{
+		int row = i + 1 - shift++;
+		auto cmd = new DeleteMatchCommand(m_conc, row);
+		cmd_proc->Submit(cmd);
+	}
 }
 } // namespace phonometrica

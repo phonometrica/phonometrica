@@ -23,6 +23,7 @@
 #define PHONOMETRICA_VIEW_HPP
 
 #include <wx/panel.h>
+#include <wx/cmdproc.h>
 #include <phon/utils/signal.hpp>
 #include <phon/application/vfs.hpp>
 
@@ -61,6 +62,8 @@ public:
 
 	virtual wxString GetLabel() const = 0;
 
+	void SetCommandProcessor(wxCommandProcessor *cp);
+
 	static Signal<> modified;
 
 	static Signal<> request_console;
@@ -73,6 +76,7 @@ protected:
 
 	bool AskImportFile(const String &path);
 
+	wxCommandProcessor *cmd_proc = nullptr;
 };
 
 } // namespace phonometrica

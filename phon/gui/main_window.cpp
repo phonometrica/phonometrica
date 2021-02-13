@@ -184,12 +184,12 @@ wxMenu *MainWindow::MakeFileMenu()
 
 wxMenu *MainWindow::MakeEditMenu()
 {
-	auto menu = new wxMenu;
+	edit_menu = new wxMenu;
 
-	menu->Append(ID_EDIT_FIND, _("Find...\tctrl+f"));
-	menu->Append(ID_EDIT_REPLACE, _("Find and replace...\tctrl+r"));
+	edit_menu->Append(ID_EDIT_FIND, _("Find...\tctrl+f"));
+	edit_menu->Append(ID_EDIT_REPLACE, _("Find and replace...\tctrl+r"));
 
-	return menu;
+	return edit_menu;
 }
 
 wxMenu *MainWindow::MakeAnalysisMenu()
@@ -317,6 +317,9 @@ void MainWindow::SetBindings()
 	project_manager->edit_query.connect(&MainWindow::EditQuery, this);
 	View::modified.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	View::request_console.connect(&MainWindow::OnRequestConsole, this);
+	VNode::request_progress.connect(&MainWindow::OnRequestProgress, this);
+	VNode::update_progress.connect(&MainWindow::OnUpdateProgress, this);
+	VFile::file_modified.connect(&Viewer::UpdateCurrentView, viewer);
 	auto project = Project::get();
 	project->notify_update.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	project->metadata_updated.connect(&ProjectManager::UpdateLabel, project_manager);
@@ -430,6 +433,7 @@ void MainWindow::SetupUi()
 	viewer_splitter = new wxSplitterWindow(central_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
 	viewer = new Viewer(runtime, viewer_splitter, this);
 	console = new Console(runtime, viewer_splitter);
+	viewer->SetupCommandProcessor(edit_menu);
 
 	// Set sizers.
 	auto sizer1 = new wxBoxSizer(wxVERTICAL);
@@ -1750,6 +1754,16 @@ void MainWindow::RunQuery(QueryEditor &editor)
 		msg.Append(wxString::FromUTF8(e.what()));
 		wxMessageBox(msg, _("Query error"), wxICON_ERROR);
 	}
+}
+
+void MainWindow::OnRequestProgress(const String &title, const String &msg, int count)
+{
+	progress_dialog = std::make_unique<wxProgressDialog>(title, msg, count);
+}
+
+void MainWindow::OnUpdateProgress(int i)
+{
+	progress_dialog->Update(i);
 }
 
 } // namespace phonometrica
