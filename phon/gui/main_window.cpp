@@ -59,6 +59,8 @@ static const int ID_FILE_CLOSE_VIEW = wxID_CLOSE;
 static const int ID_FILE_EXIT = wxID_EXIT;
 
 // Edit menu
+static const int ID_EDIT_UNDO = wxID_UNDO;
+static const int ID_EDIT_REDO = wxID_REDO;
 static const int ID_EDIT_FIND = wxID_FIND;
 static const int ID_EDIT_REPLACE = wxID_REPLACE;
 
@@ -185,6 +187,9 @@ wxMenu *MainWindow::MakeFileMenu()
 wxMenu *MainWindow::MakeEditMenu()
 {
 	edit_menu = new wxMenu;
+	undo_item = edit_menu->Append(ID_EDIT_UNDO, _("Undo\tctrl+z"));
+	redo_item = edit_menu->Append(ID_EDIT_REDO, _("Redo\tctrl+y"));
+	edit_menu->AppendSeparator();
 
 	edit_menu->Append(ID_EDIT_FIND, _("Find...\tctrl+f"));
 	edit_menu->Append(ID_EDIT_REPLACE, _("Find and replace...\tctrl+r"));
@@ -273,6 +278,8 @@ void MainWindow::SetBindings()
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseCurrentView, this, ID_FILE_CLOSE_VIEW);
 
 	// Edit menu
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnUndo, this, ID_EDIT_UNDO);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnRedo, this, ID_EDIT_REDO);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnFind, this, ID_EDIT_FIND);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnReplace, this, ID_EDIT_REPLACE);
 
@@ -433,7 +440,6 @@ void MainWindow::SetupUi()
 	viewer_splitter = new wxSplitterWindow(central_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, sash_flags);
 	viewer = new Viewer(runtime, viewer_splitter, this);
 	console = new Console(runtime, viewer_splitter);
-	viewer->SetupCommandProcessor(edit_menu);
 
 	// Set sizers.
 	auto sizer1 = new wxBoxSizer(wxVERTICAL);
@@ -1764,6 +1770,16 @@ void MainWindow::OnRequestProgress(const String &title, const String &msg, int c
 void MainWindow::OnUpdateProgress(int i)
 {
 	progress_dialog->Update(i);
+}
+
+void MainWindow::OnUndo(wxCommandEvent &)
+{
+	viewer->GetCurrentView()->Undo();
+}
+
+void MainWindow::OnRedo(wxCommandEvent &)
+{
+	viewer->GetCurrentView()->Redo();
 }
 
 } // namespace phonometrica

@@ -25,6 +25,7 @@
 #include <wx/panel.h>
 #include <wx/cmdproc.h>
 #include <phon/utils/signal.hpp>
+#include <phon/application/cmd/command_processor.hpp>
 #include <phon/application/vfs.hpp>
 
 namespace phonometrica {
@@ -62,11 +63,13 @@ public:
 
 	virtual wxString GetLabel() const = 0;
 
-	void SetCommandProcessor(wxCommandProcessor *cp);
-
 	static Signal<> modified;
 
 	static Signal<> request_console;
+
+	void Undo();
+
+	void Redo();
 
 protected:
 
@@ -76,7 +79,10 @@ protected:
 
 	bool AskImportFile(const String &path);
 
-	wxCommandProcessor *cmd_proc = nullptr;
+	// Update content when an edit has been done (or undone)
+	virtual void UpdateView();
+
+	CommandProcessor command_processor;
 };
 
 } // namespace phonometrica

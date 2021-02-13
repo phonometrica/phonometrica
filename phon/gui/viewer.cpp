@@ -29,7 +29,7 @@
 namespace phonometrica {
 
 Viewer::Viewer(Runtime &rt, wxWindow *parent, MainWindow *win) :
-	wxAuiNotebook(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize), cmd_proc(100), runtime(rt)
+	wxAuiNotebook(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize), runtime(rt)
 {
 	main_window = win;
 	SetArtProvider(new TabArtProvider());
@@ -58,7 +58,6 @@ void Viewer::NewScriptWithParent(VFolder *parent)
 
 void Viewer::AddView(View *view, const wxString &title)
 {
-	view->SetCommandProcessor(&cmd_proc);
 	AddPage(view, title, true);
 }
 
@@ -182,14 +181,6 @@ void Viewer::OnPageChanged(wxAuiNotebookEvent &e)
 void Viewer::UpdateCurrentView()
 {
 	GetCurrentView()->Refresh();
-}
-
-void Viewer::SetupCommandProcessor(wxMenu *menu)
-{
-	cmd_proc.SetEditMenu(menu);
-//	cmd_proc.SetUndoAccelerator("Undo\tctrl+z");
-//	cmd_proc.SetRedoAccelerator("Redo\tctrl+y");
-	cmd_proc.Initialize();
 }
 
 } // namespace phonometrica

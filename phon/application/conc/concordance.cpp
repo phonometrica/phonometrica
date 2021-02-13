@@ -491,7 +491,7 @@ void Concordance::find_kwic_context()
 
 bool Concordance::is_file_info_column(intptr_t col) const
 {
-	return col < FILE_INFO_COLUMN_COUNT;
+	return col <= FILE_INFO_COLUMN_COUNT;
 }
 
 bool Concordance::is_metadata_column(intptr_t col) const

@@ -104,8 +104,20 @@ void View::Replace()
 	wxMessageBox(_("The current view doesn't support search operations"), _("Unavailable operation"), wxICON_INFORMATION);
 }
 
-void View::SetCommandProcessor(wxCommandProcessor *cp)
+void View::Undo()
 {
-	cmd_proc = cp;
+	command_processor.undo();
+	UpdateView();
+}
+
+void View::Redo()
+{
+	command_processor.redo();
+	UpdateView();
+}
+
+void View::UpdateView()
+{
+	UpdateTitle();
 }
 } // namespace phonometrica

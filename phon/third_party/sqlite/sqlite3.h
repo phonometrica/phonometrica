@@ -9865,7 +9865,7 @@ SQLITE_API int sqlite3_deserialize(
 #define SQLITE_DESERIALIZE_READONLY    4 /* Database is read-only */
 
 /*
-** Undo the hack that converts floating point types to integer for
+** restore the hack that converts floating point types to integer for
 ** builds on processors without floating point support.
 */
 #ifdef SQLITE_OMIT_FLOATING_POINT

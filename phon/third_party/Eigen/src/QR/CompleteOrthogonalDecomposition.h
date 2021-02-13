@@ -520,7 +520,7 @@ void CompleteOrthogonalDecomposition<_MatrixType>::_solve_impl(
     applyZAdjointOnTheLeftInPlace(dst);
   }
 
-  // Undo permutation to get x = P^{-1} * y.
+  // restore permutation to get x = P^{-1} * y.
   dst = colsPermutation() * dst;
 }
 #endif

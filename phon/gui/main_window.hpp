@@ -27,7 +27,6 @@
 #include <wx/splitter.h>
 #include <wx/accel.h>
 #include <wx/progdlg.h>
-#include <wx/cmdproc.h>
 #include <phon/runtime.hpp>
 #include <phon/gui/project_manager.hpp>
 #include <phon/gui/viewer.hpp>
@@ -220,6 +219,10 @@ private:
 
 	void SaveProjectAs();
 
+	void OnUndo(wxCommandEvent &);
+
+	void OnRedo(wxCommandEvent &);
+
 	Plugin *FindPlugin(const String &name);
 
 	// Project browser, on the left.
@@ -253,7 +256,7 @@ private:
 	wxMenuBar *menubar = nullptr;
 	wxMenu *file_menu = nullptr, *recent_submenu = nullptr, *tools_menu = nullptr, *edit_menu = nullptr;
 
-	wxMenuItem *recent_item = nullptr, *last_item = nullptr;
+	wxMenuItem *recent_item = nullptr, *last_item = nullptr, *undo_item = nullptr, *redo_item = nullptr;
 	wxMenuItem *project_item = nullptr, *info_item = nullptr, *console_item = nullptr;
 	wxMenuItem *tool_separator = nullptr;
 

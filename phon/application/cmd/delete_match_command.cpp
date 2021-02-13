@@ -13,55 +13,50 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 13/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: Start view.                                                                                                *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_START_VIEW_HPP
-#define PHONOMETRICA_START_VIEW_HPP
-
-#include <wx/button.h>
-#include <wx/sizer.h>
-#include <phon/gui/views/view.hpp>
-
-
+#include <wx/msgdlg.h>
+#include <phon/application/cmd/delete_match_command.hpp>
 
 namespace phonometrica {
 
-class MainWindow;
-
-class StartView final : public View
+DeleteMatchCommand::DeleteMatchCommand(const AutoConcordance &conc, intptr_t row) :
+	Command(_("Delete match"), true), m_conc(conc), m_row(row)
 {
-public:
 
-	StartView(wxWindow *parent, MainWindow *win);
+}
 
-	bool IsModified() const override { return false; }
+bool DeleteMatchCommand::execute()
+{
+	try
+	{
+		m_match = m_conc->remove_match(m_row);
+		return true;
+	}
+	catch (std::exception &e)
+	{
+		auto msg = wxString::Format(_("Could not delete row %d: %s"), (int)m_row, e.what());
+		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+		return false;
+	}
+}
 
-	void DiscardChanges() override { }
-
-	wxString GetLabel() const override { return _("Start"); }
-
-	bool IsStartView() const override { return true; }
-
-private:
-
-	void UpdateView() override { };
-
-	void SetupUi(MainWindow *win);
-
-#ifdef __WXGTK__
-	wxButton *MakeButton(const wxBitmap &img);
-
-	wxBoxSizer * MakeLabel(const char *label);
-#else
-	wxButton *MakeButton(const wxBitmap &img, const wxString &description);
-#endif
-};
-
-
+bool DeleteMatchCommand::restore()
+{
+	try
+	{
+		m_conc->restore_match(m_row, std::move(m_match));
+		return true;
+	}
+	catch (std::exception &e)
+	{
+		auto msg = wxString::Format(_("Could not restore row %d: %s"), (int)m_row, e.what());
+		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+		return false;
+	}
+}
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_START_VIEW_HPP

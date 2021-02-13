@@ -5878,7 +5878,7 @@ for (;; pptr++)
             *class_uchardata++ = ptype;
             *class_uchardata++ = pdata;
             xclass_has_prop = TRUE;
-            class_has_8bitchar--;                /* Undo! */
+            class_has_8bitchar--;                /* restore! */
             }
           break;
 #endif

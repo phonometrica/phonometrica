@@ -13,55 +13,59 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 13/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: Start view.                                                                                                *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_START_VIEW_HPP
-#define PHONOMETRICA_START_VIEW_HPP
-
-#include <wx/button.h>
-#include <wx/sizer.h>
-#include <phon/gui/views/view.hpp>
-
-
+#include <wx/msgdlg.h>
+#include <phon/application/cmd/command_processor.hpp>
 
 namespace phonometrica {
 
-class MainWindow;
-
-class StartView final : public View
+CommandProcessor::CommandProcessor(size_t limit) :
+		m_limit(limit)
 {
-public:
 
-	StartView(wxWindow *parent, MainWindow *win);
+}
 
-	bool IsModified() const override { return false; }
+void CommandProcessor::submit(AutoCommand cmd)
+{
+	if (cmd->execute())
+	{
+		m_commands.resize(m_pos);
+		m_commands.push_back(std::move(cmd));
+		m_pos++;
 
-	void DiscardChanges() override { }
+		if ((ssize_t)m_commands.size() > m_limit) {
+			m_commands.pop_front();
+		}
+	}
+}
 
-	wxString GetLabel() const override { return _("Start"); }
+void CommandProcessor::undo()
+{
+	if (m_commands.empty() || m_pos <= 0)
+	{
+		wxMessageBox(_("Nothing to undo in the current view!"), _("Invalid edit operation"), wxICON_INFORMATION);
+	}
+	else
+	{
+		m_commands[--m_pos]->restore();
+	}
+}
 
-	bool IsStartView() const override { return true; }
-
-private:
-
-	void UpdateView() override { };
-
-	void SetupUi(MainWindow *win);
-
-#ifdef __WXGTK__
-	wxButton *MakeButton(const wxBitmap &img);
-
-	wxBoxSizer * MakeLabel(const char *label);
-#else
-	wxButton *MakeButton(const wxBitmap &img, const wxString &description);
-#endif
-};
-
+void CommandProcessor::redo()
+{
+	if (m_commands.empty() || m_pos >= (ssize_t) m_commands.size())
+	{
+		wxMessageBox(_("Nothing to redo in the current view!"), _("Invalid edit operation"), wxICON_INFORMATION);
+	}
+	else
+	{
+		m_commands[m_pos++]->execute();
+	}
+}
 
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_START_VIEW_HPP

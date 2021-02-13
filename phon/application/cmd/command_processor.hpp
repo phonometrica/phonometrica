@@ -13,55 +13,43 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 13/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: Start view.                                                                                                *
+ * Purpose: Manage a queue of commands.                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_START_VIEW_HPP
-#define PHONOMETRICA_START_VIEW_HPP
+#ifndef PHONOMETRICA_COMMAND_PROCESSOR_HPP
+#define PHONOMETRICA_COMMAND_PROCESSOR_HPP
 
-#include <wx/button.h>
-#include <wx/sizer.h>
-#include <phon/gui/views/view.hpp>
-
-
+#include <deque>
+#include <phon/application/cmd/command.hpp>
 
 namespace phonometrica {
 
-class MainWindow;
-
-class StartView final : public View
+class CommandProcessor final
 {
 public:
 
-	StartView(wxWindow *parent, MainWindow *win);
+	explicit CommandProcessor(size_t limit = 50);
 
-	bool IsModified() const override { return false; }
+	void submit(AutoCommand cmd);
 
-	void DiscardChanges() override { }
+	void undo();
 
-	wxString GetLabel() const override { return _("Start"); }
-
-	bool IsStartView() const override { return true; }
+	void redo();
 
 private:
 
-	void UpdateView() override { };
+	std::deque<AutoCommand> m_commands;
 
-	void SetupUi(MainWindow *win);
+	ssize_t m_limit;
 
-#ifdef __WXGTK__
-	wxButton *MakeButton(const wxBitmap &img);
-
-	wxBoxSizer * MakeLabel(const char *label);
-#else
-	wxButton *MakeButton(const wxBitmap &img, const wxString &description);
-#endif
+	ssize_t m_pos = 0;
 };
-
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_START_VIEW_HPP
+
+
+#endif // PHONOMETRICA_COMMAND_PROCESSOR_HPP

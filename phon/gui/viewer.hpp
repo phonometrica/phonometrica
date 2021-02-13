@@ -24,7 +24,6 @@
 #define PHONOMETRICA_VIEWER_HPP
 
 #include <wx/aui/auibook.h>
-#include <wx/cmdproc.h>
 #include <phon/runtime.hpp>
 #include <phon/gui/views/script_view.hpp>
 #include <phon/gui/views/start_view.hpp>
@@ -62,8 +61,6 @@ public:
 
 	void UpdateCurrentView();
 
-	void SetupCommandProcessor(wxMenu *menu);
-
 	Signal<> request_console;
 
 private:
@@ -79,8 +76,6 @@ private:
 	void NewScript(const AutoScript &script);
 
 	void OnPageChanged(wxAuiNotebookEvent &);
-
-	wxCommandProcessor cmd_proc;
 
 	// Used to set bindings.
 	MainWindow *main_window = nullptr;

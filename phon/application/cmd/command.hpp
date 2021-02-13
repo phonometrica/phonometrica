@@ -13,55 +13,48 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 13/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: Start view.                                                                                                *
+ * Purpose: Abstract base class for all commands in Phonometrica: a command knows how to do and undo itself, in such   *
+ * a way that undoing the command restores the state of the program before applying the command.                       *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_START_VIEW_HPP
-#define PHONOMETRICA_START_VIEW_HPP
+#ifndef PHONOMETRICA_COMMAND_HPP
+#define PHONOMETRICA_COMMAND_HPP
 
-#include <wx/button.h>
-#include <wx/sizer.h>
-#include <phon/gui/views/view.hpp>
-
-
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
-class MainWindow;
-
-class StartView final : public View
+class Command
 {
 public:
 
-	StartView(wxWindow *parent, MainWindow *win);
+	explicit Command(String name, bool undo = false);
 
-	bool IsModified() const override { return false; }
+	// Returns true if the command was successfully performed, and false otherwise
+	virtual bool execute() = 0;
 
-	void DiscardChanges() override { }
+	// Returs true if the command was successfully undone, and false otherwise
+	virtual bool restore() = 0;
 
-	wxString GetLabel() const override { return _("Start"); }
+	const String &name() const;
 
-	bool IsStartView() const override { return true; }
+	bool can_undo() const;
 
-private:
+protected:
 
-	void UpdateView() override { };
+	String m_name;
 
-	void SetupUi(MainWindow *win);
-
-#ifdef __WXGTK__
-	wxButton *MakeButton(const wxBitmap &img);
-
-	wxBoxSizer * MakeLabel(const char *label);
-#else
-	wxButton *MakeButton(const wxBitmap &img, const wxString &description);
-#endif
+	bool m_can_undo;
 };
 
 
+using AutoCommand = std::unique_ptr<Command>;
+
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_START_VIEW_HPP
+
+
+#endif // PHONOMETRICA_COMMAND_HPP

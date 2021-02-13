@@ -15,39 +15,26 @@
  *                                                                                                                     *
  * Created: 13/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Delete a match in a concordance.                                                                           *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_DELETE_MATCH_COMMAND_HPP
-#define PHONOMETRICA_DELETE_MATCH_COMMAND_HPP
-
-#include <wx/cmdproc.h>
-#include <phon/application/conc/concordance.hpp>
+#include <phon/application/cmd/command.hpp>
 
 namespace phonometrica {
 
-class DeleteMatchCommand final : public wxCommand
+phonometrica::Command::Command(String name, bool undo) : m_name(std::move(name)), m_can_undo(undo)
 {
-public:
 
-	DeleteMatchCommand(const AutoConcordance &conc, intptr_t row);
+}
 
-	bool Do() override;
+const String &Command::name() const
+{
+	return m_name;
+}
 
-	bool Undo() override;
-
-private:
-
-	AutoConcordance m_conc;
-
-	AutoMatch m_match;
-
-	intptr_t m_row;
-};
-
+bool Command::can_undo() const
+{
+	return m_can_undo;
+}
 } // namespace phonometrica
-
-
-
-#endif // PHONOMETRICA_DELETE_MATCH_COMMAND_HPP

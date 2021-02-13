@@ -2059,7 +2059,7 @@ void Runtime::scan_black(Collectable *candidate)
 	if (traverse)
 	{
 		auto lambda = [](Collectable *child) {
-			// Undo trial deletion
+			// restore trial deletion
 			child->add_reference();
 
 			if (!child->is_black()) {

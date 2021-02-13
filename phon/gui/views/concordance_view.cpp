@@ -24,7 +24,7 @@
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/views/concordance_view.hpp>
-#include <phon/gui/cmd/delete_match_command.hpp>
+#include <phon/application/cmd/delete_match_command.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/application/macros.hpp>
@@ -65,11 +65,15 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 
 	m_grid = new wxGrid(this, wxID_ANY);
 	auto ctrl = new ConcordanceController(m_conc);
-	auto label = wxString::Format("%d matches found", (int)m_conc->row_count());
-	count_label = new wxStaticText(this, wxID_ANY, label);
+	count_label = new wxStaticText(this, wxID_ANY, wxString());
+	// FIXME: on Linux, the label is truncated after the number if it is bold, but it is displayed correctly if the
+	//  user clicks on another file in the project manager (which must trigger a refresh).
+#ifndef __WXGTK__
 	auto font = count_label->GetFont();
 	font.MakeBold();
 	count_label->SetFont(font);
+#endif
+	UpdateCountLabel();
 
 	auto pt_size = m_grid->GetFont().GetPointSize();
 	auto mono_font = Settings::get_mono_font();
@@ -95,6 +99,9 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	sizer->Add(label_sizer, 0, wxEXPAND|wxALL, 10);
 	sizer->Add(m_grid, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	SetSizer(sizer);
+
+	ShowFileInfo();
+	ShowMetadata();
 
 	m_save_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnSave, this);
 	m_play_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnPlaySelection, this);
@@ -268,12 +275,42 @@ void ConcordanceView::OnColumnButtonClicked(wxMouseEvent &)
 
 void ConcordanceView::ShowFileInfo()
 {
-
+	for (int i = 1; i <= m_conc->column_count(); i++)
+	{
+		if (m_conc->is_file_info_column(i))
+		{
+			if (m_show_file_info)
+			{
+				m_grid->ShowCol(i - 1);
+			}
+			else
+			{
+				m_grid->HideCol(i - 1);
+			}
+		}
+		else
+		{
+			break; // file info columns are at the beginning
+		}
+	}
 }
 
 void ConcordanceView::ShowMetadata()
 {
-
+	for (int i = 1; i <= m_conc->column_count(); i++)
+	{
+		if (m_conc->is_metadata_column(i))
+		{
+			if (m_show_metadata)
+			{
+				m_grid->ShowCol(i - 1);
+			}
+			else
+			{
+				m_grid->HideCol(i - 1);
+			}
+		}
+	}
 }
 
 void ConcordanceView::Save()
@@ -319,8 +356,23 @@ void ConcordanceView::OnDeleteRows(wxCommandEvent &)
 	for (int i : m_grid->GetSelectedRows())
 	{
 		int row = i + 1 - shift++;
-		auto cmd = new DeleteMatchCommand(m_conc, row);
-		cmd_proc->Submit(cmd);
+		auto cmd = std::make_unique<DeleteMatchCommand>(m_conc, row);
+		command_processor.submit(std::move(cmd));
 	}
+	UpdateView();
+}
+
+void ConcordanceView::UpdateView()
+{
+	View::UpdateView();
+	UpdateCountLabel();
+	m_grid->Refresh();
+	m_save_tool->Enable();
+}
+
+void ConcordanceView::UpdateCountLabel()
+{
+	auto label = wxString::Format(_("%d matches"), (int)m_conc->row_count());
+	count_label->SetLabel(label);
 }
 } // namespace phonometrica

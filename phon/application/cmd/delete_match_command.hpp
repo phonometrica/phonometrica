@@ -15,48 +15,39 @@
  *                                                                                                                     *
  * Created: 13/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: Delete a match in a concordance.                                                                           *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/msgdlg.h>
-#include <phon/gui/cmd/delete_match_command.hpp>
+#ifndef PHONOMETRICA_DELETE_MATCH_COMMAND_HPP
+#define PHONOMETRICA_DELETE_MATCH_COMMAND_HPP
+
+#include <phon/application/cmd/command.hpp>
+#include <phon/application/conc/concordance.hpp>
 
 namespace phonometrica {
 
-DeleteMatchCommand::DeleteMatchCommand(const AutoConcordance &conc, intptr_t row) :
-	wxCommand(true, _("Delete match")), m_conc(conc), m_row(row)
+class DeleteMatchCommand final : public Command
 {
+public:
 
-}
+	DeleteMatchCommand(const AutoConcordance &conc, intptr_t row);
 
-bool DeleteMatchCommand::Do()
-{
-	try
-	{
-		m_match = m_conc->remove_match(m_row);
-		return true;
-	}
-	catch (std::exception &e)
-	{
-		auto msg = wxString::Format(_("Could not delete row %d: %s"), (int)m_row, e.what());
-		wxMessageBox(msg, _("Error"), wxICON_ERROR);
-		return false;
-	}
-}
+	bool execute() override;
 
-bool DeleteMatchCommand::Undo()
-{
-	try
-	{
-		m_conc->restore_match(m_row, std::move(m_match));
-		return true;
-	}
-	catch (std::exception &e)
-	{
-		auto msg = wxString::Format(_("Could not restore row %d: %s"), (int)m_row, e.what());
-		wxMessageBox(msg, _("Error"), wxICON_ERROR);
-		return false;
-	}
-}
+	bool restore() override;
+
+private:
+
+	AutoConcordance m_conc;
+
+	AutoMatch m_match;
+
+	intptr_t m_row;
+};
+
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_DELETE_MATCH_COMMAND_HPP

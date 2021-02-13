@@ -77,6 +77,10 @@ protected:
 
 	void OnDeleteRows(wxCommandEvent &);
 
+	void UpdateView() override;
+
+	void UpdateCountLabel();
+
 	wxGrid *m_grid;
 
 	wxStaticText *count_label;
