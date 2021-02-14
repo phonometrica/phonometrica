@@ -64,12 +64,10 @@ void ScriptView::SetupUi()
 	wxBitmap save_icon(wxBITMAP_PNG_FROM_DATA(save));
 	m_save_tool = m_toolbar->AddButton(save_icon, _("Save script (" CTRL_KEY "S)"));
 	m_save_tool->Disable();
-	m_toolbar->AddSeparator();
 
 	wxBitmap run_icon(wxBITMAP_PNG_FROM_DATA(start));
 	auto run_tool = m_toolbar->AddButton(run_icon, _("Execute script or selection (" CTRL_KEY "↵)"));
 	sizer->Add(m_toolbar, 0, wxEXPAND | wxALL, 10);
-	m_toolbar->AddSeparator();
 
 	wxBitmap off_icon(wxBITMAP_PNG_FROM_DATA(toggle_off));
 	auto on_tool = m_toolbar->AddButton(off_icon, _("Comment line or selection"));
@@ -80,11 +78,9 @@ void ScriptView::SetupUi()
 	auto ident_tool = m_toolbar->AddButton(ident_icon, _("Indent line or selection"));
 	wxBitmap unident_icon(wxBITMAP_PNG_FROM_DATA(double_left));
 	auto unindent_tool = m_toolbar->AddButton(unident_icon, _("Unindent line or selection"));
-	m_toolbar->AddSeparator();
 
 	wxBitmap hint_icon(wxBITMAP_PNG_FROM_DATA(hint));
 	auto hint_tool = m_toolbar->AddToggleButton(hint_icon, _("Activate auto-completion and call tips"));
-	m_toolbar->AddSeparator();
 
 	wxBitmap bytecode_icon(wxBITMAP_PNG_FROM_DATA(eye));
 	auto bytecode_tool = m_toolbar->AddButton(bytecode_icon, _("View bytecode"));

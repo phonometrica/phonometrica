@@ -37,7 +37,7 @@ ConcCellAttrProvider::ConcCellAttrProvider(const Concordance &conc, const wxFont
 
 wxGridCellAttr *ConcCellAttrProvider::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind kind) const
 {
-	return m_conc.is_match(col+1) ? m_match_attr->Clone() : m_normal_attr->Clone();
+	return m_conc.is_target(col + 1) ? m_match_attr->Clone() : m_normal_attr->Clone();
 }
 
 //---------------------------------------------------------------------------------------------------------------------

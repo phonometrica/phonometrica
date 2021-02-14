@@ -136,4 +136,14 @@ void Match::append(std::unique_ptr<Target> next)
 	}
 }
 
+double Match::get_start_time(intptr_t i) const
+{
+	return get_event(i)->start_time();
+}
+
+double Match::get_end_time(intptr_t i) const
+{
+	return get_event(i)->end_time();
+}
+
 } // namespace phonometrica

@@ -25,7 +25,9 @@
 #include <wx/stattext.h>
 #include <phon/gui/tool_bar.hpp>
 #include <phon/gui/views/view.hpp>
+#include <phon/gui/event_editor.hpp>
 #include <phon/gui/ctrl/concordance_controller.hpp>
+#include <phon/application/audio_player.hpp>
 
 namespace phonometrica {
 
@@ -44,6 +46,8 @@ public:
 	String GetPath() const override;
 
 	void Save() override;
+
+	void Escape() override;
 
 protected:
 
@@ -77,9 +81,23 @@ protected:
 
 	void OnDeleteRows(wxCommandEvent &);
 
+	void OnEditEvent(wxCommandEvent &);
+
+	void EditCurrentEvent();
+
 	void UpdateView() override;
 
 	void UpdateCountLabel();
+
+	void StopPlayer();
+
+	void ResetPlayer();
+
+	void OnDoubleClick(wxGridEvent &);
+
+	void DeleteEventEditor();
+
+	Match * GetSelectedMatch();
 
 	wxGrid *m_grid;
 
@@ -88,6 +106,10 @@ protected:
 	ToolBar *m_toolbar;
 
 	wxButton *m_save_tool, *m_play_tool, *m_col_tool;
+
+	AudioPlayer *player = nullptr;
+
+	EventEditor *event_editor = nullptr;
 
 	AutoConcordance m_conc;
 

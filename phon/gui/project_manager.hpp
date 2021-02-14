@@ -42,6 +42,8 @@ public:
 
 	void OnProjectUpdated();
 
+	void OnProjectClosed();
+
 	void UpdateLabel();
 
 	static void CheckProjectImport();
@@ -60,7 +62,7 @@ private:
 
 	void Populate();
 
-	void ClearProject();
+	void ClearProject(bool set_flag);
 
 	void UpdateProject();
 
@@ -153,7 +155,7 @@ private:
 	wxButton *menu_btn;
 
 	int corpus_img, queries_img, datasets_img, scripts_img, bookmarks_img;
-	int annot_img, folder_img, bookmark_img, sound_img, document_img, query_img, script_img, conc_img, csv_img;
+	int annot_img, textgrid_img, folder_img, bookmark_img, sound_img, document_img, query_img, script_img, conc_img, csv_img;
 
 	VNodeList dragged_files;
 

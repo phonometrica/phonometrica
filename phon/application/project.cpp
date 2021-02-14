@@ -997,8 +997,8 @@ void Project::bind_annotations()
 
 void Project::close()
 {
+	instance->about_to_close();
 	instance->clear();
-	instance->notify_update();
 	instance->notify_closed();
 }
 
@@ -1215,7 +1215,7 @@ String Project::label() const
 	}
 
     if (m_path.empty())
-        return "Untitled project";
+        return "Project";
 
     String label("Project ");
     label.append(base_name(strip_ext(path())));

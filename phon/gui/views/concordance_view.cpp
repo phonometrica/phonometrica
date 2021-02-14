@@ -45,20 +45,18 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	auto save_icon = ICN(save);
 	m_save_tool = m_toolbar->AddButton(save_icon, _("Save concordance... (" CTRL_KEY "S)"));
 	auto csv_tool = m_toolbar->AddButton(ICN(export_csv), _("Export concordance to CSV..."));
-	m_toolbar->AddSeparator();
 
 	auto play_icon = ICN(play);
 	m_play_tool = m_toolbar->AddButton(play_icon, _("Play selection"));
-
 	auto stop_tool = m_toolbar->AddButton(ICN(stop), _("Stop playing"));
-	auto praat_tool = m_toolbar->AddButton(ICN(praat), _("Open selection in Praat"));
-	m_toolbar->AddSeparator();
 
+	auto praat_tool = m_toolbar->AddButton(ICN(praat), _("Open selection in Praat"));
 	auto view_tool = m_toolbar->AddButton(ICN(eye), _("Open match in annotation"));
 
 	auto del_row_tool = m_toolbar->AddButton(ICN(delete_row), _("Delete selected row(s)"));
-	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
+	auto edit_row_tool = m_toolbar->AddButton(ICN(edit_row), _("Edit selected event"));
 
+	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
 	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite24), _("Bookmark match"));
 	m_toolbar->AddStretchableSpace();
 	auto help_tool = m_toolbar->AddHelpButton();
@@ -110,10 +108,12 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	csv_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnExportToCsv, this);
 	view_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnViewMatch, this);
 	del_row_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnDeleteRows, this);
+	edit_row_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnEditEvent, this);
 	bookmark_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnBookmarkMatch, this);
 	help_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnHelp, this);
 	m_col_tool->Bind(wxEVT_LEFT_DOWN, &ConcordanceView::OnColumnButtonClicked, this);
 	m_grid->Bind(wxEVT_KEY_DOWN, &ConcordanceView::OnKeyDown, this);
+	m_grid->Bind(wxEVT_GRID_CELL_LEFT_DCLICK, &ConcordanceView::OnDoubleClick, this);
 #undef ICN
 }
 
@@ -144,12 +144,19 @@ void ConcordanceView::OnSave(wxCommandEvent &)
 
 void ConcordanceView::OnPlaySelection(wxCommandEvent &)
 {
+	auto sel = m_grid->GetSelectedRows();
+	if (sel.size() != 1)
+	{
+		wxMessageBox(_("You can only play one match at a time"), _("Error"), wxICON_INFORMATION);
+		return;
+	}
 
+	PlayMatch(sel.front());
 }
 
 void ConcordanceView::OnStopPlaying(wxCommandEvent &)
 {
-
+	StopPlayer();
 }
 
 void ConcordanceView::OnOpenInPraat(wxCommandEvent &)
@@ -218,9 +225,14 @@ void ConcordanceView::OnKeyDown(wxKeyEvent &e)
 		case WXK_SPACE:
 		{
 			auto sel = m_grid->GetSelectedRows();
-			if (!sel.IsEmpty()) {
+			if (sel.size() == 1) {
 				PlayMatch(sel.front());
 			}
+		} break;
+		case WXK_RETURN:
+		case WXK_NUMPAD_ENTER:
+		{
+			EditCurrentEvent();
 		} break;
 		default:
 			e.Skip();
@@ -246,8 +258,17 @@ void ConcordanceView::OnExportToCsv(wxCommandEvent &)
 
 void ConcordanceView::PlayMatch(int row)
 {
-	row++;
-
+	auto &match = m_conc->get_match(row + 1);
+	auto sound = match.annotation()->sound();
+	if (!sound) return;
+	StopPlayer();
+	player = new AudioPlayer(sound->light_data());
+	player->done.connect(&ConcordanceView::ResetPlayer, this);
+	double from = match.get_start_time(1);
+	double to = match.get_end_time(1);
+	if (from != to) {
+		player->play(from, to);
+	}
 }
 
 void ConcordanceView::OnViewMatch(wxCommandEvent &)
@@ -375,4 +396,84 @@ void ConcordanceView::UpdateCountLabel()
 	auto label = wxString::Format(_("%d matches"), (int)m_conc->row_count());
 	count_label->SetLabel(label);
 }
+
+void ConcordanceView::StopPlayer()
+{
+	if (player)
+	{
+		player->stop();
+		player = nullptr;
+	}
+}
+
+void ConcordanceView::ResetPlayer()
+{
+	player = nullptr;
+}
+
+void ConcordanceView::OnDoubleClick(wxGridEvent &)
+{
+	wxCommandEvent dummy;
+	OnPlaySelection(dummy);
+}
+
+void ConcordanceView::OnEditEvent(wxCommandEvent &)
+{
+	EditCurrentEvent();
+}
+
+void ConcordanceView::EditCurrentEvent()
+{
+	DeleteEventEditor();
+
+	auto match = GetSelectedMatch();
+	if (!match) {
+		return;
+	}
+
+	// Find first cell that contains a match on the selected the row so that we can position the editor there.
+	wxSize size(500, 60);
+	int j;
+	for (j = 1; j <= m_conc->column_count(); j++) {
+		if (m_conc->is_target(j)) break;
+	}
+	auto sel = m_grid->GetSelectedRows();
+	auto rect = m_grid->CellToRect(sel.front(), j);
+	auto pos = rect.GetPosition();
+	pos.x -= size.GetWidth() / 2;
+	pos.y += size.GetHeight() / 2;
+
+	auto offset = match->get_offset(1);
+	auto len = match->get_value(1).size();
+	event_editor = new EventEditor(this, match->annotation(), match->get_event(1), offset, len, pos, size);
+	event_editor->done.connect(&ConcordanceView::DeleteEventEditor, this);
+}
+
+void ConcordanceView::Escape()
+{
+	DeleteEventEditor();
+	StopPlayer();
+}
+
+void ConcordanceView::DeleteEventEditor()
+{
+	if (event_editor)
+	{
+		delete event_editor;
+		event_editor = nullptr;
+		m_grid->SetFocus();
+	}
+}
+
+Match * ConcordanceView::GetSelectedMatch()
+{
+	auto sel = m_grid->GetSelectedRows();
+	if (sel.size() != 1) {
+		wxMessageBox(_("You must select exactly one row!"), _("Selection too large"), wxICON_INFORMATION);
+		return nullptr;
+	}
+
+	return &m_conc->get_match(sel.front() + 1);
+}
+
 } // namespace phonometrica

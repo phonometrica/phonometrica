@@ -94,6 +94,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	scripts_img = images->Add(wxBITMAP_PNG_FROM_DATA(console));
 	bookmarks_img = images->Add(wxBITMAP_PNG_FROM_DATA(favorite));
 	annot_img = images->Add(wxBITMAP_PNG_FROM_DATA(annotation));
+	textgrid_img = images->Add(wxBITMAP_PNG_FROM_DATA(textgrid));
 #ifdef __WXMSW__
 	folder_img = images->Add(wxBITMAP_PNG_FROM_DATA(folder));
 #elif defined(__WXMAC__)
@@ -151,9 +152,17 @@ void ProjectManager::Populate()
 
 void ProjectManager::OnProjectUpdated()
 {
-	ClearProject();
+	ClearProject(true);
 	UpdateProject();
 }
+
+void ProjectManager::OnProjectClosed()
+{
+	ClearProject(false);
+	UpdateLabel();
+	main_label->SetToolTip(wxString());
+}
+
 
 void ProjectManager::UpdateProject()
 {
@@ -178,13 +187,16 @@ void ProjectManager::UpdateProject()
 	tree->Expand(bookmark_item);
 }
 
-void ProjectManager::ClearProject()
+void ProjectManager::ClearProject(bool set_flag)
 {
-	SetExpansionFlag(corpus_item);
-	SetExpansionFlag(query_item);
-	SetExpansionFlag(data_item);
-	SetExpansionFlag(script_item);
-	SetExpansionFlag(bookmark_item);
+	if (set_flag)
+	{
+		SetExpansionFlag(corpus_item);
+		SetExpansionFlag(query_item);
+		SetExpansionFlag(data_item);
+		SetExpansionFlag(script_item);
+		SetExpansionFlag(bookmark_item);
+	}
 
 	tree->DeleteChildren(corpus_item);
 	tree->DeleteChildren(query_item);
@@ -225,7 +237,12 @@ void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
 
 			if (vfile.is_annotation())
 			{
-				img = annot_img;
+				if (dynamic_cast<Annotation&>(vfile).is_textgrid()) {
+					img = textgrid_img;
+				}
+				else {
+					img = annot_img;
+				}
 			}
 			else if (vfile.is_sound())
 			{
@@ -1027,7 +1044,7 @@ void ProjectManager::OnQuickSearch(wxCommandEvent &e)
 
 	String text = search_ctrl->GetValue();
 	search_string = text.to_lower();
-	ClearProject();
+	ClearProject(true);
 
 	FillFolder(corpus_item, *project->corpus());
 	FillFolder(data_item, *project->data());

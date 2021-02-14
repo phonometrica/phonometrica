@@ -68,7 +68,8 @@ void Script::set_content(String value, bool mutate)
 
 String Script::label() const
 {
-	return m_path.empty() ? "Untitled script" : filesystem::base_name(m_path);
+	using namespace filesystem;
+	return m_path.empty() ? "Untitled script" :  split_ext(base_name(m_path)).first;
 }
 
 } // namespace phonometrica

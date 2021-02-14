@@ -66,6 +66,10 @@ public:
 
 	const AutoEvent &get_event(intptr_t i) const;
 
+	double get_start_time(intptr_t i) const;
+
+	double get_end_time(intptr_t i) const;
+
 	intptr_t get_layer(intptr_t i) const;
 
 	intptr_t get_offset(intptr_t i) const;

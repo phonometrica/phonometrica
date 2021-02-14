@@ -13,78 +13,88 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 13/01/2021                                                                                                 *
+ * Created: 14/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: The viewer occupies the center of the main window. It is a notebook that can display views as tabs, like   *
- * in a web browser.                                                                                                   *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_VIEWER_HPP
-#define PHONOMETRICA_VIEWER_HPP
-
-#include <wx/aui/auibook.h>
-#include <phon/runtime.hpp>
-#include <phon/gui/views/script_view.hpp>
-#include <phon/gui/views/start_view.hpp>
-#include <phon/application/annotation.hpp>
-#include <phon/application/sound.hpp>
-#include <phon/application/script.hpp>
+#include <phon/gui/sizer.hpp>
+#include <phon/gui/event_editor.hpp>
+#include <phon/application/project.hpp>
 
 namespace phonometrica {
 
-class MainWindow;
 
-class Viewer final : public wxAuiNotebook
+EventEditor::EventEditor(wxWindow *parent, wxPoint position, wxSize size) :
+		wxWindow(parent, wxID_ANY, position, size)
 {
-public:
+	auto sizer = new VBoxSizer;
+	m_ctrl = new wxRichTextCtrl(this, wxID_ANY, wxString(), wxDefaultPosition, wxDefaultSize, wxRE_MULTILINE);
+	sizer->Add(m_ctrl, 1, wxEXPAND|wxALL, 5);
+	SetBackgroundColour(wxColor(126, 66, 245));
+	auto font = m_ctrl->GetFont();
+	font.MakeLarger();
+	m_ctrl->SetFont(font);
+	SetSizer(sizer);
 
-	Viewer(Runtime &rt, wxWindow *parent, MainWindow *win);
+	m_ctrl->Bind(wxEVT_KEY_DOWN, &EventEditor::OnKeyPressed, this);
+}
 
-	void SetStartView();
 
-	void NewScript();
+EventEditor::EventEditor(wxWindow *parent, const AutoAnnotation &annot, const AutoEvent &event, wxPoint position,
+                         wxSize size) : EventEditor(parent, position, size)
+{
+	m_annot = annot;
+	m_event = event;
+	m_ctrl->SetValue(event->text());
+}
 
-	void NewScriptWithParent(VFolder *parent);
 
-	void CloseCurrentView();
+EventEditor::EventEditor(wxWindow *parent, const AutoAnnotation &annot, const AutoEvent &event, intptr_t sel_start,
+                         intptr_t len, wxPoint position, wxSize size) :
+		EventEditor(parent, position, size)
+{
+	m_annot = annot;
+	m_event = event;
+	auto txt = event->text();
+	wxString left = String(txt.begin(), sel_start);
+	wxString selection = String(txt.begin() + sel_start, len);
+	wxString right = String(txt.begin() + sel_start + len);
 
-	View *GetCurrentView();
+	m_ctrl->WriteText(left);
+	m_ctrl->BeginTextColour(*wxRED);
+	m_ctrl->BeginBold();
+	m_ctrl->WriteText(selection);
+	m_ctrl->EndBold();
+	m_ctrl->EndTextColour();
+	m_ctrl->WriteText(right);
+	m_ctrl->SetCaretPosition(sel_start - 1);
+	m_ctrl->SetFocus();
+}
 
-	void ViewFile(const std::shared_ptr<VFile> &file);
+void EventEditor::OnKeyPressed(wxKeyEvent &e)
+{
+	// Note: Escape is handled globally
+	switch (e.GetKeyCode())
+	{
+		case WXK_RETURN:
+		case WXK_NUMPAD_ENTER:
+		{
+			EditEvent();
 
-	void AdjustFontSize();
+		} break;
+		default:
+			e.Skip();
+	}
+}
 
-	bool SaveViews(bool autosave);
-
-	void CloseViews();
-
-	View *GetView(size_t i) { return dynamic_cast<View*>(GetPage(i)); }
-
-	void UpdateCurrentView();
-
-	Signal<> request_console;
-
-private:
-
-	void AddView(View *view, const wxString &title);
-
-	void CloseView(int index, bool remove);
-
-	void OnCloseView(wxAuiNotebookEvent &);
-
-	void OnViewClosed(wxAuiNotebookEvent &);
-
-	void NewScript(const AutoScript &script);
-
-	void OnPageChanged(wxAuiNotebookEvent &);
-
-	// Used to set bindings.
-	MainWindow *main_window = nullptr;
-
-	Runtime &runtime;
-};
+void EventEditor::EditEvent()
+{
+	String text = m_ctrl->GetValue();
+	m_annot->set_event_text(m_event, text);
+	Project::updated();
+	done();
+}
 
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_VIEWER_HPP

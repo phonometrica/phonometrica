@@ -13,78 +13,48 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 13/01/2021                                                                                                 *
+ * Created: 14/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: The viewer occupies the center of the main window. It is a notebook that can display views as tabs, like   *
- * in a web browser.                                                                                                   *
+ * Purpose: Edit a label in a concordance or annotation.                                                               *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_VIEWER_HPP
-#define PHONOMETRICA_VIEWER_HPP
+#ifndef PHONOMETRICA_EVENT_EDITOR_HPP
+#define PHONOMETRICA_EVENT_EDITOR_HPP
 
-#include <wx/aui/auibook.h>
-#include <phon/runtime.hpp>
-#include <phon/gui/views/script_view.hpp>
-#include <phon/gui/views/start_view.hpp>
+#include <wx/richtext/richtextctrl.h>
 #include <phon/application/annotation.hpp>
-#include <phon/application/sound.hpp>
-#include <phon/application/script.hpp>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
-class MainWindow;
-
-class Viewer final : public wxAuiNotebook
+class EventEditor final : public wxWindow
 {
 public:
 
-	Viewer(Runtime &rt, wxWindow *parent, MainWindow *win);
+	EventEditor(wxWindow *parent, const AutoAnnotation &annot, const AutoEvent &event, wxPoint position, wxSize size);
 
-	void SetStartView();
+	EventEditor(wxWindow *parent, const AutoAnnotation &annot, const AutoEvent &event, intptr_t sel_start, intptr_t len, wxPoint position, wxSize size);
 
-	void NewScript();
-
-	void NewScriptWithParent(VFolder *parent);
-
-	void CloseCurrentView();
-
-	View *GetCurrentView();
-
-	void ViewFile(const std::shared_ptr<VFile> &file);
-
-	void AdjustFontSize();
-
-	bool SaveViews(bool autosave);
-
-	void CloseViews();
-
-	View *GetView(size_t i) { return dynamic_cast<View*>(GetPage(i)); }
-
-	void UpdateCurrentView();
-
-	Signal<> request_console;
+	Signal<> done;
 
 private:
 
-	void AddView(View *view, const wxString &title);
+	EventEditor(wxWindow *parent, wxPoint position, wxSize size);
 
-	void CloseView(int index, bool remove);
+	void OnKeyPressed(wxKeyEvent &e);
 
-	void OnCloseView(wxAuiNotebookEvent &);
+	void EditEvent();
 
-	void OnViewClosed(wxAuiNotebookEvent &);
+	wxRichTextCtrl *m_ctrl;
 
-	void NewScript(const AutoScript &script);
+	AutoAnnotation m_annot;
 
-	void OnPageChanged(wxAuiNotebookEvent &);
-
-	// Used to set bindings.
-	MainWindow *main_window = nullptr;
-
-	Runtime &runtime;
+	AutoEvent m_event;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_VIEWER_HPP
+
+
+#endif // PHONOMETRICA_EVENT_EDITOR_HPP

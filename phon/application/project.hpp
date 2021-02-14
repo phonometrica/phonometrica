@@ -163,8 +163,10 @@ public:
 	// Inform the UI that the project has been modified.
 	Signal<> notify_update;
 
-	// Inform the UI that the project has been closed.
-	// FIXME: should we now remove this signal?
+	// Inform the viewer that the views need to be saved
+	Signal<> about_to_close;
+
+	// Inform the project manager that the project has been closed.
 	Signal<> notify_closed;
 
 	// Send when only the metadata has been changed.

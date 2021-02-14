@@ -35,6 +35,8 @@ public:
 
 	void AddSeparator();
 
+	void AddSpacer(int space);
+
 	void AddStretchableSpace();
 
 	wxButton *AddButton(const wxBitmap &bitmap, const wxString &tooltip, int id = wxID_ANY);

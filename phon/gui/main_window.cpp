@@ -329,11 +329,9 @@ void MainWindow::SetBindings()
 	VFile::file_modified.connect(&Viewer::UpdateCurrentView, viewer);
 	auto project = Project::get();
 	project->notify_update.connect(&ProjectManager::OnProjectUpdated, project_manager);
+	project->notify_closed.connect(&ProjectManager::OnProjectClosed, project_manager);
+	project->about_to_close.connect(&Viewer::CloseViews, viewer);
 	project->metadata_updated.connect(&ProjectManager::UpdateLabel, project_manager);
-
-//	connect(Project::instance(), &Project::notify_closed, viewer, &Viewer::closeAll);
-//	connect(Project::instance(), &Project::request_save, viewer, &Viewer::saveViews);
-
 
 	Bind(wxEVT_CLOSE_WINDOW, &MainWindow::OnCloseRequest, this);
 }
@@ -1161,7 +1159,10 @@ void MainWindow::OnUninstallPlugin(wxCommandEvent &)
 		names.Add(p->label());
 	}
 	int index = wxGetSingleChoiceIndex(_("Which plugin do you want to uninstall?"), _("Uninstall plugin"), names);
-	UninstallPlugin(index + 1, true); // to base 1
+
+	if (++index > 0) {
+		UninstallPlugin(index, true);
+	}
 }
 
 void MainWindow::UninstallPlugin(int index, bool verbose)

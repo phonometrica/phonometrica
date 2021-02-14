@@ -82,10 +82,10 @@ String Concordance::get_header(intptr_t j) const
 	if (j <= m_target_count)
 	{
 		if (m_target_count == 1) {
-			return "Match";
+			return "Target";
 		}
 		else {
-			return String::format("Match %d", (int) j);
+			return String::format("Target %d", (int) j);
 		}
 	}
 
@@ -529,7 +529,7 @@ String Concordance::get_right_context(intptr_t i) const
 	return has_context() ? m_context[i].second : String();
 }
 
-bool Concordance::is_match(intptr_t col) const
+bool Concordance::is_target(intptr_t col) const
 {
 	intptr_t lower = FILE_INFO_COLUMN_COUNT + int(has_context()); // add 1 column for the left context
 	intptr_t upper = lower + m_target_count;

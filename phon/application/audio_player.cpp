@@ -43,11 +43,10 @@
 
 namespace phonometrica {
 
-AudioPlayer::AudioPlayer(Runtime &rt, std::shared_ptr<AudioData> data) :
-		wxThread(wxTHREAD_DETACHED), rt(rt), m_stream(SOUND_API), data(std::move(data))
+AudioPlayer::AudioPlayer(std::shared_ptr<AudioData> data) :
+		wxThread(wxTHREAD_DETACHED), m_stream(SOUND_API), data(std::move(data))
 {
 	PHON_LOG("constructing audio player");
-    //connect(this, &QThread::finished, this, &AudioPlayer::stop);
     prepare();
 	PHON_LOG("initializing resampling");
     initialize_resampling(output_rate);
@@ -57,9 +56,7 @@ AudioPlayer::AudioPlayer(Runtime &rt, std::shared_ptr<AudioData> data) :
 AudioPlayer::~AudioPlayer()
 {
     assert(m_error == nullptr);
-//    if (isRunning()) {
-//		interrupt();
-//    }
+	done();
 }
 
 int AudioPlayer::playback(void *out, void *, unsigned int nframe, double, RtAudioStreamStatus status, void *d)
@@ -218,35 +215,7 @@ void AudioPlayer::play(double from, double to)
     first_frame = data->time_to_frame(from);
     last_frame = data->time_to_frame(to);
     position = first_frame;
-//    start();
-}
-
-void AudioPlayer::run()
-{
-	unsigned int frame_count = FRAME_COUNT;
-
-	try
-	{
-		m_stream.openStream(&m_params,
-			nullptr,
-			RTAUDIO_FLOAT64,
-			output_rate,
-			&frame_count,
-			&AudioPlayer::playback,
-			this,
-			&m_options,
-			error_callback);
-
-		m_stream.startStream();
-	}
-	catch (...)
-	{
-		m_error = std::current_exception();
-//		this->quit();
-	}
-
-    while (m_stream.isStreamRunning()) {}
-//        QThread::msleep(2); // wait for 2 ms
+	Run();
 }
 
 void AudioPlayer::initialize_resampling(uint32_t output_rate)
@@ -304,9 +273,41 @@ void AudioPlayer::error_callback(RtAudioError::Type type, const std::string &msg
 
 void AudioPlayer::stop()
 {
-    if (m_stream.isStreamOpen()) {
+    if (m_stream.isStreamOpen())
+    {
+    	m_stream.stopStream();
         m_stream.closeStream();
     }
+}
+
+void *AudioPlayer::Entry()
+{
+	unsigned int frame_count = FRAME_COUNT;
+
+	try
+	{
+		m_stream.openStream(&m_params,
+		                    nullptr,
+		                    RTAUDIO_FLOAT64,
+		                    output_rate,
+		                    &frame_count,
+		                    &AudioPlayer::playback,
+		                    this,
+		                    &m_options,
+		                    error_callback);
+
+		m_stream.startStream();
+	}
+	catch (...)
+	{
+		m_error = std::current_exception();
+	}
+
+	while (m_stream.isStreamRunning()) {
+		Sleep(1);
+	}
+
+	return nullptr;
 }
 
 

@@ -26,6 +26,7 @@
 
 namespace phonometrica {
 
+static const int padding = 5;
 
 ToolBar::ToolBar(wxWindow *parent) :
 	wxWindow(parent, wxID_ANY), button_size(30, 30)
@@ -35,7 +36,9 @@ ToolBar::ToolBar(wxWindow *parent) :
 
 void ToolBar::AddSeparator()
 {
-	GetSizer()->AddSpacer(5);
+	auto sep = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(1, 30));
+	sep->SetBackgroundColour(*wxLIGHT_GREY);
+	GetSizer()->Add(sep, 0, wxLEFT, padding);
 }
 
 void ToolBar::AddStretchableSpace()
@@ -49,7 +52,7 @@ wxButton *ToolBar::AddButton(const wxBitmap &bitmap, const wxString &tooltip, in
 	btn->SetBitmap(bitmap);
 	btn->SetMaxSize(button_size);
 	btn->SetToolTip(tooltip);
-	GetSizer()->Add(btn, 0, wxLEFT, 10);
+	GetSizer()->Add(btn, 0, wxLEFT, padding);
 
 	return btn;
 }
@@ -60,7 +63,7 @@ wxToggleButton *ToolBar::AddToggleButton(const wxBitmap &bitmap, const wxString 
 	btn->SetBitmap(bitmap);
 	btn->SetMaxSize(button_size);
 	btn->SetToolTip(tooltip);
-	GetSizer()->Add(btn, 0, wxLEFT, 10);
+	GetSizer()->Add(btn, 0, wxLEFT, padding);
 
 	return btn;
 }
@@ -81,5 +84,10 @@ wxButton *ToolBar::AddMenuButton(const wxBitmap &bitmap, const wxString &tooltip
 {
 	// This method doesn't do anything special, but indicates that the menu has a drop-down menu
 	return AddButton(bitmap, tooltip, id);
+}
+
+void ToolBar::AddSpacer(int space)
+{
+	GetSizer()->AddSpacer(space);
 }
 } // namespace phonometrica

@@ -29,6 +29,7 @@
 #include <phon/application/audio_data.hpp>
 #include <phon/application/resampler.hpp>
 #include <phon/third_party/rtaudio/RtAudio.h>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
@@ -38,7 +39,7 @@ class AudioPlayer final : public wxThread
 {
 public:
 
-    AudioPlayer(Runtime &rt, std::shared_ptr<AudioData> data);
+    explicit AudioPlayer(std::shared_ptr<AudioData> data);
 
     AudioPlayer(const AudioPlayer &) = delete;
 
@@ -47,8 +48,6 @@ public:
     ~AudioPlayer() override;
 
     void play(double from, double to);
-
-    void run();
 
     bool paused() const;
 
@@ -65,8 +64,6 @@ public:
 
 //    void current_time(double);
 //
-//    void done();
-//
 //    void error(const std::string &);
 
 
@@ -78,7 +75,11 @@ public:
 
     void stop();
 
+    Signal<> done;
+
 private:
+
+	void *Entry() override;
 
     static int playback(void *output, void *input, unsigned int nframe, double stream_time,
 						RtAudioStreamStatus status, void *data);
@@ -92,8 +93,6 @@ private:
     intptr_t remaining_frames() const { return  last_frame - position; }
 
     static void error_callback(RtAudioError::Type type, const std::string &msg);
-
-    Runtime &rt;
 
     RtAudio::StreamParameters m_params;
 

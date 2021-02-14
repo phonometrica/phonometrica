@@ -25,6 +25,7 @@
 #include <phon/gui/tab_art_provider.hpp>
 #include <phon/utils/file_system.hpp>
 #include <phon/application/project.hpp>
+#include <phon/application/settings.hpp>
 
 namespace phonometrica {
 
@@ -181,6 +182,21 @@ void Viewer::OnPageChanged(wxAuiNotebookEvent &e)
 void Viewer::UpdateCurrentView()
 {
 	GetCurrentView()->Refresh();
+}
+
+void Viewer::CloseViews()
+{
+	SaveViews(Settings::get_boolean("autosave"));
+	for (size_t i = GetPageCount(); i-- > 0; )
+	{
+		auto view = GetView(i);
+		if (!view->IsStartView())
+		{
+			RemovePage(i);
+			delete view;
+		}
+	}
+	SetStartView();
 }
 
 } // namespace phonometrica
