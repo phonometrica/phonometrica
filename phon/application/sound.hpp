@@ -92,8 +92,6 @@ public:
 
 	static void initialize(Runtime &rt);
 
-	static Object *meta() { return metaobject; }
-
 private:
 
 	void load() override;
@@ -105,8 +103,6 @@ private:
 	static Array<String> the_supported_sound_formats, the_common_sound_formats;
 
 	std::shared_ptr<AudioData> m_data;
-
-	static Object *metaobject;
 };
 
 using AutoSound = std::shared_ptr<Sound>;

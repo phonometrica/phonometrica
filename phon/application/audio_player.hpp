@@ -25,7 +25,6 @@
 
 #include <atomic>
 #include <memory>
-#include <wx/thread.h>
 #include <phon/application/audio_data.hpp>
 #include <phon/application/resampler.hpp>
 #include <phon/third_party/rtaudio/RtAudio.h>
@@ -35,7 +34,7 @@ namespace phonometrica {
 
 class Runtime;
 
-class AudioPlayer final : public wxThread
+class AudioPlayer final
 {
 public:
 
@@ -45,7 +44,7 @@ public:
 
     AudioPlayer(AudioPlayer &&) = delete;
 
-    ~AudioPlayer() override;
+    ~AudioPlayer();
 
     void play(double from, double to);
 
@@ -79,7 +78,7 @@ public:
 
 private:
 
-	void *Entry() override;
+	void run();
 
     static int playback(void *output, void *input, unsigned int nframe, double stream_time,
 						RtAudioStreamStatus status, void *data);

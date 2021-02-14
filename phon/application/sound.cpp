@@ -46,7 +46,6 @@ namespace phonometrica {
 
 Array<String> Sound::the_supported_sound_formats;
 Array<String> Sound::the_common_sound_formats;
-Object *Sound::metaobject = nullptr;
 
 Sound::Sound(VFolder *parent, String path) :
 		VFile(parent, std::move(path))

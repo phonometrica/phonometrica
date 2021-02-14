@@ -43,8 +43,7 @@
 
 namespace phonometrica {
 
-AudioPlayer::AudioPlayer(std::shared_ptr<AudioData> data) :
-		wxThread(wxTHREAD_DETACHED), m_stream(SOUND_API), data(std::move(data))
+AudioPlayer::AudioPlayer(std::shared_ptr<AudioData> data) : m_stream(SOUND_API), data(std::move(data))
 {
 	PHON_LOG("constructing audio player");
     prepare();
@@ -215,7 +214,7 @@ void AudioPlayer::play(double from, double to)
     first_frame = data->time_to_frame(from);
     last_frame = data->time_to_frame(to);
     position = first_frame;
-	Run();
+	run();
 }
 
 void AudioPlayer::initialize_resampling(uint32_t output_rate)
@@ -257,8 +256,6 @@ void AudioPlayer::resume()
 void AudioPlayer::interrupt()
 {
 	stop();
-//    quit();
-//    wait();
 }
 
 void AudioPlayer::play_silence(double *data, size_t size)
@@ -273,14 +270,15 @@ void AudioPlayer::error_callback(RtAudioError::Type type, const std::string &msg
 
 void AudioPlayer::stop()
 {
-    if (m_stream.isStreamOpen())
-    {
+    if (m_stream.isStreamOpen()) {
     	m_stream.stopStream();
-        m_stream.closeStream();
     }
+	if (m_stream.isStreamOpen()) {
+		m_stream.closeStream();
+	}
 }
 
-void *AudioPlayer::Entry()
+void AudioPlayer::run()
 {
 	unsigned int frame_count = FRAME_COUNT;
 
@@ -302,12 +300,6 @@ void *AudioPlayer::Entry()
 	{
 		m_error = std::current_exception();
 	}
-
-	while (m_stream.isStreamRunning()) {
-		Sleep(1);
-	}
-
-	return nullptr;
 }
 
 

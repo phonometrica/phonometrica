@@ -266,9 +266,7 @@ void ConcordanceView::PlayMatch(int row)
 	player->done.connect(&ConcordanceView::ResetPlayer, this);
 	double from = match.get_start_time(1);
 	double to = match.get_end_time(1);
-	if (from != to) {
-		player->play(from, to);
-	}
+	player->play(from, to);
 }
 
 void ConcordanceView::OnViewMatch(wxCommandEvent &)
