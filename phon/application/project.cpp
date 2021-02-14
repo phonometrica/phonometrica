@@ -1461,6 +1461,26 @@ Array<AutoAnnotation> Project::annotations() const
 	return result;
 }
 
+Array<AutoConcordance> Project::concordances() const
+{
+	Array<AutoConcordance> result;
+
+	for (auto &item : m_files)
+	{
+		auto &vf = item.second;
+
+		if (vf->is_concordance())
+		{
+			result.push_back(std::dynamic_pointer_cast<Concordance>(vf));
+		}
+	}
+	std::sort(result.begin(), result.end(), [](const AutoConcordance &c1, const AutoConcordance &c2) -> bool {
+		return c1->label() < c2->label();
+	});
+
+	return result;
+}
+
 void Project::set_default_bindings()
 {
 	for (auto &item : m_files)

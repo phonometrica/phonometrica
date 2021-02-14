@@ -585,4 +585,71 @@ void Concordance::restore_match(intptr_t row, AutoMatch m)
 	file_modified();
 }
 
+std::shared_ptr<Concordance> Concordance::unite(const Concordance &other, const String &label) const
+{
+	if (m_target_count != other.m_target_count) {
+		throw error("Cannot unite concordances with different number of targets");
+	}
+	if (m_context_type != other.m_context_type) {
+		throw error("Cannot unite concordances with different contexts");
+	}
+	if (m_context_length != other.m_context_length) {
+		throw error("Cannot unite concordances with different context lengths");
+	}
+
+	std::set<AutoMatch, MatchLess> buffer;
+
+	for (auto &match : m_matches) {
+		buffer.insert(std::make_unique<Match>(*match));
+	}
+	for (auto &match : other.m_matches) {
+		buffer.insert(std::make_unique<Match>(*match));
+	}
+	Array<AutoMatch> result;
+	result.reserve((intptr_t)buffer.size());
+	for (auto &match : buffer)
+	{
+		auto m = const_cast<AutoMatch&>(match).release();
+		result.append(std::unique_ptr<Match>(m));
+	}
+	auto conc = std::make_shared<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
+	conc->set_label(label, true);
+	auto parent = Project::get()->data().get();
+	parent->append(conc, true);
+
+	return conc;
+}
+
+std::shared_ptr<Concordance> Concordance::intersect(const Concordance &other, const String &label) const
+{
+	if (m_target_count != other.m_target_count) {
+		throw error("Cannot intersect concordances with different number of targets");
+	}
+	if (m_context_type != other.m_context_type) {
+		throw error("Cannot intersect concordances with different contexts");
+	}
+	if (m_context_length != other.m_context_length) {
+		throw error("Cannot intersect concordances with different context lengths");
+	}
+
+	Array<AutoMatch> result;
+
+	for (auto &match : m_matches)
+	{
+		// Matches are guaranteed to be sorted
+		auto it = std::lower_bound(other.m_matches.begin(), other.m_matches.end(), match, MatchLess());
+
+		if (it != other.m_matches.end() && **it == *match) {
+			result.append(std::make_unique<Match>(*match));
+		}
+	}
+
+	auto conc = std::make_shared<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
+	conc->set_label(label, true);
+	auto parent = Project::get()->data().get();
+	parent->append(conc, true);
+
+	return conc;
+}
+
 } // namespace phonometrica

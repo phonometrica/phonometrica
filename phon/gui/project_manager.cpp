@@ -445,7 +445,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 
 				auto exe_id = wxNewId();
 				menu->Append(exe_id, _("Execute"));
-				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,query](wxCommandEvent &) { view_file(query->execute()); Project::updated(); });
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,query](wxCommandEvent &) { view_file(query->execute()); Project::updated(); }, exe_id);
 				menu->AppendSeparator();
 			}
 			else

@@ -99,6 +99,10 @@ protected:
 
 	Match * GetSelectedMatch();
 
+	void OnUnion(wxCommandEvent &);
+
+	void OnIntersection(wxCommandEvent &);
+
 	wxGrid *m_grid;
 
 	wxStaticText *count_label;

@@ -28,6 +28,7 @@ namespace phonometrica {
 
 Signal<> View::modified;
 Signal<> View::request_console;
+Signal<const std::shared_ptr<VFile>&> View::file_created;
 
 View::View(wxWindow *parent) : wxPanel(parent)
 {
@@ -66,7 +67,7 @@ bool View::Finalize(bool autosave)
 		}
 		else
 		{
-			auto reply =  wxMessageBox(_("The current script has unsaved modifications. Would you like to save it?"), _("Save script?"),
+			auto reply =  wxMessageBox(_("The current view has unsaved modifications. Would you like to save it?"), _("Save view?"),
 			                           wxCANCEL|wxYES|wxNO|wxYES_DEFAULT|wxICON_QUESTION);
 
 			if (reply == wxCANCEL) {

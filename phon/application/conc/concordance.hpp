@@ -40,7 +40,7 @@ public:
 
 	Concordance(VFolder *parent, const String &path);
 
-	Concordance(intptr_t target_count, Context ctx, intptr_t context_length, Array <AutoMatch> matches, VFolder *parent,
+	Concordance(intptr_t target_count, Context ctx, intptr_t context_length, Array<AutoMatch> matches, VFolder *parent,
 	            const String &path = String());
 
 	const char *class_name() const override;
@@ -82,6 +82,10 @@ public:
 	AutoMatch remove_match(intptr_t row);
 
 	void restore_match(intptr_t row, AutoMatch m);
+
+	std::shared_ptr<Concordance> unite(const Concordance &other, const String &label) const;
+
+	std::shared_ptr<Concordance> intersect(const Concordance &other, const String &label) const;
 
 protected:
 

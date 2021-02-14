@@ -41,6 +41,10 @@ public:
 
 		double end_time() const { return event->end_time(); }
 
+		bool operator==(const Target &other) const;
+		bool operator!=(const Target &other) const;
+		bool operator<(const Target &other) const;
+
 		// Event where the match occurred.
 		AutoEvent event;
 
@@ -61,6 +65,8 @@ public:
 	};
 
 	Match() = default;
+
+	Match(const Match &other);
 
 	Match(const AutoAnnotation &annot, std::unique_ptr<Target> t);
 
@@ -88,6 +94,10 @@ public:
 
 	void append(std::unique_ptr<Target> next);
 
+	bool operator==(const Match &other) const;
+	bool operator!=(const Match &other) const;
+	bool operator<(const Match &other) const;
+
 protected:
 
 	Target *get(intptr_t i) const;
@@ -100,6 +110,15 @@ protected:
 };
 
 using AutoMatch = std::unique_ptr<Match>;
+
+
+struct MatchLess
+{
+	bool operator()(const AutoMatch &lhs, const AutoMatch &rhs) const
+	{
+		return *lhs < *rhs;
+	}
+};
 
 } // namespace phonometrica
 

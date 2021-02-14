@@ -13,80 +13,43 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 14/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: see header.                                                                                                *
+ * Purpose: Dialog for concordance joints.                                                                             *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_VIEW_HPP
-#define PHONOMETRICA_VIEW_HPP
+#ifndef PHONOMETRICA_CONCORDANCE_JOINT_DIALOG_HPP
+#define PHONOMETRICA_CONCORDANCE_JOINT_DIALOG_HPP
 
-#include <wx/panel.h>
-#include <wx/cmdproc.h>
-#include <phon/utils/signal.hpp>
-#include <phon/application/cmd/command_processor.hpp>
-#include <phon/application/vfs.hpp>
+#include <wx/dialog.h>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <phon/application/conc/concordance.hpp>
 
 namespace phonometrica {
 
-class View : public wxPanel
+class ConcordanceJointDialog final : public wxDialog
 {
 public:
 
-	explicit View(wxWindow *parent);
+	ConcordanceJointDialog(wxWindow *parent, const wxString &title);
 
-	// This method is called before the view is destroyed. It returns true
-	// if the view can be closed, false if it must be kept open.
-	virtual bool Finalize(bool autosave);
+	wxString GetLabel() const;
 
-	// These methods can be overriden to respond to accelerators such as ctrl+s (save) or ctrl+r (run)
-	virtual void Save() { }
+	AutoConcordance GetConcordance() const;
 
-	virtual void Execute() { }
+private:
 
-	virtual void Find();
+	wxTextCtrl *m_text;
 
-	virtual void Replace();
+	wxChoice *m_choice;
 
-	virtual void Escape() { }
-
-	virtual void AdjustFontSize() { }
-
-	virtual bool IsStartView() const { return false; }
-
-	virtual String GetPath() const { return String(); }
-
-	virtual bool IsModified() const = 0;
-
-	virtual void DiscardChanges() = 0;
-
-	virtual wxString GetLabel() const = 0;
-
-	static Signal<> modified;
-
-	static Signal<> request_console;
-
-	static Signal<const std::shared_ptr<VFile>&> file_created;
-
-	void Undo();
-
-	void Redo();
-
-protected:
-
-	void SetTitle(const wxString &title);
-
-	void UpdateTitle();
-
-	bool AskImportFile(const String &path);
-
-	// Update content when an edit has been done (or undone)
-	virtual void UpdateView();
-
-	CommandProcessor command_processor;
+	Array<AutoConcordance> m_items;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_VIEW_HPP
+
+
+#endif // PHONOMETRICA_CONCORDANCE_JOINT_DIALOG_HPP

@@ -13,80 +13,55 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 14/01/2021                                                                                                 *
+ * Created: 14/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: see header.                                                                                                *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_VIEW_HPP
-#define PHONOMETRICA_VIEW_HPP
-
-#include <wx/panel.h>
-#include <wx/cmdproc.h>
-#include <phon/utils/signal.hpp>
-#include <phon/application/cmd/command_processor.hpp>
-#include <phon/application/vfs.hpp>
+#include <wx/button.h>
+#include <wx/stattext.h>
+#include <phon/gui/sizer.hpp>
+#include <phon/gui/conc/concordance_joint_dialog.hpp>
+#include <phon/application/project.hpp>
 
 namespace phonometrica {
 
-class View : public wxPanel
+ConcordanceJointDialog::ConcordanceJointDialog(wxWindow *parent, const wxString &title) :
+	wxDialog(parent, wxID_ANY, title)
 {
-public:
+	auto sizer = new VBoxSizer;
+	sizer->Add(new wxStaticText(this, wxID_ANY, _("Label for new concordance:")), 0, wxLEFT|wxTOP, 10);
+	m_text = new wxTextCtrl(this, wxID_ANY);
+	sizer->Add(m_text, 0, wxEXPAND|wxALL, 10);
+	sizer->Add(new wxStaticText(this, wxID_ANY, _("Other concordance:")),  0, wxEXPAND|wxLEFT|wxBOTTOM|wxRIGHT, 10);
+	wxArrayString choices;
+	m_items = Project::get()->concordances();
 
-	explicit View(wxWindow *parent);
+	for (auto &conc : m_items) {
+		choices.Add(conc->label());
+	}
+	m_choice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices);
+	sizer->Add(m_choice,  0, wxEXPAND|wxLEFT|wxBOTTOM|wxRIGHT, 10);
+	sizer->AddStretchSpacer();
 
-	// This method is called before the view is destroyed. It returns true
-	// if the view can be closed, false if it must be kept open.
-	virtual bool Finalize(bool autosave);
+	auto btn_sizer = new HBoxSizer;
+	btn_sizer->AddStretchSpacer();
+	btn_sizer->Add(new wxButton(this, wxID_CANCEL, _("Cancel")));
+	btn_sizer->AddSpacer(5);
+	btn_sizer->Add(new wxButton(this, wxID_OK, _("OK")));
+	sizer->Add(btn_sizer, 0, wxEXPAND|wxLEFT|wxBOTTOM|wxRIGHT, 10);
+	SetSizer(sizer);
+	m_text->SetFocus();
+}
 
-	// These methods can be overriden to respond to accelerators such as ctrl+s (save) or ctrl+r (run)
-	virtual void Save() { }
+wxString ConcordanceJointDialog::GetLabel() const
+{
+	return m_text->GetValue();
+}
 
-	virtual void Execute() { }
-
-	virtual void Find();
-
-	virtual void Replace();
-
-	virtual void Escape() { }
-
-	virtual void AdjustFontSize() { }
-
-	virtual bool IsStartView() const { return false; }
-
-	virtual String GetPath() const { return String(); }
-
-	virtual bool IsModified() const = 0;
-
-	virtual void DiscardChanges() = 0;
-
-	virtual wxString GetLabel() const = 0;
-
-	static Signal<> modified;
-
-	static Signal<> request_console;
-
-	static Signal<const std::shared_ptr<VFile>&> file_created;
-
-	void Undo();
-
-	void Redo();
-
-protected:
-
-	void SetTitle(const wxString &title);
-
-	void UpdateTitle();
-
-	bool AskImportFile(const String &path);
-
-	// Update content when an edit has been done (or undone)
-	virtual void UpdateView();
-
-	CommandProcessor command_processor;
-};
-
+AutoConcordance ConcordanceJointDialog::GetConcordance() const
+{
+	return m_items[m_choice->GetSelection() + 1];
+}
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_VIEW_HPP

@@ -29,10 +29,58 @@ Match::Target::Target(const AutoEvent &e, String value, intptr_t layer, intptr_t
 
 }
 
+bool Match::Target::operator==(const Match::Target &other) const
+{
+	return (this->event == other.event && this->offset == other.offset && this->value == other.value);
+}
+
+bool Match::Target::operator!=(const Match::Target &other) const
+{
+	return !(*this == other);
+}
+
+bool Match::Target::operator<(const Match::Target &other) const
+{
+	// Same layer?
+	if (this->layer < other.layer) {
+		return true;
+	}
+	if (this->layer > other.layer) {
+		return false;
+	}
+
+	// Same event?
+	if (this->event->start_time() < other.event->start_time()) {
+		return true;
+	}
+	if (this->event->start_time() > other.event->start_time()) {
+		return false;
+	}
+
+	// Compare offsets: we don't need too look at the value since values at a given offset will
+	// always be identical.
+	return this->offset < other.offset;
+}
+
 Match::Match(const AutoAnnotation &annot, std::unique_ptr<Target> t) :
 	m_annot(annot), m_target(std::move(t))
 {
 
+}
+
+Match::Match(const Match &other) : m_annot(other.annotation())
+{
+	auto target = other.m_target.get();
+	m_target = std::make_unique<Target>(target->event, target->value, target->layer, target->offset, target->is_reference);
+	target = target->next.get();
+	auto new_target = m_target.get();
+
+	while (target)
+	{
+		new_target->next = std::make_unique<Target>(target->event, target->value, target->layer, target->offset, target->is_reference);
+		target = target->next.get();
+		new_target = new_target->next.get();
+	}
 }
 
 Match::Target *Match::get(intptr_t i) const
@@ -144,6 +192,68 @@ double Match::get_start_time(intptr_t i) const
 double Match::get_end_time(intptr_t i) const
 {
 	return get_event(i)->end_time();
+}
+
+bool Match::operator==(const Match &other) const
+{
+	if (m_annot->path() != other.annotation()->path()) {
+		return false;
+	}
+
+	Target *t1 = m_target.get();
+	Target *t2 = other.m_target.get();
+
+	while (t1)
+	{
+		if (!t2) {
+			return false;
+		}
+		if (*t1 != *t2) {
+			return false;
+		}
+
+		t1 = t1->next.get();
+		t2 = t2->next.get();
+	}
+
+	return true;
+}
+
+bool Match::operator!=(const Match &other) const
+{
+	return !(*this == other);
+}
+
+bool Match::operator<(const Match &other) const
+{
+	if (this->annotation()->path() < other.annotation()->path()) {
+		return true;
+	}
+	if (this->annotation()->path() > other.annotation()->path()) {
+		return false;
+	}
+
+	auto t1 = m_target.get();
+	auto t2 = other.m_target.get();
+
+	while (t1)
+	{
+		// A match with fewer targets is ranked lower.
+		if (!t2) {
+			return true;
+		}
+		if (*t1 < *t2) {
+			return true;
+		}
+		if (*t1 != *t2) {
+			return false;
+		}
+		t1 = t1->next.get();
+		t2 = t2->next.get();
+	}
+
+	// Matches are equal
+	return false;
 }
 
 } // namespace phonometrica

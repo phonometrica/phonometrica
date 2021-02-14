@@ -24,6 +24,7 @@
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/views/concordance_view.hpp>
+#include <phon/gui/conc/concordance_joint_dialog.hpp>
 #include <phon/application/cmd/delete_match_command.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
@@ -55,6 +56,9 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 
 	auto del_row_tool = m_toolbar->AddButton(ICN(delete_row), _("Delete selected row(s)"));
 	auto edit_row_tool = m_toolbar->AddButton(ICN(edit_row), _("Edit selected event"));
+
+	auto union_tool = m_toolbar->AddButton(ICN(query_union), _("Unite concordance..."));
+	auto intersection_tool = m_toolbar->AddButton(ICN(query_intersection), _("Intersect concordance..."));
 
 	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
 	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite24), _("Bookmark match"));
@@ -111,6 +115,8 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	edit_row_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnEditEvent, this);
 	bookmark_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnBookmarkMatch, this);
 	help_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnHelp, this);
+	union_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnUnion, this);
+	intersection_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnIntersection, this);
 	m_col_tool->Bind(wxEVT_LEFT_DOWN, &ConcordanceView::OnColumnButtonClicked, this);
 	m_grid->Bind(wxEVT_KEY_DOWN, &ConcordanceView::OnKeyDown, this);
 	m_grid->Bind(wxEVT_GRID_CELL_LEFT_DCLICK, &ConcordanceView::OnDoubleClick, this);
@@ -472,6 +478,54 @@ Match * ConcordanceView::GetSelectedMatch()
 	}
 
 	return &m_conc->get_match(sel.front() + 1);
+}
+
+void ConcordanceView::OnUnion(wxCommandEvent &)
+{
+	ConcordanceJointDialog dlg(this, _("Unite concordances..."));
+	if (dlg.ShowModal() != wxID_OK) {
+		return;
+	}
+
+	String label = dlg.GetLabel();
+	auto other = dlg.GetConcordance();
+	other->open();
+
+	try
+	{
+		auto result = m_conc->unite(*other, label);
+		file_created(result);
+		Project::updated();
+	}
+	catch (std::exception &e)
+	{
+		auto msg = wxString::Format(_("Concordance union failed: %s"), e.what());
+		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+	}
+}
+
+void ConcordanceView::OnIntersection(wxCommandEvent &)
+{
+	ConcordanceJointDialog dlg(this, _("Intersect concordances..."));
+	if (dlg.ShowModal() != wxID_OK) {
+		return;
+	}
+
+	String label = dlg.GetLabel();
+	auto other = dlg.GetConcordance();
+	other->open();
+
+	try
+	{
+		auto result = m_conc->intersect(*other, label);
+		file_created(result);
+		Project::updated();
+	}
+	catch (std::exception &e)
+	{
+		auto msg = wxString::Format(_("Concordance union failed: %s"), e.what());
+		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+	}
 }
 
 } // namespace phonometrica

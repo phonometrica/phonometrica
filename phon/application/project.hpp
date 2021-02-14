@@ -138,6 +138,8 @@ public:
 
     Array<AutoAnnotation> annotations() const;
 
+    Array<AutoConcordance> concordances() const;
+
     void add_bookmark(AutoBookmark bookmark);
 
 	static void interpolate(String &path, std::string_view project_dir);

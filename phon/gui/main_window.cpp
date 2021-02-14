@@ -324,6 +324,7 @@ void MainWindow::SetBindings()
 	project_manager->edit_query.connect(&MainWindow::EditQuery, this);
 	View::modified.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	View::request_console.connect(&MainWindow::OnRequestConsole, this);
+	View::file_created.connect(&Viewer::ViewFile, viewer);
 	VNode::request_progress.connect(&MainWindow::OnRequestProgress, this);
 	VNode::update_progress.connect(&MainWindow::OnUpdateProgress, this);
 	VFile::file_modified.connect(&Viewer::UpdateCurrentView, viewer);
