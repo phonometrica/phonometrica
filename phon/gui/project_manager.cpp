@@ -476,6 +476,14 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 					Bind(wxEVT_COMMAND_MENU_SELECTED, [this,annot](wxCommandEvent &) { ConvertTextGridToAnnotation(annot); }, convert_id);
 				}
 			}
+			else if (file->is_concordance())
+			{
+				auto conc = downcast<Concordance>(file);
+				auto rename_id = wxNewId();
+				menu->Append(rename_id, _("Rename..."));
+				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { RenameConcordance(conc); }, rename_id);
+				menu->AppendSeparator();
+			}
 			else if (file->is_script())
 			{
 				auto script = downcast<Script>(file);
@@ -1005,6 +1013,17 @@ void ProjectManager::RemoveItems(const VNodeList &items)
 		}
 	}
 	Project::updated();
+}
+
+void ProjectManager::RenameConcordance(const AutoConcordance &conc)
+{
+	String name = wxGetTextFromUser(_("New concordance name:"), _("Rename concordance..."));
+
+	if (!name.empty())
+	{
+		conc->set_label(name, true);
+		Project::updated();
+	}
 }
 
 void ProjectManager::RenameQuery(const AutoQuery &query)

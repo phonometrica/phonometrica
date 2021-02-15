@@ -87,6 +87,8 @@ public:
 
 	std::shared_ptr<Concordance> intersect(const Concordance &other, const String &label) const;
 
+	std::shared_ptr<Concordance> complement(const Concordance &other, const String &label) const;
+
 protected:
 
 	void preload();

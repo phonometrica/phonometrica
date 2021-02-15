@@ -437,8 +437,12 @@ void Concordance::write()
 	auto matches_node = root.append_child("Matches");
 	matches_node.append_attribute("count").set_value(m_matches.size());
 	matches_node.append_attribute("length").set_value(m_target_count);
+	auto msg = String("Writing concordance %1").arg(label());
+	request_progress(msg, "Writing matches...", (int)m_matches.size());
+	int count = 1;
 	for (auto &match : m_matches)
 	{
+		update_progress(count++);
 		match->to_xml(matches_node);
 	}
 
@@ -470,9 +474,13 @@ void Concordance::find_context()
 void Concordance::find_kwic_context()
 {
 	String sep(" ");
+	auto msg = String("Extracting KWIC context for concordance %1").arg(label());
+	request_progress(msg, "Loading matches", (int)m_matches.size());
+	int count = 1;
 
 	for (auto &match : m_matches)
 	{
+		update_progress(count++);
 		auto target = match->reference_target();
 		auto annot = match->annotation().get();
 		std::pair<String, String> ctx;
@@ -502,8 +510,13 @@ bool Concordance::is_metadata_column(intptr_t col) const
 
 void Concordance::find_label_context()
 {
+	auto msg = String("Extracting surrounding labels for concordance %1").arg(label());
+	request_progress(msg, "Loading matches", (int)m_matches.size());
+	int count = 1;
+
 	for (auto &match : m_matches)
 	{
+		update_progress(count++);
 		auto target = match->reference_target();
 		std::pair<String, String> ctx;
 		if (target)
@@ -588,7 +601,7 @@ void Concordance::restore_match(intptr_t row, AutoMatch m)
 std::shared_ptr<Concordance> Concordance::unite(const Concordance &other, const String &label) const
 {
 	if (m_target_count != other.m_target_count) {
-		throw error("Cannot unite concordances with different number of targets");
+		throw error("Cannot unite concordances with different numbers of targets");
 	}
 	if (m_context_type != other.m_context_type) {
 		throw error("Cannot unite concordances with different contexts");
@@ -613,9 +626,9 @@ std::shared_ptr<Concordance> Concordance::unite(const Concordance &other, const 
 		result.append(std::unique_ptr<Match>(m));
 	}
 	auto conc = std::make_shared<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
-	conc->set_label(label, true);
+	conc->set_label(label, false);
 	auto parent = Project::get()->data().get();
-	parent->append(conc, true);
+	parent->append(conc, false);
 
 	return conc;
 }
@@ -623,7 +636,7 @@ std::shared_ptr<Concordance> Concordance::unite(const Concordance &other, const 
 std::shared_ptr<Concordance> Concordance::intersect(const Concordance &other, const String &label) const
 {
 	if (m_target_count != other.m_target_count) {
-		throw error("Cannot intersect concordances with different number of targets");
+		throw error("Cannot intersect concordances with different numbers of targets");
 	}
 	if (m_context_type != other.m_context_type) {
 		throw error("Cannot intersect concordances with different contexts");
@@ -645,9 +658,41 @@ std::shared_ptr<Concordance> Concordance::intersect(const Concordance &other, co
 	}
 
 	auto conc = std::make_shared<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
-	conc->set_label(label, true);
+	conc->set_label(label, false);
 	auto parent = Project::get()->data().get();
-	parent->append(conc, true);
+	parent->append(conc, false);
+
+	return conc;
+}
+
+std::shared_ptr<Concordance> Concordance::complement(const Concordance &other, const String &label) const
+{
+	if (m_target_count != other.m_target_count) {
+		throw error("Cannot compute concordance complement for concordances with different numbers of targets");
+	}
+	if (m_context_type != other.m_context_type) {
+		throw error("Cannot compute concordance complement for concordances with different contexts");
+	}
+	if (m_context_length != other.m_context_length) {
+		throw error("Cannot compute concordance complement for concordances with different context lengths");
+	}
+
+	Array<AutoMatch> result;
+
+	for (auto &match : other.m_matches)
+	{
+		// Matches are guaranteed to be sorted
+		auto it = std::lower_bound(m_matches.begin(), m_matches.end(), match, MatchLess());
+
+		if (it == m_matches.end() || **it != *match) {
+			result.append(std::make_unique<Match>(*match));
+		}
+	}
+
+	auto conc = std::make_shared<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
+	conc->set_label(label, false);
+	auto parent = Project::get()->data().get();
+	parent->append(conc, false);
 
 	return conc;
 }

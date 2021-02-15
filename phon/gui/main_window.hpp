@@ -209,7 +209,7 @@ private:
 
 	void OnRequestConsole();
 
-	void OnRequestProgress(const String &title, const String &msg, int count);
+	void OnRequestProgress(const String &msg, const String &title, int count);
 
 	void OnUpdateProgress(int i);
 

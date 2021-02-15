@@ -57,8 +57,9 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	auto del_row_tool = m_toolbar->AddButton(ICN(delete_row), _("Delete selected row(s)"));
 	auto edit_row_tool = m_toolbar->AddButton(ICN(edit_row), _("Edit selected event"));
 
-	auto union_tool = m_toolbar->AddButton(ICN(query_union), _("Unite concordance..."));
-	auto intersection_tool = m_toolbar->AddButton(ICN(query_intersection), _("Intersect concordance..."));
+	auto union_tool = m_toolbar->AddButton(ICN(query_union), _("Unite concordance... (matches in A or B)"));
+	auto intersection_tool = m_toolbar->AddButton(ICN(query_intersection), _("Intersect concordance... (matches in A and B)"));
+	auto complement_tool = m_toolbar->AddButton(ICN(query_complement), _("Get complement of concordance... (matches in B not A)"));
 
 	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
 	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite24), _("Bookmark match"));
@@ -117,9 +118,11 @@ ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
 	help_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnHelp, this);
 	union_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnUnion, this);
 	intersection_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnIntersection, this);
+	complement_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnComplement, this);
 	m_col_tool->Bind(wxEVT_LEFT_DOWN, &ConcordanceView::OnColumnButtonClicked, this);
 	m_grid->Bind(wxEVT_KEY_DOWN, &ConcordanceView::OnKeyDown, this);
 	m_grid->Bind(wxEVT_GRID_CELL_LEFT_DCLICK, &ConcordanceView::OnDoubleClick, this);
+	m_grid->Bind(wxEVT_GRID_CELL_RIGHT_CLICK, &ConcordanceView::OnRightClick, this);
 #undef ICN
 }
 
@@ -153,7 +156,14 @@ void ConcordanceView::OnPlaySelection(wxCommandEvent &)
 	auto sel = m_grid->GetSelectedRows();
 	if (sel.size() != 1)
 	{
-		wxMessageBox(_("You can only play one match at a time"), _("Error"), wxICON_INFORMATION);
+		if (sel.empty())
+		{
+			wxMessageBox(_("You must first select a match"), _("Error"), wxICON_INFORMATION);
+		}
+		else
+		{
+			wxMessageBox(_("You can only play one match at a time"), _("Error"), wxICON_INFORMATION);
+		}
 		return;
 	}
 
@@ -277,12 +287,12 @@ void ConcordanceView::PlayMatch(int row)
 
 void ConcordanceView::OnViewMatch(wxCommandEvent &)
 {
-
+	wxMessageBox(_("Not implemented yet!"), _(""), wxICON_INFORMATION);
 }
 
 void ConcordanceView::OnBookmarkMatch(wxCommandEvent &)
 {
-
+	wxMessageBox(_("Not implemented yet!"), _(""), wxICON_INFORMATION);
 }
 
 void ConcordanceView::OnColumnButtonClicked(wxMouseEvent &)
@@ -526,6 +536,63 @@ void ConcordanceView::OnIntersection(wxCommandEvent &)
 		auto msg = wxString::Format(_("Concordance union failed: %s"), e.what());
 		wxMessageBox(msg, _("Error"), wxICON_ERROR);
 	}
+}
+
+void ConcordanceView::OnComplement(wxCommandEvent &)
+{
+	ConcordanceJointDialog dlg(this, _("Get complement of concordance..."));
+	if (dlg.ShowModal() != wxID_OK) {
+		return;
+	}
+
+	String label = dlg.GetLabel();
+	auto other = dlg.GetConcordance();
+	other->open();
+
+	try
+	{
+		auto result = m_conc->complement(*other, label);
+		file_created(result);
+		Project::updated();
+	}
+	catch (std::exception &e)
+	{
+		auto msg = wxString::Format(_("Concordance complement failed: %s"), e.what());
+		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+	}
+}
+
+void ConcordanceView::OnRightClick(wxGridEvent &e)
+{
+	m_grid->ClearSelection();
+	m_grid->SelectRow(e.GetRow());
+	auto match = GetSelectedMatch();
+	auto menu = new wxMenu;
+
+	if (match->annotation()->has_sound())
+	{
+		auto play_item = menu->Append(wxNewId(), _("Play match"));
+		auto view_item = menu->Append(wxNewId(), _("View match in annotation"));
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &ConcordanceView::OnPlaySelection, this, play_item->GetId());
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &ConcordanceView::OnViewMatch, this, view_item->GetId());
+	}
+	if (match->annotation()->is_textgrid())
+	{
+		auto praat_item = menu->Append(wxNewId(), _("Open match in Praat"));
+		Bind(wxEVT_COMMAND_MENU_SELECTED, &ConcordanceView::OnOpenInPraat, this, praat_item->GetId());
+	}
+	menu->AppendSeparator();
+	auto edit_item = menu->Append(wxNewId(), _("Edit matched event"));
+	auto remove_item = menu->Append(wxNewId(), _("Remove match"));
+	menu->AppendSeparator();
+	auto bookmark_item = menu->Append(wxNewId(), _("Bookmark match"));
+
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &ConcordanceView::OnEditEvent, this, edit_item->GetId());
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &ConcordanceView::OnDeleteRows, this, remove_item->GetId());
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &ConcordanceView::OnBookmarkMatch, this, bookmark_item->GetId());
+	auto pos = e.GetPosition();
+	pos.y += 60;
+	PopupMenu(menu, pos);
 }
 
 } // namespace phonometrica

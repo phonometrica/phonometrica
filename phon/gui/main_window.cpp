@@ -1764,7 +1764,7 @@ void MainWindow::RunQuery(QueryEditor &editor)
 	}
 }
 
-void MainWindow::OnRequestProgress(const String &title, const String &msg, int count)
+void MainWindow::OnRequestProgress(const String &msg, const String &title, int count)
 {
 	progress_dialog = std::make_unique<wxProgressDialog>(title, msg, count);
 }

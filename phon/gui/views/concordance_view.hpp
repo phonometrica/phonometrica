@@ -95,6 +95,8 @@ protected:
 
 	void OnDoubleClick(wxGridEvent &);
 
+	void OnRightClick(wxGridEvent &);
+
 	void DeleteEventEditor();
 
 	Match * GetSelectedMatch();
@@ -102,6 +104,8 @@ protected:
 	void OnUnion(wxCommandEvent &);
 
 	void OnIntersection(wxCommandEvent &);
+
+	void OnComplement(wxCommandEvent &);
 
 	wxGrid *m_grid;
 

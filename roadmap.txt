@@ -12,6 +12,8 @@ Version 0.8.0:
 - the description file for plugins is now ``description.phon`` (instead of ``description.json``)
 - plugins can now display documentation (stored in a directory named "Documentation")
 - "Search annotations" is now "Find in annotations"
+- query joints (union, intersection, complement)
+- Edit menu (find/replace, undo/redo)
 - ability to use modules in plugins
 - resources directory is now determined automatically based on the executable's path
 - usability improvements across the board
@@ -38,7 +40,7 @@ Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers
 - complex queries (if possible, otherwise 0.9)
 
 
-Version 0.9.0:
+Version 0.9.0+:
 
 - project metadata dans le panel info
 - measure pitch and intensity
@@ -56,8 +58,8 @@ faut que ça reste toujours au dessus de le fenêtre principale.
 - plugin section on the website
 - finalize documentation
 - coding protocol: champ libre texte (ex: mot précédent un codage)
+- project metadata
 - étiquetage syntaxique 
-
 
 - Extraction d’une partie sélectionnée du fichier son. 
 - bug selecting_tier

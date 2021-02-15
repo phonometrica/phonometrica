@@ -26,6 +26,7 @@
 #include <wx/stattext.h>
 #include <wx/treectrl.h>
 #include <wx/srchctrl.h>
+#include <wx/activityindicator.h>
 #include <wx/imaglist.h>
 #include <wx/button.h>
 #include <phon/runtime.hpp>
@@ -130,6 +131,8 @@ private:
 
 	void DuplicateQuery(const AutoQuery &query);
 
+	void RenameConcordance(const AutoConcordance &conc);
+
 	void SaveFile(const std::shared_ptr<VFile> &file);
 
 	void OnQuickSearch(wxCommandEvent &e);
@@ -153,6 +156,8 @@ private:
 	wxTreeItemId root, corpus_item, query_item, script_item, data_item, bookmark_item;
 
 	wxButton *menu_btn;
+
+	wxActivityIndicator *activity_indicator;
 
 	int corpus_img, queries_img, datasets_img, scripts_img, bookmarks_img;
 	int annot_img, textgrid_img, folder_img, bookmark_img, sound_img, document_img, query_img, script_img, conc_img, csv_img;

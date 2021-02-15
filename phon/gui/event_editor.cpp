@@ -58,7 +58,7 @@ EventEditor::EventEditor(wxWindow *parent, const AutoAnnotation &annot, const Au
 	m_annot = annot;
 	m_event = event;
 	auto txt = event->text();
-	wxString left = String(txt.begin(), sel_start);
+	String left = String(txt.begin(), sel_start); // we need this one later
 	wxString selection = String(txt.begin() + sel_start, len);
 	wxString right = String(txt.begin() + sel_start + len);
 
@@ -69,7 +69,6 @@ EventEditor::EventEditor(wxWindow *parent, const AutoAnnotation &annot, const Au
 	m_ctrl->EndBold();
 	m_ctrl->EndTextColour();
 	m_ctrl->WriteText(right);
-	m_ctrl->SetCaretPosition(sel_start - 1);
 	m_ctrl->SetFocus();
 }
 
