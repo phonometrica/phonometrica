@@ -89,6 +89,8 @@ public:
 
 	std::shared_ptr<Concordance> complement(const Concordance &other, const String &label) const;
 
+	bool update_match(intptr_t i);
+
 protected:
 
 	void preload();

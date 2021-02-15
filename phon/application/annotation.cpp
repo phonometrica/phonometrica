@@ -28,7 +28,7 @@
 
 namespace phonometrica {
 
-Object *Annotation::metaobject = nullptr;
+Signal<const std::shared_ptr<Annotation>&, const AutoEvent&, const String&> Annotation::edit_event;
 
 Annotation::Annotation(VFolder *parent, String path) :
 		VFile(parent, std::move(path))

@@ -391,8 +391,7 @@ void ConcordanceView::OnDeleteRows(wxCommandEvent &)
 	for (int i : m_grid->GetSelectedRows())
 	{
 		int row = i + 1 - shift++;
-		auto cmd = std::make_unique<DeleteMatchCommand>(m_conc, row);
-		command_processor.submit(std::move(cmd));
+		DeleteRow(row, false);
 	}
 	UpdateView();
 }
@@ -459,8 +458,9 @@ void ConcordanceView::EditCurrentEvent()
 
 	auto offset = match->get_offset(1);
 	auto len = match->get_value(1).size();
+	edited_match = m_grid->GetSelectedRows().front() + 1; // index in base 1
 	event_editor = new EventEditor(this, match->annotation(), match->get_event(1), offset, len, pos, size);
-	event_editor->done.connect(&ConcordanceView::DeleteEventEditor, this);
+	event_editor->done.connect(&ConcordanceView::EndMatchEditing, this);
 }
 
 void ConcordanceView::Escape()
@@ -475,6 +475,7 @@ void ConcordanceView::DeleteEventEditor()
 	{
 		delete event_editor;
 		event_editor = nullptr;
+		edited_match = 0;
 		m_grid->SetFocus();
 	}
 }
@@ -593,6 +594,29 @@ void ConcordanceView::OnRightClick(wxGridEvent &e)
 	auto pos = e.GetPosition();
 	pos.y += 60;
 	PopupMenu(menu, pos);
+}
+
+void ConcordanceView::EndMatchEditing()
+{
+	// This is a slot connected to EventEditor::done.
+
+	if (!m_conc->update_match(edited_match))
+	{
+		wxMessageBox(_("The current match is no longer valid and will be deleted"),
+			   _("Invalid match"), wxICON_WARNING);
+		DeleteRow(edited_match, true);
+	}
+
+	DeleteEventEditor();
+}
+
+void ConcordanceView::DeleteRow(intptr_t i, bool update)
+{
+	auto cmd = std::make_unique<DeleteMatchCommand>(m_conc, i);
+	command_processor.submit(std::move(cmd));
+	if (update) {
+		UpdateView();
+	}
 }
 
 } // namespace phonometrica

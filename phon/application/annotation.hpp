@@ -69,8 +69,6 @@ public:
 
 	static void initialize(Runtime &rt);
 
-	static Object *meta() { return metaobject; }
-
 	const LayerList &layers() const { return m_graph.layers(); }
 
 	AGraph &graph() { return m_graph; }
@@ -123,6 +121,8 @@ public:
 
 	intptr_t get_event_index(intptr_t layer_index, double time) const;
 
+	static Signal<const std::shared_ptr<Annotation>&, const AutoEvent&, const String&> edit_event;
+
 protected:
 
 	void read_from_native();
@@ -150,8 +150,6 @@ private:
 	AGraph m_graph;
 
 	Type m_type = Undefined;
-
-	static Object *metaobject;
 
 };
 

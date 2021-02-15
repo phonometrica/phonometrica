@@ -4,38 +4,35 @@ Version 0.8.0:
 - new user interface based on wxWidgets
 - new scripting engine
 - ability to search files in the project manager
-- ability to save and load queries
-- License is now GPL2 or later (instead of GPL3 or later)
+- ability to save and load queries and concordances
+- query joints (union, intersection, complement)
+- press space to play a match or enter to edit it in a concordance view
 - properties are now directly edited from the information panel
 - improved shortcuts to show/hide the panels of the main window (see the Window menu)
 - updating a plugin now cleanly removes the previous version
 - the description file for plugins is now ``description.phon`` (instead of ``description.json``)
 - plugins can now display documentation (stored in a directory named "Documentation")
 - "Search annotations" is now "Find in annotations"
-- query joints (union, intersection, complement)
 - Edit menu (find/replace, undo/redo)
+- syntax completion and call tips in script views
 - ability to use modules in plugins
+- signal/slot mechanism for plugins (``create_signal()``, ``connect()``, ``disconnect()``, ``emit()``)
+- option to restore open views from previous session
 - resources directory is now determined automatically based on the executable's path
+- License is now GPL2 or later (instead of GPL3 or later)
 - usability improvements across the board
 - bug fixes
 
 TODO:
-- priorité : refactoriser les vues spreadsheet / séraliser les données
-- PRIORITE : différence/fusion entre deux résultats de query
+- priorité : refactoriser les vues spreadsheet (finir CSV)
 - bug décalage: décalage proportionnel à la taille du zoom. Si on fait glisser la fenêtre d'un côté ou de l'autre, le décalage sera tantôt à gauche ou à droite.
 Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers. 
-- improve Dataset
 - std::bad_alloc: ouvre un fichier son -> catch and rethrow
-- option pour réouvrir les vues qui étaient ouvertes en quittant ?
-- signal/slot (create_signal(), connect(), disconnect(), emit())
-- Edit menu (find, replace, undo, redo)
 - raccourcis play/pause stop, ajout/suppression d'ancres
-
 - Export to plain text, lorsque l’on sélectionne un autre chemin d’accès il n’y a pas l’extension .txt
 - checkbox pour la sélection des fichiers dans les queries
 - mac : vérifier settings / edit preferences
 - mac : bug aléatoire quand on clique play
-- espace pour jouer une occurrence
 - recherches formantiques, mettre les unités dans la view plutôt que dans le query editor
 - complex queries (if possible, otherwise 0.9)
 
@@ -49,9 +46,6 @@ Version 0.9.0+:
 - concordances avec n mots à gauche et à droite plutôt que des chaînes de n caractères
 - npoint en plus de npoint average (diphtongues, pitch)
 - mettre à jour la query en cours quand on édite un item. 
-- permettre de jouer le son quand on édite un évènement (éventuellement ajouter un bouton pour jouer). Réfléchir à la meilleure manière de faire. Il
-faut que ça reste toujours au dessus de le fenêtre principale. 
-- ctrl+z : créer une pile d'opérations (ajout/suppression d'ancres, de niveaux éventuellement).
 - mesures acoustiques sur une sélection et pas seulement sur un point.
 - regarder suppression et curseur sur mac
 - multi-layer annotation queries

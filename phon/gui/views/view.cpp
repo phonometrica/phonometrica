@@ -117,8 +117,15 @@ void View::Redo()
 	UpdateView();
 }
 
+void View::Submit(AutoCommand cmd)
+{
+	command_processor.submit(std::move(cmd));
+	UpdateView();
+}
+
 void View::UpdateView()
 {
 	UpdateTitle();
 }
+
 } // namespace phonometrica

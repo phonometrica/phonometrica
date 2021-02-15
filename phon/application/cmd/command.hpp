@@ -31,7 +31,7 @@ class Command
 {
 public:
 
-	explicit Command(String name, bool undo = false);
+	explicit Command(String name, bool undo = true);
 
 	// Returns true if the command was successfully performed, and false otherwise
 	virtual bool execute() = 0;

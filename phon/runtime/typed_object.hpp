@@ -90,12 +90,13 @@ public:
 	Handle()
 	{ ptr = nullptr; }
 
+	// By default we retain the value.
 	explicit Handle(TObject<T> *value) {
 		ptr = value;
 		retain();
 	}
 
-	// ... but we can explicitly retain if needed.
+	// ... but we can simply wrap the pointer without retaining it if needed.
 	Handle(TObject<T> *value, Raw) {
 		ptr = value;
 	}

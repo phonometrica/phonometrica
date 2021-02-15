@@ -24,6 +24,7 @@
 #include <phon/gui/views/concordance_view.hpp>
 #include <phon/gui/tab_art_provider.hpp>
 #include <phon/utils/file_system.hpp>
+#include <phon/application/cmd/edit_event_command.hpp>
 #include <phon/application/project.hpp>
 #include <phon/application/settings.hpp>
 
@@ -37,6 +38,7 @@ Viewer::Viewer(Runtime &rt, wxWindow *parent, MainWindow *win) :
 	Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSE, &Viewer::OnCloseView, this);
 	Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSED, &Viewer::OnViewClosed, this);
 	Bind(wxEVT_AUINOTEBOOK_PAGE_CHANGED, &Viewer::OnPageChanged, this);
+	Annotation::edit_event.connect(&Viewer::OnEditEvent, this);
 }
 
 void Viewer::NewScript()
@@ -197,6 +199,12 @@ void Viewer::CloseViews()
 		}
 	}
 	SetStartView();
+}
+
+void Viewer::OnEditEvent(const std::shared_ptr<Annotation> &annot, const AutoEvent &event, const String &new_value)
+{
+	auto cmd = std::make_unique<EditEventCommand>(annot, event, new_value);
+	GetCurrentView()->Submit(std::move(cmd));
 }
 
 } // namespace phonometrica

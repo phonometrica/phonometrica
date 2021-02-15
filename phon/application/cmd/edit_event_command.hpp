@@ -13,125 +13,44 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 10/02/2021                                                                                                 *
+ * Created: 15/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Display a concordance (i.e. the result of a query).                                                        *
+ * Purpose: Edit the text of an event.                                                                                 *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_CONCORDANCE_VIEW_HPP
-#define PHONOMETRICA_CONCORDANCE_VIEW_HPP
+#ifndef PHONOMETRICA_EDIT_EVENT_COMMAND_HPP
+#define PHONOMETRICA_EDIT_EVENT_COMMAND_HPP
 
-#include <wx/stattext.h>
-#include <phon/gui/tool_bar.hpp>
-#include <phon/gui/views/view.hpp>
-#include <phon/gui/event_editor.hpp>
-#include <phon/gui/ctrl/concordance_controller.hpp>
-#include <phon/application/audio_player.hpp>
+#include <phon/application/cmd/command.hpp>
+#include <phon/application/annotation.hpp>
 
 namespace phonometrica {
 
-class ConcordanceView : public View
+class EditEventCommand final : public Command
 {
 public:
 
-	ConcordanceView(wxWindow *parent, AutoConcordance conc);
+	EditEventCommand(const AutoAnnotation &annot, const AutoEvent &event, const String &new_value);
 
-	bool IsModified() const override;
+	bool execute() override;
 
-	void DiscardChanges() override;
+	bool restore() override;
 
-	wxString GetLabel() const override;
+private:
 
-	String GetPath() const override;
+	bool change_value();
 
-	void Save() override;
+	AutoAnnotation m_annot;
 
-	void Escape() override;
+	AutoEvent m_event;
 
-protected:
+	String value;
 
-	void OnSave(wxCommandEvent &);
-
-	void OnPlaySelection(wxCommandEvent &);
-
-	void OnStopPlaying(wxCommandEvent &);
-
-	void OnOpenInPraat(wxCommandEvent &);
-
-	void OpenInPraat(int row);
-
-	void OnKeyDown(wxKeyEvent &e);
-
-	void OnExportToCsv(wxCommandEvent &);
-
-	void OnViewMatch(wxCommandEvent &);
-
-	void OnBookmarkMatch(wxCommandEvent &);
-
-	void OnHelp(wxCommandEvent &);
-
-	void OnColumnButtonClicked(wxMouseEvent &);
-
-	void ShowFileInfo();
-
-	void ShowMetadata();
-
-	void PlayMatch(int row);
-
-	void OnDeleteRows(wxCommandEvent &);
-
-	void DeleteRow(intptr_t i, bool update);
-
-	void OnEditEvent(wxCommandEvent &);
-
-	void EditCurrentEvent();
-
-	void UpdateView() override;
-
-	void UpdateCountLabel();
-
-	void StopPlayer();
-
-	void ResetPlayer();
-
-	void OnDoubleClick(wxGridEvent &);
-
-	void OnRightClick(wxGridEvent &);
-
-	void DeleteEventEditor();
-
-	void EndMatchEditing();
-
-	Match * GetSelectedMatch();
-
-	void OnUnion(wxCommandEvent &);
-
-	void OnIntersection(wxCommandEvent &);
-
-	void OnComplement(wxCommandEvent &);
-
-	wxGrid *m_grid;
-
-	wxStaticText *count_label;
-
-	ToolBar *m_toolbar;
-
-	wxButton *m_save_tool, *m_play_tool, *m_col_tool;
-
-	AudioPlayer *player = nullptr;
-
-	EventEditor *event_editor = nullptr;
-
-	AutoConcordance m_conc;
-
-	intptr_t edited_match = 0; // index in base 1 (0 is invalid)
-
-	bool m_show_file_info = true, m_show_metadata = false;
 };
 
 } // namespace phonometrica
 
 
 
-#endif // PHONOMETRICA_CONCORDANCE_VIEW_HPP
+#endif // PHONOMETRICA_EDIT_EVENT_COMMAND_HPP

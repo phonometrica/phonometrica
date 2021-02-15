@@ -73,6 +73,8 @@ public:
 
 	void Redo();
 
+	void Submit(AutoCommand cmd);
+
 protected:
 
 	void SetTitle(const wxString &title);

@@ -697,4 +697,13 @@ std::shared_ptr<Concordance> Concordance::complement(const Concordance &other, c
 	return conc;
 }
 
+bool Concordance::update_match(intptr_t i)
+{
+	bool modified;
+	auto result = m_matches[i]->update(modified);
+	if (modified) modify();
+
+	return result;
+}
+
 } // namespace phonometrica

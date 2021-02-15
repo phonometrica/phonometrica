@@ -98,6 +98,8 @@ public:
 	bool operator!=(const Match &other) const;
 	bool operator<(const Match &other) const;
 
+	bool update(bool &modified);
+
 protected:
 
 	Target *get(intptr_t i) const;

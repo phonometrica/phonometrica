@@ -256,4 +256,32 @@ bool Match::operator<(const Match &other) const
 	return false;
 }
 
+bool Match::update(bool &modified)
+{
+	auto target = m_target.get();
+	modified = false;
+
+	while (target)
+	{
+		auto &text = target->event->text();
+
+		if (target->offset + target->value.size() > text.size()) {
+			return false;
+		}
+
+		auto start = text.begin() + target->offset;
+		String new_value(start, target->value.size());
+		modified = (new_value != target->value);
+
+		// TODO: there must be an undo operation synchronized with the match
+		if (modified) {
+			target->value = new_value;
+		}
+
+		target = target->next.get();
+	}
+
+	return true;
+}
+
 } // namespace phonometrica
