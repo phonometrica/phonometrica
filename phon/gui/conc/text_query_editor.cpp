@@ -122,6 +122,9 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 
 
 	auto vsizer = new wxBoxSizer(wxVERTICAL);
+#ifdef __WXMSW__
+	vsizer->AddSpacer(30);
+#endif
 	vsizer->Add(ctx_sizer, 1, wxEXPAND, 0);
 	vsizer->AddSpacer(20);
 	context_box->SetSizer(vsizer);

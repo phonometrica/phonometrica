@@ -92,8 +92,14 @@ static const int ID_HELP_SCRIPTING = wxNewId();
 static const int ID_HELP_ACKNOWLEDGEMENTS = wxNewId();
 static const int ID_HELP_SOUND_INFO = wxNewId();
 
+#ifdef __WXMSW__
+#define EDITOR_SIZE wxSize(1100, 700)
+#else
+#define EDITOR_SIZE wxSize(1100, 850)
+#endif
+
 MainWindow::MainWindow(Runtime &rt, const wxString &title) :
-		wxFrame(nullptr, wxNewId(), title), editor_size(1100, 850), runtime(rt)
+		wxFrame(nullptr, wxNewId(), title), editor_size(EDITOR_SIZE), runtime(rt)
 {
 	wxSize size(1200, 800);
 	SetSize(FromDIP(size));
@@ -1792,6 +1798,9 @@ void MainWindow::OnRequestProgress(const String &msg, const String &title, int c
 void MainWindow::OnUpdateProgress(int i)
 {
 	progress_dialog->Update(i);
+	if (i == progress_dialog->GetRange()) {
+	    delete progress_dialog.release();
+	}
 }
 
 void MainWindow::OnUndo(wxCommandEvent &)

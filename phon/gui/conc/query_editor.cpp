@@ -54,6 +54,9 @@ void QueryEditor::Prepare()
 #ifdef __WXGTK__
 	const int search_prop = 0;
 	const int prop = 0;
+#elif defined(__WXMSW__)
+	const int search_prop = 0;
+	const int prop = 0;
 #else
 	const int search_prop = 2;
 	const int prop = 1;

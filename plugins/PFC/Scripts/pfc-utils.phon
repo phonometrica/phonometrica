@@ -72,11 +72,11 @@ end
 # Process all the annotations in the current project
 module.tag_annotations = function()
 	local annotations = get_annotations()
-	create_progress_dialog("Writing PFC metadata...", "PFC plugin", len(annotations))
-	local count = 1
+	#create_progress_dialog("Writing PFC metadata...", "PFC plugin", len(annotations))
+	#local count = 1
 	foreach annot in annotations do
-		update_progress_dialog(count)
-		count += 1
+		#update_progress_dialog(count)
+		#count += 1
 		add_metadata(annot)
 	end
 	phon.project.refresh()

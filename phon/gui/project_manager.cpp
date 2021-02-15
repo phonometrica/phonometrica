@@ -64,7 +64,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	search_ctrl->SetToolTip(_("Find files in your project based on their name or metadata"));
 
 	activity_indicator = new wxActivityIndicator(this, wxID_ANY, wxDefaultPosition, wxSize(30, 30));
-
+    activity_indicator->Hide();
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	hsizer->Add(main_label, 0, wxALIGN_CENTER);
 	hsizer->AddStretchSpacer();
