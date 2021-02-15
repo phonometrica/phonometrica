@@ -24,7 +24,7 @@
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/views/concordance_view.hpp>
-#include <phon/gui/conc/concordance_joint_dialog.hpp>
+#include <phon/gui/conc/concordance_join_dialog.hpp>
 #include <phon/application/cmd/delete_match_command.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
@@ -493,7 +493,7 @@ Match * ConcordanceView::GetSelectedMatch()
 
 void ConcordanceView::OnUnion(wxCommandEvent &)
 {
-	ConcordanceJointDialog dlg(this, _("Unite concordances..."));
+	ConcordanceJoinDialog dlg(this, _("Unite concordances..."));
 	if (dlg.ShowModal() != wxID_OK) {
 		return;
 	}
@@ -517,7 +517,7 @@ void ConcordanceView::OnUnion(wxCommandEvent &)
 
 void ConcordanceView::OnIntersection(wxCommandEvent &)
 {
-	ConcordanceJointDialog dlg(this, _("Intersect concordances..."));
+	ConcordanceJoinDialog dlg(this, _("Intersect concordances..."));
 	if (dlg.ShowModal() != wxID_OK) {
 		return;
 	}
@@ -541,7 +541,7 @@ void ConcordanceView::OnIntersection(wxCommandEvent &)
 
 void ConcordanceView::OnComplement(wxCommandEvent &)
 {
-	ConcordanceJointDialog dlg(this, _("Get complement of concordance..."));
+	ConcordanceJoinDialog dlg(this, _("Get complement of concordance..."));
 	if (dlg.ShowModal() != wxID_OK) {
 		return;
 	}

@@ -50,6 +50,8 @@ private:
 	wxFontPickerCtrl *m_font_picker;
 
 	wxCheckBox *m_autosave_checkbox, *m_autoload_checkbox, *m_autohints_checkbox, *m_restore_views_checkbox;
+
+	wxCheckBox *m_empty_conc_checkbox;
 };
 
 } // namespace phonometrica

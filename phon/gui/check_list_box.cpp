@@ -49,4 +49,12 @@ String CheckListBox::GetJsonValue(size_t i) const
 	return (i <= m_tooltips.size()) ? m_tooltips[i] : GetString(i);
 }
 
+void CheckListBox::CheckAll(bool value)
+{
+	for (unsigned i = 0; i < GetCount(); i++)
+	{
+		Check(i, value);
+	}
+}
+
 } // namespace phonometrica

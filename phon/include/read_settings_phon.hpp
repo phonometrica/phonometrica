@@ -23,8 +23,6 @@ phon.settings = {
 
 "hide_info": false,
 
-"match_window_length": 40,
-
 "autosave": false,
 
 "autoload": false,
@@ -32,6 +30,11 @@ phon.settings = {
 "autohints": true,
 
 "enable_mouse_tracking": true,
+
+"concordance": {
+"discard_empty": true,
+"context_length": 40
+}
 
 "sound_plots": {
 "spectrogram": true,

@@ -51,6 +51,8 @@ public:
 
 	static String get_string(const String &name);
 
+	static String get_string(const String &category, const String &name);
+
 	static bool get_boolean(const String &name);
 
 	static bool get_boolean(const String &category, const String &name);
@@ -59,9 +61,9 @@ public:
 
 	static double get_number(const String &category, const String &name);
 
-	static String get_string(const String &category, const String &name);
-
 	static int get_int(const String &name);
+
+	static int get_int(const String &category, const String &name);
 
 	static Array<Variant> &get_list(const String &name);
 

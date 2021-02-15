@@ -37,6 +37,8 @@ public:
 
 	String GetJsonValue(size_t i) const;
 
+	void CheckAll(bool value);
+
 protected:
 
 	void OnMouseOver(wxMouseEvent &e);

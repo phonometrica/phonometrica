@@ -97,7 +97,7 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	context_spinctrl = new wxSpinCtrl(context_box, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS); //, 1, 100, 40);
 	context_spinctrl->SetToolTip(_("Number of characters in the left and right contexts"));
 	context_spinctrl->SetRange(1, 1000);
-	context_spinctrl->SetValue(Settings::get_int("match_window_length"));
+	context_spinctrl->SetValue(Settings::get_int("concordance", "context_length"));
 	auto ref_label = new wxStaticText(context_box, wxID_ANY, _("Reference constraint:"));
 	ref_spinctrl = new wxSpinCtrl(context_box, wxID_ANY, "1");
 	ref_spinctrl->SetToolTip(_("Select the constraint for which the context should be extracted"));
@@ -335,6 +335,8 @@ void TextQueryEditor::ParseQuery()
 	{
 		query->set_context(Query::Context::KWIC);
 		query->set_context_length(context_spinctrl->GetValue());
+		// Remember last choice
+		Settings::set_value("concordance", "context_length", intptr_t(context_spinctrl->GetValue()));
 		query->set_reference_constraint(ref_spinctrl->GetValue());
 	}
 

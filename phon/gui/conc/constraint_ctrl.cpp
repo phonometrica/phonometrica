@@ -25,7 +25,7 @@
 #include <wx/checkbox.h>
 #include <phon/gui/conc/constraint_ctrl.hpp>
 
-#define NEW_DESIGN
+//#define NEW_DESIGN
 
 namespace phonometrica {
 

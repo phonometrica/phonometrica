@@ -1,6 +1,10 @@
+Roadmap for Phonometrica
+========================
 
-Version 0.8.0:
+Version 0.8.0
+-------------
 
+Done:
 - new user interface based on wxWidgets
 - new scripting engine
 - ability to search files in the project manager
@@ -24,28 +28,30 @@ Version 0.8.0:
 - bug fixes
 
 TODO:
+- refactoriser le modèle object (VNode, VFolder and VFile -> Element, Directory and Document)
+- redesign query constraints: "equals/contains/matches"
+- contexte autour de la target de la contrainte de référence + ajouter boutons radio pour sélectionner la cible active 
+- complex queries
+- coding protocols
 - priorité : refactoriser les vues spreadsheet (finir CSV)
-- bug décalage: décalage proportionnel à la taille du zoom. Si on fait glisser la fenêtre d'un côté ou de l'autre, le décalage sera tantôt à gauche ou à droite.
-Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers. 
+- bug décalage: décalage proportionnel à la taille du zoom. Si on fait glisser la fenêtre d'un côté ou de l'autre, le décalage sera tantôt à gauche ou à droite. Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers. 
 - std::bad_alloc: ouvre un fichier son -> catch and rethrow
 - raccourcis play/pause stop, ajout/suppression d'ancres
 - Export to plain text, lorsque l’on sélectionne un autre chemin d’accès il n’y a pas l’extension .txt
-- checkbox pour la sélection des fichiers dans les queries
 - mac : vérifier settings / edit preferences
 - mac : bug aléatoire quand on clique play
 - recherches formantiques, mettre les unités dans la view plutôt que dans le query editor
-- complex queries (if possible, otherwise 0.9)
-
+- bug selecting_tier
+- dialog edit : cliquer ailleurs devrait enlever le dialogue -> toggle button
+- mettre à jour la concordance en cours quand on édite un item. 
+- reset settings
 
 Version 0.9.0+:
 
 - project metadata dans le panel info
 - measure pitch and intensity
 - settings: possibilité de sauvagarde périodique des annotations (peut-être fichier buffer ?)
-- touchpad en plus de la molette dans les annotations ? 
-- concordances avec n mots à gauche et à droite plutôt que des chaînes de n caractères
 - npoint en plus de npoint average (diphtongues, pitch)
-- mettre à jour la query en cours quand on édite un item. 
 - mesures acoustiques sur une sélection et pas seulement sur un point.
 - regarder suppression et curseur sur mac
 - multi-layer annotation queries
@@ -53,10 +59,23 @@ Version 0.9.0+:
 - finalize documentation
 - coding protocol: champ libre texte (ex: mot précédent un codage)
 - project metadata
-- étiquetage syntaxique 
+
+
+Version 1.0:
 
 - Extraction d’une partie sélectionnée du fichier son. 
-- bug selecting_tier
+- extraire extrait son + annotation
+- drag and drop des fichiers sur le projet
+- concordances avec n mots à gauche et à droite plutôt que des chaînes de n caractères
+- touchpad en plus de la molette dans les annotations ? 
+- Statistics (intégrer le code pour la régression)
+
+Post 1.0
+
+- POS tagging?
+
+
+============================================================================
 
     3) Dans le plugin IPFC dolmen, search grammar, voyelle ou consonne :
 "TierSelectingField": 1 ?? --> layer_field
@@ -67,14 +86,6 @@ Si j’ai bien compris, ces lignes permettent de sélectionner la bonne tier dan
     c) S’il faut absolument que la bonne tire soit sélectionnée, quelle syntaxe dans le json du coding protocol ?
 
     4) Dans les coding protocols : choices/display ne fonctionnent pas !
-
-
-    extraire extrait son + annotation
-
-- dialog edit : cliquer ailleurs devrait enlever le dialogue ?
-- drag and drop des fichiers sur le projet
-- 0 matches : renvoyer un onglet vide ? + lien avec requête sérialisée 
-- case insensitive par défaut ? OK
 
 ============================================================================
 

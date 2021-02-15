@@ -247,6 +247,16 @@ int Settings::get_int(const String &name)
 	return int(get_number(name));
 }
 
+int Settings::get_int(const String &category, const String &name)
+{
+	// Get "phon.settings.category.name"
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key));
+	auto &mod = cast<Table>(settings.get(category));
+
+	return (int)cast<intptr_t>(mod.get(name));
+}
+
 bool Settings::get_boolean(const String &category, const String &name)
 {
 	// Get "phon.settings.category.name"
@@ -433,6 +443,14 @@ void Settings::post_initialize()
 		settings["restore_views"] = false;
 		settings["recent_views"] = make_handle<List>(runtime);
 		settings["selected_view"] = intptr_t(-1);
+	}
+	if (!settings.contains("concordance"))
+	{
+		auto table = make_handle<Table>(runtime);
+		auto &map = table->data();
+		map["context_length"] = intptr_t(40);
+		map["discard_empty"] = true;
+		Settings::set_value("concordance", std::move(table));
 	}
 }
 

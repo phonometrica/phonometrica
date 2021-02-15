@@ -19,6 +19,7 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <wx/checkbox.h>
 #include <wx/sizer.h>
 #include <wx/scrolwin.h>
 #include <wx/stattext.h>
@@ -64,6 +65,7 @@ void QueryEditor::Prepare()
 	scrolled_sizer->Add(MakeSearchPanel(main_window), search_prop, wxEXPAND | wxALL, 0);
 	scrolled_sizer->Add(MakeFileSelector(main_window), prop, wxEXPAND | wxALL, 0);
 	scrolled_sizer->Add(MakeProperties(main_window), prop, wxEXPAND | wxALL, 10);
+	scrolled_sizer->AddStretchSpacer();
 	scrolled_sizer->Add(MakeButtons(main_window), 0, wxEXPAND | wxALL, 10);
 
 	main_window->SetSizer(scrolled_sizer);
@@ -216,7 +218,7 @@ wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)
 	}
 
 	file_list = new CheckListBox(file_box, annotations, tooltips);
-	file_list->SetMaxSize(FromDIP(wxSize(-1, 200)));
+	file_list->SetMaxSize(FromDIP(wxSize(-1, 250)));
 	auto old_font = file_list->GetFont();
 	auto new_font = Settings::get_mono_font();
 	new_font.SetPointSize(old_font.GetPointSize());
@@ -225,6 +227,13 @@ wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)
 #ifdef __WXMSW__
 	file_sizer->AddSpacer(20);
 #endif
+
+	auto file_checkbox = new wxCheckBox(file_box, wxID_ANY, wxString());
+	file_checkbox->SetToolTip(_("Select all files"));
+	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
+	hsizer->AddStretchSpacer();
+	hsizer->Add(file_checkbox);
+	file_sizer->Add(hsizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
 	file_sizer->Add(file_list, 1, wxEXPAND|wxALL, 10);
 	file_sizer->AddSpacer(10);
 	file_box->SetSizer(file_sizer);
@@ -261,6 +270,7 @@ wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)
 	desc_ctrl->Bind(wxEVT_TEXT, &QueryEditor::OnQueryModified, this);
 	desc_op_choice->Bind(wxEVT_CHOICE, &QueryEditor::OnQueryModified, this);
 	file_list->Bind(wxEVT_CHECKLISTBOX, &QueryEditor::OnQueryModified, this);
+	file_checkbox->Bind(wxEVT_CHECKBOX, &QueryEditor::OnFileListChecked, this);
 
 	return sizer;
 }
@@ -326,6 +336,11 @@ void QueryEditor::EnableSaving(bool value)
 void QueryEditor::OnQueryModified(wxCommandEvent &)
 {
 	EnableSaving(true);
+}
+
+void QueryEditor::OnFileListChecked(wxCommandEvent &e)
+{
+	file_list->CheckAll(e.IsChecked());
 }
 
 } // namespace phonometrica

@@ -119,7 +119,7 @@ void Viewer::ViewFile(const std::shared_ptr<VFile> &file)
 	{
 		auto conc = downcast<Concordance>(file);
 
-		if (conc->empty())
+		if (conc->empty() && Settings::get_boolean("concordance", "discard_empty"))
 		{
 			wxMessageBox(_("No match found!"), _("Empty concordance"), wxICON_INFORMATION);
 		}

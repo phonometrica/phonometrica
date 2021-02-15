@@ -15,41 +15,53 @@
  *                                                                                                                     *
  * Created: 14/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Dialog for concordance joints.                                                                             *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_CONCORDANCE_JOINT_DIALOG_HPP
-#define PHONOMETRICA_CONCORDANCE_JOINT_DIALOG_HPP
-
-#include <wx/dialog.h>
-#include <wx/textctrl.h>
-#include <wx/choice.h>
-#include <phon/application/conc/concordance.hpp>
+#include <wx/button.h>
+#include <wx/stattext.h>
+#include <phon/gui/sizer.hpp>
+#include <phon/gui/conc/concordance_join_dialog.hpp>
+#include <phon/application/project.hpp>
 
 namespace phonometrica {
 
-class ConcordanceJointDialog final : public wxDialog
+ConcordanceJoinDialog::ConcordanceJoinDialog(wxWindow *parent, const wxString &title) :
+	wxDialog(parent, wxID_ANY, title)
 {
-public:
+	auto sizer = new VBoxSizer;
+	sizer->Add(new wxStaticText(this, wxID_ANY, _("Label for new concordance:")), 0, wxLEFT|wxTOP, 10);
+	m_text = new wxTextCtrl(this, wxID_ANY);
+	sizer->Add(m_text, 0, wxEXPAND|wxALL, 10);
+	sizer->Add(new wxStaticText(this, wxID_ANY, _("Other concordance:")),  0, wxEXPAND|wxLEFT|wxBOTTOM|wxRIGHT, 10);
+	wxArrayString choices;
+	m_items = Project::get()->concordances();
 
-	ConcordanceJointDialog(wxWindow *parent, const wxString &title);
+	for (auto &conc : m_items) {
+		choices.Add(conc->label());
+	}
+	m_choice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices);
+	sizer->Add(m_choice,  0, wxEXPAND|wxLEFT|wxBOTTOM|wxRIGHT, 10);
+	sizer->AddStretchSpacer();
 
-	wxString GetLabel() const;
+	auto btn_sizer = new HBoxSizer;
+	btn_sizer->AddStretchSpacer();
+	btn_sizer->Add(new wxButton(this, wxID_CANCEL, _("Cancel")));
+	btn_sizer->AddSpacer(5);
+	btn_sizer->Add(new wxButton(this, wxID_OK, _("OK")));
+	sizer->Add(btn_sizer, 0, wxEXPAND|wxLEFT|wxBOTTOM|wxRIGHT, 10);
+	SetSizer(sizer);
+	m_text->SetFocus();
+}
 
-	AutoConcordance GetConcordance() const;
+wxString ConcordanceJoinDialog::GetLabel() const
+{
+	return m_text->GetValue();
+}
 
-private:
-
-	wxTextCtrl *m_text;
-
-	wxChoice *m_choice;
-
-	Array<AutoConcordance> m_items;
-};
-
+AutoConcordance ConcordanceJoinDialog::GetConcordance() const
+{
+	return m_items[m_choice->GetSelection() + 1];
+}
 } // namespace phonometrica
-
-
-
-#endif // PHONOMETRICA_CONCORDANCE_JOINT_DIALOG_HPP

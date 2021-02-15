@@ -75,6 +75,8 @@ protected:
 
 	void OnQueryModified(wxCommandEvent &);
 
+	void OnFileListChecked(wxCommandEvent &);
+
 	void EnableSaving(bool value);
 
 	virtual void ParseQuery() = 0;

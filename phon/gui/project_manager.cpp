@@ -63,12 +63,12 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	search_ctrl->SetDescriptiveText(_("Search files"));
 	search_ctrl->SetToolTip(_("Find files in your project based on their name or metadata"));
 
-//	activity_indicator = new wxActivityIndicator(this, wxID_ANY, wxDefaultPosition, wxSize(30, 30));
+	activity_indicator = new wxActivityIndicator(this, wxID_ANY, wxDefaultPosition, wxSize(30, 30));
 
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	hsizer->Add(main_label, 0, wxALIGN_CENTER);
 	hsizer->AddStretchSpacer();
-//	hsizer->Add(activity_indicator);
+	hsizer->Add(activity_indicator);
 	menu_btn = new wxButton(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	menu_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(menu));
 	menu_btn->SetMaxSize(wxSize(30, 30));
@@ -1133,14 +1133,12 @@ void ProjectManager::OnKeyDown(wxKeyEvent &e)
 
 void ProjectManager::StartActivity()
 {
-	activity_indicator->Show();
 	activity_indicator->Start();
 }
 
 void ProjectManager::StopActivity()
 {
 	activity_indicator->Stop();
-	activity_indicator->Hide();
 }
 
 #ifdef __WXMSW__

@@ -53,10 +53,14 @@ wxPanel *PreferencesEditor::MakeGeneralPanel()
 	m_autohints_checkbox = new wxCheckBox(panel, wxID_ANY, _("Activate syntax hints in script views by default"));
 	m_autohints_checkbox->SetValue(Settings::get_boolean("autohints"));
 
+	m_empty_conc_checkbox = new wxCheckBox(panel, wxID_ANY, _("Discard empty queries"));
+	m_empty_conc_checkbox->SetValue(Settings::get_boolean("concordance", "discard_empty"));
+
 	sizer->Add(m_autoload_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM|wxTOP, 10);
 	sizer->Add(m_restore_views_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	sizer->Add(m_autosave_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
-	sizer->Add(m_autohints_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
+	sizer->Add(m_empty_conc_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
+	sizer->Add(m_autohints_checkbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	sizer->AddStretchSpacer(1);
 	sizer->AddSpacer(10);
 
@@ -88,6 +92,7 @@ void PreferencesEditor::DoOk()
 	Settings::set_value("autosave", m_autosave_checkbox->GetValue());
 	Settings::set_value("autohints", m_autohints_checkbox->GetValue());
 	Settings::set_value("restore_views", m_restore_views_checkbox->GetValue());
+	Settings::set_value("concordance", "discard_empty", m_empty_conc_checkbox->GetValue());
 
 	// Appearance panel
 	auto old_font = Settings::get_mono_font();

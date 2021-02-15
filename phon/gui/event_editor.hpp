@@ -22,6 +22,7 @@
 #ifndef PHONOMETRICA_EVENT_EDITOR_HPP
 #define PHONOMETRICA_EVENT_EDITOR_HPP
 
+#include <wx/popupwin.h>
 #include <wx/richtext/richtextctrl.h>
 #include <phon/application/annotation.hpp>
 #include <phon/utils/signal.hpp>

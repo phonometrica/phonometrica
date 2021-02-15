@@ -865,10 +865,9 @@ void MainWindow::OnOpenProject(wxCommandEvent &)
 void MainWindow::OnEditPreferences(wxCommandEvent &)
 {
 	PreferencesEditor dlg(this);
+	wxSize size(480, 280);
 #ifdef __WXGTK__
-    wxSize size(480, 270);
-#else
-    wxSize size(480, 250);
+	size.y += 20;
 #endif
 	dlg.SetSize(FromDIP(size));
 	if (dlg.ShowModal() == wxID_OK)
@@ -1687,8 +1686,9 @@ void MainWindow::SaveProject()
 		SaveProjectAs();
 	}
 	else
-	{
+	{	project_manager->StartActivity();
 		project->save();
+		project_manager->StopActivity();
 	}
 }
 
@@ -1703,7 +1703,9 @@ void MainWindow::SaveProjectAs()
 	if (!path.ends_with(PHON_EXT_PROJECT)) {
 		path.append(PHON_EXT_PROJECT);
 	}
+	project_manager->StartActivity();
 	Project::get()->save(path);
+	project_manager->StopActivity();
 	UpdateRecentProjects(path);
 }
 

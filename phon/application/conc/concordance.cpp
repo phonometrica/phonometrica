@@ -511,9 +511,9 @@ bool Concordance::is_metadata_column(intptr_t col) const
 
 void Concordance::find_label_context()
 {
-	auto msg = String("Extracting surrounding labels for concordance %1").arg(label());
+//	auto msg = String("Extracting surrounding labels for concordance %1").arg(label());
 	//request_progress(msg, "Loading matches", (int)m_matches.size());
-	int count = 1;
+//	int count = 1;
 
 	for (auto &match : m_matches)
 	{
