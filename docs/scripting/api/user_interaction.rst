@@ -8,6 +8,25 @@ Global functions
 ----------------
 
 
+.. function:: create_progress_dialog(message as String, title as String, count as Integer)
+
+Create a progress dialog with the provided message and title, set up for `count` elements. You must update the value of the dialog using `update_progress_dialog()`.
+
+See also: :func:`update_progress_dialog`
+
+
+------------
+
+.. function:: update_progress_dialog(value as Integer)
+
+Update the progress dialog to the provided `value`. If `value` equals the progress dialog's count, the dialog is closed. The first value that should be provided to this
+function is 1, and the last one is the number of elements passed to the dialog when it was created. 
+
+See also: :func:`create_progress_dialog`
+
+
+------------
+
 .. function:: warning(message [, title])
 
 Displays a warning dialog.
@@ -37,7 +56,7 @@ Asks a Yes/No question to the user. Returns ``true`` of the user clicked ``Yes``
 
 ------------
 
-.. function:: get\_input(label, title, text)
+.. function:: get_input(label, title, text)
 
 Displays an input dialog whose title is `title` and whose informative text is `label`. The dialog contains a 
 field whose value is `text`. This function returns the content of the field.
@@ -45,37 +64,37 @@ field whose value is `text`. This function returns the content of the field.
 
 ------------
 
-.. function:: open\_file\_dialog(message)
+.. function:: open_file_dialog(message)
 
 Displays a dialog that lets the user select a file.
 
-See also: :func:`save\_file\_dialog`,
-:func:`open\_directory\_dialog`
+See also: :func:`save_file_dialog`,
+:func:`open_directory_dialog`
 
 
 ------------
 
-.. function:: save\_file\_dialog(message)
+.. function:: save_file_dialog(message)
 
 Displays a dialog that lets the user choose a path to save a file.
 
-See also: :func:`open\_file\_dialog`,
-:func:`open\_directory\_dialog`
+See also: :func:`open_file_dialog`,
+:func:`open_directory_dialog`
 
 
 ------------
 
-.. function:: open\_directory\_dialog(message)
+.. function:: open_directory_dialog(message)
 
 Displays a dialog that lets the user select a directory.
 
-See also: :func:`save\_file\_dialog`,
-:func:`open\_file\_dialog`
+See also: :func:`save_file_dialog`,
+:func:`open_file_dialog`
 
 
 ------------
 
-.. function:: set\_status(message, timeout)
+.. function:: set_status(message, timeout)
 
 Displays ``message`` in the status bar for ``timeout`` seconds. If
 ``timeout`` is ``0``, the message is displayed until the next one
@@ -84,7 +103,7 @@ appears.
 
 ------------
 
-.. function:: view\_text(path [, title [, width]])
+.. function:: view_text(path [, title [, width]])
 
 Opens the plain text file ``path`` in a new dialog. Optionally, you can specify the dialog's ``title`` and set its
 ``width``.

@@ -33,6 +33,8 @@ public:
 
 	explicit Command(String name, bool undo = true);
 
+	virtual ~Command() = default;
+
 	// Returns true if the command was successfully performed, and false otherwise
 	virtual bool execute() = 0;
 

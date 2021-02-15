@@ -333,6 +333,8 @@ void MainWindow::SetBindings()
 	project->notify_closed.connect(&ProjectManager::OnProjectClosed, project_manager);
 	project->about_to_close.connect(&Viewer::CloseViews, viewer);
 	project->metadata_updated.connect(&ProjectManager::UpdateLabel, project_manager);
+//	project->start_activity.connect(&ProjectManager::StartActivity, project_manager);
+//	project->stop_activity.connect(&ProjectManager::StopActivity, project_manager);
 
 	Bind(wxEVT_CLOSE_WINDOW, &MainWindow::OnCloseRequest, this);
 }
@@ -1476,6 +1478,20 @@ void MainWindow::SetShellFunctions()
 		return Variant();
 	};
 
+	auto create_progress_dialog = [this](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto &msg = cast<String>(args[0]);
+		auto &title = cast<String>(args[1]);
+		auto count = (int)cast<intptr_t>(args[2]);
+		progress_dialog = std::make_unique<wxProgressDialog>(title, msg, count);
+		return Variant();
+	};
+
+	auto update_progress_dialog = [this](Runtime &rt, std::span<Variant> args) -> Variant {
+		auto value = (int)cast<intptr_t>(args[0]);
+		progress_dialog->Update(value);
+		return Variant();
+	};
+
 	auto view_text = [this](Runtime &, std::span<Variant> args) -> Variant {
 		auto &path = cast<String>(args[0]);
 		auto &title = cast<String>(args[1]);
@@ -1609,6 +1625,8 @@ void MainWindow::SetShellFunctions()
 	runtime.add_global("get_plugin_resource", get_plugin_resource, { CLS(String), CLS(String) });
 	runtime.add_global("create_dialog", create_dialog1, { CLS(String) });
 	runtime.add_global("create_dialog", create_dialog2, { CLS(Table) });
+	runtime.add_global("create_progress_dialog", create_progress_dialog, { CLS(String), CLS(String), CLS(intptr_t) });
+	runtime.add_global("update_progress_dialog", update_progress_dialog, { CLS(intptr_t) });
 	runtime.add_global("launch_browser", launch_browser, { CLS(String) });
 //	runtime.add_global("set_status", set_status1, { CLS(String) });
 //	runtime.add_global("set_status", set_status2, { CLS(String), CLS(intptr_t) });

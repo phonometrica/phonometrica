@@ -474,13 +474,14 @@ void Concordance::find_context()
 void Concordance::find_kwic_context()
 {
 	String sep(" ");
-	auto msg = String("Extracting KWIC context for concordance %1").arg(label());
-	request_progress(msg, "Loading matches", (int)m_matches.size());
-	int count = 1;
+	// FIXME: the progress dialog slows things down absurdly on macOS.
+	//auto msg = String("Extracting KWIC context for concordance %1").arg(label());
+	//request_progress(msg, "Loading matches", (int)m_matches.size());
+	//int count = 1;
 
 	for (auto &match : m_matches)
 	{
-		update_progress(count++);
+		//update_progress(count++);
 		auto target = match->reference_target();
 		auto annot = match->annotation().get();
 		std::pair<String, String> ctx;
@@ -511,12 +512,12 @@ bool Concordance::is_metadata_column(intptr_t col) const
 void Concordance::find_label_context()
 {
 	auto msg = String("Extracting surrounding labels for concordance %1").arg(label());
-	request_progress(msg, "Loading matches", (int)m_matches.size());
+	//request_progress(msg, "Loading matches", (int)m_matches.size());
 	int count = 1;
 
 	for (auto &match : m_matches)
 	{
-		update_progress(count++);
+		//update_progress(count++);
 		auto target = match->reference_target();
 		std::pair<String, String> ctx;
 		if (target)

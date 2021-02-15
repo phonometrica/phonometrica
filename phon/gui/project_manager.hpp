@@ -47,6 +47,10 @@ public:
 
 	void UpdateLabel();
 
+	void StartActivity();
+
+	void StopActivity();
+
 	static void CheckProjectImport();
 
 	Signal<VFileList> files_selected;
@@ -157,7 +161,7 @@ private:
 
 	wxButton *menu_btn;
 
-	wxActivityIndicator *activity_indicator;
+	wxActivityIndicator *activity_indicator = nullptr;
 
 	int corpus_img, queries_img, datasets_img, scripts_img, bookmarks_img;
 	int annot_img, textgrid_img, folder_img, bookmark_img, sound_img, document_img, query_img, script_img, conc_img, csv_img;

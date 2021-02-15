@@ -47,7 +47,7 @@ void QueryEditor::Prepare()
 	// Since we can't call virtual functions in the constructor, we setup the UI after the object is set up.
 	this->SetPosition(wxPoint(100, 70));
 
-	auto scrolled_window = new wxScrolledWindow(this);
+	auto main_window = new wxScrolledWindow(this);
 	auto scrolled_sizer = new wxBoxSizer(wxVERTICAL);
 
 #ifdef __WXGTK__
@@ -59,20 +59,26 @@ void QueryEditor::Prepare()
 #endif
 
 	scrolled_sizer->AddSpacer(5);
-	scrolled_sizer->Add(MakeHeader(scrolled_window), 0, wxEXPAND|wxALL, 10);
+	scrolled_sizer->Add(MakeHeader(main_window), 0, wxEXPAND | wxALL, 10);
 	scrolled_sizer->AddSpacer(5);
-	scrolled_sizer->Add(MakeSearchPanel(scrolled_window), search_prop, wxEXPAND|wxALL, 0);
-	scrolled_sizer->Add(MakeFileSelector(scrolled_window), prop, wxEXPAND|wxALL, 0);
-	scrolled_sizer->Add(MakeProperties(scrolled_window), prop, wxEXPAND|wxALL, 10);
-	scrolled_sizer->AddStretchSpacer();
-	scrolled_sizer->Add(MakeButtons(scrolled_window), 0, wxEXPAND|wxALL, 10);
+	scrolled_sizer->Add(MakeSearchPanel(main_window), search_prop, wxEXPAND | wxALL, 0);
+	scrolled_sizer->Add(MakeFileSelector(main_window), prop, wxEXPAND | wxALL, 0);
+	scrolled_sizer->Add(MakeProperties(main_window), prop, wxEXPAND | wxALL, 10);
+	scrolled_sizer->Add(MakeButtons(main_window), 0, wxEXPAND | wxALL, 10);
 
-	scrolled_window->SetSizer(scrolled_sizer);
+	main_window->SetSizer(scrolled_sizer);
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-	scrolled_window->SetScrollRate(5, 5);
-	main_sizer->Add(scrolled_window, 1, wxEXPAND|wxALL, 0);
+	main_window->SetScrollRate(0, 5);
+
+	main_sizer->Add(main_window, 1, wxEXPAND | wxALL, 0);
 	SetSizer(main_sizer);
 	prepared = true;
+	// FIXME: I can't get the scrolled window to work properly on macOS: if we don't set the virtual size,
+	//  the vertical scroll bar covers part of the OK button. With this it still shows but at least it
+	//  doesn't overlap.
+#ifdef __WXMAC__
+	main_window->SetVirtualSize(500, 500);
+#endif
 }
 
 wxBoxSizer *QueryEditor::MakeHeader(wxWindow *parent)

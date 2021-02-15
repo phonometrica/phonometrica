@@ -135,6 +135,7 @@ void Project::save(String path)
 
 void Project::save()
 {
+	start_activity();
 	// Save content before writing the project, because write() will reset modifications on all VFiles.
 	m_corpus->save_content();
 	m_scripts->save_content();
@@ -148,12 +149,14 @@ void Project::save()
 	m_database_temp = false;
 
 	notify_update();
+	stop_activity();
 }
 
 void Project::load()
 {
 	assert(!m_path.empty());
 	assert(m_accumulator.empty());
+	start_activity();
 
 	xml_document doc;
 	xml_node root = read_xml(doc, m_path);
@@ -188,13 +191,11 @@ void Project::load()
 		{
 			int size = 0;
 			auto attr = node.attribute("size");
-			if (attr)
-			{
+			if (attr) {
 				size = attr.as_int();
-				start_import("Importing files...", size);
 			}
 
-			parse_corpus(node, m_corpus.get(), true);
+			parse_corpus(node, m_corpus.get());
 		}
 		else if (node.name() == meta_tag)
 		{
@@ -221,6 +222,7 @@ void Project::load()
 	m_database_temp = false;
 	bind_annotations();
 	notify_update();
+	stop_activity();
 	emit(project_loaded);
 }
 
@@ -239,7 +241,7 @@ const std::shared_ptr<VFolder> & Project::scripts() const
 	return m_scripts;
 }
 
-void Project::parse_corpus(xml_node root, VFolder *folder, bool emitting)
+void Project::parse_corpus(xml_node root, VFolder *folder)
 {
 	int counter = 0;
 	static const std::string_view folder_tag("VFolder");
@@ -291,10 +293,6 @@ void Project::parse_corpus(xml_node root, VFolder *folder, bool emitting)
 		else
 		{
 			throw error("Invalid file system node in project");
-		}
-
-		if (emitting) {
-			update_import(++counter);
 		}
 	}
 }
@@ -861,12 +859,7 @@ String Project::import_file(String path)
 void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent, bool importing)
 {
 	auto content = filesystem::list_directory(path);
-	bool toplevel = (parent == m_corpus);
 	auto count = content.size();
-
-	if (toplevel) {
-		start_import("Import folder", count);
-	}
 
 	for (intptr_t counter = 1; counter <= count; ++counter)
 	{
@@ -882,10 +875,6 @@ void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent, bo
 		else
 		{
 			add_file(file, parent, FileType::Any, importing);
-		}
-
-		if (toplevel) {
-			update_import(counter);
 		}
 	}
 }

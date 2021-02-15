@@ -156,11 +156,8 @@ public:
 
 	bool import_flag() const { return m_import_flag; }
 
-	// Start import progress dialog.
-	Signal<const String&, int> start_import;
-
-	// Update import counter.
-	Signal<int> update_import;
+	// Some tasks such as saving the project can take time. Let the user know about it.
+	Signal<> start_activity, stop_activity;
 
 	// Inform the UI that the project has been modified.
 	Signal<> notify_update;
@@ -184,7 +181,7 @@ private:
     void load();
 	void write();
 
-	void parse_corpus(xml_node root, VFolder *folder, bool emitting = false);
+	void parse_corpus(xml_node root, VFolder *folder);
 	void parse_metadata(xml_node root);
 	void parse_scripts(xml_node root, VFolder *folder);
 	void parse_queries(xml_node root, VFolder *folder);
