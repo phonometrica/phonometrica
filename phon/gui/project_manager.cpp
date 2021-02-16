@@ -166,7 +166,6 @@ void ProjectManager::OnProjectClosed()
 	main_label->SetToolTip(wxString());
 }
 
-
 void ProjectManager::UpdateProject()
 {
 	auto project = Project::get();

@@ -26,7 +26,7 @@
 #include <phon/application/annotation.hpp>
 #include <phon/application/script.hpp>
 #include <phon/application/bookmark.hpp>
-#include <phon/application/spreadsheet.hpp>
+#include <phon/application/dataset.hpp>
 #include <phon/application/metadata.hpp>
 #include <phon/application/database.hpp>
 #include <phon/application/conc/query.hpp>

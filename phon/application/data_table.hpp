@@ -15,54 +15,64 @@
  *                                                                                                                     *
  * Created: 28/02/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: Script file.                                                                                               *
+ * Purpose: Abstract base class for tabular datasets, where each column represents a variable and each row represents  *
+ * an observation. Derived classes are Dataset, which represents a CSV file, and Concordance, which is the base    *
+ * for all the types of concordances available in Phonometrica.                                                        *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SCRIPT_HPP
-#define PHONOMETRICA_SCRIPT_HPP
+#ifndef PHONOMETRICA_DATA_TABLE_HPP
+#define PHONOMETRICA_DATA_TABLE_HPP
 
 #include <phon/application/vfs.hpp>
 
 namespace phonometrica {
 
-class Script final : public Document
+class Runtime;
+
+class DataTable : public Document
 {
 public:
 
-	explicit Script(Directory *parent, String path = String());
+	explicit DataTable(Class *klass, Directory *parent, String path = String());
 
-	bool is_script() const override;
+	bool is_dataset() const override;
 
-	const String &content() const;
+	void from_xml(xml_node root, const String &project_dir);
 
-	void set_content(String value, bool mutate = true);
+	virtual String get_header(intptr_t j) const = 0;
 
-    // A script can only be modified in a script view. We don't update the script's content every time the text is
-    // changed in the view. Instead, we inform the script that it has been modified with this method. When the view
-    // is closed, the user will be asked whether they want to save the modifications or not. Modifications can also
-    // be saved via the save button in the script view.
-    void set_pending_modifications() { m_content_modified = true; }
+	virtual String get_cell(intptr_t i, intptr_t j) const = 0;
 
-	String label() const override;
+	virtual void set_cell(intptr_t i, intptr_t j, const String &value) = 0;
 
-    static void initialize(Runtime &rt);
+	virtual intptr_t row_count() const = 0;
+
+	virtual intptr_t column_count() const = 0;
+
+	virtual bool empty() const = 0;
+
+	bool is_concordance() const override { return false; }
+
+	virtual bool is_spreadsheet() const { return false; }
+
+	virtual void to_csv(const String &path, const String &sep);
+
+	static void initialize(Runtime &rt);
 
 private:
 
-	void load() override;
+	void save_metadata() override;
 
-	void write() override;
-
-	String m_content;
+	bool uses_external_metadata() const override;
 
 };
 
 
 namespace traits {
-template<> struct maybe_cyclic<Script> : std::false_type { };
+template<> struct maybe_cyclic<DataTable> : std::false_type { };
 }
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_SCRIPT_HPP
+#endif // PHONOMETRICA_DATA_TABLE_HPP

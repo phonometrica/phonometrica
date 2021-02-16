@@ -48,7 +48,7 @@ Array<String> Sound::the_supported_sound_formats;
 Array<String> Sound::the_common_sound_formats;
 
 Sound::Sound(Directory *parent, String path) :
-		Document(get_class_ptr<Sound>(), parent, std::move(path))
+		Document(meta::get_class<Sound>(), parent, std::move(path))
 {
 
 }
@@ -94,11 +94,6 @@ const Array<String> &Sound::common_sound_formats()
 bool Sound::is_sound() const
 {
 	return true;
-}
-
-const char *Sound::class_name() const
-{
-	return "Sound";
 }
 
 void Sound::load()
@@ -432,8 +427,6 @@ std::vector<double> Sound::get_intensity(intptr_t start_pos, intptr_t end_pos, d
 
 void Sound::initialize(Runtime &rt)
 {
-
-
 	auto sound_get_field = [](Runtime &, std::span<Variant> args) -> Variant {
 		auto &sound = cast<Sound>(args[0]);
 		auto &key = cast<String>(args[1]);
@@ -451,58 +444,6 @@ void Sound::initialize(Runtime &rt)
 		}
 		throw error("[Index error] Sound type has no member named \"%\"", key);
 	};
-
-	auto add_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &snd = cast<Sound>(args[0]);
-		auto &category = cast<String>(args[1]);
-		snd.open();
-		std::any value;
-
-		if (check_type<String>(args[2])) {
-			value = cast<String>(args[2]);
-		}
-		else if (check_type<bool>(args[2])) {
-			value = cast<bool>(args[2]);
-		}
-		else if (args[2].resolve().is_number()) {
-			value = args[2].resolve().get_number();
-		}
-		else {
-			throw error("Invalid property type: %", args[2].class_name());
-		}
-		snd.add_property(Property(category, std::move(value)));
-
-		return Variant();
-	};
-
-	auto remove_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &snd = cast<Sound>(args[0]);
-		auto &category = cast<String>(args[1]);
-		snd.open();
-		snd.remove_property(category);
-		return Variant();
-	};
-	
-	auto get_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-    	auto &snd = cast<Sound>(args[0]);
-    	auto category = cast<String>(args[1]);
-		snd.open();
-    	auto prop = snd.get_property(category);
-
-    	if (prop.valid())
-	    {
-    		if (prop.is_text())
-    			return prop.value();
-    		else if (prop.is_numeric())
-    			return prop.numeric_value();
-    		else if (prop.is_boolean())
-    			return prop.boolean_value();
-		    else
-		    	throw error("[Internal error] Invalid property type");
-	    }
-
-    	return Variant();
-    };
 
 	auto get_intensity = [](Runtime &, std::span<Variant> args) -> Variant {
 		auto &sound = cast<Sound>(args[0]);
@@ -674,41 +615,34 @@ void Sound::initialize(Runtime &rt)
 
 #define CLS(T) phonometrica::get_class<T>()
 	auto cls = CLS(Sound);
-	cls->add_method("get_field", sound_get_field, { CLS(String) });
+	cls->add_method("get_field", sound_get_field, {CLS(String) });
 
-	rt.add_global("get_pitch", get_pitch1, { CLS(Sound), CLS(Number) });
-	rt.add_global("get_pitch", get_pitch2, { CLS(Sound), CLS(Number), CLS(Number), CLS(Number) });
-	rt.add_global("get_pitch", get_pitch3, { CLS(Sound), CLS(Number), CLS(Number), CLS(Number), CLS(Number) });
-
-	rt.add_global("get_formants", get_formants1, { CLS(Sound), CLS(Number) });
-	rt.add_global("get_formants", get_formants2, { CLS(Sound), CLS(Number), CLS(intptr_t), CLS(Number), CLS(Number), CLS(Number), CLS(intptr_t) });
-
-	rt.add_global("hertz_to_bark", hz2bark1, { CLS(Number) });
-	rt.add_global("hertz_to_bark", hz2bark2, { CLS(Array<double>) });
-	rt.add_global("bark_to_hertz", bark2hz1, { CLS(Number) });
-	rt.add_global("bark_to_hertz", bark2hz2, { CLS(Array<double>) });
-	rt.add_global("hertz_to_erb", hz2erb1, { CLS(Number) });
-	rt.add_global("hertz_to_erb", hz2erb2, { CLS(Array<double>) });
-	rt.add_global("erb_to_hertz", erb2hz1, { CLS(Number) });
-	rt.add_global("erb_to_hertz", erb2hz2, { CLS(Array<double>) });
-	rt.add_global("hertz_to_mel", hz2mel1, { CLS(Number) });
-	rt.add_global("hertz_to_mel", hz2mel2, { CLS(Array<double>) });
-	rt.add_global("mel_to_hertz", mel2hz1, { CLS(Number) });
-	rt.add_global("mel_to_hertz", mel2hz2, { CLS(Array<double>) });
-	rt.add_global("hertz_to_semitones", hz2st1, { CLS(Number) });
-	rt.add_global("hertz_to_semitones", hz2st2, { CLS(Number), CLS(Number) });
-	rt.add_global("hertz_to_semitones", hz2st3, { CLS(Array<double>) });
-	rt.add_global("hertz_to_semitones", hz2st4, { CLS(Array<double>), CLS(Number) });
-	rt.add_global("semitones_to_hertz", st2hz1, { CLS(Number) });
-	rt.add_global("semitones_to_hertz", st2hz2, { CLS(Number), CLS(Number) });
-	rt.add_global("semitones_to_hertz", st2hz3, { CLS(Array<double>) });
-	rt.add_global("semitones_to_hertz", st2hz4, { CLS(Array<double>), CLS(Number) });
-
-	rt.add_global("add_property", add_property, { CLS(Sound), CLS(String), CLS(Object) });
-	rt.add_global("remove_property", remove_property, { CLS(Sound), CLS(String) });
-	rt.add_global("get_property", get_property, { CLS(Sound), CLS(String) });
-	rt.add_global("get_intensity", get_intensity, { CLS(Sound), CLS(Number) });
-
+	rt.add_global("get_pitch", get_pitch1, {CLS(Sound), CLS(Number) });
+	rt.add_global("get_pitch", get_pitch2, {CLS(Sound), CLS(Number), CLS(Number), CLS(Number) });
+	rt.add_global("get_pitch", get_pitch3, {CLS(Sound), CLS(Number), CLS(Number), CLS(Number), CLS(Number) });
+	rt.add_global("get_formants", get_formants1, {CLS(Sound), CLS(Number) });
+	rt.add_global("get_formants", get_formants2, {CLS(Sound), CLS(Number), CLS(intptr_t), CLS(Number), CLS(Number), CLS(Number), CLS(intptr_t) });
+	rt.add_global("get_intensity", get_intensity, {CLS(Sound), CLS(Number) });
+	rt.add_global("hertz_to_bark", hz2bark1, {CLS(Number) });
+	rt.add_global("hertz_to_bark", hz2bark2, {CLS(Array<double>) });
+	rt.add_global("bark_to_hertz", bark2hz1, {CLS(Number) });
+	rt.add_global("bark_to_hertz", bark2hz2, {CLS(Array<double>) });
+	rt.add_global("hertz_to_erb", hz2erb1, {CLS(Number) });
+	rt.add_global("hertz_to_erb", hz2erb2, {CLS(Array<double>) });
+	rt.add_global("erb_to_hertz", erb2hz1, {CLS(Number) });
+	rt.add_global("erb_to_hertz", erb2hz2, {CLS(Array<double>) });
+	rt.add_global("hertz_to_mel", hz2mel1, {CLS(Number) });
+	rt.add_global("hertz_to_mel", hz2mel2, {CLS(Array<double>) });
+	rt.add_global("mel_to_hertz", mel2hz1, {CLS(Number) });
+	rt.add_global("mel_to_hertz", mel2hz2, {CLS(Array<double>) });
+	rt.add_global("hertz_to_semitones", hz2st1, {CLS(Number) });
+	rt.add_global("hertz_to_semitones", hz2st2, {CLS(Number), CLS(Number) });
+	rt.add_global("hertz_to_semitones", hz2st3, {CLS(Array<double>) });
+	rt.add_global("hertz_to_semitones", hz2st4, {CLS(Array<double>), CLS(Number) });
+	rt.add_global("semitones_to_hertz", st2hz1, {CLS(Number) });
+	rt.add_global("semitones_to_hertz", st2hz2, {CLS(Number), CLS(Number) });
+	rt.add_global("semitones_to_hertz", st2hz3, {CLS(Array<double>) });
+	rt.add_global("semitones_to_hertz", st2hz4, {CLS(Array<double>), CLS(Number) });
 #undef CLS
 }
 

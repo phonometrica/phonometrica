@@ -73,11 +73,10 @@ enum class GCColor : uint8_t
 
 //----------------------------------------------------------------------------------------------------------------------
 
-// Abstract base class for all Phonometrica objects. This class doesn't use C++'s virtual inheritance; instead, each object
-// contains a pointer to a Class object which contains, among other things, function pointers that dispatch calls to
-// "virtual" methods to a templated function, which can be specialized for each type. This approach gives us much more
-// flexibility since we can check for the availability of a method at runtime, and we can add more information in
-// a Class (in particular, an inheritance graph).
+// Abstract base class for all Phonometrica objects. Each object contains a pointer to a Class object which contains,
+// among other things, function pointers that dispatch calls to "virtual" methods to a templated function that can be
+// specialized for each type. This approach allows us to check for the availability of a method at runtime, and we can
+// add runtime information in the Class object (in particular, an inheritance graph).
 class Object
 {
 public:

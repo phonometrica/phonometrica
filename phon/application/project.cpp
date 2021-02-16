@@ -189,12 +189,6 @@ void Project::load()
 	{
 		if (node.name() == corpus_tag)
 		{
-			int size = 0;
-			auto attr = node.attribute("size");
-			if (attr) {
-				size = attr.as_int();
-			}
-
 			parse_corpus(node, m_corpus.get());
 		}
 		else if (node.name() == meta_tag)
@@ -243,14 +237,11 @@ const Handle<Directory> & Project::scripts() const
 
 void Project::parse_corpus(xml_node root, Directory *folder)
 {
-	int counter = 0;
-	static const std::string_view folder_tag("VFolder");
-	static const std::string_view file_tag("VFile");
-
+	using str = std::string_view;
 
 	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
-		if (node.name() == folder_tag)
+		if (node.name() == str("Directory") || node.name() == str("VFolder"))
 		{
 			String label;
 			auto attr = node.attribute("label");
@@ -261,7 +252,7 @@ void Project::parse_corpus(xml_node root, Directory *folder)
 
 			parse_corpus(node, sub);
 		}
-		else if (node.name() == file_tag)
+		else if (node.name() == str("Document") || node.name() == str("VFile"))
 		{
 			auto attr = node.attribute("class");
 			if (!attr) throw error("Invalid VFile node");
@@ -346,13 +337,12 @@ void Project::parse_metadata(xml_node root)
 
 void Project::parse_scripts(xml_node root, Directory *folder)
 {
-	static const std::string_view folder_tag("VFolder");
-	static const std::string_view file_tag("VFile");
+	using str = std::string_view;
 	static const std::string_view script_tag("Script");
 
 	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
-		if (node.name() == folder_tag)
+		if (node.name() == str("Directory") || node.name() == str("VFolder"))
 		{
 			String label;
 			auto attr = node.attribute("label");
@@ -363,7 +353,7 @@ void Project::parse_scripts(xml_node root, Directory *folder)
 
 			parse_scripts(node, sub);
 		}
-		else if (node.name() == file_tag)
+		else if (node.name() == str("Document") || node.name() == str("VFile"))
 		{
 			auto attr = node.attribute("class");
 			if (!attr) throw error("Invalid VFile node");
@@ -388,13 +378,12 @@ void Project::parse_scripts(xml_node root, Directory *folder)
 
 void Project::parse_queries(xml_node root, Directory *folder)
 {
-	static const std::string_view folder_tag("VFolder");
-	static const std::string_view file_tag("VFile");
+	using str = std::string_view;
 	static const std::string_view text_query_tag("Query");
 
 	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
-		if (node.name() == folder_tag)
+		if (node.name() == str("Directory") || node.name() == str("VFolder"))
 		{
 			String label;
 			auto attr = node.attribute("label");
@@ -405,7 +394,7 @@ void Project::parse_queries(xml_node root, Directory *folder)
 
 			parse_queries(node, sub);
 		}
-		else if (node.name() == file_tag)
+		else if (node.name() == str("Document") || node.name() == str("VFile"))
 		{
 			auto attr = node.attribute("class");
 			if (!attr) throw error("Invalid VFile node");
@@ -430,13 +419,11 @@ void Project::parse_queries(xml_node root, Directory *folder)
 
 void Project::parse_data(xml_node root, Directory *folder)
 {
-	static const std::string_view folder_tag("VFolder");
-	static const std::string_view file_tag("VFile");
-	static const std::string_view data_tag("Dataset");
+	using str = std::string_view;
 
 	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
-		if (node.name() == folder_tag)
+		if (node.name() == str("Directory") || node.name() == str("VFolder"))
 		{
 			String label;
 			auto attr = node.attribute("label");
@@ -447,7 +434,7 @@ void Project::parse_data(xml_node root, Directory *folder)
 
 			parse_scripts(node, sub);
 		}
-		else if (node.name() == file_tag)
+		else if (node.name() == str("Document") || node.name() == str("VFile"))
 		{
 			auto attr = node.attribute("class");
 			if (!attr) throw error("Invalid VFile node");
@@ -455,9 +442,9 @@ void Project::parse_data(xml_node root, Directory *folder)
 			String path(node.text().get());
 			interpolate(path, m_directory);
 
-			if (cls == data_tag)
+			if (cls == str("Dataset"))
 			{
-				auto dataset = make_handle<Spreadsheet>(folder, std::move(path));
+				auto dataset = make_handle<Dataset>(folder, std::move(path));
 				dataset->from_xml(node, m_directory);
 				folder->append(dataset, false);
 				register_file(dataset->path(), dataset);
@@ -471,7 +458,7 @@ void Project::parse_data(xml_node root, Directory *folder)
 			}
 			else
 			{
-				throw error("Invalid class \"%\" in VFile XML entry", cls);
+				throw error("Invalid class \"%\" in Document XML entry", cls);
 			}
 		}
 	}
@@ -479,14 +466,12 @@ void Project::parse_data(xml_node root, Directory *folder)
 
 void Project::parse_bookmarks(xml_node root, Directory *folder)
 {
-	static const std::string_view folder_tag("VFolder");
+	using str = std::string_view;
 	static const std::string_view bookmark_tag("Bookmark");
-	static const std::string_view match_tag("SearchMatch");
-	static const std::string_view stamp_tag("AnnotationStamp");
 
 	for (auto node = root.first_child(); node; node = node.next_sibling())
 	{
-		if (node.name() == folder_tag)
+		if (node.name() == str("Directory") || node.name() == str("VFolder"))
 		{
 			String label;
 			auto attr = node.attribute("label");
@@ -501,8 +486,8 @@ void Project::parse_bookmarks(xml_node root, Directory *folder)
 		{
 			auto attr = node.attribute("type");
 
-			// Dolmen 1 used SearchMatch instead of AnnotationStamp.
-			if (attr && (attr.value() == match_tag || attr.value() == stamp_tag))
+			// Phonomotrica < 0.8 used AnnotationStamp instead of TimeStamp
+			if (attr && (attr.value() == std::string_view("TimeStamp") || attr.value() == std::string_view("AnnotationStamp")))
 			{
 				auto title_node = node.child("Title");
 				auto notes_node = node.child("Notes");
@@ -774,7 +759,7 @@ bool Project::add_file(String path, const Handle<Directory> &parent, FileType ty
 			return set_import_flag();
 		}
 
-		auto dataset = make_handle<Spreadsheet>(p, std::move(path));
+		auto dataset = make_handle<Dataset>(p, std::move(path));
 		vfile = recast<Document>(dataset);
 		p->append(vfile);
 //		emit(dataset_loaded, std::move(dataset));
@@ -1020,8 +1005,9 @@ void Project::initialize(Runtime &rt)
 {
 	Annotation::initialize(rt);
 	Sound::initialize(rt);
+	DataTable::initialize(rt);
 	Dataset::initialize(rt);
-	Spreadsheet::initialize(rt);
+	Document::initialize(rt);
 	TimeStamp::initialize(rt);
 	Script::initialize(rt);
 	Query::initialize(rt);
@@ -1154,21 +1140,21 @@ void Project::initialize(Runtime &rt)
     };
  #define CLS(T) get_class<T>()
 	rt.add_global("get_annotations", get_annotations, { });
-	rt.add_global("get_annotation", get_annotation, { CLS(String) });
+	rt.add_global("get_annotation", get_annotation, {CLS(String) });
 	rt.add_global("get_sounds", get_sounds, { });
-	rt.add_global("get_sound", get_sound, { CLS(String) });
+	rt.add_global("get_sound", get_sound, {CLS(String) });
 
 	// Create submodule for project.
 	// FIXME: DO we put this in phon or global?
 	auto proj = make_handle<Module>(&rt, "project");
-	proj->define(&rt, "open", open_project, { CLS(String) });
+	proj->define(&rt, "open", open_project, {CLS(String) });
 	proj->define(&rt, "close", close_project, { });
-	proj->define(&rt, "add_folder", add_folder, { CLS(String) });
-	proj->define(&rt, "add_file", add_file, { CLS(String) });
+	proj->define(&rt, "add_folder", add_folder, {CLS(String) });
+	proj->define(&rt, "add_file", add_file, {CLS(String) });
 	proj->define(&rt, "refresh", refresh_project, { });
 	proj->define(&rt, "has_path", project_has_path, { });
 	proj->define(&rt, "save", save_project1, { });
-	proj->define(&rt, "save", save_project2, { CLS(String) });
+	proj->define(&rt, "save", save_project2, {CLS(String) });
 	proj->define(&rt, "is_empty", is_empty, { });
 	auto &phon = cast<Module>(rt["phon"]);
 	phon.define("project", std::move(proj));
@@ -1557,13 +1543,13 @@ void Project::preinitialize(Runtime &rt)
 	auto doc_type = rt.add_standard_type<Document>("Document", elem_type.get());
 	rt.add_standard_type<Annotation>("Annotation", doc_type.get());
 	rt.add_standard_type<Sound>("Sound", doc_type.get());
+	rt.add_standard_type<DataTable>("DataTable", doc_type.get());
 	rt.add_standard_type<Dataset>("Dataset", doc_type.get());
-	rt.add_standard_type<Spreadsheet>("Spreadsheet", doc_type.get());
 	rt.add_standard_type<Concordance>("Concordance", doc_type.get());
 	rt.add_standard_type<Script>("Script", doc_type.get());
 	rt.add_standard_type<Query>("Query", doc_type.get());
-	auto bookmakr_type = rt.add_standard_type<Bookmark>("Bookmark", elem_type.get());
-	rt.add_standard_type<TimeStamp>("TimeStamp", bookmakr_type.get());
+	auto bookmark_type = rt.add_standard_type<Bookmark>("Bookmark", elem_type.get());
+	rt.add_standard_type<TimeStamp>("TimeStamp", bookmark_type.get());
 }
 
 void Project::add_query(Handle<Query> query)

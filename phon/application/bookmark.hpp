@@ -66,8 +66,6 @@ public:
 
 	static void initialize(Runtime &rt);
 
-	const char *class_name() const override;
-
 	void to_xml(xml_node root) override;
 
 	String tooltip() const override;

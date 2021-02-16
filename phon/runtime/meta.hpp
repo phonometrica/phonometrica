@@ -47,6 +47,8 @@ String get_class_name()
 	return detail::get_class_name_helper(get_class<T>());
 }
 
+bool is_base_of(const Class *base, const Class *derived);
+
 // Convert type to string.
 template<typename T>
 String to_string(const T &)

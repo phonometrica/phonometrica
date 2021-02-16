@@ -70,16 +70,11 @@ TimeStamp::TimeStamp(Directory *parent, String title, Handle<Annotation> annot, 
 	m_end = end;
 }
 
-const char *TimeStamp::class_name() const
-{
-	return "AnnotationStamp";
-}
-
 void TimeStamp::to_xml(xml_node root)
 {
 	auto node = root.append_child("Bookmark");
 	auto attr = node.append_attribute("type");
-	attr.set_value(class_name());
+	attr.set_value(class_name().data());
 
 	String path(m_annot->path());
 	Project::compress(path, Project::get()->directory());

@@ -49,8 +49,6 @@ public:
 
 	explicit Annotation(Directory *parent, String path = String());
 
-	const char *class_name() const override;
-
 	bool is_annotation() const override;
 
 	void set_path(String path, bool mutate) override;

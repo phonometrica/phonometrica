@@ -1612,27 +1612,27 @@ void MainWindow::SetShellFunctions()
 #endif
 
 #define CLS(T) get_class<T>()
-	runtime.add_global("view_text", view_text, { CLS(String), CLS(String) });
-	runtime.add_global("warning", warning1, { CLS(String) });
-	runtime.add_global("warning", warning2, { CLS(String), CLS(String) });
-	runtime.add_global("alert", alert1, { CLS(String) });
-	runtime.add_global("alert", alert2, { CLS(String), CLS(String) });
-	runtime.add_global("info", info1, { CLS(String) });
-	runtime.add_global("info", info2, { CLS(String), CLS(String) });
-	runtime.add_global("ask", ask1, { CLS(String) });
-	runtime.add_global("ask", ask2, { CLS(String), CLS(String) });
-	runtime.add_global("open_file_dialog", open_file_dialog, { CLS(String) });
-	runtime.add_global("open_files_dialog", open_files_dialog, { CLS(String) });
-	runtime.add_global("open_directory_dialog", open_directory_dialog, { CLS(String) });
-	runtime.add_global("save_file_dialog", save_file_dialog, { CLS(String) });
-	runtime.add_global("get_input", input, { CLS(String), CLS(String), CLS(String) });
-	runtime.add_global("get_plugin_version", get_plugin_version, { CLS(String) });
-	runtime.add_global("get_plugin_resource", get_plugin_resource, { CLS(String), CLS(String) });
-	runtime.add_global("create_dialog", create_dialog1, { CLS(String) });
-	runtime.add_global("create_dialog", create_dialog2, { CLS(Table) });
-	runtime.add_global("create_progress_dialog", create_progress_dialog, { CLS(String), CLS(String), CLS(intptr_t) });
-	runtime.add_global("update_progress_dialog", update_progress_dialog, { CLS(intptr_t) });
-	runtime.add_global("launch_browser", launch_browser, { CLS(String) });
+	runtime.add_global("view_text", view_text, {CLS(String), CLS(String) });
+	runtime.add_global("warning", warning1, {CLS(String) });
+	runtime.add_global("warning", warning2, {CLS(String), CLS(String) });
+	runtime.add_global("alert", alert1, {CLS(String) });
+	runtime.add_global("alert", alert2, {CLS(String), CLS(String) });
+	runtime.add_global("info", info1, {CLS(String) });
+	runtime.add_global("info", info2, {CLS(String), CLS(String) });
+	runtime.add_global("ask", ask1, {CLS(String) });
+	runtime.add_global("ask", ask2, {CLS(String), CLS(String) });
+	runtime.add_global("open_file_dialog", open_file_dialog, {CLS(String) });
+	runtime.add_global("open_files_dialog", open_files_dialog, {CLS(String) });
+	runtime.add_global("open_directory_dialog", open_directory_dialog, {CLS(String) });
+	runtime.add_global("save_file_dialog", save_file_dialog, {CLS(String) });
+	runtime.add_global("get_input", input, {CLS(String), CLS(String), CLS(String) });
+	runtime.add_global("get_plugin_version", get_plugin_version, {CLS(String) });
+	runtime.add_global("get_plugin_resource", get_plugin_resource, {CLS(String), CLS(String) });
+	runtime.add_global("create_dialog", create_dialog1, {CLS(String) });
+	runtime.add_global("create_dialog", create_dialog2, {CLS(Table) });
+	runtime.add_global("create_progress_dialog", create_progress_dialog, {CLS(String), CLS(String), CLS(intptr_t) });
+	runtime.add_global("update_progress_dialog", update_progress_dialog, {CLS(intptr_t) });
+	runtime.add_global("launch_browser", launch_browser, {CLS(String) });
 //	runtime.add_global("set_status", set_status1, { CLS(String) });
 //	runtime.add_global("set_status", set_status2, { CLS(String), CLS(intptr_t) });
 //	runtime.add_global("get_current_sound", get_current_sound, { });

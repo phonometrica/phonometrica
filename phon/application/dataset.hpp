@@ -13,59 +13,115 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 12/09/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: Abstract base class for tabular datasets, where each column represents a variable and each row represents  *
- * an observation. Derived classes are Spreadsheet, which represents a CSV file, and Concordance, which is the base    *
- * for all the types of concordances available in Phonometrica.                                                        *
+ * Purpose: tabular dataset (e.g. CSV file).                                                                           *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
 #ifndef PHONOMETRICA_DATASET_HPP
 #define PHONOMETRICA_DATASET_HPP
 
-#include <phon/application/vfs.hpp>
+#include <phon/application/data_table.hpp>
 
 namespace phonometrica {
 
-class Runtime;
-
-class Dataset : public Document
+class Dataset final : public DataTable
 {
 public:
 
-	explicit Dataset(Class *klass, Directory *parent, String path = String());
+	Dataset(Directory *parent, String path = String());
 
-	bool is_dataset() const override;
+	Dataset(const Dataset &other);
 
-	void from_xml(xml_node root, const String &project_dir);
+	String get_header(intptr_t j) const override;
 
-	virtual String get_header(intptr_t j) const = 0;
+	String get_cell(intptr_t i, intptr_t j) const override;
 
-	virtual String get_cell(intptr_t i, intptr_t j) const = 0;
+	void set_cell(intptr_t i, intptr_t j, const String &value) override;
 
-	virtual void set_cell(intptr_t i, intptr_t j, const String &value) = 0;
+	intptr_t row_count() const override { return nrow; }
 
-	virtual intptr_t row_count() const = 0;
+	intptr_t column_count() const override { return ncol; }
 
-	virtual intptr_t column_count() const = 0;
+	bool empty() const override { return nrow == 0; }
 
-	virtual bool empty() const = 0;
-
-	bool is_concordance() const override { return false; }
-
-	virtual bool is_spreadsheet() const { return false; }
-
-	virtual void to_csv(const String &path, const String &sep);
+	bool is_spreadsheet() const override { return true; }
 
 	static void initialize(Runtime &rt);
 
 private:
 
-	void save_metadata() override;
+	enum class Type
+	{
+		Boolean,
+		Numeric,
+		Text
+	};
 
-	bool uses_external_metadata() const override;
+	struct Column
+	{
+		virtual ~Column();
 
+		virtual Type type() const = 0;
+
+		virtual void resize(intptr_t size) = 0;
+
+		virtual Column *clone() const = 0;
+
+	protected:
+
+		Type find_type(const std::type_info &t) const;
+	};
+
+	template<class T>
+	struct TColumn : public Column
+	{
+		TColumn() = default;
+
+		TColumn(intptr_t size, const T &value = T()) :
+			data(size, value)
+		{ }
+
+		TColumn(const Array<T> &d) : data(d) { }
+
+		Type type() const override { return find_type(typeid(T)); }
+
+		const T &get(intptr_t i) const { return data[i]; }
+
+		void set(intptr_t i, T value) { data[i] = std::move(value); }
+
+		void resize(intptr_t size) override { data.resize(size); }
+
+		Column *clone() const override { return new TColumn<T>(data); }
+
+		Array<T> data;
+	};
+
+	void read_from_csv(std::string_view sep = ",");
+
+	void load() override;
+
+	void write() override;
+
+	TColumn<double>* cast_num(Column *col) { return static_cast<TColumn<double>*>(col); }
+	const TColumn<double>* cast_num(Column *col) const { return static_cast<TColumn<double>*>(col); }
+
+	TColumn<bool>* cast_bool(Column *col) { return static_cast<TColumn<bool>*>(col); }
+	const TColumn<bool>* cast_bool(Column *col) const { return static_cast<TColumn<bool>*>(col); }
+
+	TColumn<String>* cast_string(Column *col) { return static_cast<TColumn<String>*>(col); }
+	const TColumn<String>* cast_string(Column *col) const { return static_cast<TColumn<String>*>(col); }
+
+	using AutoColumn = std::unique_ptr<Column>;
+
+	Array<String> m_labels;
+
+	Array<AutoColumn> m_columns;
+
+	intptr_t nrow = 0;
+
+	intptr_t ncol = 0;
 };
 
 

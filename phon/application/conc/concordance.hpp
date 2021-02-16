@@ -22,12 +22,12 @@
 #ifndef PHONOMETRICA_CONCORDANCE_HPP
 #define PHONOMETRICA_CONCORDANCE_HPP
 
-#include <phon/application/dataset.hpp>
+#include <phon/application/data_table.hpp>
 #include <phon/application/conc/match.hpp>
 
 namespace phonometrica {
 
-class Concordance : public Dataset
+class Concordance : public DataTable
 {
 public:
 
@@ -44,8 +44,6 @@ public:
 				const String &path = String());
 
 	Concordance(const Concordance &other);
-
-	const char *class_name() const override;
 
 	bool is_concordance() const override { return true; }
 

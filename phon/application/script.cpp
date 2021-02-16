@@ -28,7 +28,7 @@
 namespace phonometrica {
 
 Script::Script(Directory *parent, String path) :
-		Document(get_class_ptr<Script>(), parent, std::move(path))
+		Document(meta::get_class<Script>(), parent, std::move(path))
 {
 
 }
@@ -36,11 +36,6 @@ Script::Script(Directory *parent, String path) :
 bool Script::is_script() const
 {
 	return true;
-}
-
-const char *Script::class_name() const
-{
-	return "Script";
 }
 
 void Script::load()

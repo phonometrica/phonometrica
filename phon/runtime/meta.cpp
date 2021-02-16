@@ -22,11 +22,20 @@
 #include <phon/runtime/meta.hpp>
 #include <phon/runtime/class.hpp>
 
-namespace phonometrica::meta::detail {
+namespace phonometrica::meta {
+
+namespace detail {
 
 String get_class_name_helper(Class *klass)
 {
 	return klass->name();
+}
+
+} // namespace detail
+
+bool is_base_of(const Class *base, const Class *derived)
+{
+	return derived->inherits(base);
 }
 
 } // namespace::meta::detail

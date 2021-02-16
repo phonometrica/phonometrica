@@ -13,87 +13,185 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/02/2019                                                                                                 *
+ * Created: 12/09/2019                                                                                                 *
  *                                                                                                                     *
  * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/file.hpp>
-#include <phon/runtime/runtime.hpp>
-#include <phon/application/project.hpp>
 #include <phon/application/dataset.hpp>
 #include <phon/utils/file_system.hpp>
+#include <phon/utils/text.hpp>
 
 namespace phonometrica {
 
-
-Dataset::Dataset(Class *klass, Directory *parent, String path) :
-		Document(klass, parent, std::move(path))
+Dataset::Column::~Column()
 {
 
 }
 
-bool Dataset::is_dataset() const
+Dataset::Dataset(Directory *parent, String path) :
+		DataTable(meta::get_class<Dataset>(), parent, std::move(path))
 {
-	return true;
+
 }
 
-void Dataset::from_xml(xml_node root, const String &project_dir)
+Dataset::Dataset(const Dataset &other) :
+		DataTable(other.klass, other.parent(), String()), m_labels(other.m_labels)
 {
-	static const std::string_view path_tag("Path");
+	for (auto &col : other.m_columns) {
+		m_columns.append(std::unique_ptr<Column>(col->clone()));
+	}
 
-	for (auto node = root.first_child(); node; node = node.next_sibling())
+	nrow = other.nrow;
+	ncol = other.ncol;
+
+	m_content_modified = true;
+}
+
+
+void Dataset::load()
+{
+	auto ext = filesystem::ext(m_path, true);
+
+	if (ext == ".csv")
 	{
-		if (node.name() == path_tag)
+		read_from_csv("\t");
+	}
+	else
+	{
+		throw error("Cannot load spreadsheet with '%' extension", ext);
+	}
+}
+
+void Dataset::write()
+{
+
+}
+
+void Dataset::read_from_csv(std::string_view sep)
+{
+	assert(!m_path.empty());
+	auto raw_data = utils::parse_csv(m_path, sep);
+	if (raw_data.empty()) return;
+
+	// Parse header.
+	for (auto &label : raw_data.take_first())
+	{
+		if (label.ends_with(".num"))
 		{
-			String path(node.text().get());
-			Project::interpolate(path, project_dir);
-			m_path = std::move(path);
+			label.remove_last(".num");
+			m_columns.append(std::make_unique<TColumn<double>>());
 		}
+		else if (label.ends_with(".bool"))
+		{
+			label.remove_last(".bool");
+			m_columns.append(std::make_unique<TColumn<bool>>());
+		}
+		else
+		{
+			if (label.ends_with(".text")) label.remove_last(".text");
+			m_columns.append(std::make_unique<TColumn<String>>());
+		}
+		m_labels.append(std::move(label));
 	}
-}
 
-void Dataset::save_metadata()
-{
-	// Native files store their metadata directly, other files need to write them to the database.
-	if (uses_external_metadata()) {
-		Document::save_metadata();
-	}
-}
-
-bool Dataset::uses_external_metadata() const
-{
-	return is_spreadsheet();
-}
-
-void Dataset::to_csv(const String &path, const String &sep)
-{
-	File file(path, File::Write);
-	auto nrow = this->row_count();
-	auto ncol = this->column_count();
-
-	for (intptr_t j = 1; j <= ncol; j++)
-	{
-		file.write(get_header(j));
-		if (j == ncol) file.write('\n');
-		else file.write(sep);
-	}
+	// Parse data.
+	if (raw_data.empty()) return;
+	nrow = raw_data.size();
+	ncol = m_labels.size();
+	for (auto &col : m_columns) col->resize(nrow);
 
 	for (intptr_t i = 1; i <= nrow; i++)
 	{
+		auto &row = raw_data[i];
+
 		for (intptr_t j = 1; j <= ncol; j++)
 		{
-			file.write(get_cell(i, j));
-			if (j == ncol) file.write('\n');
-			else file.write(sep);
+			auto col = m_columns[j].get();
+
+			switch (m_columns[j]->type())
+			{
+				case Type::Numeric:
+				{
+					double value = row[j].to_float();
+					cast_num(col)->set(i, value);
+					break;
+				}
+				case Type::Boolean:
+				{
+					bool value = row[j].to_bool();
+					cast_bool(col)->set(i, value);
+					break;
+				}
+				default:
+				{
+					cast_string(col)->set(i, std::move(row[j]));
+				}
+			}
 		}
 	}
 }
 
-void Dataset::initialize(Runtime &rt)
+String Dataset::get_header(intptr_t j) const
+{
+	return m_labels[j];
+}
+
+String Dataset::get_cell(intptr_t i, intptr_t j) const
+{
+	auto col = m_columns[j].get();
+
+	switch (col->type())
+	{
+		case Type::Numeric:
+			return String::convert(cast_num(col)->get(i));
+		case Type::Boolean:
+			return String::convert(cast_bool(col)->get(i));
+		default:
+			return cast_string(col)->get(i);
+	}
+}
+
+void Dataset::set_cell(intptr_t i, intptr_t j, const String &value)
+{
+	auto col = m_columns[j].get();
+
+	switch (col->type())
+	{
+		case Type::Numeric:
+		{
+			bool ok;
+			double result = value.to_float(&ok);
+			if (!ok) {
+				throw error("Invalid numeric value in cell (%, %)", i, j);
+			}
+			cast_num(col)->set(i, result);
+		}
+		break;
+		case Type::Boolean:
+		{
+			cast_bool(col)->set(i, value.to_bool());
+		}
+		break;
+		default:
+			cast_string(col)->set(i, value);
+	}
+}
+
+void Dataset::initialize(Runtime &)
 {
 
+}
+
+Dataset::Type Dataset::Column::find_type(const std::type_info &t) const
+{
+	if (t == typeid(String))
+		return Type::Text;
+	if (t == typeid(double))
+		return Type::Numeric;
+	assert(t == typeid(bool));
+	return Type::Boolean;
 }
 
 } // namespace phonometrica

@@ -296,12 +296,15 @@ T &cast(Variant &v)
 {
 	auto &var = v.resolve();
 	using Type = typename traits::bare_type<T>::type;
+
 	if (likely(var.data_type() == Variant::Datatype::Object))
 	{
-		auto ptr = static_cast<typename Handle<Type>::object_type*>(var.as.object);
+		auto obj = var.as.object;
 
-		if (likely(ptr->type_info() == &typeid(Type)))
+		if (likely(obj->type_info() == &typeid(Type)) ||  meta::is_base_of(meta::get_class<T>(), obj->get_class()))
 		{
+			auto ptr = static_cast<typename Handle<Type>::object_type*>(var.as.object);
+
 			if constexpr (traits::is_object<T>::value) {
 				return *ptr;
 			}

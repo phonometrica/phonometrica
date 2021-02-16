@@ -21,6 +21,7 @@
 
 #include <phon/application/vfs.hpp>
 #include <phon/application/project.hpp>
+#include <phon/runtime.hpp>
 #include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
@@ -120,7 +121,7 @@ bool Element::is_concordance() const
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Directory::Directory(Directory *parent, String label) :
-		Element(get_class_ptr<Directory>(), parent), m_label(std::move(label))
+		Element(meta::get_class<Directory>(), parent), m_label(std::move(label))
 {
 
 }
@@ -227,11 +228,6 @@ bool Directory::is_folder() const
 	return true;
 }
 
-const char *Directory::class_name() const
-{
-	return "VFolder";
-}
-
 void Directory::discard_changes()
 {
 	for (auto &f : m_content) {
@@ -243,7 +239,7 @@ void Directory::discard_changes()
 
 void Directory::to_xml(xml_node root)
 {
-	auto node = root.append_child(class_name());
+	auto node = root.append_child(class_name().data());
 	auto attr = node.append_attribute("label");
 	attr.set_value(label().data());
 
@@ -489,9 +485,9 @@ void Document::set_description(String value, bool mutate)
 
 void Document::to_xml(xml_node root)
 {
-	auto node = root.append_child("VFile");
+	auto node = root.append_child("Document");
 	auto attr = node.append_attribute("class");
-	attr.set_value(class_name());
+	attr.set_value(class_name().data());
 	auto data = node.append_child(node_pcdata);
 	String path = m_path;
 	auto project = Project::get();
@@ -684,6 +680,64 @@ bool Document::quick_search(const String &text) const
 bool Document::anchored() const
 {
 	return has_path();
+}
+
+void Document::initialize(Runtime &rt)
+{
+	auto add_property = [](Runtime &, std::span<Variant> args) -> Variant  {
+		auto &doc = cast<Document>(args[0]);
+		auto &category = cast<String>(args[1]);
+		std::any value;
+
+		if (check_type<String>(args[2])) {
+			value = cast<String>(args[2]);
+		}
+		else if (check_type<bool>(args[2])) {
+			value = cast<bool>(args[2]);
+		}
+		else if (args[2].resolve().is_number()) {
+			value = args[2].resolve().get_number();
+		}
+		else {
+			throw error("Invalid property type: %", args[2].class_name());
+		}
+		doc.add_property(Property(category, std::move(value)));
+
+		return Variant();
+	};
+
+	auto remove_property = [](Runtime &, std::span<Variant> args) -> Variant  {
+		auto &doc = cast<Document>(args[0]);
+		auto &category = cast<String>(args[1]);
+		doc.remove_property(category);
+		return Variant();
+	};
+
+	auto get_property = [](Runtime &, std::span<Variant> args) -> Variant  {
+		auto &doc = cast<Document>(args[0]);
+		auto category = cast<String>(args[1]);
+		auto prop = doc.get_property(category);
+
+		if (prop.valid())
+		{
+			if (prop.is_text())
+				return prop.value();
+			else if (prop.is_numeric())
+				return prop.numeric_value();
+			else if (prop.is_boolean())
+				return prop.boolean_value();
+			else
+				throw error("[Internal error] Invalid property type");
+		}
+
+		return Variant();
+	};
+
+#define CLS(T) phonometrica::get_class<T>()
+	rt.add_global("add_property", add_property, { CLS(Document), CLS(String), CLS(Object) });
+	rt.add_global("remove_property", remove_property, { CLS(Document), CLS(String) });
+	rt.add_global("get_property", get_property, { CLS(Document), CLS(String) });
+#undef CLS
 }
 
 

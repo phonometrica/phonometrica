@@ -30,13 +30,13 @@ static const int FILE_INFO_COLUMN_COUNT = 4;
 
 
 Concordance::Concordance(Directory *parent, const String &path) :
-	Dataset(get_class_ptr<Concordance>(), parent, path)
+		DataTable(meta::get_class<Concordance>(), parent, path)
 {
 	preload();
 }
 
 Concordance::Concordance(intptr_t target_count, Context ctx, intptr_t context_length, Array <AutoMatch> matches, Directory *parent, const String &path) :
-	Dataset(get_class_ptr<Concordance>(), parent, path), m_matches(std::move(matches))
+		DataTable(meta::get_class<Concordance>(), parent, path), m_matches(std::move(matches))
 {
 	m_target_count = (int) target_count;
 	m_context_type = ctx;
@@ -47,7 +47,7 @@ Concordance::Concordance(intptr_t target_count, Context ctx, intptr_t context_le
 }
 
 Concordance::Concordance(const Concordance &other) :
-	Dataset(other.klass, other.parent(), String())
+		DataTable(other.klass, other.parent(), String())
 {
 	m_target_count = other.m_target_count;
 	m_context_type = other.m_context_type;
@@ -59,11 +59,6 @@ Concordance::Concordance(const Concordance &other) :
 		m_matches.append(std::make_unique<Match>(*m));
 	}
 	m_content_modified = true;
-}
-
-const char *Concordance::class_name() const
-{
-	return "Concordance";
 }
 
 bool Concordance::empty() const
@@ -221,7 +216,7 @@ void Concordance::preload()
 
 	auto attr = root.attribute("class");
 
-	if (!attr || attr.as_string() != str(class_name())) {
+	if (!attr || attr.as_string() != class_name()) {
 		throw error("Expected a concordance, got a % file instead", attr.as_string());
 	}
 	attr = root.attribute("label");
@@ -260,7 +255,7 @@ void Concordance::load()
 
 	auto attr = root.attribute("class");
 
-	if (!attr || attr.as_string() != str(class_name())) {
+	if (!attr || attr.as_string() != class_name()) {
 		throw error("Expected a concordance, got a % file instead", attr.as_string());
 	}
 
@@ -424,7 +419,7 @@ void Concordance::write()
 	xml_document doc;
 
 	auto root = doc.append_child("Phonometrica");
-	root.append_attribute("class").set_value(class_name());
+	root.append_attribute("class").set_value(class_name().data());
 	root.append_attribute("label").set_value(m_label.data());
 	root.append_attribute("type").set_value("text");
 	auto metadata_node = root.append_child("Metadata");

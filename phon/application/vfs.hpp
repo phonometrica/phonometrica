@@ -84,8 +84,6 @@ public:
 
 	virtual bool is_query() const;
 
-	virtual const char *class_name() const = 0;
-
 	virtual void to_xml(xml_node root) = 0;
 
 	void move_to(Directory *parent, intptr_t pos);
@@ -160,8 +158,6 @@ public:
 	bool modified() const override;
 
 	bool is_folder() const override;
-
-	const char *class_name() const override;
 
 	void discard_changes() override;
 
@@ -258,6 +254,8 @@ public:
 	bool quick_search(const String &text) const override;
 
 	bool anchored() const;
+
+	static void initialize(Runtime &rt);
 
 	// Send this signal to notify the current view that the file has been modified
 	static Signal<> file_modified;

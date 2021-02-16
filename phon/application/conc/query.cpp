@@ -29,7 +29,7 @@
 namespace phonometrica {
 
 Query::Query(Directory *parent, String path) :
-		Document(get_class_ptr<Query>(), parent, std::move(path))
+		Document(meta::get_class<Query>(), parent, std::move(path))
 {
 	if (!m_path.empty()) {
 		load();
@@ -131,7 +131,7 @@ void Query::load()
 
 	auto attr = root.attribute("class");
 
-	if (!attr || attr.as_string() != str(class_name())) {
+	if (!attr || attr.as_string() != class_name()) {
 		throw error("Expected a text query, got a % file instead", attr.as_string());
 	}
 
@@ -355,7 +355,7 @@ void Query::write()
 
 	auto root = doc.append_child("Phonometrica");
 	auto attr = root.append_attribute("class");
-	attr.set_value(class_name());
+	attr.set_value(class_name().data());
 	attr = root.append_attribute("label");
 	attr.set_value(m_label.data());
 	auto metadata_node = root.append_child("Metadata");

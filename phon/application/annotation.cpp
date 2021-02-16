@@ -31,17 +31,12 @@ namespace phonometrica {
 Signal<const Handle<Annotation>&, const AutoEvent&, const String&> Annotation::edit_event;
 
 Annotation::Annotation(Directory *parent, String path) :
-		Document(get_class_ptr<Annotation>(), parent, std::move(path))
+		Document(meta::get_class<Annotation>(), parent, std::move(path))
 {
 	m_type = guess_type();
 	// Native files are loaded in 2 steps: first, we load the metadata when the file is created. Next,
 	// we load the graph when open() is called.
 	if (is_native() && has_path()) preload();
-}
-
-const char *Annotation::class_name() const
-{
-	return "Annotation";
 }
 
 bool Annotation::is_annotation() const
@@ -53,7 +48,6 @@ void Annotation::preload()
 {
 	assert(!m_path.empty());
 	static std::string_view project_tag("Phonometrica");
-	static std::string_view class_tag = class_name();
 	static std::string_view meta_tag = "Metadata";
 
 	xml_document doc;
@@ -65,7 +59,7 @@ void Annotation::preload()
 
 	auto attr = root.attribute("class");
 
-	if (!attr || attr.as_string() != class_tag) {
+	if (!attr || attr.as_string() != class_name()) {
 		throw error("[Input/Output] Expected an annotation file, got a % file instead", attr.as_string());
 	}
 
@@ -201,68 +195,16 @@ void Annotation::initialize(Runtime &rt)
         }
         throw error("[Index error] Annotation type has no member named \"%\"", key);
     };
-    
-    auto add_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-    	auto &annot = cast<Annotation>(args[0]);
-    	auto &category = cast<String>(args[1]);
-		annot.open();
-    	std::any value;
 
-    	if (check_type<String>(args[2])) {
-			value = cast<String>(args[2]);
-		}
-    	else if (check_type<bool>(args[2])) {
-    		value = cast<bool>(args[2]);
-    	}
-    	else if (args[2].resolve().is_number()) {
-    		value = args[2].resolve().get_number();
-    	}
-    	else {
-    		throw error("Invalid property type: %", args[2].class_name());
-    	}
-		annot.add_property(Property(category, std::move(value)));
-
+	auto bind_to_sound = [](Runtime &, std::span<Variant> args) -> Variant  {
+		auto &annot = cast<Annotation>(args[0]);
+		auto &path = cast<String>(args[1]);
+		auto project = Project::get();
+		project->import_file(path);
+		auto snd = recast<Sound>(project->get(path));
+		if (snd) annot.set_sound(snd);
 		return Variant();
-    };
-
-    auto remove_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-    	auto &annot = cast<Annotation>(args[0]);
-    	auto &category = cast<String>(args[1]);
-		annot.open();
-		annot.remove_property(category);
-    	return Variant();
-    };
-
-    auto bind_to_sound = [](Runtime &, std::span<Variant> args) -> Variant  {
-    	auto &annot = cast<Annotation>(args[0]);
-    	auto &path = cast<String>(args[1]);
-    	auto project = Project::get();
-    	project->import_file(path);
-    	auto snd = recast<Sound>(project->get(path));
-    	if (snd) annot.set_sound(snd);
-    	return Variant();
-    };
-
-    auto get_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-    	auto &annot = cast<Annotation>(args[0]);
-    	auto category = cast<String>(args[1]);
-		annot.open();
-    	auto prop = annot.get_property(category);
-
-    	if (prop.valid())
-	    {
-    		if (prop.is_text())
-    			return prop.value();
-    		else if (prop.is_numeric())
-    			return prop.numeric_value();
-    		else if (prop.is_boolean())
-    			return prop.boolean_value();
-		    else
-		    	throw error("[Internal error] Invalid property type");
-	    }
-
-    	return Variant();
-    };
+	};
 
 	auto get_event_count = [](Runtime &, std::span<Variant> args) -> Variant  {
 		auto &annot = cast<Annotation>(args[0]);
@@ -382,9 +324,6 @@ void Annotation::initialize(Runtime &rt)
 #define CLS(T) phonometrica::get_class<T>()
 	auto cls = CLS(Annotation);
 	cls->add_method(rt.get_field_string, annot_get_field, { CLS(Annotation), CLS(String) });
-	rt.add_global("add_property", add_property, { CLS(Annotation), CLS(String), CLS(Object) });
-	rt.add_global("remove_property", remove_property, { CLS(Annotation), CLS(String) });
-	rt.add_global("get_property", get_property, { CLS(Annotation), CLS(String) });
 	rt.add_global("bind_to_sound", bind_to_sound, { CLS(Annotation), CLS(String) });
 	rt.add_global("get_event_start", get_event_start, { CLS(Annotation), CLS(intptr_t), CLS(intptr_t) });
 	rt.add_global("get_event_end", get_event_end,  { CLS(Annotation), CLS(intptr_t), CLS(intptr_t) });
@@ -479,7 +418,7 @@ void Annotation::write_as_native(const String &path)
 
 	auto root = doc.append_child("Phonometrica");
 	auto attr = root.append_attribute("class");
-    attr.set_value(class_name());
+    attr.set_value(class_name().data());
     auto meta_node = root.append_child("Metadata");
     metadata_to_xml(meta_node);
     auto graph_node = root.append_child("Graph");
@@ -499,7 +438,6 @@ void Annotation::read_from_native()
 {
 	assert(!m_path.empty());
 	static std::string_view project_tag("Phonometrica");
-	static std::string_view class_tag = class_name();
 	static std::string_view graph_tag = "Graph";
 
 	xml_document doc;
@@ -511,7 +449,7 @@ void Annotation::read_from_native()
 
     auto attr = root.attribute("class");
 
-	if (!attr || attr.as_string() != class_tag) {
+	if (!attr || attr.as_string() != class_name()) {
 	    throw error("[Input/Output] Expected an annotation file, got a % file instead", attr.as_string());
 	}
 

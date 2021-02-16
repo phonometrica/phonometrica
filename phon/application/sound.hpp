@@ -62,8 +62,6 @@ public:
 
 	bool is_sound() const override;
 
-	const char *class_name() const override;
-
 	double duration() const;
 
 	int sample_rate() const;

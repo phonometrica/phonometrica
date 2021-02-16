@@ -51,8 +51,6 @@ public:
 
 	~Query() override = default;
 
-	const char *class_name() const override { return "Query"; }
-
 	void add_metaconstraint(AutoMetaConstraint m, bool mutate = true);
 
 	void add_constraint(Constraint c, bool mutate = true);

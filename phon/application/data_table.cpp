@@ -15,54 +15,85 @@
  *                                                                                                                     *
  * Created: 28/02/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: Script file.                                                                                               *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SCRIPT_HPP
-#define PHONOMETRICA_SCRIPT_HPP
-
-#include <phon/application/vfs.hpp>
+#include <phon/file.hpp>
+#include <phon/runtime/runtime.hpp>
+#include <phon/application/project.hpp>
+#include <phon/application/data_table.hpp>
+#include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
 
-class Script final : public Document
+
+DataTable::DataTable(Class *klass, Directory *parent, String path) :
+		Document(klass, parent, std::move(path))
 {
-public:
 
-	explicit Script(Directory *parent, String path = String());
+}
 
-	bool is_script() const override;
+bool DataTable::is_dataset() const
+{
+	return true;
+}
 
-	const String &content() const;
+void DataTable::from_xml(xml_node root, const String &project_dir)
+{
+	static const std::string_view path_tag("Path");
 
-	void set_content(String value, bool mutate = true);
+	for (auto node = root.first_child(); node; node = node.next_sibling())
+	{
+		if (node.name() == path_tag)
+		{
+			String path(node.text().get());
+			Project::interpolate(path, project_dir);
+			m_path = std::move(path);
+		}
+	}
+}
 
-    // A script can only be modified in a script view. We don't update the script's content every time the text is
-    // changed in the view. Instead, we inform the script that it has been modified with this method. When the view
-    // is closed, the user will be asked whether they want to save the modifications or not. Modifications can also
-    // be saved via the save button in the script view.
-    void set_pending_modifications() { m_content_modified = true; }
+void DataTable::save_metadata()
+{
+	// Native files store their metadata directly, other files need to write them to the database.
+	if (uses_external_metadata()) {
+		Document::save_metadata();
+	}
+}
 
-	String label() const override;
+bool DataTable::uses_external_metadata() const
+{
+	return is_spreadsheet();
+}
 
-    static void initialize(Runtime &rt);
+void DataTable::to_csv(const String &path, const String &sep)
+{
+	File file(path, File::Write);
+	auto nrow = this->row_count();
+	auto ncol = this->column_count();
 
-private:
+	for (intptr_t j = 1; j <= ncol; j++)
+	{
+		file.write(get_header(j));
+		if (j == ncol) file.write('\n');
+		else file.write(sep);
+	}
 
-	void load() override;
+	for (intptr_t i = 1; i <= nrow; i++)
+	{
+		for (intptr_t j = 1; j <= ncol; j++)
+		{
+			file.write(get_cell(i, j));
+			if (j == ncol) file.write('\n');
+			else file.write(sep);
+		}
+	}
+}
 
-	void write() override;
+void DataTable::initialize(Runtime &rt)
+{
 
-	String m_content;
-
-};
-
-
-namespace traits {
-template<> struct maybe_cyclic<Script> : std::false_type { };
 }
 
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_SCRIPT_HPP
