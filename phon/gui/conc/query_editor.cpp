@@ -138,7 +138,7 @@ wxBoxSizer *QueryEditor::MakeButtons(wxWindow *parent)
 	return sizer;
 }
 
-AutoConcordance QueryEditor::ExecuteQuery()
+Handle<Concordance> QueryEditor::ExecuteQuery()
 {
 	if (!prepared) {
 		throw error("Internal error: you must call Prepare() before executing a query");

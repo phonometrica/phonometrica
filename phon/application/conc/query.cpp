@@ -20,6 +20,7 @@
  ***********************************************************************************************************************/
 
 #include <wx/progdlg.h>
+#include <phon/runtime.hpp>
 #include <phon/application/conc/query.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/xml.hpp>
@@ -27,8 +28,8 @@
 
 namespace phonometrica {
 
-Query::Query(VFolder *parent, String path) :
-	VFile(parent, std::move(path))
+Query::Query(Directory *parent, String path) :
+		Document(get_class_ptr<Query>(), parent, std::move(path))
 {
 	if (!m_path.empty()) {
 		load();
@@ -47,12 +48,12 @@ void Query::add_constraint(Constraint c, bool mutate)
 	if (mutate) m_content_modified = true;
 }
 
-Array<AutoAnnotation> Query::filter_annotations(Array<AutoAnnotation> candidates) const
+Array<Handle<Annotation>> Query::filter_annotations(Array<Handle<Annotation>> candidates) const
 {
 	if (m_metaconstraints.empty()) {
 		return candidates;
 	}
-	Array<AutoAnnotation> result;
+	Array<Handle<Annotation>> result;
 
 	for (auto &candidate : candidates)
 	{
@@ -64,7 +65,7 @@ Array<AutoAnnotation> Query::filter_annotations(Array<AutoAnnotation> candidates
 	return result;
 }
 
-bool Query::filter_metadata(const VFile *file) const
+bool Query::filter_metadata(const Document *file) const
 {
 	// Reject files that do not satisfy all the constraints.
 	for (auto &constraint : m_metaconstraints)
@@ -93,7 +94,7 @@ bool Query::is_query() const
 	return true;
 }
 
-void Query::set_selection(Array<AutoAnnotation> files)
+void Query::set_selection(Array<Handle<Annotation>> files)
 {
 	selected_annotations = std::move(files);
 	m_content_modified = true;
@@ -191,7 +192,7 @@ void Query::parse_metaconstraints_from_xml(xml_node root)
 				}
 				String path = subnode.text().get();
 				auto vfile = Project::get()->get(path);
-				auto annot = downcast<Annotation>(vfile);
+				auto annot = recast<Annotation>(vfile);
 
 				if (!annot) {
 					throw error("Invalid annotation in text query file selection");
@@ -495,9 +496,9 @@ void Query::parse_options_from_xml(xml_node root)
 	}
 }
 
-AutoQuery Query::clone() const
+Handle<Query> Query::copy() const
 {
-	auto copy = std::make_shared<Query>(this->parent(), String());
+	auto copy = make_handle<Query>(this->parent(), String());
 	copy->m_constraints = m_constraints;
 	copy->m_metaconstraints = m_metaconstraints;
 	copy->selected_annotations = selected_annotations;
@@ -511,9 +512,9 @@ AutoQuery Query::clone() const
 	return copy;
 }
 
-AutoConcordance Query::execute()
+Handle<Concordance> Query::execute()
 {
-	auto conc = std::make_shared<Concordance>(m_constraints.size(), m_context, m_context_length, search(), nullptr);
+	auto conc = make_handle<Concordance>(m_constraints.size(), m_context, m_context_length, search(), nullptr);
 	auto label = this->label();
 	if (label.starts_with("Query ")) {
 		label.replace_first("Query ", "Concordance ");
@@ -572,7 +573,7 @@ Array<AutoMatch> Query::search()
 	return result;
 }
 
-Array<AutoMatch> Query::search_annotation(const AutoAnnotation &annot)
+Array<AutoMatch> Query::search_annotation(const Handle<Annotation> &annot)
 {
 	// We maintain a list of the layer indices we have already seen, so that we don't scan the same layer twice
 	Array<int> seen;
@@ -591,7 +592,7 @@ Array<AutoMatch> Query::search_annotation(const AutoAnnotation &annot)
 }
 
 Array <AutoMatch>
-Query::find_matches(const AutoAnnotation &annot, const Constraint &constraint, Array <AutoMatch> matches,
+Query::find_matches(const Handle<Annotation> &annot, const Constraint &constraint, Array <AutoMatch> matches,
                     Array<int> &blacklist, Constraint::Operator op, bool is_ref) const
 {
 	if (constraint.use_index())
@@ -629,7 +630,7 @@ Query::find_matches(const AutoAnnotation &annot, const Constraint &constraint, A
 }
 
 Array <AutoMatch>
-Query::find_matches(const AutoAnnotation &annot, const Constraint &constraint, Array <AutoMatch> matches,
+Query::find_matches(const Handle<Annotation> &annot, const Constraint &constraint, Array <AutoMatch> matches,
                     intptr_t layer_index, Array<int> &seen, Constraint::Operator op, bool is_ref) const
 {
 	using Op = Constraint::Operator;
@@ -857,6 +858,11 @@ Query::find_target(const AutoEvent &event, const Constraint &constraint, intptr_
 bool Query::empty()
 {
 	return m_constraints.empty() && m_metaconstraints.empty();
+}
+
+void Query::initialize(Runtime &rt)
+{
+
 }
 
 } // namespace phonometrica

@@ -28,8 +28,8 @@
 namespace phonometrica {
 
 
-Dataset::Dataset(VFolder *parent, String path) :
-		VFile(parent, std::move(path))
+Dataset::Dataset(Class *klass, Directory *parent, String path) :
+		Document(klass, parent, std::move(path))
 {
 
 }
@@ -58,7 +58,7 @@ void Dataset::save_metadata()
 {
 	// Native files store their metadata directly, other files need to write them to the database.
 	if (uses_external_metadata()) {
-		VFile::save_metadata();
+		Document::save_metadata();
 	}
 }
 
@@ -93,8 +93,7 @@ void Dataset::to_csv(const String &path, const String &sep)
 
 void Dataset::initialize(Runtime &rt)
 {
-	auto cls = rt.create_type<AutoDataset>("Dataset", rt.get_object_class());
-	rt.add_global("Dataset", std::move(cls));
+
 }
 
 } // namespace phonometrica

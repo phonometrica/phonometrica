@@ -45,13 +45,13 @@ public:
 
 	void NewScript();
 
-	void NewScriptWithParent(VFolder *parent);
+	void NewScriptWithParent(Directory *parent);
 
 	void CloseCurrentView();
 
 	View *GetCurrentView();
 
-	void ViewFile(const std::shared_ptr<VFile> &file);
+	void ViewFile(const Handle<Document> &file);
 
 	void AdjustFontSize();
 
@@ -75,11 +75,11 @@ private:
 
 	void OnViewClosed(wxAuiNotebookEvent &);
 
-	void NewScript(const AutoScript &script);
+	void NewScript(const Handle<Script> &script);
 
 	void OnPageChanged(wxAuiNotebookEvent &);
 
-	void OnEditEvent(const std::shared_ptr<Annotation> &annot, const AutoEvent &event, const String &new_value);
+	void OnEditEvent(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value);
 
 	// Used to set bindings.
 	MainWindow *main_window = nullptr;

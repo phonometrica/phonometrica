@@ -62,7 +62,7 @@ bool Match::Target::operator<(const Match::Target &other) const
 	return this->offset < other.offset;
 }
 
-Match::Match(const AutoAnnotation &annot, std::unique_ptr<Target> t) :
+Match::Match(const Handle<Annotation> &annot, std::unique_ptr<Target> t) :
 	m_annot(annot), m_target(std::move(t))
 {
 
@@ -117,7 +117,7 @@ String Match::get_value(intptr_t i) const
 	return get(i)->value;
 }
 
-const AutoAnnotation &Match::annotation() const
+const Handle<Annotation> &Match::annotation() const
 {
 	return m_annot;
 }
@@ -172,7 +172,7 @@ void Match::to_xml(xml_node root) const
 
 bool Match::valid()
 {
-	return m_annot != nullptr && m_target != nullptr;
+	return m_annot && m_target != nullptr;
 }
 
 void Match::append(std::unique_ptr<Target> next)

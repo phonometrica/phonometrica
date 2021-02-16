@@ -52,6 +52,8 @@ public:
 
 	static void create(Runtime &rt);
 
+	static void preinitialize(Runtime &rt);
+
 	static void initialize(Runtime &rt);
 
 	static Project* get();
@@ -78,15 +80,15 @@ public:
 
 	void save(String path);
 
-	const std::shared_ptr<VFolder> & corpus() const;
+	const Handle<Directory> & corpus() const;
 
-	const std::shared_ptr<VFolder> & bookmarks() const;
+	const Handle<Directory> & bookmarks() const;
 
-	const std::shared_ptr<VFolder> & scripts() const;
+	const Handle<Directory> & scripts() const;
 
-	const std::shared_ptr<VFolder> & data() const;
+	const Handle<Directory> & data() const;
 
-	const std::shared_ptr<VFolder> & queries() const;
+	const Handle<Directory> & queries() const;
 
 	const String &directory() const;
 
@@ -94,27 +96,27 @@ public:
 
 	String import_file(String path);
 
-	void add_query(AutoQuery query);
+	void add_query(Handle<Query> query);
 
-	void remove(VFileList &files);
+	void remove(DocList &files);
 
-	void remove(VNodeList &files);
+	void remove(ElementList &files);
 
-	void remove(const std::shared_ptr<VFile> &folder);
+	void remove(const Handle<Document> &folder);
 
-	void remove(const std::shared_ptr<VFolder> &folder);
+	void remove(const Handle<Directory> &folder);
 
 	bool has_uuid() const;
 
 	const String &uuid() const;
 
-	static std::set<Property> get_shared_properties(const VFileList &files);
+	static std::set<Property> get_shared_properties(const DocList &files);
 
 	MetaDatabase & database() const;
 
 	void remove_empty_script();
 
-	VFileList get_corpus_files() const;
+	DocList get_corpus_files() const;
 
 	void clear();
 
@@ -122,13 +124,13 @@ public:
 
 	void set_label(const String &value);
 
-	std::shared_ptr<VFile> get(const String &path);
+	Handle<Document> get(const String &path);
 
-    void register_file(const String &path, std::shared_ptr<VFile> file);
+    void register_file(const String &path, Handle<Document> file);
 
     static void updated();
 
-    bool is_root(const VFolder *folder) const;
+    bool is_root(const Directory *folder) const;
 
     void import_metadata(const String &path, const String &separator);
 
@@ -136,21 +138,19 @@ public:
 
     bool empty() const;
 
-    Array<AutoAnnotation> annotations() const;
+    Array<Handle<Annotation>> annotations() const;
 
-    Array<AutoConcordance> concordances() const;
+    Array<Handle<Concordance>> concordances() const;
 
-    void add_bookmark(AutoBookmark bookmark);
+    void add_bookmark(Handle<Bookmark> bookmark);
 
 	static void interpolate(String &path, std::string_view project_dir);
 
 	static void compress(String &path, std::string_view project_dir);
 
-	static void initialize_types(Runtime &rt);
+	void bind_annotation(const Handle<Annotation> &annot, const String &sound_file);
 
-	void bind_annotation(const AutoAnnotation &annot, const String &sound_file);
-
-	bool add_file(String path, const std::shared_ptr<VFolder> &parent, FileType type, bool importing);
+	bool add_file(String path, const Handle<Directory> &parent, FileType type, bool importing);
 
 	void clear_import_flag() { m_import_flag = false; }
 
@@ -181,13 +181,13 @@ private:
     void load();
 	void write();
 
-	void parse_corpus(xml_node root, VFolder *folder);
+	void parse_corpus(xml_node root, Directory *folder);
 	void parse_metadata(xml_node root);
-	void parse_scripts(xml_node root, VFolder *folder);
-	void parse_queries(xml_node root, VFolder *folder);
-	void parse_bookmarks(xml_node root, VFolder *folder);
+	void parse_scripts(xml_node root, Directory *folder);
+	void parse_queries(xml_node root, Directory *folder);
+	void parse_bookmarks(xml_node root, Directory *folder);
 	void parse_changelog(xml_node root);
-	void parse_data(xml_node root, VFolder *folder);
+	void parse_data(xml_node root, Directory *folder);
 
 	void write_corpus(xml_node root);
 	void write_metadata(xml_node root);
@@ -196,7 +196,7 @@ private:
 	void write_data(xml_node root);
 	void write_queries(xml_node root);
 
-	void add_folder(String path, const std::shared_ptr<VFolder> &parent, bool importing);
+	void add_folder(String path, const Handle<Directory> &parent, bool importing);
 
 	void bind_annotations();
 
@@ -208,13 +208,13 @@ private:
 
 	void reinitialize();
 
-	const std::shared_ptr<VFile> & get_file_handle(const String &path, std::string_view msg);
+	const Handle<Document> & get_file_handle(const String &path, std::string_view msg);
 
 	void emit(const String &signal, Variant value);
 
     void emit(const String &signal);
 
-    void tag_file(std::shared_ptr<VFile> &file, const String &category, const String &value);
+    void tag_file(Handle<Document> &file, const String &category, const String &value);
 
     void set_default_bindings();
 
@@ -234,22 +234,22 @@ private:
 
 	// Map all registered file paths to a file object. This ensures that we don't create several
 	// objects for the same file.
-	Dictionary<std::shared_ptr<VFile>> m_files;
+	Dictionary<Handle<Document>> m_files;
 
 	// When loading a project, an annotation may be loaded before the sound file it is bound to,
 	// so binding can't happen at that time. Instead, annotations are stored into this accumulator
 	// and binding happens once the project is loaded.
 	std::vector<std::pair<Annotation*,String>> m_accumulator;
 
-	std::shared_ptr<VFolder> m_corpus;
+	Handle<Directory> m_corpus;
 
-	std::shared_ptr<VFolder> m_bookmarks;
+	Handle<Directory> m_bookmarks;
 
-	std::shared_ptr<VFolder> m_scripts;
+	Handle<Directory> m_scripts;
 
-	std::shared_ptr<VFolder> m_data;
+	Handle<Directory> m_data;
 
-	std::shared_ptr<VFolder> m_queries;
+	Handle<Directory> m_queries;
 
 	// UUID for the project, so that it can be uniquely identified in the metadata database.
 	String m_uuid;

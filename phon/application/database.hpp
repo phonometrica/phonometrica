@@ -25,12 +25,13 @@
 #include <set>
 #include <phon/string.hpp>
 #include <phon/third_party/sqlite/sqlite3.h>
-#include <phon/utils/memory.hpp>
+#include <phon/runtime/typed_object.hpp>
 #include <phon/utils/signal.hpp>
+#include <phon/application/annotation.hpp>
 
 namespace phonometrica {
 
-class VFile;
+class Document;
 class Annotation;
 class Property;
 
@@ -104,11 +105,11 @@ public:
 
 	void remove_category_from_file(const String &path, const String &cat);
 
-	void add_file(VFile &file);
+	void add_file(Document &file);
 
-	void save_file_metadata(VFile &file);
+	void save_file_metadata(Document &file);
 
-	void add_metadata_to_file(std::shared_ptr<VFile> &file);
+	void add_metadata_to_file(const phonometrica::Handle<Document> &file);
 
 	std::set<String> get_categories();
 
@@ -116,13 +117,13 @@ public:
 
 	// Send annotation and sound path. The project will associate the Annotation with
 	// the corresponding Sound file whenever possible.
-	Signal<const std::shared_ptr<Annotation> &, const String &> notify_annotation_needs_sound;
+	Signal<const Handle<Annotation> &, const String &> notify_annotation_needs_sound;
 
 private:
 
 	String get_value(const String &path, const String &cat);
 
-	String get_sound_path_if_exists(const VFile &file) const;
+	String get_sound_path_if_exists(const Document &file) const;
 };
 
 

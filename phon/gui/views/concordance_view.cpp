@@ -34,7 +34,7 @@
 
 namespace phonometrica {
 
-ConcordanceView::ConcordanceView(wxWindow *parent, AutoConcordance conc) :
+ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	View(parent), m_conc(std::move(conc))
 {
 #define ICN(x) wxBITMAP_PNG_FROM_DATA(x)

@@ -30,9 +30,9 @@ class Spreadsheet final : public Dataset
 {
 public:
 
-	Spreadsheet(VFolder *parent, String path = String()) :
-		Dataset(parent, std::move(path))
-	{ }
+	Spreadsheet(Directory *parent, String path = String());
+
+	Spreadsheet(const Spreadsheet &other);
 
 	String get_header(intptr_t j) const override;
 
@@ -49,6 +49,8 @@ public:
 	bool empty() const override { return nrow == 0; }
 
 	bool is_spreadsheet() const override { return true; }
+
+	static void initialize(Runtime &rt);
 
 private:
 
@@ -67,6 +69,8 @@ private:
 
 		virtual void resize(intptr_t size) = 0;
 
+		virtual Column *clone() const = 0;
+
 	protected:
 
 		Type find_type(const std::type_info &t) const;
@@ -81,6 +85,8 @@ private:
 			data(size, value)
 		{ }
 
+		TColumn(const Array<T> &d) : data(d) { }
+
 		Type type() const override { return find_type(typeid(T)); }
 
 		const T &get(intptr_t i) const { return data[i]; }
@@ -88,6 +94,8 @@ private:
 		void set(intptr_t i, T value) { data[i] = std::move(value); }
 
 		void resize(intptr_t size) override { data.resize(size); }
+
+		Column *clone() const override { return new TColumn<T>(data); }
 
 		Array<T> data;
 	};
@@ -118,10 +126,9 @@ private:
 	intptr_t ncol = 0;
 };
 
-using AutoSpreadsheet = std::shared_ptr<Spreadsheet>;
 
 namespace traits {
-template<> struct maybe_cyclic<AutoSpreadsheet> : std::false_type { };
+template<> struct maybe_cyclic<Spreadsheet> : std::false_type { };
 }
 
 } // namespace phonometrica

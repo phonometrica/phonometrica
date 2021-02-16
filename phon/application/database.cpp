@@ -181,7 +181,7 @@ _type TEXT NOT NULL DEFAULT "",
 _description TEXT NOT NULL DEFAULT "");)__");
 }
 
-void MetaDatabase::add_file(VFile &file)
+void MetaDatabase::add_file(Document &file)
 {
 	String type = file.class_name();
 	String sound_ref = get_sound_path_if_exists(file);
@@ -214,7 +214,7 @@ void MetaDatabase::add_file(VFile &file)
 	execute(query);
 }
 
-void MetaDatabase::save_file_metadata(VFile &file)
+void MetaDatabase::save_file_metadata(Document &file)
 {
 	auto &path = file.path();
 	String msg("Saving metadata for file ");
@@ -277,7 +277,7 @@ void MetaDatabase::save_file_metadata(VFile &file)
 	}
 }
 
-void MetaDatabase::add_metadata_to_file(std::shared_ptr<VFile> &file)
+void MetaDatabase::add_metadata_to_file(const Handle<Document> &file)
 {
 	String sql("SELECT * FROM files WHERE _path = ");
 	sql.append(escape_string(file->path())).append(';');
@@ -298,7 +298,7 @@ void MetaDatabase::add_metadata_to_file(std::shared_ptr<VFile> &file)
 			}
 			else if (name == "_soundref" && (!field.empty()) && file->is_annotation())
 			{
-				auto annot = downcast<Annotation>(file);
+				auto annot = recast<Annotation>(file);
 				notify_annotation_needs_sound(annot, field);
 			}
 			else if (!name.starts_with("_") && !field.empty())
@@ -413,7 +413,7 @@ bool MetaDatabase::has_file(const String &path)
 	return check_statement();
 }
 
-String MetaDatabase::get_sound_path_if_exists(const VFile &file) const
+String MetaDatabase::get_sound_path_if_exists(const Document &file) const
 {
 	if (auto annot = dynamic_cast<const Annotation*>(&file))
 	{

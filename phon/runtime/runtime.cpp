@@ -1996,7 +1996,7 @@ void Runtime::mark_candidates()
 			remove_candidate(candidate);
 
 			if (candidate->is_black() && !candidate->is_used()) {
-				candidate->destroy();
+				delete candidate;
 			}
 		}
 		candidate = candidate->next;
@@ -2091,7 +2091,7 @@ void Runtime::collect_white(Collectable *ref)
 		if (traverse) {
 			traverse(ref, collect_white);
 		}
-		ref->destroy();
+		delete ref;
 	}
 }
 

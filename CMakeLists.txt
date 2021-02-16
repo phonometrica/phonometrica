@@ -22,7 +22,7 @@ set(EMBED_SCRIPTS ON)
 # Logging (for debugging)
 set(ENABLE_LOGGING ON)
 # Compile the whole application or the scripting engine only
-set(WITH_GUI OFF)
+set(WITH_GUI ON)
 # Run unit tests for core types
 set(BUILD_UNIT_TEST OFF)
 

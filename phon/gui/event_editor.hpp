@@ -33,9 +33,9 @@ class EventEditor final : public wxWindow
 {
 public:
 
-	EventEditor(wxWindow *parent, const AutoAnnotation &annot, const AutoEvent &event, wxPoint position, wxSize size);
+	EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, wxPoint position, wxSize size);
 
-	EventEditor(wxWindow *parent, const AutoAnnotation &annot, const AutoEvent &event, intptr_t sel_start, intptr_t len, wxPoint position, wxSize size);
+	EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, intptr_t sel_start, intptr_t len, wxPoint position, wxSize size);
 
 	Signal<> done;
 
@@ -49,7 +49,7 @@ private:
 
 	wxRichTextCtrl *m_ctrl;
 
-	AutoAnnotation m_annot;
+	Handle<Annotation> m_annot;
 
 	AutoEvent m_event;
 };

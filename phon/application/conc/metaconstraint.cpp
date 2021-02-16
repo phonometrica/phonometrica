@@ -31,7 +31,7 @@ DescMetaConstraint::DescMetaConstraint(DescMetaConstraint::Operator op, const St
 	}
 }
 
-bool DescMetaConstraint::filter(const VFile *file) const
+bool DescMetaConstraint::filter(const Document *file) const
 {
 	switch (op)
 	{
@@ -100,7 +100,7 @@ void DescMetaConstraint::to_xml(xml_node node)
 	op_node.set_value(op_to_name(op));
 }
 
-bool TextMetaConstraint::filter(const VFile *file) const
+bool TextMetaConstraint::filter(const Document *file) const
 {
 	for (auto &prop : file->properties())
 	{
@@ -125,7 +125,7 @@ void TextMetaConstraint::to_xml(xml_node node)
 	}
 }
 
-bool NumericMetaConstraint::filter(const VFile *file) const
+bool NumericMetaConstraint::filter(const Document *file) const
 {
 	for (auto &prop : file->properties())
 	{
@@ -233,7 +233,7 @@ NumericMetaConstraint::Operator NumericMetaConstraint::name_to_op(std::string_vi
 	throw error("Invalid operator name for numeric meta-constraint");
 }
 
-bool BooleanMetaConstraint::filter(const VFile *file) const
+bool BooleanMetaConstraint::filter(const Document *file) const
 {
 	for (auto &prop : file->properties())
 	{

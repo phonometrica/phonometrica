@@ -28,10 +28,10 @@
 
 namespace phonometrica {
 
-Signal<const std::shared_ptr<Annotation>&, const AutoEvent&, const String&> Annotation::edit_event;
+Signal<const Handle<Annotation>&, const AutoEvent&, const String&> Annotation::edit_event;
 
-Annotation::Annotation(VFolder *parent, String path) :
-		VFile(parent, std::move(path))
+Annotation::Annotation(Directory *parent, String path) :
+		Document(get_class_ptr<Annotation>(), parent, std::move(path))
 {
 	m_type = guess_type();
 	// Native files are loaded in 2 steps: first, we load the metadata when the file is created. Next,
@@ -120,12 +120,12 @@ bool Annotation::has_sound() const
 	return bool(m_sound);
 }
 
-std::shared_ptr<Sound> Annotation::sound() const
+const Handle<Sound> &Annotation::sound() const
 {
 	return m_sound;
 }
 
-void Annotation::set_sound(const std::shared_ptr<Sound> &value, bool mutate)
+void Annotation::set_sound(const Handle<Sound> &value, bool mutate)
 {
 	m_sound = value;
 	m_metadata_modified |= mutate;
@@ -160,13 +160,13 @@ void Annotation::save_metadata()
 {
 	// Native files store their metadata directly, other files need to write them to the database.
 	if (m_type != Native) {
-		VFile::save_metadata();
+		Document::save_metadata();
 	}
 }
 
 void Annotation::set_path(String path, bool mutate)
 {
-	VFile::set_path(std::move(path), mutate);
+	Document::set_path(std::move(path), mutate);
 	m_type = guess_type();
 }
 
@@ -177,37 +177,35 @@ bool Annotation::uses_external_metadata() const
 
 void Annotation::initialize(Runtime &rt)
 {
-	auto cls = rt.add_standard_type<AutoAnnotation>("Annotation");
-
     auto annot_get_field = [](Runtime &, std::span<Variant> args) -> Variant  {
-        auto &annot = cast<AutoAnnotation>(args[0]);
+        auto &annot = cast<Annotation>(args[0]);
         auto &key = cast<String>(args[1]);
 
 	    // Don't open the annotation yet if we just want its path
 	    if (key == "path")
         {
-        	return annot->path();
+        	return annot.path();
         }
-	    annot->open();
+	    annot.open();
 
         if (key == "sound")
         {
-			if (annot->has_sound()) {
-				return make_handle<AutoSound>(annot->sound());
+			if (annot.has_sound()) {
+				return annot.sound();
 			}
 
 			return Variant();    	
         }
         else if (key == "nlayer") {
-			return annot->layer_count();
+			return annot.layer_count();
         }
         throw error("[Index error] Annotation type has no member named \"%\"", key);
     };
     
     auto add_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-    	auto &annot = cast<AutoAnnotation>(args[0]);
+    	auto &annot = cast<Annotation>(args[0]);
     	auto &category = cast<String>(args[1]);
-		annot->open();
+		annot.open();
     	std::any value;
 
     	if (check_type<String>(args[2])) {
@@ -222,34 +220,34 @@ void Annotation::initialize(Runtime &rt)
     	else {
     		throw error("Invalid property type: %", args[2].class_name());
     	}
-		annot->add_property(Property(category, std::move(value)));
+		annot.add_property(Property(category, std::move(value)));
 
 		return Variant();
     };
 
     auto remove_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-    	auto &annot = cast<AutoAnnotation>(args[0]);
+    	auto &annot = cast<Annotation>(args[0]);
     	auto &category = cast<String>(args[1]);
-		annot->open();
-		annot->remove_property(category);
+		annot.open();
+		annot.remove_property(category);
     	return Variant();
     };
 
     auto bind_to_sound = [](Runtime &, std::span<Variant> args) -> Variant  {
-    	auto &annot = cast<AutoAnnotation>(args[0]);
+    	auto &annot = cast<Annotation>(args[0]);
     	auto &path = cast<String>(args[1]);
     	auto project = Project::get();
     	project->import_file(path);
-    	auto snd = downcast<Sound>(project->get(path));
-    	if (snd) annot->set_sound(snd);
+    	auto snd = recast<Sound>(project->get(path));
+    	if (snd) annot.set_sound(snd);
     	return Variant();
     };
 
     auto get_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-    	auto &annot = cast<AutoAnnotation>(args[0]);
+    	auto &annot = cast<Annotation>(args[0]);
     	auto category = cast<String>(args[1]);
-		annot->open();
-    	auto prop = annot->get_property(category);
+		annot.open();
+    	auto prop = annot.get_property(category);
 
     	if (prop.valid())
 	    {
@@ -267,13 +265,13 @@ void Annotation::initialize(Runtime &rt)
     };
 
 	auto get_event_count = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &annot = cast<AutoAnnotation>(args[0]);
+		auto &annot = cast<Annotation>(args[0]);
 		auto layer_index = cast<intptr_t>(args[1]);
-		annot->open();
+		annot.open();
 
 		try
 		{
-			auto layer = annot->graph().get(layer_index);
+			auto layer = annot.graph().get(layer_index);
 			return layer->count();
 		}
 		catch (...)
@@ -283,14 +281,14 @@ void Annotation::initialize(Runtime &rt)
 	};
 
 	auto get_event_start = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &annot = cast<AutoAnnotation>(args[0]);
+		auto &annot = cast<Annotation>(args[0]);
 		auto layer = cast<intptr_t>(args[1]);
 		auto event = cast<intptr_t>(args[2]);
-		annot->open();
+		annot.open();
 
 		try
 		{
-			auto e = annot->get_event(layer, event);
+			auto e = annot.get_event(layer, event);
 			return e->start_time();
 		}
 		catch (...)
@@ -300,14 +298,14 @@ void Annotation::initialize(Runtime &rt)
 	};
 
 	auto get_event_end = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &annot = cast<AutoAnnotation>(args[0]);
+		auto &annot = cast<Annotation>(args[0]);
 		auto layer = cast<intptr_t>(args[1]);
 		auto event = cast<intptr_t>(args[2]);
-		annot->open();
+		annot.open();
 
 		try
 		{
-			auto e = annot->get_event(layer, event);
+			auto e = annot.get_event(layer, event);
 			return e->end_time();
 		}
 		catch (...)
@@ -317,14 +315,14 @@ void Annotation::initialize(Runtime &rt)
 	};
 
     auto get_event_text = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &annot = cast<AutoAnnotation>(args[0]);
+		auto &annot = cast<Annotation>(args[0]);
 		auto layer = cast<intptr_t>(args[1]);
 		auto event = cast<intptr_t>(args[2]);
-		annot->open();
+		annot.open();
 
 	    try
 	    {
-		    auto e = annot->get_event(layer, event);
+		    auto e = annot.get_event(layer, event);
 		   	return e->text();
 	    }
 	    catch (...)
@@ -334,15 +332,15 @@ void Annotation::initialize(Runtime &rt)
     };
 
 	auto set_event_text = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &annot = cast<AutoAnnotation>(args[0]);
+		auto &annot = cast<Annotation>(args[0]);
 		auto layer = cast<intptr_t>(args[1]);
 		auto event = cast<intptr_t>(args[2]);
 		auto &text = cast<intptr_t>(args[3]);
-		annot->open();
+		annot.open();
 
 		try
 		{
-			auto e = annot->get_event(layer, event);
+			auto e = annot.get_event(layer, event);
 			e->set_text(text);
 			return Variant();
 		}
@@ -353,11 +351,11 @@ void Annotation::initialize(Runtime &rt)
 	};
 
 	auto get_layer_label = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &annot = cast<AutoAnnotation>(args[0]);
+		auto &annot = cast<Annotation>(args[0]);
 		auto layer = cast<intptr_t>(args[1]);
-		annot->open();
+		annot.open();
 		try {
-			return annot->get_layer_label(layer);
+			return annot.get_layer_label(layer);
 		}
 		catch (...)
 		{
@@ -367,12 +365,12 @@ void Annotation::initialize(Runtime &rt)
 	};
 
 	auto set_layer_label = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &annot = cast<AutoAnnotation>(args[0]);
+		auto &annot = cast<Annotation>(args[0]);
 		auto layer = cast<intptr_t>(args[1]);
 		auto &value = cast<String>(args[2]);
-		annot->open();
+		annot.open();
 		try {
-			annot->set_layer_label(layer, value);
+			annot.set_layer_label(layer, value);
 			return Variant();
 		}
 		catch (...)
@@ -381,30 +379,31 @@ void Annotation::initialize(Runtime &rt)
 		}
 	};
 	
-#define CLS(T) get_class<T>()
-	cls->add_method(rt.get_field_string, annot_get_field, { CLS(AutoAnnotation), CLS(String) });
-	rt.add_global("add_property", add_property, { CLS(AutoAnnotation), CLS(String), CLS(Object) });
-	rt.add_global("remove_property", remove_property, { CLS(AutoAnnotation), CLS(String) });
-	rt.add_global("get_property", get_property, { CLS(AutoAnnotation), CLS(String) });
-	rt.add_global("bind_to_sound", bind_to_sound, { CLS(AutoAnnotation), CLS(String) });
-	rt.add_global("get_event_start", get_event_start, { CLS(AutoAnnotation), CLS(intptr_t), CLS(intptr_t) });
-	rt.add_global("get_event_end", get_event_end,  { CLS(AutoAnnotation), CLS(intptr_t), CLS(intptr_t) });
-	rt.add_global("get_event_text", get_event_text,  { CLS(AutoAnnotation), CLS(intptr_t), CLS(intptr_t) });
-	rt.add_global("set_event_text", set_event_text,  { CLS(AutoAnnotation), CLS(intptr_t), CLS(intptr_t), CLS(String) });
-	rt.add_global("get_event_count", get_event_count,  { CLS(AutoAnnotation), CLS(intptr_t) });
-	rt.add_global("get_layer_label", get_layer_label,  { CLS(AutoAnnotation), CLS(intptr_t) });
-	rt.add_global("set_layer_label", set_layer_label,  { CLS(AutoAnnotation), CLS(intptr_t), CLS(String) });
+#define CLS(T) phonometrica::get_class<T>()
+	auto cls = CLS(Annotation);
+	cls->add_method(rt.get_field_string, annot_get_field, { CLS(Annotation), CLS(String) });
+	rt.add_global("add_property", add_property, { CLS(Annotation), CLS(String), CLS(Object) });
+	rt.add_global("remove_property", remove_property, { CLS(Annotation), CLS(String) });
+	rt.add_global("get_property", get_property, { CLS(Annotation), CLS(String) });
+	rt.add_global("bind_to_sound", bind_to_sound, { CLS(Annotation), CLS(String) });
+	rt.add_global("get_event_start", get_event_start, { CLS(Annotation), CLS(intptr_t), CLS(intptr_t) });
+	rt.add_global("get_event_end", get_event_end,  { CLS(Annotation), CLS(intptr_t), CLS(intptr_t) });
+	rt.add_global("get_event_text", get_event_text,  { CLS(Annotation), CLS(intptr_t), CLS(intptr_t) });
+	rt.add_global("set_event_text", set_event_text,  { CLS(Annotation), CLS(intptr_t), CLS(intptr_t), CLS(String) });
+	rt.add_global("get_event_count", get_event_count,  { CLS(Annotation), CLS(intptr_t) });
+	rt.add_global("get_layer_label", get_layer_label,  { CLS(Annotation), CLS(intptr_t) });
+	rt.add_global("set_layer_label", set_layer_label,  { CLS(Annotation), CLS(intptr_t), CLS(String) });
 #undef CLS
 }
 
 bool Annotation::modified() const
 {
-    return VFile::modified() || m_graph.modified();
+    return Document::modified() || m_graph.modified();
 }
 
 bool Annotation::content_modified() const
 {
-	return m_graph.modified() || VFile::content_modified();
+	return m_graph.modified() || Document::content_modified();
 }
 
 String Annotation::left_context(intptr_t layer, intptr_t event, intptr_t offset, intptr_t length, const String &separator) const
@@ -466,7 +465,7 @@ void Annotation::set_event_text(AutoEvent &event, const String &new_text)
 
 void Annotation::metadata_to_xml(xml_node meta_node)
 {
-	VFile::metadata_to_xml(meta_node);
+	Document::metadata_to_xml(meta_node);
 	String snd = has_sound() ? sound()->path() : String();
 	auto project = Project::get();
 	Project::compress(snd, project->directory());
@@ -528,7 +527,7 @@ void Annotation::read_from_native()
 void Annotation::metadata_from_xml(xml_node meta_node)
 {
 	static std::string_view sound_tag = "Sound";
-	VFile::metadata_from_xml(meta_node);
+	Document::metadata_from_xml(meta_node);
 
 	for (auto node = meta_node.first_child(); node; node = node.next_sibling())
 	{
@@ -536,7 +535,7 @@ void Annotation::metadata_from_xml(xml_node meta_node)
 		{
 			auto project = Project::get();
 			auto path = project->import_file(node.text().get());
-			auto sound = std::dynamic_pointer_cast<Sound>(project->get(path));
+			auto sound = recast<Sound>(project->get(path));
 			set_sound(sound, false);
 
 			return;
@@ -582,7 +581,7 @@ void Annotation::clear_layer(intptr_t index)
 
 void Annotation::discard_changes()
 {
-	VNode::discard_changes();
+	Element::discard_changes();
 	m_graph.set_modified(false);
 }
 

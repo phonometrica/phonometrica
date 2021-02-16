@@ -298,10 +298,16 @@ T &cast(Variant &v)
 	using Type = typename traits::bare_type<T>::type;
 	if (likely(var.data_type() == Variant::Datatype::Object))
 	{
-		auto ptr = reinterpret_cast<TObject<Type> *>(var.as.object);
+		auto ptr = static_cast<typename Handle<Type>::object_type*>(var.as.object);
 
-		if (likely(ptr->type_info() == &typeid(Type))) {
-			return ptr->value();
+		if (likely(ptr->type_info() == &typeid(Type)))
+		{
+			if constexpr (traits::is_object<T>::value) {
+				return *ptr;
+			}
+			else {
+				return ptr->value();
+			}
 		}
 	}
 

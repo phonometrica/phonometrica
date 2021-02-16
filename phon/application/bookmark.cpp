@@ -19,21 +19,22 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <phon/runtime.hpp>
 #include <phon/application/bookmark.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>
 
 namespace phonometrica {
 
-Bookmark::Bookmark(VFolder *parent) :
-		VNode(parent)
+Bookmark::Bookmark(Class *klass, Directory *parent) :
+		Element(nullptr, parent)
 {
 
 }
 
 
-Bookmark::Bookmark(VFolder *parent, String title) :
-		VNode(parent), m_title(std::move(title))
+Bookmark::Bookmark(Directory *parent, String title) :
+		Element(nullptr, parent), m_title(std::move(title))
 {
 
 }
@@ -59,8 +60,8 @@ bool Bookmark::quick_search(const String &text) const
 	return m_title.to_lower().contains(text) || m_notes.to_lower().contains(text);
 }
 
-AnnotationStamp::AnnotationStamp(VFolder *parent, String title, AutoAnnotation annot, size_t layer,
-								 double start, double end, String match, String left, String right) :
+TimeStamp::TimeStamp(Directory *parent, String title, Handle<Annotation> annot, size_t layer,
+					 double start, double end, String match, String left, String right) :
 		Bookmark(parent, std::move(title)), m_annot(std::move(annot)), m_match(std::move(match)),
 		m_left(std::move(left)), m_right(std::move(right))
 {
@@ -69,12 +70,12 @@ AnnotationStamp::AnnotationStamp(VFolder *parent, String title, AutoAnnotation a
 	m_end = end;
 }
 
-const char *AnnotationStamp::class_name() const
+const char *TimeStamp::class_name() const
 {
 	return "AnnotationStamp";
 }
 
-void AnnotationStamp::to_xml(xml_node root)
+void TimeStamp::to_xml(xml_node root)
 {
 	auto node = root.append_child("Bookmark");
 	auto attr = node.append_attribute("type");
@@ -94,7 +95,7 @@ void AnnotationStamp::to_xml(xml_node root)
 	add_data_node(node, "End", String::convert(m_end));
 }
 
-String AnnotationStamp::tooltip() const
+String TimeStamp::tooltip() const
 {
 	String s("<b>File:</b><br/>");
 	s.append(filesystem::base_name(m_annot->path()));
@@ -112,6 +113,11 @@ String AnnotationStamp::tooltip() const
 	}
 
 	return s;
+}
+
+void TimeStamp::initialize(Runtime &rt)
+{
+
 }
 
 } // namespace phonometrica

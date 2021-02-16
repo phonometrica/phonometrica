@@ -27,8 +27,8 @@
 
 namespace phonometrica {
 
-Script::Script(VFolder *parent, String path) :
-		VFile(parent, std::move(path))
+Script::Script(Directory *parent, String path) :
+		Document(get_class_ptr<Script>(), parent, std::move(path))
 {
 
 }
@@ -70,6 +70,11 @@ String Script::label() const
 {
 	using namespace filesystem;
 	return m_path.empty() ? "Untitled script" :  split_ext(base_name(m_path)).first;
+}
+
+void Script::initialize(Runtime &rt)
+{
+
 }
 
 } // namespace phonometrica

@@ -7,11 +7,11 @@
 	</Metadata>
 	<Corpus size="0" />
 	<Scripts>
-		<VFile class="Script">$HOME/Devel/phonometrica/std/event.phon</VFile>
-		<VFile class="Script">$HOME/Devel/phonometrica/std/initialize.phon</VFile>
-		<VFile class="Script">$HOME/Devel/phonometrica/std/menu.phon</VFile>
-		<VFile class="Script">$HOME/Devel/phonometrica/std/read_settings.phon</VFile>
-		<VFile class="Script">$HOME/Devel/phonometrica/std/write_settings.phon</VFile>
+		<Document class="Script">$HOME/Devel/phonometrica/std/event.phon</Document>
+		<Document class="Script">$HOME/Devel/phonometrica/std/initialize.phon</Document>
+		<Document class="Script">$HOME/Devel/phonometrica/std/menu.phon</Document>
+		<Document class="Script">$HOME/Devel/phonometrica/std/read_settings.phon</Document>
+		<Document class="Script">$HOME/Devel/phonometrica/std/write_settings.phon</Document>
 	</Scripts>
 	<Data />
 	<Bookmarks />

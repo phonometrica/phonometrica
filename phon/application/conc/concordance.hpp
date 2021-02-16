@@ -38,10 +38,12 @@ public:
 		KWIC    // keyword in context
 	};
 
-	Concordance(VFolder *parent, const String &path);
+	Concordance(Directory *parent, const String &path);
 
-	Concordance(intptr_t target_count, Context ctx, intptr_t context_length, Array<AutoMatch> matches, VFolder *parent,
-	            const String &path = String());
+	Concordance(intptr_t target_count, Context ctx, intptr_t context_length, Array<AutoMatch> matches, Directory *parent,
+				const String &path = String());
+
+	Concordance(const Concordance &other);
 
 	const char *class_name() const override;
 
@@ -83,11 +85,11 @@ public:
 
 	void restore_match(intptr_t row, AutoMatch m);
 
-	std::shared_ptr<Concordance> unite(const Concordance &other, const String &label) const;
+	Handle<Concordance> unite(const Concordance &other, const String &label) const;
 
-	std::shared_ptr<Concordance> intersect(const Concordance &other, const String &label) const;
+	Handle<Concordance> intersect(const Concordance &other, const String &label) const;
 
-	std::shared_ptr<Concordance> complement(const Concordance &other, const String &label) const;
+	Handle<Concordance> complement(const Concordance &other, const String &label) const;
 
 	bool update_match(intptr_t i);
 
@@ -129,7 +131,10 @@ protected:
 	Context m_context_type = Context::None;
 };
 
-using AutoConcordance = std::shared_ptr<Concordance>;
+
+namespace traits {
+template<> struct maybe_cyclic<Concordance> : std::false_type { };
+}
 
 } // namespace phonometrica
 

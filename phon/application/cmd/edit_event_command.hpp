@@ -31,7 +31,7 @@ class EditEventCommand final : public Command
 {
 public:
 
-	EditEventCommand(const AutoAnnotation &annot, const AutoEvent &event, const String &new_value);
+	EditEventCommand(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value);
 
 	bool execute() override;
 
@@ -41,7 +41,7 @@ private:
 
 	bool change_value();
 
-	AutoAnnotation m_annot;
+	Handle<Annotation> m_annot;
 
 	AutoEvent m_event;
 

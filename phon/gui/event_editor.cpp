@@ -42,7 +42,7 @@ EventEditor::EventEditor(wxWindow *parent, wxPoint position, wxSize size) :
 }
 
 
-EventEditor::EventEditor(wxWindow *parent, const AutoAnnotation &annot, const AutoEvent &event, wxPoint position,
+EventEditor::EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, wxPoint position,
                          wxSize size) : EventEditor(parent, position, size)
 {
 	m_annot = annot;
@@ -51,7 +51,7 @@ EventEditor::EventEditor(wxWindow *parent, const AutoAnnotation &annot, const Au
 }
 
 
-EventEditor::EventEditor(wxWindow *parent, const AutoAnnotation &annot, const AutoEvent &event, intptr_t sel_start,
+EventEditor::EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, intptr_t sel_start,
                          intptr_t len, wxPoint position, wxSize size) :
 		EventEditor(parent, position, size)
 {

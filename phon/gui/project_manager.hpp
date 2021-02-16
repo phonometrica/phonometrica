@@ -53,15 +53,15 @@ public:
 
 	static void CheckProjectImport();
 
-	Signal<VFileList> files_selected;
+	Signal<DocList> files_selected;
 
-	Signal<const std::shared_ptr<VFile> &> view_file;
+	Signal<const Handle<Document> &> view_file;
 
 	Signal<const String &> execute_script;
 
-	Signal<const AutoQuery &> edit_query;
+	Signal<const Handle<Query> &> edit_query;
 
-	Signal<VFolder*> new_script;
+	Signal<Directory*> new_script;
 
 private:
 
@@ -71,7 +71,7 @@ private:
 
 	void UpdateProject();
 
-	void FillFolder(wxTreeItemId item, VFolder &folder);
+	void FillFolder(wxTreeItemId item, Directory &folder);
 
 	void OnItemSelected(wxTreeEvent &);
 
@@ -81,15 +81,15 @@ private:
 
 	void OnMiddleClick(wxTreeEvent &);
 
-	void RemoveDirectory(std::shared_ptr<VFolder> &folder);
+	void RemoveDirectory(Handle<Directory> &folder);
 
-	void RemoveFile(std::shared_ptr<VFile> &file);
+	void RemoveFile(Handle<Document> &file);
 
-	void RemoveFiles(VNodeList files);
+	void RemoveFiles(ElementList files);
 
-	void RenameDirectory(const std::shared_ptr<VFolder> &folder);
+	void RenameDirectory(const Handle<Directory> &folder);
 
-	void CreateSubdirectory(const std::shared_ptr<VFolder> &folder);
+	void CreateSubdirectory(const Handle<Directory> &folder);
 
 	void OnExpandDirectory(wxCommandEvent &);
 
@@ -97,13 +97,13 @@ private:
 
 	void OnCollapseDirectory(wxCommandEvent &);
 
-	VNodeList GetSelectedItems() const;
+	ElementList GetSelectedItems() const;
 
 	wxTreeItemId GetSelectedId() const;
 
-	std::shared_ptr<VFolder> GetSelectedFolder() const;
+	Handle<Directory> GetSelectedFolder() const;
 
-	std::shared_ptr<VFile> GetSelectedFile() const;
+	Handle<Document> GetSelectedFile() const;
 
 	void ExpandNode(wxTreeItemId node);
 
@@ -117,27 +117,27 @@ private:
 
 	void OnDropItem(wxTreeEvent &);
 
-	void ConvertAnnotationToTextGrid(const AutoAnnotation &annot);
+	void ConvertAnnotationToTextGrid(const Handle<Annotation> &annot);
 
-	void ConvertTextGridToAnnotation(const AutoAnnotation &annot);
+	void ConvertTextGridToAnnotation(const Handle<Annotation> &annot);
 
-	void OpenAnnotationInPraat(const AutoAnnotation &annot);
+	void OpenAnnotationInPraat(const Handle<Annotation> &annot);
 
 	void AskImportFile(const String &path);
 
 	void CopyTextToClipboard(const wxString &text);
 
-	void RemoveItems(const VNodeList &items);
+	void RemoveItems(const ElementList &items);
 
 	void SetScriptingFunctions();
 
-	void RenameQuery(const AutoQuery &query);
+	void RenameQuery(const Handle<Query> &query);
 
-	void DuplicateQuery(const AutoQuery &query);
+	void DuplicateQuery(const Handle<Query> &query);
 
-	void RenameConcordance(const AutoConcordance &conc);
+	void RenameConcordance(const Handle<Concordance> &conc);
 
-	void SaveFile(const std::shared_ptr<VFile> &file);
+	void SaveFile(const Handle<Document> &file);
 
 	void OnQuickSearch(wxCommandEvent &e);
 
@@ -166,7 +166,7 @@ private:
 	int corpus_img, queries_img, datasets_img, scripts_img, bookmarks_img;
 	int annot_img, textgrid_img, folder_img, bookmark_img, sound_img, document_img, query_img, script_img, conc_img, csv_img;
 
-	VNodeList dragged_files;
+	ElementList dragged_files;
 
 	wxFont mono_font;
 

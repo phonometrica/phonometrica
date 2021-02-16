@@ -47,8 +47,8 @@ namespace phonometrica {
 Array<String> Sound::the_supported_sound_formats;
 Array<String> Sound::the_common_sound_formats;
 
-Sound::Sound(VFolder *parent, String path) :
-		VFile(parent, std::move(path))
+Sound::Sound(Directory *parent, String path) :
+		Document(get_class_ptr<Sound>(), parent, std::move(path))
 {
 
 }
@@ -432,30 +432,30 @@ std::vector<double> Sound::get_intensity(intptr_t start_pos, intptr_t end_pos, d
 
 void Sound::initialize(Runtime &rt)
 {
-	auto cls = rt.add_standard_type<AutoSound>("Sound");
+
 
 	auto sound_get_field = [](Runtime &, std::span<Variant> args) -> Variant {
-		auto &sound = cast<AutoSound>(args[0]);
+		auto &sound = cast<Sound>(args[0]);
 		auto &key = cast<String>(args[1]);
 		if (key == "path") {
-			return sound->path();
+			return sound.path();
 		}
 		else if (key == "duration") {
-			return sound->duration();
+			return sound.duration();
 		}
 		else if (key == "nchannel") {
-			return sound->nchannel();
+			return sound.nchannel();
 		}
 		else if (key == "sample_rate") {
-			return sound->sample_rate();
+			return sound.sample_rate();
 		}
 		throw error("[Index error] Sound type has no member named \"%\"", key);
 	};
 
 	auto add_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &snd = cast<AutoSound>(args[0]);
+		auto &snd = cast<Sound>(args[0]);
 		auto &category = cast<String>(args[1]);
-		snd->open();
+		snd.open();
 		std::any value;
 
 		if (check_type<String>(args[2])) {
@@ -470,24 +470,24 @@ void Sound::initialize(Runtime &rt)
 		else {
 			throw error("Invalid property type: %", args[2].class_name());
 		}
-		snd->add_property(Property(category, std::move(value)));
+		snd.add_property(Property(category, std::move(value)));
 
 		return Variant();
 	};
 
 	auto remove_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-		auto &snd = cast<AutoSound>(args[0]);
+		auto &snd = cast<Sound>(args[0]);
 		auto &category = cast<String>(args[1]);
-		snd->open();
-		snd->remove_property(category);
+		snd.open();
+		snd.remove_property(category);
 		return Variant();
 	};
 	
 	auto get_property = [](Runtime &, std::span<Variant> args) -> Variant  {
-    	auto &snd = cast<AutoSound>(args[0]);
+    	auto &snd = cast<Sound>(args[0]);
     	auto category = cast<String>(args[1]);
-		snd->open();
-    	auto prop = snd->get_property(category);
+		snd.open();
+    	auto prop = snd.get_property(category);
 
     	if (prop.valid())
 	    {
@@ -505,48 +505,48 @@ void Sound::initialize(Runtime &rt)
     };
 
 	auto get_intensity = [](Runtime &, std::span<Variant> args) -> Variant {
-		auto &sound = cast<AutoSound>(args[0]);
+		auto &sound = cast<Sound>(args[0]);
 		auto time = args[1].resolve().get_number();
-		sound->open();
-		if (time < 0 || time > sound->duration()) {
-			throw error("File '%': invalid time %", sound->path(), time);
+		sound.open();
+		if (time < 0 || time > sound.duration()) {
+			throw error("File '%': invalid time %", sound.path(), time);
 		}
-		return sound->get_intensity(time);
+		return sound.get_intensity(time);
 	};
 
 	auto get_pitch1 = [](Runtime &, std::span<Variant> args) -> Variant {
-		auto &sound = cast<AutoSound>(args[0]);
+		auto &sound = cast<Sound>(args[0]);
 		auto time = args[1].resolve().get_number();
 		String category("pitch_tracking");
 		auto min_pitch = Settings::get_number(category, "minimum_pitch");
 		auto max_pitch = Settings::get_number(category, "minimum_pitch");
 		auto threshold = Settings::get_number(category, "voicing_threshold");
-		sound->open();
-		return sound->get_pitch(time, min_pitch, max_pitch, threshold);
+		sound.open();
+		return sound.get_pitch(time, min_pitch, max_pitch, threshold);
 	};
 
 	auto get_pitch2 = [](Runtime &, std::span<Variant> args) -> Variant {
-		auto &sound = cast<AutoSound>(args[0]);
+		auto &sound = cast<Sound>(args[0]);
 		auto time = args[1].resolve().get_number();
 		auto min_pitch = args[2].resolve().get_number();
 		auto max_pitch = args[3].resolve().get_number();
 		auto threshold = Settings::get_number("pitch_tracking", "voicing_threshold");
-		sound->open();
-		return sound->get_pitch(time, min_pitch, max_pitch, threshold);
+		sound.open();
+		return sound.get_pitch(time, min_pitch, max_pitch, threshold);
 	};
 
 	auto get_pitch3 = [](Runtime &, std::span<Variant> args) -> Variant {
-		auto &sound = cast<AutoSound>(args[0]);
+		auto &sound = cast<Sound>(args[0]);
 		auto time = args[1].resolve().get_number();
 		auto min_pitch = args[2].resolve().get_number();
 		auto max_pitch = args[3].resolve().get_number();
 		auto threshold = args[4].resolve().get_number();
-		sound->open();
-		return sound->get_pitch(time, min_pitch, max_pitch, threshold);
+		sound.open();
+		return sound.get_pitch(time, min_pitch, max_pitch, threshold);
 	};
 
 	auto get_formants1 = [](Runtime &rt, std::span<Variant> args) -> Variant {
-		auto &sound = cast<AutoSound>(args[0]);
+		auto &sound = cast<Sound>(args[0]);
 		auto time = args[1].resolve().get_number();
 		String category("formants");
 		intptr_t nformant = Settings::get_number(category, "number_of_formants");
@@ -554,18 +554,20 @@ void Sound::initialize(Runtime &rt)
 		double max_bw = Settings::get_number(category, "max_bandwidth");
 		double win_size = Settings::get_number(category, "window_size");
 		intptr_t lpc_order = Settings::get_number(category, "lpc_order");
-		return sound->get_formants(time, nformant, nyquist, max_bw, win_size, lpc_order);
+		sound.open();
+		return sound.get_formants(time, nformant, nyquist, max_bw, win_size, lpc_order);
 	};
 
 	auto get_formants2 = [](Runtime &, std::span<Variant> args) -> Variant {
-		auto &sound = cast<AutoSound>(args[0]);
+		auto &sound = cast<Sound>(args[0]);
 		auto time = args[1].resolve().get_number();
 		intptr_t nformant = cast<intptr_t>(args[2]);
 		double nyquist = args[3].resolve().get_number();
 		double max_bw = args[4].resolve().get_number();
 		double win_size = args[5].resolve().get_number();
 		intptr_t lpc_order = cast<intptr_t>(args[6]);
-		return sound->get_formants(time, nformant, nyquist, max_bw, win_size, lpc_order);
+		sound.open();
+		return sound.get_formants(time, nformant, nyquist, max_bw, win_size, lpc_order);
 	};
 
 	auto hz2bark1 = [](Runtime &, std::span<Variant> args) -> Variant {
@@ -670,17 +672,16 @@ void Sound::initialize(Runtime &rt)
 	};
 
 
-	
-#define CLS(T) get_class<T>()
-	cls = CLS(AutoSound);
+#define CLS(T) phonometrica::get_class<T>()
+	auto cls = CLS(Sound);
 	cls->add_method("get_field", sound_get_field, { CLS(String) });
 
-	rt.add_global("get_pitch", get_pitch1, { CLS(AutoSound), CLS(Number) });
-	rt.add_global("get_pitch", get_pitch2, { CLS(AutoSound), CLS(Number), CLS(Number), CLS(Number) });
-	rt.add_global("get_pitch", get_pitch3, { CLS(AutoSound), CLS(Number), CLS(Number), CLS(Number), CLS(Number) });
+	rt.add_global("get_pitch", get_pitch1, { CLS(Sound), CLS(Number) });
+	rt.add_global("get_pitch", get_pitch2, { CLS(Sound), CLS(Number), CLS(Number), CLS(Number) });
+	rt.add_global("get_pitch", get_pitch3, { CLS(Sound), CLS(Number), CLS(Number), CLS(Number), CLS(Number) });
 
-	rt.add_global("get_formants", get_formants1, { CLS(AutoSound), CLS(Number) });
-	rt.add_global("get_formants", get_formants2, { CLS(AutoSound), CLS(Number), CLS(intptr_t), CLS(Number), CLS(Number), CLS(Number), CLS(intptr_t) });
+	rt.add_global("get_formants", get_formants1, { CLS(Sound), CLS(Number) });
+	rt.add_global("get_formants", get_formants2, { CLS(Sound), CLS(Number), CLS(intptr_t), CLS(Number), CLS(Number), CLS(Number), CLS(intptr_t) });
 
 	rt.add_global("hertz_to_bark", hz2bark1, { CLS(Number) });
 	rt.add_global("hertz_to_bark", hz2bark2, { CLS(Array<double>) });
@@ -703,10 +704,10 @@ void Sound::initialize(Runtime &rt)
 	rt.add_global("semitones_to_hertz", st2hz3, { CLS(Array<double>) });
 	rt.add_global("semitones_to_hertz", st2hz4, { CLS(Array<double>), CLS(Number) });
 
-	rt.add_global("add_property", add_property, { CLS(AutoSound), CLS(String), CLS(Object) });
-	rt.add_global("remove_property", remove_property, { CLS(AutoSound), CLS(String) });
-	rt.add_global("get_property", get_property, { CLS(AutoSound), CLS(String) });
-	rt.add_global("get_intensity", get_intensity, { CLS(AutoSound), CLS(Number) });
+	rt.add_global("add_property", add_property, { CLS(Sound), CLS(String), CLS(Object) });
+	rt.add_global("remove_property", remove_property, { CLS(Sound), CLS(String) });
+	rt.add_global("get_property", get_property, { CLS(Sound), CLS(String) });
+	rt.add_global("get_intensity", get_intensity, { CLS(Sound), CLS(Number) });
 
 #undef CLS
 }

@@ -33,7 +33,7 @@ class Runtime;
 class Object;
 
 
-class Sound final : public VFile
+class Sound final : public Document
 {
 public:
 
@@ -44,7 +44,7 @@ public:
 		FLAC = SF_FORMAT_FLAC
 	};
 
-	Sound(VFolder *parent, String path);
+	Sound(Directory *parent, String path);
 
 	static void set_sound_formats();
 
@@ -105,10 +105,8 @@ private:
 	std::shared_ptr<AudioData> m_data;
 };
 
-using AutoSound = std::shared_ptr<Sound>;
-
 namespace traits {
-template<> struct maybe_cyclic<AutoSound> : std::false_type { };
+template<> struct maybe_cyclic<Sound> : std::false_type { };
 }
 } // namespace phonometrica
 

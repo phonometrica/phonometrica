@@ -33,12 +33,12 @@
 namespace phonometrica {
 
 TextQueryEditor::TextQueryEditor(wxWindow *parent) :
-	TextQueryEditor(parent, std::make_shared<Query>(nullptr, String()))
+	TextQueryEditor(parent, make_handle<Query>(nullptr, String()))
 {
 
 }
 
-TextQueryEditor::TextQueryEditor(wxWindow *parent, AutoQuery q) :
+TextQueryEditor::TextQueryEditor(wxWindow *parent, Handle<Query> q) :
 	QueryEditor(parent, _("Find in annotations...")), query(std::move(q))
 {
 
@@ -146,7 +146,7 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	return panel;
 }
 
-AutoQuery TextQueryEditor::GetQuery() const
+Handle<Query> TextQueryEditor::GetQuery() const
 {
 	return query;
 }
@@ -344,13 +344,13 @@ void TextQueryEditor::ParseQuery()
 	}
 
 	// File selection, if any
-	Array<AutoAnnotation> annotations;
+	Array<Handle<Annotation>> annotations;
 	for (unsigned int i = 0; i < file_list->GetCount(); i++)
 	{
 		if (file_list->IsChecked(i))
 		{
 			auto &path = file_list->GetToolTip(i);
-			annotations.append(downcast<Annotation>(Project::get()->get(path)));
+			annotations.append(recast<Annotation>(Project::get()->get(path)));
 		}
 	}
 	query->set_selection(std::move(annotations));

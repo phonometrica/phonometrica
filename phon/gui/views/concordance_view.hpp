@@ -35,7 +35,7 @@ class ConcordanceView : public View
 {
 public:
 
-	ConcordanceView(wxWindow *parent, AutoConcordance conc);
+	ConcordanceView(wxWindow *parent, Handle<Concordance> conc);
 
 	bool IsModified() const override;
 
@@ -123,7 +123,7 @@ protected:
 
 	EventEditor *event_editor = nullptr;
 
-	AutoConcordance m_conc;
+	Handle<Concordance> m_conc;
 
 	intptr_t edited_match = 0; // index in base 1 (0 is invalid)
 

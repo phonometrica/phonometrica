@@ -38,12 +38,12 @@ namespace phonometrica {
 
 struct ItemData final : public wxTreeItemData
 {
-	ItemData(VNode *n) :
+	ItemData(Element *n) :
 			wxTreeItemData(), node(n) { }
 
 	~ItemData() override = default;
 
-	VNode *node = nullptr;
+	Element *node = nullptr;
 };
 
 ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
@@ -208,7 +208,7 @@ void ProjectManager::ClearProject(bool set_flag)
 	tree->DeleteChildren(bookmark_item);
 }
 
-void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
+void ProjectManager::FillFolder(wxTreeItemId item, Directory &folder)
 {
 	for (int i = 1; i <= folder.size(); i++)
 	{
@@ -222,7 +222,7 @@ void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
 
 		if (node->is_folder())
 		{
-			auto &subfolder = dynamic_cast<VFolder&>(*node);
+			auto &subfolder = dynamic_cast<Directory&>(*node);
 			auto data = new ItemData(&subfolder);
 			child = tree->AppendItem(item, node->label(), folder_img, folder_img, data);
 			FillFolder(child, subfolder);
@@ -235,7 +235,7 @@ void ProjectManager::FillFolder(wxTreeItemId item, VFolder &folder)
 		}
 		else
 		{
-			auto &vfile = dynamic_cast<VFile&>(*node);
+			auto &vfile = dynamic_cast<Document&>(*node);
 			int img;
 
 			if (vfile.is_annotation())
@@ -288,7 +288,7 @@ void ProjectManager::OnItemSelected(wxTreeEvent &)
 {
 	wxArrayTreeItemIds items;
 	tree->GetSelections(items);
-	VFileList files;
+	DocList files;
 
 	for (auto &item : items)
 	{
@@ -297,10 +297,10 @@ void ProjectManager::OnItemSelected(wxTreeEvent &)
 		auto vnode = data->node;
 		assert(vnode);
 
-		if (vnode->is_file())
+		if (vnode->is_document())
 		{
-			auto vf = downcast<VFile>(vnode->shared_from_this());
-			files.append(std::move(vf));
+			auto doc = static_cast<Document*>(vnode);
+			files.append(Handle<Document>(doc));
 		}
 	}
 	files_selected(std::move(files));
@@ -327,15 +327,15 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 	}
 	else
 	{
-		auto vf = downcast<VFile>(vnode->shared_from_this());
+		auto doc = static_cast<Document*>(vnode);
 
-		if (vf->is_query())
+		if (doc->is_query())
 		{
-			edit_query(downcast<Query>(vf));
+			edit_query(Handle<Query>(static_cast<Query*>(doc)));
 		}
 		else
 		{
-			view_file(vf);
+			view_file(Handle<Document>(doc));
 		}
 	}
 }
@@ -373,7 +373,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 
 		if (item->is_folder())
 		{
-			auto folder = downcast<VFolder>(item);
+			auto folder = recast<Directory>(item);
 			wxArrayTreeItemIds ids;
 			tree->GetSelections(ids);
 			auto tree_item = ids.front();
@@ -426,13 +426,13 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,folder](wxCommandEvent &) mutable { RemoveDirectory(folder); }, remove_id);
 			}
 		}
-		else if (item->is_file())
+		else if (item->is_document())
 		{
-			auto file = downcast<VFile>(item);
+			auto file = recast<Document>(item);
 
 			if (file->is_query())
 			{
-				auto query = downcast<Query>(file);
+				auto query = recast<Query>(file);
 				auto edit_id = wxNewId();
 				menu->Append(edit_id, _("Edit"));
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { edit_query(query); }, edit_id);
@@ -460,7 +460,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 
 			if (file->is_annotation())
 			{
-				auto annot = downcast<Annotation>(file);
+				auto annot = recast<Annotation>(file);
 				auto convert_id = wxNewId();
 				if (annot->is_native())
 				{
@@ -481,7 +481,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 			}
 			else if (file->is_concordance())
 			{
-				auto conc = downcast<Concordance>(file);
+				auto conc = recast<Concordance>(file);
 				auto rename_id = wxNewId();
 				menu->Append(rename_id, _("Rename..."));
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { RenameConcordance(conc); }, rename_id);
@@ -489,7 +489,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 			}
 			else if (file->is_script())
 			{
-				auto script = downcast<Script>(file);
+				auto script = recast<Script>(file);
 				auto run_id = wxNewId();
 				menu->Append(run_id, _("Run"));
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { execute_script(script->path()); }, run_id);
@@ -515,18 +515,18 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 	}
 	else if (items.size() == 2)
 	{
-		AutoAnnotation annot;
-		AutoSound sound;
+		Handle<Annotation> annot;
+		Handle<Sound> sound;
 
 		if (items[1]->is_annotation() && items[2]->is_sound())
 		{
-			annot = downcast<Annotation>(items[1]);
-			sound = downcast<Sound>(items[2]);
+			annot = recast<Annotation>(items[1]);
+			sound = recast<Sound>(items[2]);
 		}
 		else if (items[1]->is_sound() && items[2]->is_annotation())
 		{
-			sound = downcast<Sound>(items[1]);
-			annot = downcast<Annotation>(items[2]);
+			sound = recast<Sound>(items[1]);
+			annot = recast<Annotation>(items[2]);
 		}
 
 		if (annot)
@@ -551,11 +551,11 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 	PopupMenu(menu);
 }
 
-VNodeList ProjectManager::GetSelectedItems() const
+ElementList ProjectManager::GetSelectedItems() const
 {
 	wxArrayTreeItemIds items;
 	tree->GetSelections(items);
-	VNodeList files;
+	ElementList files;
 
 	for (auto &item : items)
 	{
@@ -564,8 +564,8 @@ VNodeList ProjectManager::GetSelectedItems() const
 			wxMessageBox(_("Null tree item data"), _("Internal error"), wxICON_ERROR);
 			return files;
 		}
-		auto vnode = data->node;
-		files.append(vnode->shared_from_this());
+		auto elem = data->node;
+		files.append(Handle<Element>(elem));
 	}
 
 	return files;
@@ -583,7 +583,7 @@ wxTreeItemId ProjectManager::GetSelectedId() const
 }
 
 
-std::shared_ptr<VFolder> ProjectManager::GetSelectedFolder() const
+Handle<Directory> ProjectManager::GetSelectedFolder() const
 {
 	wxArrayTreeItemIds ids;
 	tree->GetSelections(ids);
@@ -593,12 +593,12 @@ std::shared_ptr<VFolder> ProjectManager::GetSelectedFolder() const
 		wxMessageBox(_("Null tree item data"), _("Internal error"), wxICON_ERROR);
 		return nullptr;
 	}
-	auto vnode = data->node;
+	auto elem = data->node;
 
-	return downcast<VFolder>(vnode->shared_from_this());
+	return Handle<Directory>(static_cast<Directory*>(elem));
 }
 
-std::shared_ptr<VFile> ProjectManager::GetSelectedFile() const
+Handle<Document> ProjectManager::GetSelectedFile() const
 {
 	wxArrayTreeItemIds ids;
 	tree->GetSelections(ids);
@@ -608,12 +608,12 @@ std::shared_ptr<VFile> ProjectManager::GetSelectedFile() const
 		wxMessageBox(_("Null tree item data"), _("Internal error"), wxICON_ERROR);
 		return nullptr;
 	}
-	auto vnode = data->node;
+	auto elem = data->node;
 
-	return downcast<VFile>(vnode->shared_from_this());
+	return Handle<Document>(static_cast<Document*>(elem));
 }
 
-void ProjectManager::RemoveDirectory(std::shared_ptr<VFolder> &folder)
+void ProjectManager::RemoveDirectory(Handle<Directory> &folder)
 {
 	auto result = ask_question(_("Are you sure you want to remove this directory from the current project?\n"
 	                             "(Its content won't be deleted from your hard drive.)"), _("Confirm"));
@@ -626,7 +626,7 @@ void ProjectManager::RemoveDirectory(std::shared_ptr<VFolder> &folder)
 	Project::updated();
 }
 
-void ProjectManager::RemoveFile(std::shared_ptr<VFile> &file)
+void ProjectManager::RemoveFile(Handle<Document> &file)
 {
 	auto result = ask_question(_("Are you sure you want to remove this file from the current project?\n"
 	                             "(It won't be deleted from your hard drive.)"), _("Confirm"));
@@ -639,7 +639,7 @@ void ProjectManager::RemoveFile(std::shared_ptr<VFile> &file)
 	Project::updated();
 }
 
-void ProjectManager::RemoveFiles(VNodeList files)
+void ProjectManager::RemoveFiles(ElementList files)
 {
 	int result;
 
@@ -674,7 +674,7 @@ void ProjectManager::RemoveFiles(VNodeList files)
 	Project::updated();
 }
 
-void ProjectManager::RenameDirectory(const std::shared_ptr<VFolder> &folder)
+void ProjectManager::RenameDirectory(const Handle<Directory> &folder)
 {
 	String name = wxGetTextFromUser(_("New directory name:"), _("Rename directory..."));
 
@@ -685,7 +685,7 @@ void ProjectManager::RenameDirectory(const std::shared_ptr<VFolder> &folder)
 	}
 }
 
-void ProjectManager::CreateSubdirectory(const std::shared_ptr<VFolder> &folder)
+void ProjectManager::CreateSubdirectory(const Handle<Directory> &folder)
 {
 	String name = wxGetTextFromUser(_("Directory name:"), _("New directory..."));
 
@@ -756,7 +756,7 @@ void ProjectManager::SetExpansionFlag(wxTreeItemId node)
 
 	if (vnode->is_folder())
 	{
-		auto vfolder = dynamic_cast<VFolder*>(vnode);
+		auto vfolder = dynamic_cast<Directory*>(vnode);
 		vfolder->set_expanded(tree->IsExpanded(node));
 		wxTreeItemIdValue cookie;
 		wxTreeItemId child = tree->GetFirstChild(node, cookie);
@@ -830,7 +830,7 @@ void ProjectManager::OnDragItem(wxTreeEvent &e)
 
 	for (auto &item : dragged_files)
 	{
-		if (item->is_folder() && project->is_root(dynamic_cast<VFolder*>(item.get())))
+		if (item->is_folder() && project->is_root(dynamic_cast<Directory*>(item.get())))
 		{
 			dragged_files.clear();
 			return;
@@ -867,7 +867,7 @@ void ProjectManager::OnDropItem(wxTreeEvent &e)
 	// If the target is a folder, append at the end
 	if (dest_node->is_folder())
 	{
-		auto folder = dynamic_cast<VFolder*>(dest_node);
+		auto folder = dynamic_cast<Directory*>(dest_node);
 		tree->Expand(dest_item);
 
 		for (auto &file : dragged_files) {
@@ -886,7 +886,7 @@ void ProjectManager::OnDropItem(wxTreeEvent &e)
 			if (child == dest_item)
 			{
 				auto parent_data = dynamic_cast<ItemData*>(tree->GetItemData(parent_item));
-				auto folder = dynamic_cast<VFolder*>(parent_data->node);
+				auto folder = dynamic_cast<Directory*>(parent_data->node);
 
 				for (auto &file : dragged_files) {
 					file->move_to(folder, i+1);
@@ -918,7 +918,7 @@ void ProjectManager::SetScriptingFunctions()
 
 }
 
-void ProjectManager::ConvertAnnotationToTextGrid(const AutoAnnotation &annot)
+void ProjectManager::ConvertAnnotationToTextGrid(const Handle<Annotation> &annot)
 {
 	String name = filesystem::base_name(annot->path());
 	name.replace_last(PHON_EXT_ANNOTATION, ".TextGrid");
@@ -932,7 +932,7 @@ void ProjectManager::ConvertAnnotationToTextGrid(const AutoAnnotation &annot)
 	AskImportFile(path);
 }
 
-void ProjectManager::ConvertTextGridToAnnotation(const AutoAnnotation &annot)
+void ProjectManager::ConvertTextGridToAnnotation(const Handle<Annotation> &annot)
 {
 	String name = filesystem::base_name(annot->path());
 	name.replace_last(".TextGrid", PHON_EXT_ANNOTATION);
@@ -949,7 +949,7 @@ void ProjectManager::ConvertTextGridToAnnotation(const AutoAnnotation &annot)
 	AskImportFile(path);
 }
 
-void ProjectManager::OpenAnnotationInPraat(const AutoAnnotation &annot)
+void ProjectManager::OpenAnnotationInPraat(const Handle<Annotation> &annot)
 {
 	try
 	{
@@ -991,7 +991,7 @@ void ProjectManager::CopyTextToClipboard(const wxString &text)
 	}
 }
 
-void ProjectManager::RemoveItems(const VNodeList &items)
+void ProjectManager::RemoveItems(const ElementList &items)
 {
 	auto result = ask_question(_("Are you sure you want to remove these files from the current project?\n"
 							  "(They won't be deleted from your hard drive.)"), _("Confirm"));
@@ -1004,21 +1004,21 @@ void ProjectManager::RemoveItems(const VNodeList &items)
 
 	for (auto &item : items)
 	{
-		if (item->is_file())
+		if (item->is_document())
 		{
-			auto file = downcast<VFile>(item->shared_from_this());
+			auto file = recast<Document>(item);
 			project->remove(file);
 		}
 		else
 		{
-			auto folder = downcast<VFolder>(item->shared_from_this());
+			auto folder = recast<Directory>(item);
 			project->remove(folder);
 		}
 	}
 	Project::updated();
 }
 
-void ProjectManager::RenameConcordance(const AutoConcordance &conc)
+void ProjectManager::RenameConcordance(const Handle<Concordance> &conc)
 {
 	String name = wxGetTextFromUser(_("New concordance name:"), _("Rename concordance..."));
 
@@ -1029,7 +1029,7 @@ void ProjectManager::RenameConcordance(const AutoConcordance &conc)
 	}
 }
 
-void ProjectManager::RenameQuery(const AutoQuery &query)
+void ProjectManager::RenameQuery(const Handle<Query> &query)
 {
 	String name = wxGetTextFromUser(_("New query name:"), _("Rename query..."));
 
@@ -1040,7 +1040,7 @@ void ProjectManager::RenameQuery(const AutoQuery &query)
 	}
 }
 
-void ProjectManager::DuplicateQuery(const AutoQuery &query)
+void ProjectManager::DuplicateQuery(const Handle<Query> &query)
 {
 	auto label = query->label();
 	label.append(" (copy)");
@@ -1050,7 +1050,7 @@ void ProjectManager::DuplicateQuery(const AutoQuery &query)
 	{
 		auto parent = query->parent();
 		if (!parent) parent = Project::get()->queries().get();
-		auto copy = query->clone();
+		auto copy = query->copy();
 		copy->set_label(name, true);
 		parent->append(std::move(copy));
 		Project::updated();
@@ -1076,7 +1076,7 @@ void ProjectManager::OnQuickSearch(wxCommandEvent &e)
 	tree->ExpandAll();
 }
 
-void ProjectManager::SaveFile(const std::shared_ptr<VFile> &file)
+void ProjectManager::SaveFile(const Handle<Document> &file)
 {
 	if (!file->has_path())
 	{

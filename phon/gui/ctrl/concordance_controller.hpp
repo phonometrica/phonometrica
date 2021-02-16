@@ -54,7 +54,7 @@ class ConcordanceController : public DataController
 {
 public:
 
-	explicit ConcordanceController(AutoConcordance conc);
+	explicit ConcordanceController(Handle<Concordance> conc);
 
 	int GetNumberRows() override;
 
@@ -68,7 +68,7 @@ public:
 
 protected:
 
-	AutoConcordance m_conc;
+	Handle<Concordance> m_conc;
 };
 
 } // namespace phonometrica

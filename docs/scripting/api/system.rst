@@ -130,7 +130,7 @@ Return ``true`` if the path exists, ``false`` otherwise.
 
 ------------
 
-.. function:: is_file(path as String)
+.. function:: is_document(path as String)
 
 Return ``true`` if ``path`` exists and is a file, ``false`` otherwise.
 

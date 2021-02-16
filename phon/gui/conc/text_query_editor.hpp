@@ -38,9 +38,9 @@ public:
 
 	explicit TextQueryEditor(wxWindow *parent);
 
-	explicit TextQueryEditor(wxWindow *parent, AutoQuery q);
+	explicit TextQueryEditor(wxWindow *parent, Handle<Query> q);
 
-	AutoQuery GetQuery() const override;
+	Handle<Query> GetQuery() const override;
 
 	void LoadQuery() override;
 
@@ -64,7 +64,7 @@ private:
 
 	wxSpinCtrl *context_spinctrl, *ref_spinctrl;
 
-	AutoQuery query;
+	Handle<Query> query;
 
 	Array<ConstraintCtrl*> constraints;
 };

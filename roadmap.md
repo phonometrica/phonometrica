@@ -28,7 +28,7 @@ Done:
 - bug fixes
 
 TODO:
-- refactoriser le modèle object (VNode, VFolder and VFile -> Element, Directory and Document)
+- refactoriser le modèle object (Element, Directory and Document -> Element, Directory and Document)
 - redesign query constraints: "equals/contains/matches"
 - contexte autour de la target de la contrainte de référence + ajouter boutons radio pour sélectionner la cible active 
 - complex queries

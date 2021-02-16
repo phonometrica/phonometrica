@@ -23,7 +23,7 @@
 
 namespace phonometrica {
 
-EditEventCommand::EditEventCommand(const AutoAnnotation &annot, const AutoEvent &event, const String &new_value) :
+EditEventCommand::EditEventCommand(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value) :
 	Command("Edit event", true), m_annot(annot), m_event(event), value(new_value)
 {
 

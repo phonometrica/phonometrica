@@ -82,6 +82,8 @@ class Object
 {
 public:
 
+	virtual ~Object() = default;
+
 	bool collectable() const noexcept;
 
 	bool gc_candidate() const noexcept;
@@ -140,8 +142,6 @@ protected:
 	void set_class(Class *klass) { this->klass = klass; }
 
 	Object(Class *klass, bool collectable);
-
-	void destroy();
 
 	bool is_black() const
 	{

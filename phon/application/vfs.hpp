@@ -15,10 +15,10 @@
  *                                                                                                                     *
  * Created: 28/02/2019                                                                                                 *
  *                                                                                                                     *
- * Purpose: Virtual file system. All files displayed in the file manager and stored in a project are nodes in the      *
- * VFS. Currently implemented terminal nodes are Annotation, Document, Sound, Script, Bookmark.                        *
- * Note that some operations can be mutating or non-mutating, depending on when they are triggered. For instance, when *
- * a project is loaded, files are appended to a folder silently, but if a user explicitly adds a file to a folder,     *
+ * Purpose: Element (formerly VNode) is the base class for all the elements in a project's virtual file system. All    *
+ * files displayed in the file manager and stored in a project are subclasses of this class.                           *
+ * Note that some operations can be mutating or non-mutating, depending on where they are triggered. For instance,     *
+ * when a project is loaded, files are appended to a folder silently, but if a user explicitly adds a file to a folder *
  * then the folder must register the mutation. This behavior is controlled by a Boolean flag.                          *
  *                                                                                                                     *
  ***********************************************************************************************************************/
@@ -27,9 +27,10 @@
 #define PHONOMETRICA_VFS_HPP
 
 #include <vector>
+#include <phon/runtime/typed_object.hpp>
+#include <phon/runtime/class.hpp>
 #include <phon/application/property.hpp>
 #include <phon/utils/xml.hpp>
-#include <phon/utils/memory.hpp>
 #include <phon/utils/signal.hpp>
 
 namespace phonometrica {
@@ -46,20 +47,20 @@ enum class FileType
 };
 
 
-class VFolder;
+class Directory;
 
 
-class VNode : public std::enable_shared_from_this<VNode>
+class Element : public Atomic
 {
 public:
 
-	VNode(VFolder *parent);
+	Element(Class *klass, Directory *parent);
 
-	virtual ~VNode() = default;
+	virtual ~Element() = default;
 
 	void detach(bool mutate = true);
 
-	void set_parent(VFolder *parent, bool mutate = true);
+	void set_parent(Directory *parent, bool mutate = true);
 
 	virtual String label() const = 0;
 
@@ -77,7 +78,7 @@ public:
 
 	virtual bool is_concordance() const;
 
-	virtual bool is_file() const;
+	virtual bool is_document() const;
 
 	virtual bool is_folder() const;
 
@@ -87,15 +88,15 @@ public:
 
 	virtual void to_xml(xml_node root) = 0;
 
-	void move_to(VFolder *parent, intptr_t pos);
+	void move_to(Directory *parent, intptr_t pos);
 
-	VFolder *parent() const { return m_parent; }
+	Directory *parent() const { return m_parent; }
 
-	virtual const VFolder *toplevel() const;
+	virtual const Directory *toplevel() const;
 
 	virtual void discard_changes();
 
-	virtual bool contains(const VNode *node) const { return false; }
+	virtual bool contains(const Element *node) const { return false; }
 
 	virtual bool quick_search(const String &text) const { return true; }
 
@@ -106,30 +107,28 @@ public:
 protected:
 
 	// Non-owning reference to the parent.
-	VFolder *m_parent = nullptr;
+	Directory *m_parent = nullptr;
 
 	bool m_content_modified = false;
 
 };
 
-
-using AutoVNode = std::shared_ptr<VNode>;
-using VNodeList = Array<AutoVNode>;
+using ElementList = Array<Handle<Element>>;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class VFolder final : public VNode
+class Directory final : public Element
 {
 public:
 
-	typedef VNodeList::iterator iterator;
-	typedef VNodeList::const_iterator const_iterator;
-	typedef VNodeList::reverse_iterator reverse_iterator;
-	typedef VNodeList::const_reverse_iterator const_reverse_iterator;
+	typedef ElementList::iterator iterator;
+	typedef ElementList::const_iterator const_iterator;
+	typedef ElementList::reverse_iterator reverse_iterator;
+	typedef ElementList::const_reverse_iterator const_reverse_iterator;
 
-	explicit VFolder(VFolder *parent, String label);
+	Directory(Directory *parent, String label);
 
 	iterator begin() noexcept;
 	const_iterator begin() const noexcept;
@@ -149,14 +148,14 @@ public:
 
 	bool empty() const;
 
-	std::shared_ptr<VNode> &get(intptr_t i);
-	const std::shared_ptr<VNode> &get(intptr_t i) const;
+	Handle<Element> &get(intptr_t i);
+	const Handle<Element> &get(intptr_t i) const;
 
-	void append(std::shared_ptr<VNode> node, bool mutate = true);
+	void append(Handle<Element> node, bool mutate = true);
 
-	void insert(intptr_t pos, std::shared_ptr<VNode> node);
+	void insert(intptr_t pos, Handle<Element> node);
 
-	void remove(const std::shared_ptr<VNode> &node, bool mutate = true);
+	void remove(const Handle<Element> &node, bool mutate = true);
 
 	bool modified() const override;
 
@@ -178,11 +177,11 @@ public:
 
 	void clear(bool mutate = true);
 
-    const VFolder *toplevel() const override;
+    const Directory *toplevel() const override;
 
     void add_subfolder(const String &name);
 
-	bool contains(const VNode *node) const override;
+	bool contains(const Element *node) const override;
 
 	bool quick_search(const String &text) const override;
 
@@ -194,24 +193,21 @@ protected:
 
 	String m_label;
 
-	VNodeList m_content;
+	ElementList m_content;
 
 	bool m_expanded = false;
 
 };
 
 
-using AutoVFolder = std::shared_ptr<VFolder>;
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-class VFile : public VNode
+class Document : public Element
 {
 public:
 
-	VFile(VFolder *parent, String path);
+	Document(Class *klass, Directory *parent, String path);
 
 	String label() const override;
 
@@ -221,7 +217,7 @@ public:
 
 	virtual void set_path(String path, bool mutate);
 
-	bool is_file() const override;
+	bool is_document() const override;
 
 	void open();
 
@@ -296,8 +292,15 @@ protected:
 };
 
 
-using VFileList = Array<std::shared_ptr<VFile>>;
-using AutoVFile = std::shared_ptr<VFile>;
+using DocList = Array<Handle<Document>>;
+
+
+namespace traits {
+template<> struct maybe_cyclic<Element> : std::false_type { };
+template<> struct maybe_cyclic<Directory> : std::false_type { };
+template<> struct maybe_cyclic<Document> : std::false_type { };
+}
+
 
 } // namespace phonometrica
 

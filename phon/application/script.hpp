@@ -26,11 +26,11 @@
 
 namespace phonometrica {
 
-class Script final : public VFile
+class Script final : public Document
 {
 public:
 
-	explicit Script(VFolder *parent, String path = String());
+	explicit Script(Directory *parent, String path = String());
 
 	bool is_script() const override;
 
@@ -48,6 +48,8 @@ public:
 
 	String label() const override;
 
+    static void initialize(Runtime &rt);
+
 private:
 
 	void load() override;
@@ -58,10 +60,9 @@ private:
 
 };
 
-using AutoScript = std::shared_ptr<Script>;
 
 namespace traits {
-template<> struct maybe_cyclic<AutoScript> : std::false_type { };
+template<> struct maybe_cyclic<Script> : std::false_type { };
 }
 
 } // namespace phonometrica

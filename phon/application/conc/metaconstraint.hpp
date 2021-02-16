@@ -35,7 +35,7 @@ struct MetaConstraint
 
 	virtual ~MetaConstraint() = default;
 
-	virtual bool filter(const VFile * file) const = 0;
+	virtual bool filter(const Document * file) const = 0;
 
 	virtual void to_xml(xml_node node) = 0;
 };
@@ -62,7 +62,7 @@ struct DescMetaConstraint final : public MetaConstraint
 
 	static Operator name_to_op(std::string_view name);
 
-	bool filter(const VFile * file) const override;
+	bool filter(const Document * file) const override;
 
 	void to_xml(xml_node node) override;
 
@@ -92,7 +92,7 @@ struct TextMetaConstraint : public PropertyMetaConstraint
 		PropertyMetaConstraint(category), values(std::move(values))
 	{ }
 
-	bool filter(const VFile * file) const override;
+	bool filter(const Document * file) const override;
 
 	void to_xml(xml_node node) override;
 
@@ -118,7 +118,7 @@ struct NumericMetaConstraint : public PropertyMetaConstraint
 		PropertyMetaConstraint(category), op(op), value(value)
 	{ }
 
-	bool filter(const VFile * file) const override;
+	bool filter(const Document * file) const override;
 
 	static const char * op_to_name(Operator op);
 
@@ -140,7 +140,7 @@ struct BooleanMetaConstraint : public PropertyMetaConstraint
 		PropertyMetaConstraint(category), value(value)
 	{ }
 
-	bool filter(const VFile * file) const override;
+	bool filter(const Document * file) const override;
 
 	void to_xml(xml_node node) override;
 

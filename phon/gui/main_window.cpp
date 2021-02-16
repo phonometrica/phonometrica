@@ -331,9 +331,9 @@ void MainWindow::SetBindings()
 	View::modified.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	View::request_console.connect(&MainWindow::OnRequestConsole, this);
 	View::file_created.connect(&Viewer::ViewFile, viewer);
-	VNode::request_progress.connect(&MainWindow::OnRequestProgress, this);
-	VNode::update_progress.connect(&MainWindow::OnUpdateProgress, this);
-	VFile::file_modified.connect(&Viewer::UpdateCurrentView, viewer);
+	Element::request_progress.connect(&MainWindow::OnRequestProgress, this);
+	Element::update_progress.connect(&MainWindow::OnUpdateProgress, this);
+	Document::file_modified.connect(&Viewer::UpdateCurrentView, viewer);
 	auto project = Project::get();
 	project->notify_update.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	project->notify_closed.connect(&ProjectManager::OnProjectClosed, project_manager);
@@ -1512,13 +1512,13 @@ void MainWindow::SetShellFunctions()
 
 #if 0
 	auto view_annotation1 = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto &annot = cast<AutoAnnotation>(args[0]);
+		auto &annot = cast<Annotation>(args[0]);
 		viewer->editAnnotation(std::move(annot), 1, 0.0, 10.0);
 		return Variant();
 	};
 
 	auto view_annotation2 = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto &annot = cast<AutoAnnotation>(args[0]);
+		auto &annot = cast<Annotation>(args[0]);
 		intptr_t layer = cast<intptr_t>(args[1]);
 		double from = args[2].resolve().get_number();
 		double to = args[3].resolve().get_number();
@@ -1595,7 +1595,7 @@ void MainWindow::SetShellFunctions()
 		auto viewer = viewer;
 		auto annot = viewer->getCurrentAnnotation();
 		if (annot) {
-			return make_handle<AutoAnnotation>(std::move(annot));
+			return make_handle<Handle<Annotation>>(std::move(annot));
 		}
 		return Variant();
 	};
@@ -1649,8 +1649,8 @@ void MainWindow::SetShellFunctions()
 //	phon.define(rt, "view_script", view_script2, { CLS(String) });
 //	phon.define(rt, "run_script", run_script, { CLS(String) });
 	phon.define(rt, "close_current_view", close_current_view, { });
-//	phon.define(rt, "view_annotation", view_annotation1, { CLS(AutoAnnotation) });
-//	phon.define(rt, "view_annotation", view_annotation2, { CLS(AutoAnnotation), CLS(intptr_t), CLS(double), CLS(double) });
+//	phon.define(rt, "view_annotation", view_annotation1, { CLS(Handle<Annotation>) });
+//	phon.define(rt, "view_annotation", view_annotation2, { CLS(Handle<Annotation>), CLS(intptr_t), CLS(double), CLS(double) });
 //	phon.define(rt, "import_metadata", import_metadata, { });
 //	phon.define(rt, "export_metadata", export_metadata, { });
 //	phon.define(rt, "get_plugin_list", get_plugin_list, { });
@@ -1743,11 +1743,11 @@ void MainWindow::OnEditLastQuery(wxCommandEvent &)
 	}
 }
 
-void MainWindow::EditQuery(const AutoQuery &q)
+void MainWindow::EditQuery(const Handle<Query> &q)
 {
 	if (q->is_text_query())
 	{
-		TextQueryEditor editor(this, downcast<Query>(q));
+		TextQueryEditor editor(this, recast<Query>(q));
 		editor.Prepare();
 		editor.LoadQuery();
 		editor.SetSize(FromDIP(editor_size));

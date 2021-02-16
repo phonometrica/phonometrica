@@ -46,12 +46,12 @@ void Viewer::NewScript()
 	NewScriptWithParent(nullptr);
 }
 
-void Viewer::NewScriptWithParent(VFolder *parent)
+void Viewer::NewScriptWithParent(Directory *parent)
 {
 	if (!parent) {
 		parent = Project::get()->scripts().get();
 	}
-	auto script = std::make_shared<Script>(parent);
+	auto script = make_handle<Script>(parent);
 	auto view = new ScriptView(runtime, script, this);
 	AddView(view, _("Untitled script"));
 	// Don't mutate the folder because this is an empty script
@@ -64,7 +64,7 @@ void Viewer::AddView(View *view, const wxString &title)
 	AddPage(view, title, true);
 }
 
-void Viewer::NewScript(const AutoScript &script)
+void Viewer::NewScript(const Handle<Script> &script)
 {
 	auto view = new ScriptView(runtime, script, this);
 	AddView(view, script->label());
@@ -97,7 +97,7 @@ View *Viewer::GetCurrentView()
 	return GetView(GetSelection());
 }
 
-void Viewer::ViewFile(const std::shared_ptr<VFile> &file)
+void Viewer::ViewFile(const Handle<Document> &file)
 {
 	file->open();
 
@@ -113,11 +113,11 @@ void Viewer::ViewFile(const std::shared_ptr<VFile> &file)
 
 	if (file->is_script())
 	{
-		NewScript(downcast<Script>(file));
+		NewScript(recast<Script>(file));
 	}
 	else if (file->is_concordance())
 	{
-		auto conc = downcast<Concordance>(file);
+		auto conc = recast<Concordance>(file);
 
 		if (conc->empty() && Settings::get_boolean("concordance", "discard_empty"))
 		{
@@ -201,7 +201,7 @@ void Viewer::CloseViews()
 	SetStartView();
 }
 
-void Viewer::OnEditEvent(const std::shared_ptr<Annotation> &annot, const AutoEvent &event, const String &new_value)
+void Viewer::OnEditEvent(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value)
 {
 	auto cmd = std::make_unique<EditEventCommand>(annot, event, new_value);
 	GetCurrentView()->Submit(std::move(cmd));

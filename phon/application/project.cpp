@@ -59,11 +59,11 @@ void Project::open(String path)
 
 Project::Project(Runtime &rt, String path) :
 		rt(rt),
-		m_corpus(std::make_shared<VFolder>(nullptr, "Corpus")),
-		m_bookmarks(std::make_shared<VFolder>(nullptr, "Bookmarks")),
-		m_scripts(std::make_shared<VFolder>(nullptr, "Scripts")),
-		m_data(std::make_shared<VFolder>(nullptr, "Data")),
-		m_queries(std::make_shared<VFolder>(nullptr, "Queries"))
+		m_corpus(make_handle<Directory>(nullptr, "Corpus")),
+		m_bookmarks(make_handle<Directory>(nullptr, "Bookmarks")),
+		m_scripts(make_handle<Directory>(nullptr, "Scripts")),
+		m_data(make_handle<Directory>(nullptr, "Data")),
+		m_queries(make_handle<Directory>(nullptr, "Queries"))
 {
 	if (path.empty())
 	{
@@ -226,22 +226,22 @@ void Project::load()
 	emit(project_loaded);
 }
 
-const std::shared_ptr<VFolder> & Project::corpus() const
+const Handle<Directory> & Project::corpus() const
 {
 	return m_corpus;
 }
 
-const std::shared_ptr<VFolder> & Project::bookmarks() const
+const Handle<Directory> & Project::bookmarks() const
 {
 	return m_bookmarks;
 }
 
-const std::shared_ptr<VFolder> & Project::scripts() const
+const Handle<Directory> & Project::scripts() const
 {
 	return m_scripts;
 }
 
-void Project::parse_corpus(xml_node root, VFolder *folder)
+void Project::parse_corpus(xml_node root, Directory *folder)
 {
 	int counter = 0;
 	static const std::string_view folder_tag("VFolder");
@@ -255,7 +255,7 @@ void Project::parse_corpus(xml_node root, VFolder *folder)
 			String label;
 			auto attr = node.attribute("label");
 			if (attr) label = attr.value();
-			auto subfolder = std::make_shared<VFolder>(folder, std::move(label));
+			auto subfolder = make_handle<Directory>(folder, std::move(label));
 			auto sub = subfolder.get();
 			folder->append(std::move(subfolder), false);
 
@@ -266,21 +266,21 @@ void Project::parse_corpus(xml_node root, VFolder *folder)
 			auto attr = node.attribute("class");
 			if (!attr) throw error("Invalid VFile node");
 			std::string_view cls(attr.value());
-			std::shared_ptr<VFile> vfile;
+			Handle<Document> vfile;
 			String path(node.text().get());
 			interpolate(path, m_directory);
 
 			if (cls == "Annotation")
 			{
-				auto annot = std::make_shared<Annotation>(folder, std::move(path));
-				vfile = upcast<VFile>(annot);
-				emit(annotation_loaded, make_handle<AutoAnnotation>(std::move(annot)));
+				auto annot = make_handle<Annotation>(folder, std::move(path));
+				vfile = recast<Document>(annot);
+				emit(annotation_loaded, std::move(annot));
 			}
 			else if (cls == "Sound")
 			{
-				auto sound = std::make_shared<Sound>(folder, std::move(path));
-				vfile = upcast<VFile>(sound);
-				emit(sound_loaded, make_handle<AutoSound>(std::move(sound)));
+				auto sound = make_handle<Sound>(folder, std::move(path));
+				vfile = recast<Document>(sound);
+				emit(sound_loaded, std::move(sound));
 			}
 			else
 			{
@@ -297,7 +297,7 @@ void Project::parse_corpus(xml_node root, VFolder *folder)
 	}
 }
 
-void Project::register_file(const String &path, std::shared_ptr<VFile> file)
+void Project::register_file(const String &path, Handle<Document> file)
 {
 	m_database->add_metadata_to_file(file);
 
@@ -344,7 +344,7 @@ void Project::parse_metadata(xml_node root)
 	}
 }
 
-void Project::parse_scripts(xml_node root, VFolder *folder)
+void Project::parse_scripts(xml_node root, Directory *folder)
 {
 	static const std::string_view folder_tag("VFolder");
 	static const std::string_view file_tag("VFile");
@@ -357,7 +357,7 @@ void Project::parse_scripts(xml_node root, VFolder *folder)
 			String label;
 			auto attr = node.attribute("label");
 			if (attr) label = attr.value();
-			auto subfolder = std::make_shared<VFolder>(folder, std::move(label));
+			auto subfolder = make_handle<Directory>(folder, std::move(label));
 			auto sub = subfolder.get();
 			folder->append(std::move(subfolder), false);
 
@@ -373,10 +373,10 @@ void Project::parse_scripts(xml_node root, VFolder *folder)
 
 			if (cls == script_tag)
 			{
-				auto script = std::make_shared<Script>(folder, std::move(path));
+				auto script = make_handle<Script>(folder, std::move(path));
 				folder->append(script, false);
 				register_file(script->path(), script);
-//				emit(script_loaded, make_handle<AutoScript>(script));
+//				emit(script_loaded, make_handle<Script>(script));
 			}
 			else
 			{
@@ -386,7 +386,7 @@ void Project::parse_scripts(xml_node root, VFolder *folder)
 	}
 }
 
-void Project::parse_queries(xml_node root, VFolder *folder)
+void Project::parse_queries(xml_node root, Directory *folder)
 {
 	static const std::string_view folder_tag("VFolder");
 	static const std::string_view file_tag("VFile");
@@ -399,7 +399,7 @@ void Project::parse_queries(xml_node root, VFolder *folder)
 			String label;
 			auto attr = node.attribute("label");
 			if (attr) label = attr.value();
-			auto subfolder = std::make_shared<VFolder>(folder, std::move(label));
+			auto subfolder = make_handle<Directory>(folder, std::move(label));
 			auto sub = subfolder.get();
 			folder->append(std::move(subfolder), false);
 
@@ -415,7 +415,7 @@ void Project::parse_queries(xml_node root, VFolder *folder)
 
 			if (cls == text_query_tag)
 			{
-				auto query = std::make_shared<Query>(folder, std::move(path));
+				auto query = make_handle<Query>(folder, std::move(path));
 				folder->append(query, false);
 				register_file(query->path(), query);
 			}
@@ -428,7 +428,7 @@ void Project::parse_queries(xml_node root, VFolder *folder)
 
 }
 
-void Project::parse_data(xml_node root, VFolder *folder)
+void Project::parse_data(xml_node root, Directory *folder)
 {
 	static const std::string_view folder_tag("VFolder");
 	static const std::string_view file_tag("VFile");
@@ -441,7 +441,7 @@ void Project::parse_data(xml_node root, VFolder *folder)
 			String label;
 			auto attr = node.attribute("label");
 			if (attr) label = attr.value();
-			auto subfolder = std::make_shared<VFolder>(folder, std::move(label));
+			auto subfolder = make_handle<Directory>(folder, std::move(label));
 			auto sub = subfolder.get();
 			folder->append(std::move(subfolder), false);
 
@@ -457,7 +457,7 @@ void Project::parse_data(xml_node root, VFolder *folder)
 
 			if (cls == data_tag)
 			{
-				auto dataset = std::make_shared<Spreadsheet>(folder, std::move(path));
+				auto dataset = make_handle<Spreadsheet>(folder, std::move(path));
 				dataset->from_xml(node, m_directory);
 				folder->append(dataset, false);
 				register_file(dataset->path(), dataset);
@@ -465,7 +465,7 @@ void Project::parse_data(xml_node root, VFolder *folder)
 			}
 			else if (cls == std::string_view("Concordance"))
 			{
-				auto conc = std::make_shared<Concordance>(folder, std::move(path));
+				auto conc = make_handle<Concordance>(folder, std::move(path));
 				folder->append(conc, false);
 				register_file(conc->path(), conc);
 			}
@@ -477,7 +477,7 @@ void Project::parse_data(xml_node root, VFolder *folder)
 	}
 }
 
-void Project::parse_bookmarks(xml_node root, VFolder *folder)
+void Project::parse_bookmarks(xml_node root, Directory *folder)
 {
 	static const std::string_view folder_tag("VFolder");
 	static const std::string_view bookmark_tag("Bookmark");
@@ -491,7 +491,7 @@ void Project::parse_bookmarks(xml_node root, VFolder *folder)
 			String label;
 			auto attr = node.attribute("label");
 			if (attr) label = attr.value();
-			auto subfolder = std::make_shared<VFolder>(folder, std::move(label));
+			auto subfolder = make_handle<Directory>(folder, std::move(label));
 			auto sub = subfolder.get();
 			folder->append(std::move(subfolder), false);
 
@@ -540,8 +540,8 @@ void Project::parse_bookmarks(xml_node root, VFolder *folder)
 
 				if (file->is_annotation())
 				{
-					auto annot = downcast<Annotation>(file);
-					auto bookmark = std::make_shared<AnnotationStamp>(folder, title, std::move(annot), layer, start, end, match, left, right);
+					auto annot = recast<Annotation>(file);
+					auto bookmark = make_handle<TimeStamp>(folder, title, std::move(annot), layer, start, end, match, left, right);
 					folder->append(std::move(bookmark), false);
 				}
 				else
@@ -557,7 +557,7 @@ void Project::parse_bookmarks(xml_node root, VFolder *folder)
 	}
 }
 
-const std::shared_ptr<VFile> & Project::get_file_handle(const String &path, std::string_view msg)
+const Handle<Document> & Project::get_file_handle(const String &path, std::string_view msg)
 {
 	auto it = m_files.find(path);
 
@@ -676,7 +676,7 @@ void Project::write()
 	write_xml(doc, m_path);
 }
 
-bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, FileType type, bool importing)
+bool Project::add_file(String path, const Handle<Directory> &parent, FileType type, bool importing)
 {
 	if (m_files.find(path) != m_files.end())
 	{
@@ -685,36 +685,36 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 
 	auto ext = filesystem::ext(path, true);
 
-	std::shared_ptr<VFile> vfile;
+	Handle<Document> vfile;
 
 	if ((ext == PHON_EXT_ANNOTATION || ext == ".textgrid") && (static_cast<int>(type)&static_cast<int>(FileType::Annotation)))
 	{
-	    auto annot = std::make_shared<Annotation>(parent.get(), std::move(path));
-		vfile = upcast<VFile>(annot);
+	    auto annot = make_handle<Annotation>(parent.get(), std::move(path));
+		vfile = recast<Document>(annot);
 		parent->append(vfile);
 		if (importing) {
-			emit(annotation_imported, make_handle<AutoAnnotation>(annot));
+			emit(annotation_imported, annot);
 		}
 		else {
-			emit(annotation_loaded, make_handle<AutoAnnotation>(annot));;
+			emit(annotation_loaded, annot);
 		}
 	}
 	else if (Sound::supports_format(ext) && (static_cast<int>(type)&static_cast<int>(FileType::Sound)))
 	{
-	    auto sound = std::make_shared<Sound>(parent.get(), std::move(path));
-		vfile = upcast<VFile>(sound);
+	    auto sound = make_handle<Sound>(parent.get(), std::move(path));
+		vfile = recast<Document>(sound);
 		parent->append(vfile);
 		if (importing) {
-			emit(sound_imported, make_handle<AutoSound>(sound));
+			emit(sound_imported, sound);
 		}
 		else {
-			emit(sound_loaded, make_handle<AutoSound>(sound));
+			emit(sound_loaded, sound);
 		}
 	}
 	else if (ext == PHON_EXT_QUERY)
 	{
-		VFolder *p = m_queries.get();
-		AutoQuery query;
+		Directory *p = m_queries.get();
+		Handle<Query> query;
 
 		if (static_cast<int>(type) & static_cast<int>(FileType::Query))
 		{
@@ -730,19 +730,19 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 		auto query_type = get_query_type(path);
 		if (query_type == Query::Type::Text)
 		{
-			query = std::make_shared<Query>(p, std::move(path));
+			query = make_handle<Query>(p, std::move(path));
 		}
 		else
 		{
 			throw error("Cannot parse query file: unsupported query type");
 		}
 
-		vfile = upcast<VFile>(query);
+		vfile = recast<Document>(query);
 		p->append(vfile);
 	}
 	else if (ext == PHON_EXT_CONCORDANCE)
 	{
-		VFolder *p = m_scripts.get();
+		Directory *p = m_scripts.get();
 
 		if (static_cast<int>(type) & static_cast<int>(FileType::Dataset))
 		{
@@ -755,13 +755,13 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 			return set_import_flag();
 		}
 
-		auto conc = std::make_shared<Concordance>(p, std::move(path));
-		vfile = upcast<VFile>(conc);
+		auto conc = make_handle<Concordance>(p, std::move(path));
+		vfile = recast<Document>(conc);
 		p->append(vfile);
 	}
 	else if (ext == ".csv")
 	{
-		VFolder *p = m_data.get();
+		Directory *p = m_data.get();
 
 		if (static_cast<int>(type) & static_cast<int>(FileType::Dataset))
 		{
@@ -774,14 +774,14 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 			return set_import_flag();
 		}
 
-		auto dataset = std::make_shared<Spreadsheet>(p, std::move(path));
-		vfile = upcast<VFile>(dataset);
+		auto dataset = make_handle<Spreadsheet>(p, std::move(path));
+		vfile = recast<Document>(dataset);
 		p->append(vfile);
-//		emit(dataset_loaded, make_handle<AutoSpreadsheet>(std::move(dataset)));
+//		emit(dataset_loaded, std::move(dataset));
 	}
 	else if ((ext == PHON_EXT_SCRIPT || ext == ".phon-script"))
 	{
-		VFolder *p = m_scripts.get();
+		Directory *p = m_scripts.get();
 
 		if (static_cast<int>(type) & static_cast<int>(FileType::Script))
 		{
@@ -794,10 +794,10 @@ bool Project::add_file(String path, const std::shared_ptr<VFolder> &parent, File
 			return set_import_flag();
 		}
 
-        auto script = std::make_shared<Script>(p, std::move(path));
-		vfile = upcast<VFile>(script);
+        auto script = make_handle<Script>(p, std::move(path));
+		vfile = recast<Document>(script);
 		p->append(vfile);
-		//emit(script_loaded, make_handle<AutoScript>(std::move(script)));
+		//emit(script_loaded, make_handle<Handle<Script>>(std::move(script)));
 	}
 	else
 	{
@@ -839,15 +839,11 @@ String Project::import_file(String path)
 	{
         m_modified = true;
         auto &f = m_files[path];
-        if (f->is_annotation())
-        {
-        	auto handle = make_handle<AutoAnnotation>(downcast<Annotation>(f));
-	        emit(annotation_imported, std::move(handle));
+        if (f->is_annotation()) {
+	        emit(annotation_imported, recast<Annotation>(f));
         }
-        else if (f->is_sound())
-        {
-        	auto handle = make_handle<AutoSound>(downcast<Sound>(f));
-        	emit(sound_imported, std::move(handle));
+        else if (f->is_sound()) {
+        	emit(sound_imported, recast<Sound>(f));
         }
 	}
 	// Try to find a sound that matches the annotation's name.
@@ -856,7 +852,7 @@ String Project::import_file(String path)
 	return path;
 }
 
-void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent, bool importing)
+void Project::add_folder(String path, const Handle<Directory> &parent, bool importing)
 {
 	auto content = filesystem::list_directory(path);
 	auto count = content.size();
@@ -868,7 +864,7 @@ void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent, bo
 
 		if (filesystem::is_directory(file))
 		{
-			auto subfolder = std::make_shared<VFolder>(parent.get(), name);
+			auto subfolder = make_handle<Directory>(parent.get(), name);
 			parent->append(subfolder);
 			add_folder(file, subfolder, importing);
 		}
@@ -879,7 +875,7 @@ void Project::add_folder(String path, const std::shared_ptr<VFolder> &parent, bo
 	}
 }
 
-std::set<Property> Project::get_shared_properties(const VFileList &files)
+std::set<Property> Project::get_shared_properties(const DocList &files)
 {
 	auto properties = files.front()->properties();
 	auto count = files.size();
@@ -906,7 +902,7 @@ void Project::open_database()
 	m_database->notify_annotation_needs_sound.connect(&Project::bind_annotation, this);
 }
 
-void Project::remove(VFileList &files)
+void Project::remove(DocList &files)
 {
 	for (auto &file : files)
 	{
@@ -914,27 +910,27 @@ void Project::remove(VFileList &files)
 	}
 }
 
-void Project::remove(VNodeList &files)
+void Project::remove(ElementList &files)
 {
 	for (auto &file : files)
 	{
 		if (file->is_folder())
 		{
-			remove(downcast<VFolder>(file));
+			remove(recast<Directory>(file));
 		}
 		else
 		{
-			remove(downcast<VFile>(file));
+			remove(recast<Document>(file));
 		}
 	}
 }
 
-const std::shared_ptr<VFolder> & Project::data() const
+const Handle<Directory> & Project::data() const
 {
 	return m_data;
 }
 
-const std::shared_ptr<VFolder> &Project::queries() const
+const Handle<Directory> &Project::queries() const
 {
 	return m_queries;
 }
@@ -952,7 +948,7 @@ MetaDatabase & Project::database() const
 	return *m_database;
 }
 
-void Project::bind_annotation(const AutoAnnotation &annot, const String &sound_file)
+void Project::bind_annotation(const Handle<Annotation> &annot, const String &sound_file)
 {
 	// The actual binding will occur in bind_annotations(), which is called once the project is loaded.
 	m_accumulator.emplace_back(annot.get(), sound_file);
@@ -969,7 +965,7 @@ void Project::bind_annotations()
 
 		if (it != m_files.end())
 		{
-			auto snd = downcast<Sound>(it->second);
+			auto snd = recast<Sound>(it->second);
 			// This method is only called when a project is loading, so we don't mutate the annotation
 			annot->set_sound(snd, false);
 		}
@@ -991,9 +987,9 @@ void Project::close()
 	instance->notify_closed();
 }
 
-VFileList Project::get_corpus_files() const
+DocList Project::get_corpus_files() const
 {
-	VFileList files;
+	DocList files;
 	files.reserve(m_files.size());
 
 	for (auto &entry : m_files) {
@@ -1011,7 +1007,7 @@ void Project::remove_empty_script()
 
 		if (node->is_script())
 		{
-			auto script = raw_cast<Script>(node);
+			auto script = raw_recast<Script>(node);
 
 			if (!script->has_path()) {
 				m_scripts->remove(node);
@@ -1022,7 +1018,13 @@ void Project::remove_empty_script()
 
 void Project::initialize(Runtime &rt)
 {
-	initialize_types(rt);
+	Annotation::initialize(rt);
+	Sound::initialize(rt);
+	Dataset::initialize(rt);
+	Spreadsheet::initialize(rt);
+	TimeStamp::initialize(rt);
+	Script::initialize(rt);
+	Query::initialize(rt);
 
 	auto open_project = [](Runtime &, std::span<Variant> args) -> Variant
 	{
@@ -1075,20 +1077,20 @@ void Project::initialize(Runtime &rt)
 
     auto get_annotations = [](Runtime &rt, std::span<Variant> args) -> Variant {
     	Array<Variant> result;
-    	std::vector<AutoAnnotation> tmp;
+    	std::vector<Handle<Annotation>> tmp;
     	auto &files = Project::get()->m_files;
     	for (auto &pair : files)
 		{
     		if (pair.second->is_annotation())
 			{
-    		    tmp.push_back(downcast<Annotation>(pair.second));
+    		    tmp.push_back(recast<Annotation>(pair.second));
 			}
 		}
     	result.reserve(tmp.size());
-    	std::sort(tmp.begin(), tmp.end(), [](const AutoAnnotation &a1, const AutoAnnotation &a2) { return a1->path() < a2->path(); });
+    	std::sort(tmp.begin(), tmp.end(), [](const Handle<Annotation> &a1, const Handle<Annotation> &a2) { return a1->path() < a2->path(); });
 
     	for (auto &annot : tmp) {
-		    result.append(make_handle<AutoAnnotation>(std::move(annot)));
+		    result.append(std::move(annot));
 	    }
 
     	return make_handle<List>(&rt, std::move(result));
@@ -1099,36 +1101,33 @@ void Project::initialize(Runtime &rt)
 	    auto &path = cast<String>(args[0]);
 	    auto file = files.find(path);
 
-	    if (file == files.end())
-	    {
+	    if (file == files.end()) {
 		    return Variant();
 	    }
-	    else if (file->second->is_annotation())
-	    {
-			return make_handle<AutoAnnotation>(downcast<Annotation>(file->second));
+	    else if (file->second->is_annotation()) {
+			return recast<Annotation>(file->second);
 	    }
-	    else
-	    {
+	    else {
 		    throw error("File \"%\" is not an annotation", path);
 	    }
     };
 
     auto get_sounds = [](Runtime &rt, std::span<Variant> args) -> Variant {
     	Array<Variant> result;
-    	std::vector<AutoSound> tmp;
+    	std::vector<Handle<Sound>> tmp;
     	auto &files = Project::get()->m_files;
     	for (auto &pair : files)
 		{
     		if (pair.second->is_sound())
 			{
-    		    tmp.push_back(downcast<Sound>(pair.second));
+    		    tmp.push_back(recast<Sound>(pair.second));
 			}
 		}
     	result.reserve(tmp.size());
-    	std::sort(tmp.begin(), tmp.end(), [](const AutoSound &s1, const AutoSound &s2) { return s1->path() < s2->path(); });
+    	std::sort(tmp.begin(), tmp.end(), [](const Handle<Sound> &s1, const Handle<Sound> &s2) { return s1->path() < s2->path(); });
 
     	for (auto &sound : tmp) {
-		    result.append(make_handle<AutoSound>(std::move(sound)));
+		    result.append(std::move(sound));
 	    }
 
     	return make_handle<List>(&rt, std::move(result));
@@ -1139,16 +1138,13 @@ void Project::initialize(Runtime &rt)
     	auto &path = cast<String>(args[0]);
 		auto file = files.find(path);
 
-		if (file == files.end())
-		{
+		if (file == files.end()) {
 			return Variant();
 		}
-		else if (file->second->is_sound())
-		{
-			return make_handle<AutoSound>(downcast<Sound>(file->second));
+		else if (file->second->is_sound()) {
+			return recast<Sound>(file->second);
 		}
-		else
-		{
+		else {
 			throw error("File \"%\" is not a sound", path);
 		}
     };
@@ -1212,14 +1208,14 @@ String Project::label() const
     return label;
 }
 
-std::shared_ptr<VFile> Project::get(const String &path)
+Handle<Document> Project::get(const String &path)
 {
     auto it = m_files.find(path);
     if (it != m_files.end()) {
 	    return it->second;
     }
 
-    return nullptr;
+    return Handle<Document>(nullptr);
 }
 
 void Project::modify()
@@ -1237,19 +1233,19 @@ void Project::updated()
 	get()->notify_update();
 }
 
-void Project::remove(const std::shared_ptr<VFolder> &folder)
+void Project::remove(const Handle<Directory> &folder)
 {
     for (intptr_t i = folder->size(); i > 0; i--)
     {
     	auto &node = folder->get(i);
-        if (node->is_file())
+        if (node->is_document())
         {
-            auto file = downcast<VFile>(node);
+            auto file = recast<Document>(node);
             remove(file);
         }
         else if (node->is_folder())
         {
-            auto subfolder = downcast<VFolder>(node);
+            auto subfolder = recast<Directory>(node);
             remove(subfolder);
         }
         else
@@ -1260,14 +1256,14 @@ void Project::remove(const std::shared_ptr<VFolder> &folder)
     folder->detach();
 }
 
-void Project::remove(const std::shared_ptr<VFile> &folder)
+void Project::remove(const Handle<Document> &folder)
 {
     folder->detach();
     m_files.erase(folder->path());
     m_modified = true;
 }
 
-bool Project::is_root(const VFolder *folder) const
+bool Project::is_root(const Directory *folder) const
 {
     return folder == m_corpus.get() || folder == m_scripts.get() || folder == m_queries.get() || folder == m_data.get() || folder == m_bookmarks.get();
 }
@@ -1403,14 +1399,14 @@ void Project::export_metadata(const String &path)
 	utils::write_csv(path, csv, "\t");
 }
 
-void Project::tag_file(std::shared_ptr<VFile> &file, const String &category, const String &value)
+void Project::tag_file(Handle<Document> &file, const String &category, const String &value)
 {
 
 	if (category == "%SOUND%")
 	{
 		if (filesystem::exists(value) && file->is_annotation())
 		{
-			auto annot = downcast<Annotation>(file);
+			auto annot = recast<Annotation>(file);
 			bind_annotation(annot, value);
 		}
 
@@ -1430,9 +1426,9 @@ bool Project::empty() const
     return m_corpus->empty() && m_data->empty() && m_scripts->empty() && m_bookmarks->empty();
 }
 
-Array<AutoAnnotation> Project::annotations() const
+Array<Handle<Annotation>> Project::annotations() const
 {
-	Array<AutoAnnotation> result;
+	Array<Handle<Annotation>> result;
 
 	for (auto &item : m_files)
 	{
@@ -1440,19 +1436,19 @@ Array<AutoAnnotation> Project::annotations() const
 
 		if (vf->is_annotation())
 		{
-			result.push_back(std::dynamic_pointer_cast<Annotation>(vf));
+			result.push_back(recast<Annotation>(vf));
 		}
 	}
-	std::sort(result.begin(), result.end(), [](const AutoAnnotation &a1, const AutoAnnotation &a2) -> bool {
+	std::sort(result.begin(), result.end(), [](const Handle<Annotation> &a1, const Handle<Annotation> &a2) -> bool {
 		return a1->path() < a2->path();
 	});
 
 	return result;
 }
 
-Array<AutoConcordance> Project::concordances() const
+Array<Handle<Concordance>> Project::concordances() const
 {
-	Array<AutoConcordance> result;
+	Array<Handle<Concordance>> result;
 
 	for (auto &item : m_files)
 	{
@@ -1460,10 +1456,10 @@ Array<AutoConcordance> Project::concordances() const
 
 		if (vf->is_concordance())
 		{
-			result.push_back(std::dynamic_pointer_cast<Concordance>(vf));
+			result.push_back(recast<Concordance>(vf));
 		}
 	}
-	std::sort(result.begin(), result.end(), [](const AutoConcordance &c1, const AutoConcordance &c2) -> bool {
+	std::sort(result.begin(), result.end(), [](const Handle<Concordance> &c1, const Handle<Concordance> &c2) -> bool {
 		return c1->label() < c2->label();
 	});
 
@@ -1478,7 +1474,7 @@ void Project::set_default_bindings()
 
 		if (vf->is_annotation())
 		{
-			auto annot = std::dynamic_pointer_cast<Annotation>(vf);
+			auto annot = raw_recast<Annotation>(vf);
 			if (!annot->has_sound())
 			{
 				for (auto &ext : Sound::common_sound_formats())
@@ -1488,7 +1484,7 @@ void Project::set_default_bindings()
 					if (filesystem::exists(path))
 					{
 						add_file(path, m_corpus, FileType::Any, false);
-						auto sound = std::dynamic_pointer_cast<Sound>(m_files[path]);
+						auto sound = recast<Sound>(m_files[path]);
 						// Mutate the annotation, so that its metadata are saved.
 						annot->set_sound(sound, true);
 					}
@@ -1505,7 +1501,7 @@ void Project::reinitialize()
 	initialized();
 }
 
-void Project::add_bookmark(AutoBookmark bookmark)
+void Project::add_bookmark(Handle<Bookmark> bookmark)
 {
 	bookmark->set_parent(m_bookmarks.get());
 	m_bookmarks->append(std::move(bookmark));
@@ -1554,15 +1550,23 @@ void Project::compress(String &path, std::string_view project_dir)
 	filesystem::genericize(path);
 }
 
-void Project::initialize_types(Runtime &rt)
+void Project::preinitialize(Runtime &rt)
 {
-	Annotation::initialize(rt);
-	Sound::initialize(rt);
-//	Dataset::initialize(rt);
-//	Spreadsheet::initialize(rt);
+	auto elem_type = rt.add_standard_type<Element>("Element");
+	rt.add_standard_type<Directory>("Directory", elem_type.get());
+	auto doc_type = rt.add_standard_type<Document>("Document", elem_type.get());
+	rt.add_standard_type<Annotation>("Annotation", doc_type.get());
+	rt.add_standard_type<Sound>("Sound", doc_type.get());
+	rt.add_standard_type<Dataset>("Dataset", doc_type.get());
+	rt.add_standard_type<Spreadsheet>("Spreadsheet", doc_type.get());
+	rt.add_standard_type<Concordance>("Concordance", doc_type.get());
+	rt.add_standard_type<Script>("Script", doc_type.get());
+	rt.add_standard_type<Query>("Query", doc_type.get());
+	auto bookmakr_type = rt.add_standard_type<Bookmark>("Bookmark", elem_type.get());
+	rt.add_standard_type<TimeStamp>("TimeStamp", bookmakr_type.get());
 }
 
-void Project::add_query(AutoQuery query)
+void Project::add_query(Handle<Query> query)
 {
 	m_queries->append(std::move(query), true);
 }

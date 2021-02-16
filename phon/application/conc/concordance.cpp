@@ -29,14 +29,14 @@ namespace phonometrica {
 static const int FILE_INFO_COLUMN_COUNT = 4;
 
 
-Concordance::Concordance(VFolder *parent, const String &path) :
-	Dataset(parent, path)
+Concordance::Concordance(Directory *parent, const String &path) :
+	Dataset(get_class_ptr<Concordance>(), parent, path)
 {
 	preload();
 }
 
-Concordance::Concordance(intptr_t target_count, Context ctx, intptr_t context_length, Array <AutoMatch> matches, VFolder *parent, const String &path) :
-	Dataset(parent, path), m_matches(std::move(matches))
+Concordance::Concordance(intptr_t target_count, Context ctx, intptr_t context_length, Array <AutoMatch> matches, Directory *parent, const String &path) :
+	Dataset(get_class_ptr<Concordance>(), parent, path), m_matches(std::move(matches))
 {
 	m_target_count = (int) target_count;
 	m_context_type = ctx;
@@ -44,6 +44,21 @@ Concordance::Concordance(intptr_t target_count, Context ctx, intptr_t context_le
 	m_context.reserve(m_matches.size());
 	find_context();
 	m_loaded = true;
+}
+
+Concordance::Concordance(const Concordance &other) :
+	Dataset(other.klass, other.parent(), String())
+{
+	m_target_count = other.m_target_count;
+	m_context_type = other.m_context_type;
+	m_context_length = other.m_context_length;
+
+	m_matches.reserve(other.m_matches.size());
+
+	for (auto &m : other.m_matches) {
+		m_matches.append(std::make_unique<Match>(*m));
+	}
+	m_content_modified = true;
 }
 
 const char *Concordance::class_name() const
@@ -330,7 +345,7 @@ void Concordance::parse_matches_from_xml(xml_node root)
 			throw error("Expected a Match, got a % in concordance", node.name());
 		}
 		update_progress(count++);
-		AutoAnnotation annot;
+		Handle<Annotation> annot;
 		std::unique_ptr<Match::Target> first_target;
 		Match::Target *last_target = nullptr;
 		String path;
@@ -340,7 +355,7 @@ void Concordance::parse_matches_from_xml(xml_node root)
 			if (subnode.name() == str("Annotation"))
 			{
 				path = subnode.text().get();
-				annot = downcast<Annotation>(Project::get()->get(path));
+				annot = recast<Annotation>(Project::get()->get(path));
 			}
 			else if (subnode.name() == str("Targets"))
 			{
@@ -568,7 +583,7 @@ int Concordance::context_column_count() const
 
 String Concordance::label() const
 {
-	return m_label.empty() ? VFile::label() : m_label;
+	return m_label.empty() ? Document::label() : m_label;
 }
 
 void Concordance::set_label(String value, bool mutate)
@@ -599,7 +614,7 @@ void Concordance::restore_match(intptr_t row, AutoMatch m)
 	file_modified();
 }
 
-std::shared_ptr<Concordance> Concordance::unite(const Concordance &other, const String &label) const
+Handle<Concordance> Concordance::unite(const Concordance &other, const String &label) const
 {
 	if (m_target_count != other.m_target_count) {
 		throw error("Cannot unite concordances with different numbers of targets");
@@ -626,7 +641,7 @@ std::shared_ptr<Concordance> Concordance::unite(const Concordance &other, const 
 		auto m = const_cast<AutoMatch&>(match).release();
 		result.append(std::unique_ptr<Match>(m));
 	}
-	auto conc = std::make_shared<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
+	auto conc = make_handle<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
 	conc->set_label(label, false);
 	auto parent = Project::get()->data().get();
 	parent->append(conc, false);
@@ -634,7 +649,7 @@ std::shared_ptr<Concordance> Concordance::unite(const Concordance &other, const 
 	return conc;
 }
 
-std::shared_ptr<Concordance> Concordance::intersect(const Concordance &other, const String &label) const
+Handle<Concordance> Concordance::intersect(const Concordance &other, const String &label) const
 {
 	if (m_target_count != other.m_target_count) {
 		throw error("Cannot intersect concordances with different numbers of targets");
@@ -658,7 +673,7 @@ std::shared_ptr<Concordance> Concordance::intersect(const Concordance &other, co
 		}
 	}
 
-	auto conc = std::make_shared<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
+	auto conc = make_handle<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
 	conc->set_label(label, false);
 	auto parent = Project::get()->data().get();
 	parent->append(conc, false);
@@ -666,7 +681,7 @@ std::shared_ptr<Concordance> Concordance::intersect(const Concordance &other, co
 	return conc;
 }
 
-std::shared_ptr<Concordance> Concordance::complement(const Concordance &other, const String &label) const
+Handle<Concordance> Concordance::complement(const Concordance &other, const String &label) const
 {
 	if (m_target_count != other.m_target_count) {
 		throw error("Cannot compute concordance complement for concordances with different numbers of targets");
@@ -690,7 +705,7 @@ std::shared_ptr<Concordance> Concordance::complement(const Concordance &other, c
 		}
 	}
 
-	auto conc = std::make_shared<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
+	auto conc = make_handle<Concordance>(m_target_count, m_context_type, m_context_length, std::move(result), nullptr);
 	conc->set_label(label, false);
 	auto parent = Project::get()->data().get();
 	parent->append(conc, false);

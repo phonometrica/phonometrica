@@ -31,7 +31,7 @@ class DeleteMatchCommand final : public Command
 {
 public:
 
-	DeleteMatchCommand(const AutoConcordance &conc, intptr_t row);
+	DeleteMatchCommand(const Handle<Concordance> &conc, intptr_t row);
 
 	bool execute() override;
 
@@ -39,7 +39,7 @@ public:
 
 private:
 
-	AutoConcordance m_conc;
+	Handle<Concordance> m_conc;
 
 	AutoMatch m_match;
 

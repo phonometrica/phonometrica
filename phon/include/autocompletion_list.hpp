@@ -7,7 +7,7 @@ static const char *autocompletion_list =
 	"get_current_annotation get_current_directory get_current_sound get_end get_extension get_full_path get_input get_path_separator get_selected_annotations get_selected_sounds "
 	"get_selection_duration get_sound get_sounds get_start get_temp_directory get_temp_name get_user_directory get_window_duration group has_match "
 	"hertz_to_bark hertz_to_erb hertz_to_mel hertz_to_semitones info inherits insert Integer intersect is_directory "
-	"is_empty is_file is_sorted join join_path json left List list_directory local "
+	"is_empty is_document is_sorted join join_path json left List list_directory local "
 	"log10 log2 logit ltrim match mean mel_to_hertz method Module nativize "
 	"null Number Object open open_directory_dialog open_file_dialog option parse pass phon "
 	"poisson prepend print random read_file read_line read_lines read_matrix Regex remove "

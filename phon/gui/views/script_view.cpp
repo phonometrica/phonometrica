@@ -35,7 +35,7 @@
 
 namespace phonometrica {
 
-ScriptView::ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent) :
+ScriptView::ScriptView(Runtime &rt, const Handle<Script> &script, wxWindow *parent) :
 	View(parent), m_script(script), runtime(rt)
 {
 	SetupUi();

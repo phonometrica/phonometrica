@@ -396,8 +396,8 @@ static std::vector<std::pair<const char*, std::vector<wxString>>> function_decla
 	{ "exists",  {
 		"exists(path as String)\nReturn `true` if the path exists, `false` otherwise."
 	}},
-	{ "is_file",  {
-		"is_file(path as String)\nReturn `true` if `path` exists and is a file, `false` otherwise."
+	{ "is_document",  {
+		"is_document(path as String)\nReturn `true` if `path` exists and is a file, `false` otherwise."
 	}},
 	{ "is_directory",  {
 		"is_directory(path as String)\n\nReturn `true` if `path` exists and is a directory, `false` otherwise."

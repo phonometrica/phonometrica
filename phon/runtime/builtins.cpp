@@ -298,7 +298,7 @@ void Runtime::set_global_namespace()
 	add_global("list_directory", system_list_directory1, { CLS(String) });
 	add_global("list_directory", system_list_directory2, { CLS(String), CLS(bool) });
 	add_global("exists", system_exists,  { CLS(String) });
-	add_global("is_file", system_is_file,  { CLS(String) });
+	add_global("is_document", system_is_file,  { CLS(String) });
 	add_global("is_directory", system_is_directory,  { CLS(String) });
 	add_global("clear_directory", system_clear_directory,  { CLS(String) });
 	add_global("rename", system_rename,  { CLS(String), CLS(String) });

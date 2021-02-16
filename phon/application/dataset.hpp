@@ -30,11 +30,11 @@ namespace phonometrica {
 
 class Runtime;
 
-class Dataset : public VFile
+class Dataset : public Document
 {
 public:
 
-	explicit Dataset(VFolder *parent, String path = String());
+	explicit Dataset(Class *klass, Directory *parent, String path = String());
 
 	bool is_dataset() const override;
 
@@ -68,10 +68,9 @@ private:
 
 };
 
-using AutoDataset = std::shared_ptr<Dataset>;
 
 namespace traits {
-template<> struct maybe_cyclic<AutoDataset> : std::false_type { };
+template<> struct maybe_cyclic<Dataset> : std::false_type { };
 }
 
 } // namespace phonometrica

@@ -56,51 +56,80 @@ class Runtime final
 	template<typename T>
 	struct VTable
 	{
-		static void destroy(Object *o)
-		{
-			delete reinterpret_cast<TObject<T>*>(o);
-		}
-
 		static void traverse(Collectable *o, const GCCallback &callback)
 		{
-			auto obj = reinterpret_cast<TObject<T>*>(o);
-			meta::traverse(obj->value(), callback);
+			auto obj = static_cast<typename Handle<T>::object_type*>(o);
+
+			if constexpr (traits::is_object<T>::value) {
+				meta::traverse(*obj, callback);
+			}
+			else {
+				meta::traverse(obj->value(), callback);
+			}
 		}
 
 		static Object *clone(const Object *o)
 		{
-			auto obj = reinterpret_cast<const TObject<T> *>(o);
+			auto obj = static_cast<const typename Handle<T>::object_type*>(o);
 
-			if constexpr (traits::is_collectable<T>::value) {
-				return new TObject<T>(reinterpret_cast<const Collectable*>(obj)->runtime, obj->value());
+			if constexpr (traits::is_object<T>::value)
+			{
+				if constexpr (traits::is_collectable<T>::value) {
+					return new typename Handle<T>::object_type(static_cast<const Collectable*>(obj)->runtime, *obj);
+				}
+				else {
+					return new typename Handle<T>::object_type(*obj);
+				}
 			}
-			else {
-				return new TObject<T>(obj->value());
+			else
+			{
+				if constexpr (traits::is_collectable<T>::value) {
+					return new typename Handle<T>::object_type(static_cast<const Collectable*>(obj)->runtime, obj->value());
+				}
+				else {
+					return new typename Handle<T>::object_type(obj->value());
+				}
 			}
 		}
 
 		static String to_string(const Object *o)
 		{
-			auto obj = reinterpret_cast<const TObject<T> *>(o);
-			return meta::to_string(obj->value());
+			auto obj = static_cast<const typename Handle<T>::object_type*>(o);
+
+			if constexpr (traits::is_object<T>::value) {
+				return meta::to_string(*obj);
+			}
+			else {
+				return meta::to_string(obj->value());
+			}
 		}
 
 		static int compare(const Object *o1, const Object *o2)
 		{
 			assert(o1->get_class() == o2->get_class());
-			auto obj1 = reinterpret_cast<const TObject<T> *>(o1);
-			auto obj2 = reinterpret_cast<const TObject<T> *>(o2);
+			auto obj1 = static_cast<const typename Handle<T>::object_type*>(o1);
+			auto obj2 = static_cast<const typename Handle<T>::object_type*>(o2);
 
-			return meta::compare(obj1->value(), obj2->value());
+			if constexpr (traits::is_object<T>::value) {
+				return meta::compare(*obj1, *obj2);
+			}
+			else {
+				return meta::compare(obj1->value(), obj2->value());
+			}
 		}
 
 		static bool equal(const Object *o1, const Object *o2)
 		{
 			assert(o1->get_class() == o2->get_class());
-			auto obj1 = reinterpret_cast<const TObject<T> *>(o1);
-			auto obj2 = reinterpret_cast<const TObject<T> *>(o2);
+			auto obj1 = static_cast<const typename Handle<T>::object_type*>(o1);
+			auto obj2 = static_cast<const typename Handle<T>::object_type*>(o2);
 
-			return o1->clonable() ? meta::equal(obj1->value(), obj2->value()) : (o1 == o2);
+			if constexpr (traits::is_object<T>::value) {
+				return o1->clonable() ? meta::equal(*obj1, *obj2) : (o1 == o2);
+			}
+			else {
+				return o1->clonable() ? meta::equal(obj1->value(), obj2->value()) : (o1 == o2);
+			}
 		}
 	};
 
@@ -129,7 +158,6 @@ public:
 		if constexpr (traits::is_boxed<T>::value && !std::is_same<T, Object>::value)
 		{
 			// Add generic methods
-			klass->destroy   = &VTable<T>::destroy;
 			klass->to_string = &VTable<T>::to_string;
 			klass->compare   = &VTable<T>::compare;
 			klass->equal     = &VTable<T>::equal;
@@ -152,6 +180,15 @@ public:
 	Handle<Class> add_standard_type(const char *name)
 	{
 		auto cls = create_type<T>(name, get_object_class());
+		add_global(name, cls);
+
+		return cls;
+	}
+
+	template<class T>
+	Handle<Class> add_standard_type(const char *name, Class *base)
+	{
+		auto cls = create_type<T>(name, base);
 		add_global(name, cls);
 
 		return cls;

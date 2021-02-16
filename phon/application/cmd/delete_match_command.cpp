@@ -24,7 +24,7 @@
 
 namespace phonometrica {
 
-DeleteMatchCommand::DeleteMatchCommand(const AutoConcordance &conc, intptr_t row) :
+DeleteMatchCommand::DeleteMatchCommand(const Handle<Concordance> &conc, intptr_t row) :
 	Command(_("Delete match"), true), m_conc(conc), m_row(row)
 {
 

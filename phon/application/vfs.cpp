@@ -22,97 +22,95 @@
 #include <phon/application/vfs.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>
-#include "vfs.hpp"
-
 
 namespace phonometrica {
 
-Signal<const String &, const String &, int> VNode::request_progress;
-Signal<int> VNode::update_progress;
-Signal<> VFile::file_modified;
+Signal<const String &, const String &, int> Element::request_progress;
+Signal<int> Element::update_progress;
+Signal<> Document::file_modified;
 
-VNode::VNode(VFolder *parent) :
-		m_parent(parent)
+Element::Element(Class *klass, Directory *parent) :
+		Atomic(klass), m_parent(parent)
 {
 
 }
 
-void VNode::set_parent(VFolder *parent, bool mutate)
+void Element::set_parent(Directory *parent, bool mutate)
 {
-	if (m_parent) m_parent->remove(this->shared_from_this(), mutate);
+	if (m_parent) m_parent->remove(Handle<Element>(this), mutate);
 	m_parent = parent;
 }
 
-bool VNode::modified() const
+bool Element::modified() const
 {
 	return m_content_modified;
 }
 
-bool VNode::is_annotation() const
+bool Element::is_annotation() const
 {
 	return false;
 }
 
-bool VNode::is_sound() const
+bool Element::is_sound() const
 {
 	return false;
 }
 
-bool VNode::is_bookmark() const
+bool Element::is_bookmark() const
 {
 	return false;
 }
 
-bool VNode::is_script() const
+bool Element::is_script() const
 {
 	return false;
 }
 
-bool VNode::is_file() const
+bool Element::is_document() const
 {
 	return false;
 }
 
-bool VNode::is_folder() const
+bool Element::is_folder() const
 {
 	return false;
 }
 
-void VNode::discard_changes()
+void Element::discard_changes()
 {
 	m_content_modified = false;
 }
 
-void VNode::detach(bool mutate)
+void Element::detach(bool mutate)
 {
 	if (m_parent)
 	{
-		m_parent->remove(this->shared_from_this(), mutate);
+		m_parent->remove(Handle<Element>(this), mutate);
 		set_parent(nullptr, mutate);
 	}
 }
 
-bool VNode::is_dataset() const
+bool Element::is_dataset() const
 {
 	return false;
 }
 
-void VNode::move_to(VFolder *new_parent, intptr_t pos)
+void Element::move_to(Directory *new_parent, intptr_t pos)
 {
-	new_parent->insert(pos, shared_from_this());
+	new_parent->insert(pos, Handle<Element>(this));
 }
 
-const VFolder *VNode::toplevel() const
+const Directory *Element::toplevel() const
 {
     return m_parent ? m_parent->toplevel() : nullptr;
 }
 
-bool VNode::is_query() const
+bool Element::is_query() const
 {
 	return false;
 }
 
-bool VNode::is_concordance() const
+bool Element::is_concordance() const
 {
 	return false;
 }
@@ -121,80 +119,80 @@ bool VNode::is_concordance() const
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VFolder::VFolder(VFolder *parent, String label) :
-		VNode(parent), m_label(std::move(label))
+Directory::Directory(Directory *parent, String label) :
+		Element(get_class_ptr<Directory>(), parent), m_label(std::move(label))
 {
 
 }
 
-String VFolder::label() const
+String Directory::label() const
 {
 	return m_label;
 }
 
-VFolder::iterator VFolder::begin() noexcept
+Directory::iterator Directory::begin() noexcept
 {
 	return m_content.begin();
 }
 
-VFolder::const_iterator VFolder::begin() const noexcept
+Directory::const_iterator Directory::begin() const noexcept
 {
 	return m_content.begin();
 }
 
-VFolder::iterator VFolder::end() noexcept
+Directory::iterator Directory::end() noexcept
 {
 	return m_content.end();
 }
 
-VFolder::const_iterator VFolder::end() const noexcept
+Directory::const_iterator Directory::end() const noexcept
 {
 	return m_content.end();
 }
 
-VFolder::reverse_iterator VFolder::rbegin() noexcept
+Directory::reverse_iterator Directory::rbegin() noexcept
 {
 	return m_content.rbegin();
 }
 
-VFolder::const_reverse_iterator VFolder::rbegin() const noexcept
+Directory::const_reverse_iterator Directory::rbegin() const noexcept
 {
 	return m_content.rbegin();
 }
 
-VFolder::reverse_iterator VFolder::rend() noexcept
+Directory::reverse_iterator Directory::rend() noexcept
 {
 	return m_content.rend();
 }
 
-VFolder::const_reverse_iterator VFolder::rend() const noexcept
+Directory::const_reverse_iterator Directory::rend() const noexcept
 {
 	return m_content.rend();
 }
 
-bool VFolder::empty() const
+bool Directory::empty() const
 {
 	return m_content.empty();
 }
 
-std::shared_ptr<VNode> &VFolder::get(intptr_t i)
+Handle<Element> &Directory::get(intptr_t i)
 {
 	return m_content[i];
 }
 
-const std::shared_ptr<VNode> &VFolder::get(intptr_t i) const
+const Handle<Element> &Directory::get(intptr_t i) const
 {
 	return m_content[i];
 }
 
-void VFolder::append(std::shared_ptr<VNode> node, bool mutate)
+void Directory::append(Handle<Element> node, bool mutate)
 {
 	node->set_parent(this, mutate);
 	m_content.push_back(std::move(node));
 	set_modified(mutate);
 }
 
-void VFolder::insert(intptr_t pos, std::shared_ptr<VNode> node)
+void Directory::insert(intptr_t pos, Handle<Element> node)
 {
 	node->set_parent(this);
 	if (pos < 0) {
@@ -207,7 +205,7 @@ void VFolder::insert(intptr_t pos, std::shared_ptr<VNode> node)
 	set_modified(true);
 }
 
-bool VFolder::modified() const
+bool Directory::modified() const
 {
 	for (auto &f : m_content) {
 		if (f->modified()) {
@@ -218,32 +216,32 @@ bool VFolder::modified() const
 	return m_content_modified;
 }
 
-void VFolder::remove(const std::shared_ptr<VNode> &node, bool mutate)
+void Directory::remove(const Handle<Element> &node, bool mutate)
 {
 	m_content.remove(node);
 	set_modified(mutate);
 }
 
-bool VFolder::is_folder() const
+bool Directory::is_folder() const
 {
 	return true;
 }
 
-const char *VFolder::class_name() const
+const char *Directory::class_name() const
 {
 	return "VFolder";
 }
 
-void VFolder::discard_changes()
+void Directory::discard_changes()
 {
 	for (auto &f : m_content) {
 		f->discard_changes();
 	}
 
-	VNode::discard_changes();
+	Element::discard_changes();
 }
 
-void VFolder::to_xml(xml_node root)
+void Directory::to_xml(xml_node root)
 {
 	auto node = root.append_child(class_name());
 	auto attr = node.append_attribute("label");
@@ -254,24 +252,24 @@ void VFolder::to_xml(xml_node root)
 	}
 }
 
-intptr_t VFolder::size() const
+intptr_t Directory::size() const
 {
 	return m_content.size();
 }
 
-void VFolder::save_content()
+void Directory::save_content()
 {
 	for (auto &file : m_content)
 	{
-		if (file->is_file() && file->modified())
+		if (file->is_document() && file->modified())
 		{
-			auto vf = raw_cast<VFile>(file);
+			auto vf = raw_recast<Document>(file);
 			assert(vf->has_path());
 			vf->save();
 		}
 		else if (file->is_folder())
         {
-		    auto folder = raw_cast<VFolder>(file);
+		    auto folder = raw_recast<Directory>(file);
 		    folder->save_content();
         }
 	}
@@ -279,30 +277,30 @@ void VFolder::save_content()
 	m_content_modified = false;
 }
 
-bool VFolder::expanded() const
+bool Directory::expanded() const
 {
 	return m_expanded;
 }
 
-void VFolder::set_expanded(bool value)
+void Directory::set_expanded(bool value)
 {
 	m_expanded = value;
 }
 
-void VFolder::set_label(String value)
+void Directory::set_label(String value)
 {
 	m_label = std::move(value);
 	m_content_modified = true;
 }
 
-void VFolder::clear(bool mutate)
+void Directory::clear(bool mutate)
 {
 	m_content.clear();
 	m_content_modified |= mutate;
 	m_expanded = false;
 }
 
-const VFolder *VFolder::toplevel() const
+const Directory *Directory::toplevel() const
 {
     auto root = this;
 
@@ -313,19 +311,19 @@ const VFolder *VFolder::toplevel() const
     return root;
 }
 
-void VFolder::add_subfolder(const String &name)
+void Directory::add_subfolder(const String &name)
 {
-	append(std::make_shared<VFolder>(this, name));
+	append(make_handle<Directory>(this, name));
 }
 
-void VFolder::set_modified(bool value)
+void Directory::set_modified(bool value)
 {
     m_content_modified |= value;
     // Expand modified directories so that changes are easier to see in the file manager.
     m_expanded |= value;
 }
 
-bool VFolder::contains(const VNode *node) const
+bool Directory::contains(const Element *node) const
 {
 	for (auto &item : m_content)
 	{
@@ -337,7 +335,7 @@ bool VFolder::contains(const VNode *node) const
 	return false;
 }
 
-bool VFolder::quick_search(const String &text) const
+bool Directory::quick_search(const String &text) const
 {
 	for (auto &vnode : m_content)
 	{
@@ -349,9 +347,9 @@ bool VFolder::quick_search(const String &text) const
 	return label().icontains(text);
 }
 
-void VFolder::sort()
+void Directory::sort()
 {
-	auto sorter = [](const AutoVNode &n1, const AutoVNode &n2) { return n1->label() < n2->label(); };
+	auto sorter = [](const Handle<Element> &n1, const Handle<Element> &n2) { return n1->label() < n2->label(); };
 	std::sort(m_content.begin(), m_content.end(), sorter);
 	m_content_modified = true;
 }
@@ -360,29 +358,29 @@ void VFolder::sort()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-VFile::VFile(VFolder *parent, String path) :
-		VNode(parent), m_path(std::move(path))
+Document::Document(Class *klass, Directory *parent, String path) :
+		Element(klass, parent), m_path(std::move(path))
 {
 
 }
 
-String VFile::label() const
+String Document::label() const
 {
 	return m_path.empty() ? "Untitled" : filesystem::base_name(m_path);
 }
 
-const String &VFile::path() const
+const String &Document::path() const
 {
 	return m_path;
 }
 
-void VFile::set_path(String path, bool mutate)
+void Document::set_path(String path, bool mutate)
 {
 	m_path = std::move(path);
 	m_metadata_modified |= mutate;
 }
 
-void VFile::open()
+void Document::open()
 {
 	if (!m_loaded)
 	{
@@ -398,7 +396,7 @@ void VFile::open()
 	}
 }
 
-void VFile::save()
+void Document::save()
 {
 	try
 	{
@@ -421,12 +419,12 @@ void VFile::save()
 	}
 }
 
-bool VFile::is_file() const
+bool Document::is_document() const
 {
 	return true;
 }
 
-void VFile::add_property(Property p, bool mutate)
+void Document::add_property(Property p, bool mutate)
 {
 	// There can only be one property per category.
 	remove_property(p.category());
@@ -434,7 +432,7 @@ void VFile::add_property(Property p, bool mutate)
 	m_metadata_modified |= mutate;
 }
 
-bool VFile::remove_property(const Property &p)
+bool Document::remove_property(const Property &p)
 {
 	bool erased = m_properties.erase(p) > 0;
 	m_metadata_modified |= erased;
@@ -442,7 +440,7 @@ bool VFile::remove_property(const Property &p)
 	return erased;
 }
 
-bool VFile::remove_property(const String &category)
+bool Document::remove_property(const String &category)
 {
 	for (auto &p : m_properties)
 	{
@@ -454,7 +452,7 @@ bool VFile::remove_property(const String &category)
 	return false;
 }
 
-String VFile::get_property_value(const String &category) const
+String Document::get_property_value(const String &category) const
 {
 	for (auto &p : m_properties)
 	{
@@ -466,7 +464,7 @@ String VFile::get_property_value(const String &category) const
 	return String();
 }
 
-Property VFile::get_property(const String &category) const
+Property Document::get_property(const String &category) const
 {
 	for (auto &p : m_properties)
 	{
@@ -478,18 +476,18 @@ Property VFile::get_property(const String &category) const
 	return Property();
 }
 
-const String &VFile::description() const
+const String &Document::description() const
 {
 	return m_description;
 }
 
-void VFile::set_description(String value, bool mutate)
+void Document::set_description(String value, bool mutate)
 {
 	m_description = std::move(value);
 	m_metadata_modified |= mutate;
 }
 
-void VFile::to_xml(xml_node root)
+void Document::to_xml(xml_node root)
 {
 	auto node = root.append_child("VFile");
 	auto attr = node.append_attribute("class");
@@ -501,17 +499,17 @@ void VFile::to_xml(xml_node root)
 	data.set_value(path.data());
 }
 
-bool VFile::has_path() const
+bool Document::has_path() const
 {
 	return !m_path.empty();
 }
 
-const std::set<Property> &VFile::properties() const
+const std::set<Property> &Document::properties() const
 {
 	return m_properties;
 }
 
-bool VFile::has_category(const String &category) const
+bool Document::has_category(const String &category) const
 {
 	for (auto &p : m_properties)
 	{
@@ -523,7 +521,7 @@ bool VFile::has_category(const String &category) const
 	return false;
 }
 
-void VFile::remove_property(const String &category, const String &value)
+void Document::remove_property(const String &category, const String &value)
 {
 	for (auto it = m_properties.begin(); it != m_properties.end(); it++)
 	{
@@ -537,12 +535,12 @@ void VFile::remove_property(const String &category, const String &value)
 	}
 }
 
-bool VFile::has_properties() const
+bool Document::has_properties() const
 {
 	return !m_properties.empty();
 }
 
-void VFile::save_metadata()
+void Document::save_metadata()
 {
 	if (uses_external_metadata())
 	{
@@ -552,22 +550,22 @@ void VFile::save_metadata()
 	}
 }
 
-bool VFile::loaded() const
+bool Document::loaded() const
 {
 	return m_loaded;
 }
 
-bool VFile::modified() const
+bool Document::modified() const
 {
-	return  m_metadata_modified || VNode::modified();
+	return m_metadata_modified || Element::modified();
 }
 
-bool VFile::uses_external_metadata() const
+bool Document::uses_external_metadata() const
 {
 	return true;
 }
 
-Array<String> VFile::property_list() const
+Array<String> Document::property_list() const
 {
     Array<String> result;
 
@@ -579,12 +577,12 @@ Array<String> VFile::property_list() const
     return result;
 }
 
-bool VFile::content_modified() const
+bool Document::content_modified() const
 {
 	return m_content_modified;
 }
 
-void VFile::metadata_to_xml(xml_node meta_node)
+void Document::metadata_to_xml(xml_node meta_node)
 {
 	// The root node is "Metadata" so that subclasses can add additional metadata.
 	add_data_node(meta_node, "Description", description());
@@ -600,7 +598,7 @@ void VFile::metadata_to_xml(xml_node meta_node)
 	}
 }
 
-void VFile::metadata_from_xml(xml_node meta_node)
+void Document::metadata_from_xml(xml_node meta_node)
 {
 	static std::string_view desc_tag = "Description";
 	static std::string_view properties_tag = "Properties";
@@ -628,7 +626,7 @@ void VFile::metadata_from_xml(xml_node meta_node)
 	}
 }
 
-Property VFile::parse_property(xml_node prop_node, const std::type_info &type)
+Property Document::parse_property(xml_node prop_node, const std::type_info &type)
 {
 	static std::string_view category_tag = "Category";
 	static std::string_view value_tag = "Value";
@@ -665,13 +663,13 @@ Property VFile::parse_property(xml_node prop_node, const std::type_info &type)
 	throw error("Invalid property node in annotation file");
 }
 
-void VFile::reload()
+void Document::reload()
 {
 	discard_changes();
 	load();
 }
 
-bool VFile::quick_search(const String &text) const
+bool Document::quick_search(const String &text) const
 {
 	for (auto &prop : m_properties)
 	{
@@ -683,7 +681,7 @@ bool VFile::quick_search(const String &text) const
 	return label().icontains(text) ||  m_description.icontains(text);
 }
 
-bool VFile::anchored() const
+bool Document::anchored() const
 {
 	return has_path();
 }

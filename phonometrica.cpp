@@ -64,6 +64,8 @@ static void initialize(Runtime &rt)
 	Settings::read();
 	run_script(rt, initialize);
 	run_script(rt, signal);
+
+	Project::preinitialize(rt);
 	Project::create(rt);
 	Project::initialize(rt);
 

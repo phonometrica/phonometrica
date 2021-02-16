@@ -67,7 +67,7 @@ public:
 
 	static Signal<> request_console;
 
-	static Signal<const std::shared_ptr<VFile>&> file_created;
+	static Signal<const Handle<Document>&> file_created;
 
 	void Undo();
 

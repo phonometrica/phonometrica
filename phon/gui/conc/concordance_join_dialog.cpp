@@ -60,7 +60,7 @@ wxString ConcordanceJoinDialog::GetLabel() const
 	return m_text->GetValue();
 }
 
-AutoConcordance ConcordanceJoinDialog::GetConcordance() const
+Handle<Concordance> ConcordanceJoinDialog::GetConcordance() const
 {
 	return m_items[m_choice->GetSelection() + 1];
 }

@@ -124,7 +124,6 @@ private:
 	friend class Object;
 
 	// Polymorphic methods for type erasure.
-	void(*destroy)(Object*) = nullptr;
 	size_t (*hash)(const Object*) = nullptr;
 	void (*traverse)(Collectable*, const GCCallback&) = nullptr;
 	Object *(*clone)(const Object*) = nullptr;
@@ -172,6 +171,11 @@ Handle<Class> get_class()
 	return Handle<Class>(static_cast<TObject<Class>*>(detail::ClassDescriptor<T>::get()->object()));
 }
 
+template<class T>
+Class *get_class_ptr()
+{
+	return &static_cast<TObject<Class>*>(detail::ClassDescriptor<T>::get()->object())->value();
+}
 
 
 namespace meta {

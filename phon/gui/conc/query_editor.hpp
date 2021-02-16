@@ -41,9 +41,9 @@ public:
 
 	void Prepare();
 
-	AutoConcordance ExecuteQuery();
+	Handle<Concordance> ExecuteQuery();
 
-	virtual AutoQuery GetQuery() const = 0;
+	virtual Handle<Query> GetQuery() const = 0;
 
 	virtual void LoadQuery() = 0;
 

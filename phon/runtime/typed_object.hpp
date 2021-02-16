@@ -78,16 +78,21 @@ private:
 
 //---------------------------------------------------------------------------------------------------------------------
 
-// Smart pointer for TObject.
+// Smart pointer for subclasses of Object. This class transparently handles values wrapped in a TObject<T>, which means
+// that a type T derived from Object and a type U wrapped in a TObject<U> look the same from the user's perspective.
 template<typename T>
 class Handle
 {
 public:
 
-	using object_type = std::conditional<traits::is_object<T>::value, T, TObject<T>>;
+	static constexpr bool is_object = traits::is_object<T>::value;
+	using object_type = typename std::conditional<is_object, T, TObject<T>>::type;
 
 	Handle()
 	{ ptr = nullptr; }
+
+	Handle(std::nullptr_t) :
+		Handle() { }
 
 	// By default we retain the value.
 	explicit Handle(object_type *value) {
@@ -132,16 +137,34 @@ public:
 		return *this;
 	}
 
-	T* get() const {
-		return &ptr->value();
+	T* get() const
+	{
+		if constexpr (is_object) {
+			return ptr;
+		}
+		else {
+			return &ptr->value();
+		}
 	}
 
-	T& operator*() const {
-		return ptr->value();
+	T& operator*() const
+	{
+		if constexpr (is_object) {
+			return *ptr;
+		}
+		else {
+			return ptr->value();
+		}
 	}
 
-	T* operator->() const {
-		return &ptr->value();
+	T* operator->() const
+	{
+		if constexpr (is_object) {
+			return ptr;
+		}
+		else {
+			return &ptr->value();
+		}
 	}
 
 	operator bool() const {
@@ -179,12 +202,30 @@ public:
 		return ptr;
 	}
 
-	T &value() {
-		return ptr->value();
+	T &value()
+	{
+		if constexpr (is_object) {
+			return *ptr;
+		}
+		else {
+			return ptr->value();
+		}
 	}
 
-	const T &value() const {
-		return ptr->value();
+	const T &value() const
+	{
+		if constexpr (is_object) {
+			return *ptr;
+		}
+		else {
+			return ptr->value();
+		}
+	}
+
+	template<typename Base>
+	operator Handle<Base>() {
+		static_assert(std::is_base_of<Base, T>::value, "Cannot get handle from non-base class");
+		return Handle<Base>(static_cast<Base*>(ptr));
 	}
 
 private:
@@ -205,16 +246,26 @@ private:
 
 //---------------------------------------------------------------------------------------------------------------------
 
+// Convenience factory template similar to std::make_shared<T>.
 template<class T, class... Args>
 Handle<T> make_handle(Args... args)
 {
-	if constexpr (traits::is_object<T>::value) {
-		return Handle<T>(new T(std::forward<Args>(args)...), std::false_type());
-	}
-	else {
-		return Handle<T>(new TObject<T>(std::forward<Args>(args)...), std::false_type());
-	}
+	return Handle<T>(new typename Handle<T>::object_type(std::forward<Args>(args)...), std::false_type());
 }
+
+// Get a downcasted raw pointer from a handle.
+template<class Derived, class Base>
+Derived *raw_recast(const Handle<Base> &ptr)
+{
+	return static_cast<Derived*>(ptr.get());
+};
+
+// Cast a handle to another handle, which must be related by inheritance
+template<class Derived, class Base>
+Handle<Derived> recast(const Handle<Base> &ptr)
+{
+	return Handle<Derived>(raw_recast<Derived, Base>(ptr));
+};
 
 
 } // namespace phonometrica

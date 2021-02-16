@@ -31,17 +31,11 @@ Object::Object(Class *klass, bool collectable) :
 
 }
 
-void Object::destroy()
-{
-	assert(klass->destroy);
-	klass->destroy(this);
-}
-
 void Object::release()
 {
 	if (remove_reference())
 	{
-		destroy();
+		delete this;
 	}
 	else if (collectable() && !is_purple())
 	{

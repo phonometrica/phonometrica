@@ -54,7 +54,7 @@ public:
 
 	explicit InfoPanel(Runtime &rt, wxWindow *parent);
 
-	void OnSetFileSelection(VFileList files);
+	void OnSetFileSelection(DocList files);
 
 	void ImportMetadata();
 
@@ -141,7 +141,7 @@ private:
 
 	Runtime &runtime;
 
-	VFileList selected_files;
+	DocList selected_files;
 
 	wxSimplebook *book;
 

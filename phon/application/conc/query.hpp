@@ -31,7 +31,7 @@
 
 namespace phonometrica {
 
-class Query : public VFile
+class Query : public Document
 {
 public:
 
@@ -47,7 +47,7 @@ public:
 
 	using Context = Concordance::Context;
 
-	Query(VFolder *parent, String path);
+	Query(Directory *parent, String path);
 
 	~Query() override = default;
 
@@ -63,11 +63,11 @@ public:
 
 	bool is_query() const override;
 
-	void set_selection(Array<AutoAnnotation> files);
+	void set_selection(Array<Handle<Annotation>> files);
 
 	virtual void clear();
 
-	virtual AutoConcordance execute();
+	virtual Handle<Concordance> execute();
 
 	// Note: subclasses must override this method and return false
 	virtual bool is_text_query() const { return true; }
@@ -82,13 +82,13 @@ public:
 
 	const Array<AutoMetaConstraint> &metaconstraints() const { return m_metaconstraints; }
 
-	const Array<AutoAnnotation> &selection() const { return selected_annotations; }
+	const Array<Handle<Annotation>> &selection() const { return selected_annotations; }
 
 	intptr_t constraint_count() const { return m_constraints.size(); }
 
 	const Constraint &get_constraint(intptr_t i) const { return m_constraints[i]; }
 
-	virtual std::shared_ptr<Query> clone() const;
+	virtual Handle<Query> copy() const;
 
 	int context_length() const;
 
@@ -104,6 +104,8 @@ public:
 
 	bool empty();
 
+	static void initialize(Runtime &rt);
+
 protected:
 
 	void load() override;
@@ -116,18 +118,18 @@ protected:
 
 	void parse_options_from_xml(xml_node root);
 
-	Array<AutoAnnotation> filter_annotations(Array<AutoAnnotation> candidates) const;
+	Array<Handle<Annotation>> filter_annotations(Array<Handle<Annotation>> candidates) const;
 
-	bool filter_metadata(const VFile *file) const;
+	bool filter_metadata(const Document *file) const;
 
 	Array<AutoMatch> search();
 
-	Array<AutoMatch> search_annotation(const AutoAnnotation &annot);
+	Array<AutoMatch> search_annotation(const Handle<Annotation> &annot);
 
-	Array <AutoMatch> find_matches(const AutoAnnotation &annot, const Constraint &constraint, Array <AutoMatch> matches,
+	Array <AutoMatch> find_matches(const Handle<Annotation> &annot, const Constraint &constraint, Array <AutoMatch> matches,
 	                               Array<int> &blacklist, Constraint::Operator op, bool is_ref) const;
 
-	Array <AutoMatch> find_matches(const AutoAnnotation &annot, const Constraint &constraint, Array <AutoMatch> matches,
+	Array <AutoMatch> find_matches(const Handle<Annotation> &annot, const Constraint &constraint, Array <AutoMatch> matches,
 	                               intptr_t layer_index,
 	                               Array<int> &seen, Constraint::Operator op, bool is_ref) const;
 
@@ -142,7 +144,7 @@ protected:
 	Array<Constraint> m_constraints;
 
 	// If empty, use all the annotations from the project
-	Array<AutoAnnotation> selected_annotations;
+	Array<Handle<Annotation>> selected_annotations;
 
 	// Label set by the user
 	String m_label;
@@ -158,7 +160,9 @@ protected:
 };
 
 
-using AutoQuery = std::shared_ptr<Query>;
+namespace traits {
+template<> struct maybe_cyclic<Query> : std::false_type { };
+}
 
 } // namespace phonometrica
 

@@ -31,7 +31,7 @@ namespace phonometrica {
 class Runtime;
 class Object;
 
-class Annotation final : public VFile
+class Annotation final : public Document
 {
 public:
 
@@ -47,7 +47,7 @@ public:
 		Annotation(nullptr, String())
 	{ m_type = Native; }
 
-	explicit Annotation(VFolder *parent, String path = String());
+	explicit Annotation(Directory *parent, String path = String());
 
 	const char *class_name() const override;
 
@@ -57,9 +57,9 @@ public:
 
 	bool has_sound() const;
 
-	std::shared_ptr<Sound> sound() const;
+	const Handle<Sound> &sound() const;
 
-	void set_sound(const std::shared_ptr<Sound> &value, bool mutate = true);
+	void set_sound(const Handle<Sound> &value, bool mutate = true);
 
 	const EventList &get_layer_events(intptr_t i) const;
 
@@ -121,7 +121,7 @@ public:
 
 	intptr_t get_event_index(intptr_t layer_index, double time) const;
 
-	static Signal<const std::shared_ptr<Annotation>&, const AutoEvent&, const String&> edit_event;
+	static Signal<const Handle<Annotation>&, const AutoEvent&, const String&> edit_event;
 
 protected:
 
@@ -145,7 +145,7 @@ private:
 
 	Annotation::Type guess_type();
 
-	std::shared_ptr<Sound> m_sound;
+	Handle<Sound> m_sound;
 
 	AGraph m_graph;
 
@@ -156,21 +156,17 @@ private:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-using AutoAnnotation = std::shared_ptr<Annotation>;
-
 struct AnnotationLessComparator
 {
-	bool operator()(const AutoAnnotation &lhs, const AutoAnnotation &rhs) const
+	bool operator()(const Handle<Annotation> &lhs, const Handle<Annotation> &rhs) const
 	{
 		return lhs->path() < rhs->path();
 	}
 };
 
-using AnnotationSet = std::set<AutoAnnotation, AnnotationLessComparator>;
-
 
 namespace traits {
-template<> struct maybe_cyclic<AutoAnnotation> : std::false_type { };
+template<> struct maybe_cyclic<Annotation> : std::false_type { };
 }
 
 } // namespace phonometrica

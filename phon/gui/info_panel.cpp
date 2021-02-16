@@ -120,7 +120,7 @@ void InfoPanel::SetMultipleFilesPage()
 	book->AddPage(multiple_page, _("File information"));
 }
 
-void InfoPanel::OnSetFileSelection(VFileList files)
+void InfoPanel::OnSetFileSelection(DocList files)
 {
 	selected_files = std::move(files);
 	UpdateInformation();
@@ -376,9 +376,9 @@ void InfoPanel::OnBindSound(wxCommandEvent &)
 			return;
 		}
 
-		auto annot = downcast<Annotation>(selected_files.first());
+		auto annot = recast<Annotation>(selected_files.first());
 		project->import_file(path);
-		auto sound = downcast<Sound>(project->get(path));
+		auto sound = recast<Sound>(project->get(path));
 
 		if (annot && sound)
 		{

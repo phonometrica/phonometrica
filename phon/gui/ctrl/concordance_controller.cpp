@@ -42,7 +42,7 @@ wxGridCellAttr *ConcCellAttrProvider::GetAttr(int row, int col, wxGridCellAttr::
 
 //---------------------------------------------------------------------------------------------------------------------
 
-ConcordanceController::ConcordanceController(AutoConcordance conc) :
+ConcordanceController::ConcordanceController(Handle<Concordance> conc) :
 	DataController(), m_conc(std::move(conc))
 {
 

@@ -26,13 +26,13 @@
 
 namespace phonometrica {
 
-class Bookmark : public VNode
+class Bookmark : public Element
 {
 public:
 
-	Bookmark(VFolder *parent);
+	Bookmark(Class *klass, Directory *parent);
 
-	Bookmark(VFolder *parent, String title);
+	Bookmark(Directory *parent, String title);
 
 	String label() const override;
 
@@ -53,17 +53,18 @@ protected:
 	String m_notes;
 };
 
-using AutoBookmark = std::shared_ptr<Bookmark>;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class AnnotationStamp final : public Bookmark
+class TimeStamp final : public Bookmark
 {
 public:
 
-	AnnotationStamp(VFolder *parent, String title, AutoAnnotation annot, size_t layer, double start,
-					double end, String match, String left, String right);
+	TimeStamp(Directory *parent, String title, Handle<Annotation> annot, size_t layer, double start,
+			  double end, String match, String left, String right);
 
+
+	static void initialize(Runtime &rt);
 
 	const char *class_name() const override;
 
@@ -79,11 +80,11 @@ public:
 
 	intptr_t layer() const { return m_layer; }
 
-	AutoAnnotation annotation() const { return m_annot; }
+	Handle<Annotation> annotation() const { return m_annot; }
 
 private:
 
-	AutoAnnotation m_annot;
+	Handle<Annotation> m_annot;
 
 	// Text of the match.
 	String m_match;
@@ -97,6 +98,13 @@ private:
 	// Selection in the annotation layer.
 	double m_start, m_end;
 };
+
+
+namespace traits {
+template<> struct maybe_cyclic<Bookmark> : std::false_type { };
+template<> struct maybe_cyclic<TimeStamp> : std::false_type { };
+}
+
 
 } // namespace phonometrica
 

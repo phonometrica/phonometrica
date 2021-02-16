@@ -68,7 +68,7 @@ public:
 
 	Match(const Match &other);
 
-	Match(const AutoAnnotation &annot, std::unique_ptr<Target> t);
+	Match(const Handle<Annotation> &annot, std::unique_ptr<Target> t);
 
 	const AutoEvent &get_event(intptr_t i) const;
 
@@ -82,7 +82,7 @@ public:
 
 	String get_value(intptr_t i) const;
 
-	const AutoAnnotation &annotation() const;
+	const Handle<Annotation> &annotation() const;
 
 	Target & last_target();
 
@@ -105,7 +105,7 @@ protected:
 	Target *get(intptr_t i) const;
 
 	// Annotation in which the match was found.
-	AutoAnnotation m_annot;
+	Handle<Annotation> m_annot;
 
 	// First (and possibly unique) target.
 	std::unique_ptr<Target> m_target;

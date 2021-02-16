@@ -30,6 +30,26 @@ Spreadsheet::Column::~Column()
 
 }
 
+Spreadsheet::Spreadsheet(Directory *parent, String path) :
+		Dataset(get_class_ptr<Spreadsheet>(), parent, std::move(path))
+{
+
+}
+
+Spreadsheet::Spreadsheet(const Spreadsheet &other) :
+	Dataset(other.klass, other.parent(), String()), m_labels(other.m_labels)
+{
+	for (auto &col : other.m_columns) {
+		m_columns.append(std::unique_ptr<Column>(col->clone()));
+	}
+
+	nrow = other.nrow;
+	ncol = other.ncol;
+
+	m_content_modified = true;
+}
+
+
 void Spreadsheet::load()
 {
 	auto ext = filesystem::ext(m_path, true);
@@ -163,6 +183,11 @@ const char *Spreadsheet::class_name() const
 {
 	// TODO: rename to Spreadsheet once refactoring is done
 	return "Dataset";
+}
+
+void Spreadsheet::initialize(Runtime &)
+{
+
 }
 
 Spreadsheet::Type Spreadsheet::Column::find_type(const std::type_info &t) const

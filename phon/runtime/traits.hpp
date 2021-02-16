@@ -27,6 +27,7 @@
 
 namespace phonometrica {
 
+class Class;
 class Object;
 class String;
 class File;
@@ -73,6 +74,12 @@ template<typename T> struct is_object
 {
 	static constexpr bool value = std::is_base_of_v<Object, T>;
 };
+
+// Because of circular dependencies, we cannot include class.hpp in some files and as a result is_object<Class> won't
+// compile because Class is an incomplete type. We work around that by explicitly specializing this template for Class.
+template<>
+struct is_object<Class> : std::false_type { };
+
 
 //----------------------------------------------------------------------------------------------------------------------
 

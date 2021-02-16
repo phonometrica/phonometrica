@@ -35,7 +35,7 @@ class ScriptView final : public View
 {
 public:
 
-	ScriptView(Runtime &rt, const AutoScript &script, wxWindow *parent);
+	ScriptView(Runtime &rt, const Handle<Script> &script, wxWindow *parent);
 
 	void Save() override;
 
@@ -93,7 +93,7 @@ private:
 
 	SearchBar *m_searchbar;
 
-	AutoScript m_script;
+	Handle<Script> m_script;
 
 	Runtime &runtime;
 };

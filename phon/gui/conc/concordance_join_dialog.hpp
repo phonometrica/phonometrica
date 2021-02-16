@@ -37,7 +37,7 @@ public:
 
 	wxString GetLabel() const;
 
-	AutoConcordance GetConcordance() const;
+	Handle<Concordance> GetConcordance() const;
 
 private:
 
@@ -45,7 +45,7 @@ private:
 
 	wxChoice *m_choice;
 
-	Array<AutoConcordance> m_items;
+	Array<Handle<Concordance>> m_items;
 };
 
 } // namespace phonometrica

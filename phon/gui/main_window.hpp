@@ -203,7 +203,7 @@ private:
 
 	void OnEditLastQuery(wxCommandEvent &);
 
-	void EditQuery(const AutoQuery &q);
+	void EditQuery(const Handle<Query> &q);
 
 	void RunQuery(QueryEditor &editor);
 
@@ -267,7 +267,7 @@ private:
 
 	Array<AutoPlugin> plugins;
 
-	AutoQuery last_query;
+	Handle<Query> last_query;
 
 	Runtime &runtime;
 };
