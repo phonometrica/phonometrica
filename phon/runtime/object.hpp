@@ -47,12 +47,13 @@ enum class GCColor : uint8_t
 	Purple      // Root candidate for a GC cycle
 };
 
-
+// All non-primitive types exposed to Phonometrica's scripting engine indirectly derive from [Object]. This abstract base
+// class provides common functionality such as reference counting and runtime type information.
 // Primitive values and strings are always unboxed. Non-primitive types (roughly speaking objects which are larger than
-// the size of a double), are boxed in a Handle<T> template, which behaves pretty much like a shared_ptr. Internally, a
-// Handle<T> contains a pointer to a heap-allocated subclass of the abstract base class [Object].
+// the size of a double), are boxed in a Handle<T> template, which behaves similarly to a shared_ptr. Internally, a
+// Handle<T> contains a pointer to a heap-allocated subclass of [Object].
 //
-// All non-primitive Phonometrica values derive from Object. The inheritance graph is given below:
+// The inheritance graph looks as follows:
 //
 //                                                         Object
 //                                             (base class for all boxed values)
@@ -64,8 +65,10 @@ enum class GCColor : uint8_t
 //                                                      TObject<T>
 //                                       ("typed object": wrapper for boxed values, defined in typed_object.hpp)
 //
-// Boxed objects pointers are never manipulated explicitly in the user-visible API. Instead, they are wrapped in a
-// stack-allocated Handle<T>, which manages reference counting automatically.
+// Values of types that indirectly inherit from Object (such as Annotation) are stored directly in the handle, whereas
+// for types that don't inherit from Object, the value is wrapped in a TObject<T>. This is all transparent for the user:
+// they only need to manipulate a Handle<T>, and use cast<T>() to obtain a reference to T. Handles are always allocated
+// on the stack and are manipulated by value, but they store and manage a pointer to a heap-allocated object.
 
 
 //----------------------------------------------------------------------------------------------------------------------

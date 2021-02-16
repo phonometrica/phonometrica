@@ -22,7 +22,7 @@ set(EMBED_SCRIPTS ON)
 # Logging (for debugging)
 set(ENABLE_LOGGING ON)
 # Compile the whole application or the scripting engine only
-set(WITH_GUI ON)
+set(WITH_GUI OFF)
 # Run unit tests for core types
 set(BUILD_UNIT_TEST OFF)
 
@@ -77,12 +77,12 @@ add_definitions(-DPHON_VERSION_MINOR=8)
 # Revision release: incremented when bugs are fixed are small features are added
 add_definitions(-DPHON_VERSION_MICRO=0)
 # Build: this is only used internally for development (set to 0 on public release)
-add_definitions(-DPHON_VERSION_NANO=11)
+add_definitions(-DPHON_VERSION_NANO=12)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2021)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=2)
-add_definitions(-DPHON_RELEASE_DATE_DAY=15)
+add_definitions(-DPHON_RELEASE_DATE_DAY=16)
 
 
 ########################

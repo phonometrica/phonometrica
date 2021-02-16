@@ -84,20 +84,19 @@ class Handle
 {
 public:
 
-	// Dummy struct to construct a handle from a raw pointer without retaining it.
-	struct Raw { };
+	using object_type = std::conditional<traits::is_object<T>::value, T, TObject<T>>;
 
 	Handle()
 	{ ptr = nullptr; }
 
 	// By default we retain the value.
-	explicit Handle(TObject<T> *value) {
+	explicit Handle(object_type *value) {
 		ptr = value;
 		retain();
 	}
 
 	// ... but we can simply wrap the pointer without retaining it if needed.
-	Handle(TObject<T> *value, Raw) {
+	Handle(object_type *value, std::false_type) {
 		ptr = value;
 	}
 
@@ -161,7 +160,7 @@ public:
 		std::swap(ptr, other.ptr);
 	}
 
-	TObject<T> *drop()
+	object_type *drop()
 	{
 		auto tmp = ptr;
 		this->zero();
@@ -172,11 +171,11 @@ public:
 		ptr = nullptr;
 	}
 
-	TObject<T> *object() {
+	object_type *object() {
 		return ptr;
 	}
 
-	const TObject<T> *object() const {
+	const object_type *object() const {
 		return ptr;
 	}
 
@@ -200,8 +199,7 @@ private:
 		if (ptr) ptr->release();
 	}
 
-	TObject<T> *ptr;
-
+	object_type *ptr;
 };
 
 
@@ -210,16 +208,14 @@ private:
 template<class T, class... Args>
 Handle<T> make_handle(Args... args)
 {
-	return Handle<T>(new TObject<T>(std::forward<Args>(args)...), typename Handle<T>::Raw());
+	if constexpr (traits::is_object<T>::value) {
+		return Handle<T>(new T(std::forward<Args>(args)...), std::false_type());
+	}
+	else {
+		return Handle<T>(new TObject<T>(std::forward<Args>(args)...), std::false_type());
+	}
 }
 
-//---------------------------------------------------------------------------------------------------------------------
-
-template<class T>
-Handle<Class> get_class()
-{
-	return Handle<Class>(reinterpret_cast<TObject<Class>*>(detail::ClassDescriptor<T>::get()->object()));
-}
 
 } // namespace phonometrica
 

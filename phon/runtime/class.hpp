@@ -164,6 +164,15 @@ private:
 	static String init_string;
 };
 
+//---------------------------------------------------------------------------------------------------------------------
+
+template<class T>
+Handle<Class> get_class()
+{
+	return Handle<Class>(static_cast<TObject<Class>*>(detail::ClassDescriptor<T>::get()->object()));
+}
+
+
 
 namespace meta {
 

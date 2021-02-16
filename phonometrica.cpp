@@ -31,10 +31,10 @@ static void show_usage()
 
 static void initialize(Runtime &rt)
 {
+#ifdef PHON_GUI
 	rt["phon"] = make_handle<Module>(&rt, "phon");
 	Settings::initialize(&rt);
 
-#ifdef PHON_GUI
 	// On macOS, move old settings from ~/Applications/Phonometrica to ~/Library/Application Support/Phonometrica
 	// if the user had a version of Phonometrica < 0.8.
 #if PHON_MACOS
@@ -66,8 +66,9 @@ static void initialize(Runtime &rt)
 	run_script(rt, signal);
 	Project::create(rt);
 	Project::initialize(rt);
-#endif // PHON_GUI
+
 	Sound::set_sound_formats();
+#endif // PHON_GUI
 }
 
 static void finalize(Runtime &)

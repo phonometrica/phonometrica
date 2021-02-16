@@ -501,7 +501,7 @@ private:
 
 	void deallocate()
 	{
-		//clear();
+		clear();
 		delete[] m_data;
 	}
 
