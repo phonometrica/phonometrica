@@ -26,17 +26,20 @@
 #include <wx/choice.h>
 #include <wx/srchctrl.h>
 #include <wx/textctrl.h>
+#include <wx/checkbox.h>
 #include <phon/application/conc/constraint.hpp>
 
 namespace phonometrica {
 
 struct ConstraintCtrl final : public wxPanel
 {
+	using Operator = Constraint::Operator;
+
 	explicit ConstraintCtrl(wxWindow *parent, int index, bool enable_relation);
 
 	void EnableRelation(bool value);
 
-	bool UsesRegex() const;
+	Operator GetSearchOperator() const;
 
 	bool IsCaseSensitive() const;
 
@@ -50,10 +53,14 @@ struct ConstraintCtrl final : public wxPanel
 	// Search field
 	wxSearchCtrl *search_ctrl;
 
-	// Select search operator (in case of a complex query).
+	// Select relation to next constraint (in case of a complex query)
 	wxChoice *relation_selector;
 
-	wxMenuItem *case_entry, *regex_entry;
+	// Search operator
+	wxChoice *operator_selector;
+
+	// Case
+	wxCheckBox *case_checkbox;
 
 private:
 

@@ -20,12 +20,8 @@
  ***********************************************************************************************************************/
 
 #include <wx/sizer.h>
-#include <wx/menu.h>
 #include <wx/stattext.h>
-#include <wx/checkbox.h>
 #include <phon/gui/conc/constraint_ctrl.hpp>
-
-//#define NEW_DESIGN
 
 namespace phonometrica {
 
@@ -45,26 +41,17 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	SetLayerDescriptiveText(false);
 	search_ctrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
 	search_ctrl->ShowCancelButton(true);
-	search_ctrl->SetDescriptiveText(_("Search text or pattern"));
-	search_ctrl->SetToolTip(_("Search plain text or a regular expression (click on the magnifying glass to change search options)"));
-	auto menu = new wxMenu;
-	auto case_id = wxNewId();
-	case_entry = menu->AppendCheckItem(case_id, _("Case-sensitive"));
-	auto regex_id = wxNewId();
-	regex_entry = menu->AppendCheckItem(regex_id, _("Use regular expressions"));
-	regex_entry->Check();
-	search_ctrl->SetMenu(menu);
+	search_ctrl->SetDescriptiveText(_("Search target"));
 
-#ifdef NEW_DESIGN
 	wxArrayString search_operators;
 	search_operators.Add("equals");
 	search_operators.Add("contains");
 	search_operators.Add("matches");
-	auto operator_selector = new wxChoice(this, wxID_ANY, wxDefaultPosition, size, search_operators);
+	operator_selector = new wxChoice(this, wxID_ANY, wxDefaultPosition, size, search_operators);
 	operator_selector->SetSelection(1);
+	operator_selector->SetToolTip(_("Search an exact string (equals), a substring (contains) or a regular expression (matches)"));
 
-	auto case_checkbox = new wxCheckBox(this, wxID_ANY, _("case sensitive"));
-#endif
+	case_checkbox = new wxCheckBox(this, wxID_ANY, _("case sensitive"));
 
 	wxArrayString relation_operators;
 	relation_operators.Add("dominates");
@@ -92,13 +79,9 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	auto txt = new wxStaticText(this, wxID_ANY, _("Layer:"));//, wxDefaultPosition, size);
 	sizer->Add(txt, 0, wxTOP|wxBOTTOM|wxALIGN_CENTER, 10);
 	sizer->Add(layer_ctrl, 0, wxLEFT|wxTOP|wxBOTTOM, 10);
-#ifdef NEW_DESIGN
 	sizer->Add(operator_selector, 0, wxLEFT|wxTOP|wxBOTTOM, 10);
-#endif
 	sizer->Add(search_ctrl, 1, wxLEFT|wxTOP|wxBOTTOM, 10);
-#ifdef NEW_DESIGN
 	sizer->Add(case_checkbox, 0, wxLEFT|wxTOP|wxBOTTOM|wxALIGN_CENTER, 10);
-#endif
 	sizer->Add(relation_selector, 0, wxLEFT | wxTOP | wxBOTTOM | wxRIGHT, 10);
 	SetSizer(sizer);
 
@@ -112,14 +95,9 @@ void ConstraintCtrl::EnableRelation(bool value)
 	relation_selector->Enable(value);
 }
 
-bool ConstraintCtrl::UsesRegex() const
-{
-	return regex_entry->IsChecked();
-}
-
 bool ConstraintCtrl::IsCaseSensitive() const
 {
-	return case_entry->IsChecked();
+	return case_checkbox->IsChecked();
 }
 
 void ConstraintCtrl::SetLayerDescriptiveText(bool focus)
@@ -143,9 +121,9 @@ Constraint ConstraintCtrl::ParseConstraint() const
 {
 	Constraint constraint;
 	constraint.case_sensitive = IsCaseSensitive();
-	constraint.use_regex = UsesRegex();
+	constraint.op = GetSearchOperator();
 	int sel = relation_selector->GetSelection();
-	constraint.op = (sel == wxNOT_FOUND) ? Constraint::Operator::None : static_cast<Constraint::Operator>(sel);
+	constraint.relation = (sel == wxNOT_FOUND) ? Constraint::Relation::None : static_cast<Constraint::Relation>(sel);
 	constraint.target = search_ctrl->GetValue();
 	String layer = layer_ctrl->GetValue();
 
@@ -170,9 +148,9 @@ Constraint ConstraintCtrl::ParseConstraint() const
 
 void ConstraintCtrl::LoadConstraint(const Constraint &constraint)
 {
-	case_entry->Check(constraint.case_sensitive);
-	regex_entry->Check(constraint.use_regex);
-	int sel = (constraint.op == Constraint::Operator::None) ? wxNOT_FOUND : static_cast<int>(constraint.op);
+	case_checkbox->SetValue(constraint.case_sensitive);
+	operator_selector->SetSelection(static_cast<int>(constraint.op));
+	int sel = (constraint.relation == Constraint::Relation::None) ? wxNOT_FOUND : static_cast<int>(constraint.relation);
 	relation_selector->SetSelection(sel);
 	if (!constraint.target.empty()) {
 		search_ctrl->ChangeValue(constraint.target);
@@ -193,5 +171,10 @@ void ConstraintCtrl::SetLayerText(const wxString &text)
 {
 	layer_ctrl->SetForegroundColour(search_ctrl->GetForegroundColour());
 	layer_ctrl->SetValue(text);
+}
+
+ConstraintCtrl::Operator ConstraintCtrl::GetSearchOperator() const
+{
+	return static_cast<Operator>(operator_selector->GetSelection());
 }
 } // namespace phonometrica

@@ -490,7 +490,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 			{
 				auto script = recast<Script>(file);
 				auto run_id = wxNewId();
-				menu->Append(run_id, _("Run"));
+				menu->Append(run_id, _("Execute"));
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { execute_script(script->path()); }, run_id);
 				menu->AppendSeparator();
 			}

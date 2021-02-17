@@ -228,6 +228,13 @@ public:
 	static String from_wide(const std::wstring &s);
 	static String from_wide(const wchar_t *s, intptr_t len);
 
+	// Number of code points in the string
+	static intptr_t utf8_length(Substring str);
+
+	// Count the number of code units in a wide string. This is used on Windows to find matching positions between
+	// UTF8 and UTF16 strings.
+	static intptr_t count_code_units(std::wstring_view s, intptr_t codepoints);
+
 
 	bool starts_with(Substring prefix) const;
 	bool starts_with(char32_t codepoint) const;
@@ -417,8 +424,6 @@ private:
 	static bool grapheme_break(char32_t c1, char32_t c2, int32_t *state);
 
 	String &trim(Option flag);
-
-	static intptr_t utf8_length(Substring str);
 };
 
 inline

@@ -125,11 +125,11 @@ protected:
 	Array<AutoMatch> search_annotation(const Handle<Annotation> &annot);
 
 	Array <AutoMatch> find_matches(const Handle<Annotation> &annot, const Constraint &constraint, Array <AutoMatch> matches,
-	                               Array<int> &blacklist, Constraint::Operator op, bool is_ref) const;
+	                               Array<int> &blacklist, Constraint::Relation op, bool is_ref) const;
 
 	Array <AutoMatch> find_matches(const Handle<Annotation> &annot, const Constraint &constraint, Array <AutoMatch> matches,
 	                               intptr_t layer_index,
-	                               Array<int> &seen, Constraint::Operator op, bool is_ref) const;
+	                               Array<int> &seen, Constraint::Relation op, bool is_ref) const;
 
 	std::unique_ptr<Match::Target>
 	find_target(const AutoEvent &event, const Constraint &constraint, intptr_t layer_index, intptr_t &pos,

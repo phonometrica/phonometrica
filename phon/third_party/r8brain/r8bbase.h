@@ -188,7 +188,7 @@ public:
 	}
 
 	/**
-	 * Operator frees a previously allocated memory block for the object.
+	 * Relation frees a previously allocated memory block for the object.
 	 *
 	 * @param p Pointer to the allocated memory block for the object.
 	 */
@@ -199,7 +199,7 @@ public:
 	}
 
 	/**
-	 * Operator frees a previously allocated memory block for the object.
+	 * Relation frees a previously allocated memory block for the object.
 	 *
 	 * @param p Pointer to the allocated memory block for the object.
 	 */

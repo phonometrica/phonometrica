@@ -37,4 +37,41 @@ bool Command::can_undo() const
 {
 	return m_can_undo;
 }
+
+void Command::append(std::unique_ptr<Command> cmd)
+{
+	auto current = this;
+
+	while (current->next) {
+		current = current->next.get();
+	}
+	current->next = std::move(cmd);
+}
+
+bool Command::execute()
+{
+	if (!do_execute()) {
+		return false;
+	}
+
+	if (this->next)
+	{
+		if (!this->next->execute()) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Command::restore()
+{
+	if (this->next)
+	{
+		if (!this->next->restore()) {
+			return false;
+		}
+	}
+
+	return do_restore();
+}
 } // namespace phonometrica

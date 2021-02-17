@@ -35,19 +35,30 @@ public:
 
 	virtual ~Command() = default;
 
-	// Returns true if the command was successfully performed, and false otherwise
-	virtual bool execute() = 0;
+	bool execute();
 
-	// Returs true if the command was successfully undone, and false otherwise
-	virtual bool restore() = 0;
+	bool restore();
 
 	const String &name() const;
 
 	bool can_undo() const;
 
+	void append(std::unique_ptr<Command> cmd);
+
 protected:
 
+	friend class CommandProcessor;
+
+	// Returns true if the command was successfully performed, and false otherwise
+	virtual bool do_execute() = 0;
+
+	// Returs true if the command was successfully undone, and false otherwise
+	virtual bool do_restore() = 0;
+
+
 	String m_name;
+
+	std::unique_ptr<Command> next;
 
 	bool m_can_undo;
 };

@@ -54,6 +54,10 @@ private:
 
 	void OnRemoveConstraint(wxCommandEvent &);
 
+	void OnKeyDown(wxKeyEvent &e);
+
+	void OnEnableSaving(wxCommandEvent &);
+
 	wxBoxSizer *constraint_sizer;
 
 	wxButton *add_constraint_btn, *remove_constraint_btn;

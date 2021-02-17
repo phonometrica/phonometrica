@@ -6941,7 +6941,7 @@ struct sqlite3_index_info {
 #define SQLITE_INDEX_SCAN_UNIQUE      1     /* Scan visits at most 1 row */
 
 /*
-** CAPI3REF: Virtual Table Constraint Operator Codes
+** CAPI3REF: Virtual Table Constraint Relation Codes
 **
 ** These macros define the allowed values for the
 ** [sqlite3_index_info].aConstraint[].op field.  Each value represents

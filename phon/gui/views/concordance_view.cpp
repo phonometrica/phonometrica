@@ -386,13 +386,25 @@ void ConcordanceView::OnHelp(wxCommandEvent &)
 
 void ConcordanceView::OnDeleteRows(wxCommandEvent &)
 {
-	int shift = 0;
-
-	for (int i : m_grid->GetSelectedRows())
-	{
-		int row = i + 1 - shift++;
-		DeleteRow(row, false);
+	auto sel = m_grid->GetSelectedRows();
+	if (sel.empty()) {
+		wxMessageBox(_("No row selected"), _("Empty selection"), wxICON_INFORMATION);
+		return;
 	}
+	int shift = 0;
+	int first_row = sel.front();
+	int row = first_row + 1 - shift++;
+	auto cmd = std::make_unique<DeleteMatchCommand>(m_conc, row);
+
+	for (int i = 1; i < (int)sel.size(); i++)
+	{
+		row = i + 1 - shift++;
+		cmd->append(std::make_unique<DeleteMatchCommand>(m_conc, row));
+
+	}
+	command_processor.submit(std::move(cmd));
+	m_grid->ClearSelection();
+	m_grid->SelectRow(first_row);
 	UpdateView();
 }
 

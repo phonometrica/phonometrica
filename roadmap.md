@@ -9,6 +9,7 @@ Done:
 - new scripting engine
 - ability to search files in the project manager
 - ability to save and load queries and concordances
+- redesigned query editor
 - query joints (union, intersection, complement)
 - press space to play a match or enter to edit it in a concordance view
 - properties are now directly edited from the information panel
@@ -28,8 +29,6 @@ Done:
 - bug fixes
 
 TODO:
-- refactoriser le modèle object (Element, Directory and Document -> Element, Directory and Document)
-- redesign query constraints: "equals/contains/matches"
 - contexte autour de la target de la contrainte de référence + ajouter boutons radio pour sélectionner la cible active 
 - complex queries
 - coding protocols
@@ -45,6 +44,9 @@ TODO:
 - dialog edit : cliquer ailleurs devrait enlever le dialogue -> toggle button
 - mettre à jour la concordance en cours quand on édite un item. 
 - reset settings
+- bookmarks and annotation views
+- finalize settings dialog (add search operator selector)
+- update documentation
 
 Version 0.9.0+:
 
@@ -69,6 +71,7 @@ Version 1.0:
 - concordances avec n mots à gauche et à droite plutôt que des chaînes de n caractères
 - touchpad en plus de la molette dans les annotations ? 
 - Statistics (intégrer le code pour la régression)
+- Tool/wizzard to create plugins
 
 Post 1.0
 

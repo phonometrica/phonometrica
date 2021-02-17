@@ -30,7 +30,7 @@ DeleteMatchCommand::DeleteMatchCommand(const Handle<Concordance> &conc, intptr_t
 
 }
 
-bool DeleteMatchCommand::execute()
+bool DeleteMatchCommand::do_execute()
 {
 	try
 	{
@@ -45,7 +45,7 @@ bool DeleteMatchCommand::execute()
 	}
 }
 
-bool DeleteMatchCommand::restore()
+bool DeleteMatchCommand::do_restore()
 {
 	try
 	{

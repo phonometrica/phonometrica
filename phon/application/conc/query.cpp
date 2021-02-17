@@ -289,9 +289,10 @@ void Query::parse_constraints_from_xml(xml_node root)
 		if (!op_attr) {
 			throw error("Missing operator in Constraint node");
 		}
-		auto op = Constraint::name_to_op(op_attr.value());
+		auto rel = Constraint::name_to_relation(op_attr.value());
+		Constraint::Operator op;
 		int layer_index = -1;
-		bool case_sensitive = false, use_regex = true;
+		bool case_sensitive = false;
 		String layer_pattern, target;
 
 		for (auto subnode = node.first_child(); subnode; subnode = subnode.next_sibling())
@@ -318,15 +319,15 @@ void Query::parse_constraints_from_xml(xml_node root)
 			}
 			else if (subnode.name() == str("Target"))
 			{
-				auto attr = subnode.attribute("regex");
+				auto attr = subnode.attribute("operator");
 				if (!attr) {
-					throw error("Missing regex attribute in Target Node");
+					throw error("Missing attribute 'operator' in Target node");
 				}
-				use_regex = attr.value() == str("true");
+				op = static_cast<Constraint::Operator>(attr.as_int());
 
 				attr = subnode.attribute("case_sensitive");
 				if (!attr) {
-					throw error("Missing case_sensitive attribute in Target Node");
+					throw error("Missing attribute 'case_sensitive' in Target Node");
 				}
 				case_sensitive = attr.value() == str("true");
 
@@ -340,8 +341,8 @@ void Query::parse_constraints_from_xml(xml_node root)
 
 		Constraint c;
 		c.case_sensitive = case_sensitive;
-		c.use_regex = use_regex;
 		c.op = op;
+		c.relation = rel;
 		c.layer_index = layer_index;
 		c.layer_pattern = layer_pattern;
 		c.target = target;
@@ -578,14 +579,14 @@ Array<AutoMatch> Query::search_annotation(const Handle<Annotation> &annot)
 	// We maintain a list of the layer indices we have already seen, so that we don't scan the same layer twice
 	Array<int> seen;
 
-	auto matches = find_matches(annot, m_constraints[1], Array<AutoMatch>(), seen, Constraint::Operator::None, m_ref_constraint == 1);
+	auto matches = find_matches(annot, m_constraints[1], Array<AutoMatch>(), seen, Constraint::Relation::None, m_ref_constraint == 1);
 
 	for (intptr_t i = 2; i <= m_constraints.size(); i++)
 	{
 		if (matches.empty()) {
 			return matches;
 		}
-		matches = find_matches(annot, m_constraints[i], std::move(matches), seen, m_constraints[i - 1].op, m_ref_constraint == i);
+		matches = find_matches(annot, m_constraints[i], std::move(matches), seen, m_constraints[i - 1].relation, m_ref_constraint == i);
 	}
 
 	return matches;
@@ -593,7 +594,7 @@ Array<AutoMatch> Query::search_annotation(const Handle<Annotation> &annot)
 
 Array <AutoMatch>
 Query::find_matches(const Handle<Annotation> &annot, const Constraint &constraint, Array <AutoMatch> matches,
-                    Array<int> &blacklist, Constraint::Operator op, bool is_ref) const
+                    Array<int> &blacklist, Constraint::Relation op, bool is_ref) const
 {
 	if (constraint.use_index())
 	{
@@ -631,9 +632,9 @@ Query::find_matches(const Handle<Annotation> &annot, const Constraint &constrain
 
 Array <AutoMatch>
 Query::find_matches(const Handle<Annotation> &annot, const Constraint &constraint, Array <AutoMatch> matches,
-                    intptr_t layer_index, Array<int> &seen, Constraint::Operator op, bool is_ref) const
+                    intptr_t layer_index, Array<int> &seen, Constraint::Relation op, bool is_ref) const
 {
-	using Op = Constraint::Operator;
+	using Op = Constraint::Relation;
 
 	// Case 1: invalid index
 	if (layer_index > annot->layer_count()) {
@@ -651,10 +652,15 @@ Query::find_matches(const Handle<Annotation> &annot, const Constraint &constrain
 			while (true)
 			{
 				target = find_target(event, constraint, layer_index, pos, is_ref);
-				if (target) {
+				if (target)
+				{
 					matches.append(std::make_unique<Match>(annot, std::move(target)));
+					if (pos == -1) {
+						break; // found a match with "equals", don't need to search again
+					}
 				}
-				else {
+				else
+				{
 					break;
 				}
 			}
@@ -810,46 +816,74 @@ Query::find_matches(const Handle<Annotation> &annot, const Constraint &constrain
 std::unique_ptr<Match::Target>
 Query::find_target(const AutoEvent &event, const Constraint &constraint, intptr_t layer_index, intptr_t &pos, bool is_ref) const
 {
-	if (constraint.use_regex)
+	switch (constraint.op)
 	{
-		auto &re = *constraint.regex;
-		auto &text = event->text();
-		auto it = text.begin() + pos;
-		if (re.match(event->text(), it))
+		case Constraint::Operator::Equals:
 		{
-			auto matched_text = re.capture(0);
-			auto offset = intptr_t (re.capture_start_iter(0) - text.begin());
-			pos = intptr_t (re.capture_end_iter(0) - text.begin());
-
-			return std::make_unique<Match::Target>(event, std::move(matched_text), layer_index, offset, is_ref);
+			if (constraint.case_sensitive)
+			{
+				if (event->text() == constraint.target)
+				{
+					pos = -1;
+					return std::make_unique<Match::Target>(event, constraint.target, layer_index, 0, is_ref);
+				}
+			}
+			else if (String::iequals(event->text(), constraint.target))
+			{
+				pos = -1;
+				return std::make_unique<Match::Target>(event, event->text(), layer_index, 0, is_ref);
+			}
 		}
-	}
-	else if (constraint.case_sensitive)
-	{
-		auto &text = event->text();
-		auto it = text.begin() + pos;
-		if ((it = text.find(constraint.target, it)) != text.end())
+		break;
+		case Constraint::Operator::Contains:
 		{
-			auto offset = intptr_t (it - text.begin());
-			pos = offset + constraint.target.size();
+			if (constraint.case_sensitive)
+			{
+				auto &text = event->text();
+				auto it = text.begin() + pos;
+				if ((it = text.find(constraint.target, it)) != text.end())
+				{
+					auto offset = intptr_t (it - text.begin());
+					pos = offset + constraint.target.size();
 
-			return std::make_unique<Match::Target>(event, constraint.target, layer_index, offset, is_ref);
+					return std::make_unique<Match::Target>(event, constraint.target, layer_index, offset, is_ref);
+				}
+			}
+			else
+			{
+				auto &text = event->text();
+				auto it = text.begin() + pos;
+				if ((it = text.ifind(constraint.target, it)) != text.end())
+				{
+					auto offset = intptr_t (it - text.begin());
+					String::const_iterator end = it;
+					text.advance(end, constraint.target.grapheme_count());
+					String value(it, intptr_t(end-it));
+					pos = intptr_t(end - text.begin());
+
+					return  std::make_unique<Match::Target>(event, std::move(value), layer_index, offset, is_ref);
+				}
+			}
 		}
-	}
-	else
-	{
-		auto &text = event->text();
-		auto it = text.begin() + pos;
-		if ((it = text.ifind(constraint.target, it)) != text.end())
+		break;
+		case Constraint::Operator::Matches:
 		{
-			auto offset = intptr_t (it - text.begin());
-			String::const_iterator end = it;
-			text.advance(end, constraint.target.grapheme_count());
-			String value(it, intptr_t(end-it));
-			pos = intptr_t(end - text.begin());
+			auto &re = *constraint.regex;
+			auto &text = event->text();
+			auto it = text.begin() + pos;
+			if (re.match(event->text(), it))
+			{
+				auto matched_text = re.capture(0);
+				auto offset = intptr_t (re.capture_start_iter(0) - text.begin());
+				pos = intptr_t (re.capture_end_iter(0) - text.begin());
 
-			return  std::make_unique<Match::Target>(event, std::move(value), layer_index, offset, is_ref);
+				return std::make_unique<Match::Target>(event, std::move(matched_text), layer_index, offset, is_ref);
+			}
 		}
+		break;
+		default:
+			break;
+
 	}
 
 	return nullptr;

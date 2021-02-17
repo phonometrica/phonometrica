@@ -33,6 +33,14 @@ struct Constraint final
 {
 	enum class Operator : uint8_t
 	{
+		Equals,     // exact string
+		Contains,   // substring
+		Matches,    // regular expression
+		None        // invalid operator
+	};
+
+	enum class Relation : uint8_t
+	{
 		Dominance = 0,
 		StrictDominance,
 		Alignment,
@@ -53,21 +61,25 @@ struct Constraint final
 
 	void to_xml(xml_node root);
 
-	static Operator name_to_op(std::string_view name);
+	static Relation name_to_relation(std::string_view name);
 
-	static const char *op_to_name(Operator op);
+	static const char *relation_to_name(Relation rel);
+
+	static Operator name_to_operator(std::string_view name);
+
+	static const char *operator_to_name(Operator op);
 
 	bool use_index() const { return layer_index >= 0; }
 
 	void compile();
 
-	static bool is_hierarchical(Operator op);
+	static bool is_hierarchical(Relation rel);
 
-	// Relation with the previous constraint, if any.
+	// Search Operator
 	Operator op = Operator::None;
 
-	// Use regular expression or plain text search.
-	bool use_regex = true;
+	// Relation with the previous constraint, if any.
+	Relation relation = Relation::None;
 
 	// Whether the match is case-sensitive.
 	bool case_sensitive = false;

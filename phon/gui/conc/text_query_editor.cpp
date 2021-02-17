@@ -54,10 +54,12 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	auto con = new ConstraintCtrl(constraint_box, 1, false);
 	constraints.append(con);
 	constraint_sizer->Add(con, 0, wxEXPAND);
-	con->search_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
-	con->search_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &){ EndModal(wxID_OK); });
-	con->layer_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
-	con->relation_selector->Bind(wxEVT_CHOICE, [this](wxCommandEvent &){ EnableSaving(true); });
+	con->search_ctrl->Bind(wxEVT_TEXT,  &TextQueryEditor::OnEnableSaving, this);
+	con->search_ctrl->Bind(wxEVT_KEY_DOWN, &TextQueryEditor::OnKeyDown, this);
+	con->layer_ctrl->Bind(wxEVT_TEXT, &TextQueryEditor::OnEnableSaving, this);
+	con->relation_selector->Bind(wxEVT_CHOICE, &TextQueryEditor::OnEnableSaving, this);
+	con->case_checkbox->Bind(wxEVT_CHECKBOX, &TextQueryEditor::OnEnableSaving, this);
+	con->operator_selector->Bind(wxEVT_CHOICE, &TextQueryEditor::OnEnableSaving, this);
 
 	add_constraint_btn = new wxButton(constraint_box, wxID_ANY, wxEmptyString);
 	remove_constraint_btn = new wxButton(constraint_box, wxID_ANY, wxEmptyString);
@@ -371,10 +373,12 @@ void TextQueryEditor::OnAddConstraint(wxCommandEvent &)
 	constraints.append(con);
 	remove_constraint_btn->Enable();
 	ref_spinctrl->SetRange(1, (int)constraints.size());
-	con->search_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
-	con->search_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &){ EndModal(wxID_OK); });
-	con->layer_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &){ EnableSaving(true); });
-	con->relation_selector->Bind(wxEVT_CHOICE, [this](wxCommandEvent &){ EnableSaving(true); });
+	con->search_ctrl->Bind(wxEVT_TEXT, &TextQueryEditor::OnEnableSaving, this);
+	con->search_ctrl->Bind(wxEVT_KEY_DOWN, &TextQueryEditor::OnKeyDown, this);
+	con->case_checkbox->Bind(wxEVT_CHECKBOX, &TextQueryEditor::OnEnableSaving, this);
+	con->operator_selector->Bind(wxEVT_CHOICE, &TextQueryEditor::OnEnableSaving, this);
+	con->layer_ctrl->Bind(wxEVT_TEXT, &TextQueryEditor::OnEnableSaving, this);
+	con->relation_selector->Bind(wxEVT_CHOICE, &TextQueryEditor::OnEnableSaving, this);
 }
 
 void TextQueryEditor::OnRemoveConstraint(wxCommandEvent &)
@@ -386,6 +390,29 @@ void TextQueryEditor::OnRemoveConstraint(wxCommandEvent &)
 	constraints.last()->EnableRelation(false);
 	remove_constraint_btn->Enable(constraints.size() != 1);
 	ref_spinctrl->SetRange(1, (int)constraints.size());
+}
+
+void TextQueryEditor::OnKeyDown(wxKeyEvent &e)
+{
+	// FIXME: on macOS and Windows, wxEVT_TEXT_ENTER doesn't seem to work with wxSearchCtrl, so we catch 'enter' ourselves.
+	if (e.GetKeyCode() == WXK_RETURN || e.GetKeyCode() == WXK_NUMPAD_ENTER)
+	{
+		for (auto &con : constraints)
+		{
+			if (con->search_ctrl->GetValue().IsEmpty())
+			{
+				wxMessageBox(_("Cannot run query with empty search field"), _("Invalid query"), wxICON_ERROR);
+				return;
+			}
+		}
+		EndModal(wxID_OK);
+	}
+	e.Skip();
+}
+
+void TextQueryEditor::OnEnableSaving(wxCommandEvent &)
+{
+	EnableSaving(true);
 }
 
 } // namespace phonometrica

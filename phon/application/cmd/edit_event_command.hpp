@@ -33,11 +33,11 @@ public:
 
 	EditEventCommand(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value);
 
-	bool execute() override;
-
-	bool restore() override;
-
 private:
+
+	bool do_execute() override;
+
+	bool do_restore() override;
 
 	bool change_value();
 

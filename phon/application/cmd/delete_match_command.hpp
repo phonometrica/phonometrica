@@ -33,11 +33,11 @@ public:
 
 	DeleteMatchCommand(const Handle<Concordance> &conc, intptr_t row);
 
-	bool execute() override;
-
-	bool restore() override;
-
 private:
+
+	bool do_execute() override;
+
+	bool do_restore() override;
 
 	Handle<Concordance> m_conc;
 

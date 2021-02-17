@@ -29,12 +29,12 @@ EditEventCommand::EditEventCommand(const Handle<Annotation> &annot, const AutoEv
 
 }
 
-bool EditEventCommand::execute()
+bool EditEventCommand::do_execute()
 {
 	return change_value();
 }
 
-bool EditEventCommand::restore()
+bool EditEventCommand::do_restore()
 {
 	return change_value();
 }

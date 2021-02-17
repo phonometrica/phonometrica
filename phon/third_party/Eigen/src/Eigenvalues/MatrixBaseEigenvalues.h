@@ -94,7 +94,7 @@ SelfAdjointView<MatrixType, UpLo>::eigenvalues() const
 
 
 /** \brief Computes the L2 operator norm
-  * \returns Operator norm of the matrix.
+  * \returns Relation norm of the matrix.
   *
   * \eigenvalues_module
   * This function computes the L2 operator norm of a matrix, which is also
@@ -132,7 +132,7 @@ MatrixBase<Derived>::operatorNorm() const
 }
 
 /** \brief Computes the L2 operator norm
-  * \returns Operator norm of the matrix.
+  * \returns Relation norm of the matrix.
   *
   * \eigenvalues_module
   * This function computes the L2 operator norm of a self-adjoint matrix. For a
