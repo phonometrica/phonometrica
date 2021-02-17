@@ -317,9 +317,9 @@ void ScriptView::Escape()
 
 void ScriptView::OnFindText()
 {
-    stc->ClearSelections();
     // We roll our own search function because Scintilla's is not Unicode-aware.
 	int pos = stc->GetCurrentPos();
+	stc->ClearSelections();
 	String target = m_searchbar->GetSearchText();
 	auto original_text = stc->GetValue();
 	String text = original_text;
