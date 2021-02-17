@@ -341,6 +341,12 @@ static std::vector<std::pair<const char*, std::vector<wxString>>> function_decla
 	{ "write_matrix",  {
 		"write_matrix(M, path [, separator])\nWrites a two-dimensional numeric array `M` to a CSV file, in which values are separated by `separator` (by default, a comma)."
 	}},
+	{ "create_progress_dialog",  {
+		"create_progress_dialog(message as String, title as String, count as Integer)\nCreate a progress dialog with the provided message and title, set up for `count` elements."
+	}},
+	{ "update_progress_dialog",  {
+		"update_progress_dialog(value as Integer)\nUpdate the progress dialog to the provided `value`."
+	}},
 	{ "warning",  {
 		"warning(message [, title])\nDisplays a warning dialog."
 	}},
@@ -371,17 +377,17 @@ static std::vector<std::pair<const char*, std::vector<wxString>>> function_decla
 	{ "view_text",  {
 		"view_text(path [, title [, width]])\nOpens the plain text file `path` in a new dialog."
 	}},
-	{ "create",  {
-		"create()\nCreate and return a new event identifier (id)."
+	{ "create_signal",  {
+		"create_signal()\nCreate and return a new signal identifier (id) of type `String`."
 	}},
 	{ "connect",  {
-		"connect(id, callback)\nConnect event `id` to function `callback`."
+		"connect(id as String, slot as Function)\nConnect signal `id` to function `slot`."
 	}},
 	{ "disconnect",  {
-		"disconnect(id, callback)\nDisconnect event `id` from function `callback`."
+		"disconnect(id as String, slot as Function)\nDisconnect signal `id` from function `slot`."
 	}},
 	{ "emit",  {
-		"emit(id, ...)\nEmit event `id`, followed by an optional argument."
+		"emit(id as String, arg as Object)\nEmit signal `id` with an argument `arg`."
 	}},
 	{ "get_application_directory",  {
 		"get_application_directory()\nReturns the path of the directory (inside the user's directory) where application settings are usually written to."

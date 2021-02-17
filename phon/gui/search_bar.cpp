@@ -23,6 +23,7 @@
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/search_bar.hpp>
 #include <phon/include/icons.hpp>
+#include <phon/regex.hpp>
 
 namespace phonometrica {
 
@@ -37,18 +38,18 @@ SearchBar::SearchBar(wxWindow *parent, const wxString &description, bool replace
 #endif
 	auto sizer = new HBoxSizer;
 
-	search_ctrl = new wxSearchCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+	search_ctrl = new wxSearchCtrl(this, wxID_ANY, "");
 	search_ctrl->SetDescriptiveText(description);
 	search_ctrl->SetSize(FromDIP(wxSize(-1, height)));
 	search_ctrl->ShowCancelButton(true);
 	auto menu = new wxMenu;
 	auto case_id = wxNewId();
 	case_entry = menu->AppendCheckItem(case_id, _("Case-sensitive"));
-//	auto regex_id = wxNewId();
-//	regex_entry = menu->AppendCheckItem(regex_id, _("Use regular expressions"));
+	auto regex_id = wxNewId();
+	regex_entry = menu->AppendCheckItem(regex_id, _("Use regular expressions"));
 	search_ctrl->SetMenu(menu);
 
-	repl_ctrl = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
+	repl_ctrl = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 	repl_ctrl->Enable(replace);
 	repl_ctrl->SetSize(FromDIP(wxSize(-1, height)));
 	auto find_btn = new wxButton(this, wxID_ANY, _("Find"));
@@ -66,8 +67,11 @@ SearchBar::SearchBar(wxWindow *parent, const wxString &description, bool replace
 	SetSizer(sizer);
 
 	icon->Bind(wxEVT_LEFT_UP, &SearchBar::OnClickCloseButton, this);
-	find_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &) { execute(); });
-	search_ctrl->Bind(wxEVT_SEARCH, [this](wxCommandEvent &) { execute(); });
+	search_ctrl->Bind(wxEVT_SEARCH, [this](wxCommandEvent &) { this->find(); });
+	repl_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &) { this->replace(); });
+	find_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &) { this->find(); });
+	replace_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &) { this->replace(); });
+	replace_all_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &) { this->replace_all(); });
 }
 
 bool SearchBar::UsesRegex() const
@@ -127,6 +131,98 @@ void SearchBar::EnableReplace(bool value)
 	repl_ctrl->Enable(value);
 	replace_btn->Enable(value);
 	replace_all_btn->Enable(value);
+}
+
+SearchBar::Region SearchBar::Find(const String &text, intptr_t start)
+{
+	String target = this->GetSearchText();
+	String::const_iterator it1 = text.cbegin() + start;
+	String::const_iterator it2;
+
+	if (UsesRegex())
+	{
+		auto flags = IsCaseSensitive() ? Regex::None :  Regex::Caseless;
+		Regex re(target, flags);
+
+		if (re.match(text, it1)) {
+			return { re.capture_start_iter(0), re.capture_end_iter(0) };
+		}
+		else {
+			return { text.cend(), text.cend() };
+		}
+	}
+	else if (this->IsCaseSensitive())
+	{
+		it1 = text.find(target, it1);
+		it2 = it1 + target.size(); // invalid if it1 == text.end()
+	}
+	else
+	{
+		it1 = text.ifind(target, it1, &it2);
+	}
+
+	return { it1, it2 };
+}
+
+SearchBar::Region SearchBar::Replace(String &text, intptr_t start)
+{
+	// We roll our own search function because Scintilla's is not Unicode-aware (e.g. "été" and "ÉTÉ" don't match).
+	auto result = Find(text, start);
+
+	if (result.first == text.end()) {
+		return result;
+	}
+	String replacement = GetReplacementText();
+	text.replace(result.first, result.second, replacement);
+
+	return { result.first, result.first + replacement.size() };
+}
+
+void SearchBar::ReplaceAll(String &text)
+{
+	String target = GetSearchText();
+	String replacement = GetReplacementText();
+
+	if (UsesRegex())
+	{
+		auto flags = IsCaseSensitive() ? Regex::None :  Regex::Caseless;
+		Regex re(GetSearchText(), flags);
+		auto it = text.cbegin();
+		while (re.match(text, it))
+		{
+			auto offset = intptr_t(it - text.cbegin());
+			auto start = re.capture_start_iter(0);
+			auto end = re.capture_end_iter(0);
+			offset +=  replacement.size();
+			text.replace(start, end, replacement);
+			it = text.cbegin() + offset;
+		}
+	}
+	else if (IsCaseSensitive())
+	{
+		text.replace(target, replacement);
+	}
+	else
+	{
+		String::const_iterator it1 = text.cbegin();
+		String::const_iterator it2;
+
+		while (true)
+		{
+			it1 = text.ifind(target, it1, &it2);
+			if (it1 != text.cend())
+			{
+				auto offset = intptr_t(it1 - text.cbegin());
+				offset += replacement.size();
+				text.replace(it1, it2, replacement);
+				it1 = text.cbegin() + offset;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
 }
 
 } // namespace phonometrica

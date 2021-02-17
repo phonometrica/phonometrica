@@ -27,6 +27,7 @@
 #include <wx/srchctrl.h>
 #include <wx/textctrl.h>
 #include <wx/button.h>
+#include <phon/string.hpp>
 #include <phon/utils/signal.hpp>
 
 namespace phonometrica {
@@ -35,23 +36,24 @@ class SearchBar : public wxPanel
 {
 public:
 
+	// Used to locate search matches
+	using Region = std::pair<String::const_iterator, String::const_iterator>;
+
 	SearchBar(wxWindow *parent, const wxString &description, bool replace);
 
-	bool UsesRegex() const;
-
-	bool IsCaseSensitive() const;
-
-	wxString GetSearchText() const;
-
 	bool HasReplacementText() const;
-
-	wxString GetReplacementText() const;
 
 	void SetSearch();
 
 	void SetSearchAndReplace();
 
-	Signal<> execute;
+	Region Find(const String &text, intptr_t start);
+
+	Region Replace(String &text, intptr_t start);
+
+	void ReplaceAll(String &text);
+
+	Signal<> find, replace, replace_all;
 
 protected:
 
@@ -60,6 +62,14 @@ protected:
 	void OnClickCloseButton(wxMouseEvent &);
 
 	void EnableReplace(bool value);
+
+	bool UsesRegex() const;
+
+	bool IsCaseSensitive() const;
+
+	wxString GetSearchText() const;
+
+	wxString GetReplacementText() const;
 
 	wxSearchCtrl *search_ctrl;
 

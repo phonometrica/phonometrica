@@ -57,9 +57,9 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	auto del_row_tool = m_toolbar->AddButton(ICN(delete_row), _("Delete selected row(s)"));
 	auto edit_row_tool = m_toolbar->AddButton(ICN(edit_row), _("Edit selected event"));
 
-	auto union_tool = m_toolbar->AddButton(ICN(query_union), _("Unite concordance... (matches in A or B)"));
-	auto intersection_tool = m_toolbar->AddButton(ICN(query_intersection), _("Intersect concordance... (matches in A and B)"));
-	auto complement_tool = m_toolbar->AddButton(ICN(query_complement), _("Get complement of concordance... (matches in B not A)"));
+	auto union_tool = m_toolbar->AddButton(ICN(unite), _("Unite concordance... (matches in A or B)"));
+	auto intersection_tool = m_toolbar->AddButton(ICN(intersect), _("Intersect concordance... (matches in A and B)"));
+	auto complement_tool = m_toolbar->AddButton(ICN(complement), _("Get complement of concordance... (matches in B not A)"));
 
 	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
 	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite24), _("Bookmark match"));

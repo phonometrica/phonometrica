@@ -87,7 +87,13 @@ private:
 
 	void OnActivateHints(wxCommandEvent &);
 
-	void OnFindText();
+	void OnFind();
+
+	void OnReplace();
+
+	void OnReplaceAll();
+
+	void SetValue(const wxString &text);
 
 	ScriptControl *stc;
 

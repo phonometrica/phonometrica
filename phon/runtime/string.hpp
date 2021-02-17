@@ -347,7 +347,7 @@ public:
 	static bool iequals(Substring self, Substring other);
 
 	// Case-insensitive find
-	const_iterator ifind(Substring substring, const_iterator from) const;
+	const_iterator ifind(Substring substring, const_iterator from, const_iterator *to = nullptr) const;
 
 	bool is_ascii() const;
 

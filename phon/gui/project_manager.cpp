@@ -148,7 +148,7 @@ void ProjectManager::Populate()
 	auto p = Project::get();
 	corpus_item = tree->AppendItem(root, _("Corpus"), corpus_img, corpus_img, new ItemData(p->corpus().get()));
 	query_item = tree->AppendItem(root, _("Queries"), queries_img, queries_img, new ItemData(p->queries().get()));
-	data_item = tree->AppendItem(root, _("Datasets"), datasets_img, datasets_img, new ItemData(p->data().get()));
+	data_item = tree->AppendItem(root, _("Data tables"), datasets_img, datasets_img, new ItemData(p->data().get()));
 	script_item = tree->AppendItem(root, _("Scripts"), scripts_img, scripts_img, new ItemData(p->scripts().get()));
 	bookmark_item = tree->AppendItem(root, _("Bookmarks"), bookmarks_img, bookmarks_img, new ItemData(p->bookmarks().get()));
 }

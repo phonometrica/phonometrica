@@ -1597,15 +1597,14 @@ bool String::iequals(Substring self, Substring other)
 {
 	using namespace sol::unicode;
 
-	if (utf8_length(self) != utf8_length(other)) {
-		return false;
-	}
-
 	auto it1 = self.begin();
 	auto it2 = other.begin();
 
 	while (it1 != self.end())
 	{
+		if (it2 == other.end()) {
+			return false;
+		}
 		auto r1 = utf8_to_code_point(it1, self.end());
 		auto r2 = utf8_to_code_point(it2, other.end());
 		auto c1 = utf8proc_tolower(r1.codepoint);
@@ -1616,7 +1615,7 @@ bool String::iequals(Substring self, Substring other)
 		it2 = r2.next;
 	}
 
-	return true;
+	return (it2 == other.end());
 }
 
 intptr_t String::utf8_length(Substring str)
@@ -1627,10 +1626,13 @@ intptr_t String::utf8_length(Substring str)
 	return len;
 }
 
-String::const_iterator String::ifind(Substring substring, String::const_iterator from) const
+String::const_iterator String::ifind(Substring substring, String::const_iterator from, const_iterator *to) const
 {
 	auto this_length = utf8_length(*this);
 	auto sub_length = utf8_length(substring);
+	if (to) {
+		*to = nullptr;
+	}
 
 	if (this_length < sub_length || substring.empty()) {
 		return this->cend();
@@ -1643,6 +1645,9 @@ String::const_iterator String::ifind(Substring substring, String::const_iterator
 		auto part = mid(it, sub_length);
 		if (iequals(part, substring))
 		{
+			if (to) {
+				*to = reinterpret_cast<const_iterator>(it) + part.length();
+			}
 			return reinterpret_cast<const_iterator>(it);
 		}
 		advance(it, 1);

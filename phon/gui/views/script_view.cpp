@@ -115,7 +115,9 @@ void ScriptView::SetupUi()
     stc->SetSTCFocus(true);
     m_searchbar->Hide();
 
-    m_searchbar->execute.connect(&ScriptView::OnFindText, this);
+    m_searchbar->find.connect(&ScriptView::OnFind, this);
+    m_searchbar->replace.connect(&ScriptView::OnReplace, this);
+    m_searchbar->replace_all.connect(&ScriptView::OnReplaceAll, this);
 
     bool autohints = Settings::get_boolean("autohints");
     hint_tool->SetValue(autohints);
@@ -315,40 +317,64 @@ void ScriptView::Escape()
 	Layout();
 }
 
-void ScriptView::OnFindText()
+void ScriptView::OnFind()
 {
-    // We roll our own search function because Scintilla's is not Unicode-aware.
 	int pos = stc->GetCurrentPos();
 	stc->ClearSelections();
-	String target = m_searchbar->GetSearchText();
-	auto original_text = stc->GetValue();
-	String text = original_text;
-	String::const_iterator it = text.cbegin() + pos;
+	String text = stc->GetValue();
+	auto result = m_searchbar->Find(text, pos);
 
-	// Find the start of the string in UTF-8
-	if (m_searchbar->IsCaseSensitive())
-	{
-	    it = text.find(target, it);
-    }
-	else
-	{
-	    // For the sake of simplicity, we assume that the length of the target is the same as the length of the
-	    // matched string. This will be true most of the time.
-        it = text.ifind(target, it);
-    }
-    if (it == text.end())
+    if (result.first == text.end())
     {
         wxMessageBox(_("Text not found!"), _("Find text"));
         return;
     }
-    int start = int(it - text.begin());
-    pos = start + (int)target.size();
-
+    int start = int(result.first - text.begin());
+    pos = start + int(result.second - result.first);
 	stc->SetSelection(start, pos);
 	stc->SetCurrentPos(pos);
 	int line = stc->LineFromPosition(pos);
 	if (line > stc->GetFirstVisibleLine() + stc->LinesOnScreen()) {
 		stc->ScrollToLine(line);
+	}
+}
+
+void ScriptView::OnReplace()
+{
+	int pos = stc->GetCurrentPos();
+	stc->ClearSelections();
+	String text = stc->GetValue();
+	auto result = m_searchbar->Replace(text, pos);
+
+    if (result.first == text.end())
+    {
+        wxMessageBox(_("Text not found!"), _("Replace text"));
+        return;
+    }
+    this->SetValue(text);
+    int start = int(result.first - text.begin());
+    pos = start + int(result.second - result.first);
+	stc->SetSelection(start, pos);
+	stc->SetCurrentPos(pos);
+	int line = stc->LineFromPosition(pos);
+	if (line > stc->GetFirstVisibleLine() + stc->LinesOnScreen()) {
+		stc->ScrollToLine(line);
+	}
+}
+
+void ScriptView::OnReplaceAll()
+{
+	String old_text = stc->GetValue();
+	String new_text = old_text;
+	m_searchbar->ReplaceAll(new_text);
+
+	if (old_text != new_text)
+	{
+		SetValue(new_text);
+	}
+	else
+	{
+		wxMessageBox(_("Text not found!"), _("Replace text"));
 	}
 }
 
@@ -366,5 +392,12 @@ void ScriptView::Redo()
 {
     stc->Redo();
 }
+
+void ScriptView::SetValue(const wxString &text)
+{
+	stc->SetValue(text);
+	OnModification();
+}
+
 
 } // namespace phonometrica
