@@ -223,6 +223,8 @@ private:
 
 	void OnRedo(wxCommandEvent &);
 
+	void OnWakeUp();
+
 	Plugin *FindPlugin(const String &name);
 
 	// Project browser, on the left.

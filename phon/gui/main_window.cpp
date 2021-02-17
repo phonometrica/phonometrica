@@ -339,6 +339,7 @@ void MainWindow::SetBindings()
 	project->notify_closed.connect(&ProjectManager::OnProjectClosed, project_manager);
 	project->about_to_close.connect(&Viewer::CloseViews, viewer);
 	project->metadata_updated.connect(&ProjectManager::UpdateLabel, project_manager);
+	viewer->wake_up.connect(&MainWindow::OnWakeUp, this);
 //	project->start_activity.connect(&ProjectManager::StartActivity, project_manager);
 //	project->stop_activity.connect(&ProjectManager::StopActivity, project_manager);
 
@@ -1811,6 +1812,11 @@ void MainWindow::OnUndo(wxCommandEvent &)
 void MainWindow::OnRedo(wxCommandEvent &)
 {
 	viewer->GetCurrentView()->Redo();
+}
+
+void MainWindow::OnWakeUp()
+{
+    Raise();
 }
 
 } // namespace phonometrica

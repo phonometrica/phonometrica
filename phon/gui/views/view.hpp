@@ -69,9 +69,9 @@ public:
 
 	static Signal<const Handle<Document>&> file_created;
 
-	void Undo();
+	virtual void Undo();
 
-	void Redo();
+	virtual void Redo();
 
 	void Submit(AutoCommand cmd);
 

@@ -317,17 +317,33 @@ void ScriptView::Escape()
 
 void ScriptView::OnFindText()
 {
+    stc->ClearSelections();
+    // We roll our own search function because Scintilla's is not Unicode-aware.
 	int pos = stc->GetCurrentPos();
-	auto target = m_searchbar->GetSearchText();
-	int flags = m_searchbar->IsCaseSensitive() ? wxSTC_FIND_MATCHCASE : 0;
+	String target = m_searchbar->GetSearchText();
+	auto original_text = stc->GetValue();
+	String text = original_text;
+	String::const_iterator it = text.cbegin() + pos;
 
+	// Find the start of the string in UTF-8
+	if (m_searchbar->IsCaseSensitive())
+	{
+	    it = text.find(target, it);
+    }
+	else
+	{
+	    // For the sake of simplicity, we assume that the length of the target is the same as the length of the
+	    // matched string. This will be true most of the time.
+        it = text.ifind(target, it);
+    }
+    if (it == text.end())
+    {
+        wxMessageBox(_("Text not found!"), _("Find text"));
+        return;
+    }
+    int start = int(it - text.begin());
+    pos = start + (int)target.size();
 
-	int start = stc->FindText(pos, (int)stc->GetLastPosition(), target, flags);
-	if (start < 0) {
-		wxMessageBox(_("Text not found!"), _("Find text"));
-		return;
-	}
-	pos = int(start + target.size());
 	stc->SetSelection(start, pos);
 	stc->SetCurrentPos(pos);
 	int line = stc->LineFromPosition(pos);
@@ -339,6 +355,16 @@ void ScriptView::OnFindText()
 void ScriptView::OnActivateHints(wxCommandEvent &e)
 {
 	stc->ActivateHints(e.IsChecked());
+}
+
+void ScriptView::Undo()
+{
+    stc->Undo();
+}
+
+void ScriptView::Redo()
+{
+    stc->Redo();
 }
 
 } // namespace phonometrica

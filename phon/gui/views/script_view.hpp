@@ -59,6 +59,10 @@ public:
 
 	void Escape() override;
 
+	void Undo() override;
+
+	void Redo() override;
+
 private:
 
 	void SetupUi();

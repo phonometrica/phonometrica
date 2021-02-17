@@ -125,6 +125,7 @@ void Viewer::ViewFile(const Handle<Document> &file)
 		}
 		else
 		{
+		    wake_up();
 			auto label = conc->label();
 			AddView(new ConcordanceView(this, std::move(conc)), label);
 		}

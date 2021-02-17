@@ -39,7 +39,7 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	layer_ctrl->SetToolTip(_("Leave this field empty to search anywhere, type in the index of a specific layer, or use a regular expression "
 						  "to match a layer's name against"));
 	SetLayerDescriptiveText(false);
-	search_ctrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, size, wxTE_PROCESS_ENTER);
+	search_ctrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString);
 	search_ctrl->ShowCancelButton(true);
 	search_ctrl->SetDescriptiveText(_("Search target"));
 

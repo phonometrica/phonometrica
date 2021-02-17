@@ -55,13 +55,13 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	constraints.append(con);
 	constraint_sizer->Add(con, 0, wxEXPAND);
 	con->search_ctrl->Bind(wxEVT_TEXT,  &TextQueryEditor::OnEnableSaving, this);
-	con->search_ctrl->Bind(wxEVT_KEY_DOWN, &TextQueryEditor::OnKeyDown, this);
+	con->search_ctrl->Bind(wxEVT_SEARCH, &TextQueryEditor::OnSearch, this);
 	con->layer_ctrl->Bind(wxEVT_TEXT, &TextQueryEditor::OnEnableSaving, this);
 	con->relation_selector->Bind(wxEVT_CHOICE, &TextQueryEditor::OnEnableSaving, this);
 	con->case_checkbox->Bind(wxEVT_CHECKBOX, &TextQueryEditor::OnEnableSaving, this);
 	con->operator_selector->Bind(wxEVT_CHOICE, &TextQueryEditor::OnEnableSaving, this);
 
-	add_constraint_btn = new wxButton(constraint_box, wxID_ANY, wxEmptyString);
+    add_constraint_btn = new wxButton(constraint_box, wxID_ANY, wxEmptyString);
 	remove_constraint_btn = new wxButton(constraint_box, wxID_ANY, wxEmptyString);
 	add_constraint_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(plus));
 	remove_constraint_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(minus));
@@ -374,7 +374,7 @@ void TextQueryEditor::OnAddConstraint(wxCommandEvent &)
 	remove_constraint_btn->Enable();
 	ref_spinctrl->SetRange(1, (int)constraints.size());
 	con->search_ctrl->Bind(wxEVT_TEXT, &TextQueryEditor::OnEnableSaving, this);
-	con->search_ctrl->Bind(wxEVT_KEY_DOWN, &TextQueryEditor::OnKeyDown, this);
+	con->search_ctrl->Bind(wxEVT_SEARCH, &TextQueryEditor::OnSearch, this);
 	con->case_checkbox->Bind(wxEVT_CHECKBOX, &TextQueryEditor::OnEnableSaving, this);
 	con->operator_selector->Bind(wxEVT_CHOICE, &TextQueryEditor::OnEnableSaving, this);
 	con->layer_ctrl->Bind(wxEVT_TEXT, &TextQueryEditor::OnEnableSaving, this);
@@ -392,22 +392,17 @@ void TextQueryEditor::OnRemoveConstraint(wxCommandEvent &)
 	ref_spinctrl->SetRange(1, (int)constraints.size());
 }
 
-void TextQueryEditor::OnKeyDown(wxKeyEvent &e)
+void TextQueryEditor::OnSearch(wxCommandEvent &)
 {
-	// FIXME: on macOS and Windows, wxEVT_TEXT_ENTER doesn't seem to work with wxSearchCtrl, so we catch 'enter' ourselves.
-	if (e.GetKeyCode() == WXK_RETURN || e.GetKeyCode() == WXK_NUMPAD_ENTER)
-	{
-		for (auto &con : constraints)
-		{
-			if (con->search_ctrl->GetValue().IsEmpty())
-			{
-				wxMessageBox(_("Cannot run query with empty search field"), _("Invalid query"), wxICON_ERROR);
-				return;
-			}
-		}
-		EndModal(wxID_OK);
-	}
-	e.Skip();
+    for (auto &con : constraints)
+    {
+        if (con->search_ctrl->GetValue().IsEmpty())
+        {
+            wxMessageBox(_("Cannot run query with empty search field"), _("Invalid query"), wxICON_ERROR);
+            return;
+        }
+    }
+    EndModal(wxID_OK);
 }
 
 void TextQueryEditor::OnEnableSaving(wxCommandEvent &)

@@ -65,6 +65,9 @@ public:
 
 	Signal<> request_console;
 
+	// Work around a bug on Windows, whereby the application goes to the background when a concordance is displayed.
+	Signal<> wake_up;
+
 private:
 
 	void AddView(View *view, const wxString &title);

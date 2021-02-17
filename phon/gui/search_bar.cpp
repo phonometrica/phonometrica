@@ -67,7 +67,7 @@ SearchBar::SearchBar(wxWindow *parent, const wxString &description, bool replace
 
 	icon->Bind(wxEVT_LEFT_UP, &SearchBar::OnClickCloseButton, this);
 	find_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &) { execute(); });
-	search_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &) { execute(); });
+	search_ctrl->Bind(wxEVT_SEARCH, [this](wxCommandEvent &) { execute(); });
 }
 
 bool SearchBar::UsesRegex() const

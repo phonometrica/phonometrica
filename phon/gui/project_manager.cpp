@@ -1144,9 +1144,9 @@ void ProjectManager::StopActivity()
 void ProjectManager::OnShowToolTip(wxTreeEvent &e)
 {
 	auto items = GetSelectedItems();
-	if (items.size() == 1 && items.front()->is_file())
+	if (items.size() == 1 && items.front()->is_document())
 	{
-		e.SetToolTip(downcast<VFile>(items.front())->path());
+		e.SetToolTip(recast<Document>(items.front())->path());
 	}
 }
 #endif

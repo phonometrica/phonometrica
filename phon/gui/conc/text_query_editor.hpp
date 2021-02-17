@@ -54,7 +54,7 @@ private:
 
 	void OnRemoveConstraint(wxCommandEvent &);
 
-	void OnKeyDown(wxKeyEvent &e);
+	void OnSearch(wxCommandEvent &e);
 
 	void OnEnableSaving(wxCommandEvent &);
 

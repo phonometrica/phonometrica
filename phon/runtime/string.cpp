@@ -494,7 +494,7 @@ char32_t String::Data::next_codepoint(String::const_iterator &it) const
 
 	if (unlikely(result.error != sol::unicode::error_code::ok))
 	{
-		throw error("[Unicode error] Invalid UTF-8 string: %", sol::unicode::to_string(result.error));
+		throw error("[Unicode error] Invalid UTF-8 string in %(): %", __func__, sol::unicode::to_string(result.error));
 	}
 	it = result.next;
 
@@ -518,7 +518,7 @@ char32_t String::Data::previous_codepoint(String::const_iterator &it) const
 
 	if (unlikely(result.error != sol::unicode::error_code::ok))
 	{
-		throw error("[Unicode error] Invalid UTF-8 string: %", sol::unicode::to_string(result.error));
+		throw error("[Unicode error] Invalid UTF-8 string in %(): %", __func__, sol::unicode::to_string(result.error));
 	}
 
 	return result.codepoint;
@@ -1682,26 +1682,23 @@ bool String::icontains(Substring substring) const
 
 intptr_t String::count_code_units(std::wstring_view s, intptr_t codepoints)
 {
-	if constexpr (sizeof(wchar_t) == 2)
-	{
-		auto it = s.begin();
-		for (intptr_t i = 0; i < codepoints; i++)
-		{
-			auto result = sol::unicode::utf16_to_code_point(it, s.end());
-			if (unlikely(result.error != sol::unicode::error_code::ok))
-			{
-				throw error("[Unicode error] Invalid UTF-16 string in count_code_units(): %", sol::unicode::to_string(result.error));
-			}
-			it = result.next;
-		}
+#if PHON_WINDOWS
+    auto it = s.begin();
+    for (intptr_t i = 0; i < codepoints; i++)
+    {
+        auto result = sol::unicode::utf16_to_code_point(it, s.end());
+        if (unlikely(result.error != sol::unicode::error_code::ok))
+        {
+            throw error("[Unicode error] Invalid UTF-16 string in %(): %", __func__, sol::unicode::to_string(result.error));
+        }
+        it = result.next;
+    }
 
-		return intptr_t(it - s.begin());
-	}
-	else
-	{
-		static_assert(sizeof(wchar_t) == 4);
-		return codepoints;
-	}
+    return intptr_t(it - s.begin());
+#else
+    static_assert(sizeof(wchar_t) == 4);
+    return codepoints;
+#endif
 }
 
 } // namespace phonometrica
