@@ -29,14 +29,14 @@ namespace phonometrica {
 static const int padding = 5;
 
 ToolBar::ToolBar(wxWindow *parent) :
-	wxWindow(parent, wxID_ANY), button_size(30, 30)
+	wxWindow(parent, wxID_ANY), button_size(28, 28)
 {
 	SetSizer(new HBoxSizer);
 }
 
 void ToolBar::AddSeparator()
 {
-	auto sep = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(1, 30));
+	auto sep = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(1, 28));
 	sep->SetBackgroundColour(*wxLIGHT_GREY);
 	GetSizer()->Add(sep, 0, wxLEFT, padding);
 }
@@ -53,6 +53,21 @@ wxButton *ToolBar::AddButton(const wxBitmap &bitmap, const wxString &tooltip, in
 	btn->SetMaxSize(button_size);
 	btn->SetToolTip(tooltip);
 	GetSizer()->Add(btn, 0, wxLEFT, padding);
+
+#ifndef __WXGTK__
+	auto col = GetBackgroundColour();
+	double factor = 0.25;
+	auto r = col.Red();
+	auto g = col.Green();
+	auto b = col.Blue();
+	r = (unsigned char)(r + factor * (255 - r));
+	g = (unsigned char)(g + factor * (255 - g));
+	b = (unsigned char)(b + factor * (255 - b));
+	col = wxColor(r,g,b);
+
+	btn->Bind(wxEVT_ENTER_WINDOW, [btn,col](wxMouseEvent &) { btn->SetBackgroundColour(col); });
+	btn->Bind(wxEVT_LEAVE_WINDOW, [btn,this](wxMouseEvent &) { btn->SetBackgroundColour(this->GetBackgroundColour()); });
+#endif
 
 	return btn;
 }
@@ -98,4 +113,5 @@ void ToolBar::AddSpacer(int space)
 {
 	GetSizer()->AddSpacer(space);
 }
+
 } // namespace phonometrica

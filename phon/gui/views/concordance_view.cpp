@@ -47,6 +47,7 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	auto save_icon = ICN(save);
 	m_save_tool = m_toolbar->AddButton(save_icon, _("Save concordance... (" CTRL_KEY "S)"));
 	auto csv_tool = m_toolbar->AddButton(ICN(export_csv), _("Export concordance to CSV..."));
+	m_toolbar->AddSeparator();
 
 	auto play_icon = ICN(play);
 	m_play_tool = m_toolbar->AddButton(play_icon, _("Play selection"));
@@ -54,16 +55,20 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 
 	auto praat_tool = m_toolbar->AddButton(ICN(praat), _("Open selection in Praat"));
 	auto view_tool = m_toolbar->AddButton(ICN(eye), _("Open match in annotation"));
-	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite24), _("Bookmark match"));
+	m_toolbar->AddSeparator();
+
+	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite20), _("Bookmark match"));
+	m_toolbar->AddSeparator();
 
 	auto del_row_tool = m_toolbar->AddButton(ICN(delete_row), _("Delete selected row(s)"));
 	auto edit_row_tool = m_toolbar->AddButton(ICN(edit_row), _("Edit selected event"));
-
 	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
+	m_toolbar->AddSeparator();
 
 	auto union_tool = m_toolbar->AddButton(ICN(unite), _("Unite concordance... (matches in A or B)"));
 	auto intersection_tool = m_toolbar->AddButton(ICN(intersect), _("Intersect concordance... (matches in A and B)"));
 	auto complement_tool = m_toolbar->AddButton(ICN(complement), _("Get complement of concordance... (matches in B not A)"));
+	m_toolbar->AddSeparator();
 
 	auto rename_tool = m_toolbar->AddButton(ICN(tag), _("Rename concordance..."));
 
@@ -467,19 +472,21 @@ void ConcordanceView::EditCurrentEvent()
 	for (j = 1; j <= m_conc->column_count(); j++) {
 		if (m_conc->is_target(j)) break;
 	}
-//	auto sel = m_grid->GetSelectedRows();
-//	auto rect = m_grid->CellToRect(sel.front(), j);
-//	auto pos = rect.GetPosition();
-//	pos.x -= size.GetWidth() / 2;
-//	pos.y += size.GetHeight() / 2;
 
 	auto offset = match->get_offset(1);
 	auto len = match->get_value(1).size();
 	edited_match = m_grid->GetSelectedRows().front() + 1; // index in base 1
 	event_editor = new EventEditor(this, match->annotation(), match->get_event(1), offset, len, size);
-	auto pos = wxGetMousePosition();
-	pos.x -= size.x / 2;
-	pos.y -= size.y / 2;
+
+	auto sel = m_grid->GetSelectedRows();
+	auto rect = m_grid->CellToRect(sel.front(), j-1);
+	auto pos = m_grid->ClientToScreen(rect.GetPosition());
+	pos.x -= size.GetWidth() / 2;
+	pos.y += size.GetHeight() / 2;
+
+//	auto pos2 = wxGetMousePosition();
+//	pos.x -= size.x / 2;
+//	pos.y -= size.y / 2;
 	event_editor->Move(pos);
 	event_editor->done.connect(&ConcordanceView::EndMatchEditing, this);
 	event_editor->Show();
