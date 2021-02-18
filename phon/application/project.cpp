@@ -35,7 +35,6 @@ namespace phonometrica {
 
 AutoProject Project::instance;
 
-static String event_module_name("event");
 static String emit_name("emit");
 static String annotation_imported("__SIGNAL_ANNOTATION_IMPORTED");
 static String sound_imported("__SIGNAL_SOUND_IMPORTED");
@@ -969,6 +968,8 @@ void Project::close()
 {
 	instance->about_to_close();
 	instance->clear();
+	instance->create_uuid();
+	instance->open_database();
 	instance->notify_closed();
 }
 
