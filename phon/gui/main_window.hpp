@@ -225,6 +225,8 @@ private:
 
 	void OnWakeUp();
 
+	void OnError(const String &msg);
+
 	Plugin *FindPlugin(const String &name);
 
 	// Project browser, on the left.

@@ -33,7 +33,7 @@
 
 namespace phonometrica {
 
-AutoProject Project::instance;
+std::unique_ptr<Project> Project::instance;
 
 static String emit_name("emit");
 static String annotation_imported("__SIGNAL_ANNOTATION_IMPORTED");
@@ -153,70 +153,79 @@ void Project::save()
 
 void Project::load()
 {
-	assert(!m_path.empty());
-	assert(m_accumulator.empty());
-	start_activity();
-
-	xml_document doc;
-	xml_node root = read_xml(doc, m_path);
-
-	static const std::string_view project_tag("Phonometrica");
-	static const std::string_view class_tag("Project");
-	static const std::string_view corpus_tag("Corpus");
-	static const std::string_view meta_tag("Metadata");
-	static const std::string_view queries_tag("Queries");
-	static const std::string_view scripts_tag("Scripts");
-	static const std::string_view bookmarks_tag("Bookmarks");
-	static const std::string_view data_tag("Data");
-
-	if (root.name() != project_tag) {
-		throw error("[Input/Output] Invalid XML project root");
-	}
-
-    auto attr = root.attribute("class");
-
-	if (!attr || attr.as_string() != class_tag) {
-	    throw error("[Input/Output] Expected a Project file, got a % file instead", attr.as_string());
-	}
-
-	attr = root.attribute("label");
-	if (attr) {
-		m_label = attr.value();
-	}
-
-	for (auto node = root.first_child(); node; node = node.next_sibling())
+	try
 	{
-		if (node.name() == corpus_tag)
-		{
-			parse_corpus(node, m_corpus.get());
-		}
-		else if (node.name() == meta_tag)
-		{
-			parse_metadata(node);
-		}
-		else if (node.name() == queries_tag)
-		{
-			parse_queries(node, m_queries.get());
-		}
-		else if (node.name() == scripts_tag)
-		{
-			parse_scripts(node, m_scripts.get());
-		}
-		else if (node.name() == bookmarks_tag)
-		{
-			parse_bookmarks(node, m_bookmarks.get());
-		}
-		else if (node.name() == data_tag)
-		{
-			parse_data(node, m_data.get());
-		}
-	}
+		assert(!m_path.empty());
+		assert(m_accumulator.empty());
+		start_activity();
 
-	m_database_temp = false;
-	bind_annotations();
-	notify_update();
-	stop_activity();
-	emit(project_loaded);
+		xml_document doc;
+		xml_node root = read_xml(doc, m_path);
+
+		static const std::string_view project_tag("Phonometrica");
+		static const std::string_view class_tag("Project");
+		static const std::string_view corpus_tag("Corpus");
+		static const std::string_view meta_tag("Metadata");
+		static const std::string_view queries_tag("Queries");
+		static const std::string_view scripts_tag("Scripts");
+		static const std::string_view bookmarks_tag("Bookmarks");
+		static const std::string_view data_tag("Data");
+
+		if (root.name() != project_tag) {
+			throw error("[Input/Output] Invalid XML project root");
+		}
+
+		auto attr = root.attribute("class");
+
+		if (!attr || attr.as_string() != class_tag) {
+			throw error("[Input/Output] Expected a Project file, got a % file instead", attr.as_string());
+		}
+
+		attr = root.attribute("label");
+		if (attr) {
+			m_label = attr.value();
+		}
+
+		for (auto node = root.first_child(); node; node = node.next_sibling())
+		{
+			if (node.name() == corpus_tag)
+			{
+				parse_corpus(node, m_corpus.get());
+			}
+			else if (node.name() == meta_tag)
+			{
+				parse_metadata(node);
+			}
+			else if (node.name() == queries_tag)
+			{
+				parse_queries(node, m_queries.get());
+			}
+			else if (node.name() == scripts_tag)
+			{
+				parse_scripts(node, m_scripts.get());
+			}
+			else if (node.name() == bookmarks_tag)
+			{
+				parse_bookmarks(node, m_bookmarks.get());
+			}
+			else if (node.name() == data_tag)
+			{
+				parse_data(node, m_data.get());
+			}
+		}
+
+		m_database_temp = false;
+		bind_annotations();
+		notify_update();
+		stop_activity();
+		emit(project_loaded);
+	}
+	catch (std::exception &e)
+	{
+		close();
+		notify_error(e.what());
+		throw;
+	}
 }
 
 const Handle<Directory> & Project::corpus() const
@@ -1064,19 +1073,8 @@ void Project::initialize(Runtime &rt)
 
     auto get_annotations = [](Runtime &rt, std::span<Variant> args) -> Variant {
     	Array<Variant> result;
-    	std::vector<Handle<Annotation>> tmp;
-    	auto &files = Project::get()->m_files;
-    	for (auto &pair : files)
-		{
-    		if (pair.second->is_annotation())
-			{
-    		    tmp.push_back(recast<Annotation>(pair.second));
-			}
-		}
-    	result.reserve(tmp.size());
-    	std::sort(tmp.begin(), tmp.end(), [](const Handle<Annotation> &a1, const Handle<Annotation> &a2) { return a1->path() < a2->path(); });
 
-    	for (auto &annot : tmp) {
+    	for (auto &annot : instance->get_annotations()) {
 		    result.append(std::move(annot));
 	    }
 
@@ -1101,19 +1099,8 @@ void Project::initialize(Runtime &rt)
 
     auto get_sounds = [](Runtime &rt, std::span<Variant> args) -> Variant {
     	Array<Variant> result;
-    	std::vector<Handle<Sound>> tmp;
-    	auto &files = Project::get()->m_files;
-    	for (auto &pair : files)
-		{
-    		if (pair.second->is_sound())
-			{
-    		    tmp.push_back(recast<Sound>(pair.second));
-			}
-		}
-    	result.reserve(tmp.size());
-    	std::sort(tmp.begin(), tmp.end(), [](const Handle<Sound> &s1, const Handle<Sound> &s2) { return s1->path() < s2->path(); });
 
-    	for (auto &sound : tmp) {
+    	for (auto &sound : instance->get_sounds()) {
 		    result.append(std::move(sound));
 	    }
 
@@ -1175,7 +1162,7 @@ void Project::clear()
     m_directory = String();
     m_files.clear();
     m_modified = false;
-    assert(m_accumulator.empty());
+    m_accumulator.clear();
 }
 
 String Project::label() const
@@ -1413,28 +1400,19 @@ bool Project::empty() const
     return m_corpus->empty() && m_data->empty() && m_scripts->empty() && m_bookmarks->empty();
 }
 
+Array<Handle<Sound>> Project::get_sounds() const
+{
+	return get_files<Sound>(*m_corpus);
+}
+
 Array<Handle<Annotation>> Project::get_annotations() const
 {
-	Array<Handle<Annotation>> result;
-	find_annotations(*m_corpus, result);
-
-	std::sort(result.begin(), result.end(), [](const Handle<Annotation> &a1, const Handle<Annotation> &a2) -> bool {
-		return a1->path() < a2->path();
-	});
-
-	return result;
+	return get_files<Annotation>(*m_corpus);
 }
 
 Array<Handle<Concordance>> Project::get_concordances() const
 {
-	Array<Handle<Concordance>> result;
-	find_concordances(*m_data, result);
-
-	std::sort(result.begin(), result.end(), [](const Handle<Concordance> &c1, const Handle<Concordance> &c2) -> bool {
-		return c1->label() < c2->label();
-	});
-
-	return result;
+	return get_files<Concordance>(*m_data);
 }
 
 void Project::set_default_bindings()
@@ -1585,32 +1563,6 @@ void Project::set_label(const String &value)
 {
 	m_label = value;
 	m_modified = true;
-}
-
-void Project::find_concordances(const Directory &dir, Array<Handle<Concordance>> &files) const
-{
-	for (auto &elem : dir)
-	{
-		if (elem->is_concordance()) {
-			files.append(recast<Concordance>(elem));
-		}
-		else if (elem->is_directory()) {
-			find_concordances(*recast<Directory>(elem), files);
-		}
-	}
-}
-
-void Project::find_annotations(const Directory &dir, Array<Handle<Annotation>> &files) const
-{
-	for (auto &elem : dir)
-	{
-		if (elem->is_annotation()) {
-			files.append(recast<Annotation>(elem));
-		}
-		else if (elem->is_directory()) {
-			find_annotations(*recast<Directory>(elem), files);
-		}
-	}
 }
 
 } // namespace phonometrica

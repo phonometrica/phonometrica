@@ -22,26 +22,26 @@
 #ifndef PHONOMETRICA_EVENT_EDITOR_HPP
 #define PHONOMETRICA_EVENT_EDITOR_HPP
 
-#include <wx/popupwin.h>
+#include <wx/dialog.h>
 #include <wx/richtext/richtextctrl.h>
 #include <phon/application/annotation.hpp>
 #include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
-class EventEditor final : public wxWindow
+class EventEditor final : public wxDialog
 {
 public:
 
-	EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, wxPoint position, wxSize size);
+	EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, wxSize size);
 
-	EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, intptr_t sel_start, intptr_t len, wxPoint position, wxSize size);
+	EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, intptr_t sel_start, intptr_t len, wxSize size);
 
-	Signal<> done;
+	Signal<bool> done;
 
 private:
 
-	EventEditor(wxWindow *parent, wxPoint position, wxSize size);
+	EventEditor(wxWindow *parent, wxSize size);
 
 	void OnKeyPressed(wxKeyEvent &e);
 

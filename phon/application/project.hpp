@@ -37,8 +37,6 @@
 namespace phonometrica {
 
 class Runtime;
-class Project;
-using AutoProject = std::unique_ptr<Project>;
 
 
 class Project final
@@ -138,6 +136,8 @@ public:
 
     bool empty() const;
 
+    Array<Handle<Sound>> get_sounds() const;
+
     Array<Handle<Annotation>> get_annotations() const;
 
     Array<Handle<Concordance>> get_concordances() const;
@@ -220,12 +220,36 @@ private:
 
     bool set_import_flag() { m_import_flag = true; return false; }
 
-	void find_concordances(const Directory &dir, Array<Handle<Concordance>> &files) const;
-	void find_annotations(const Directory &dir, Array<Handle<Annotation>> &files) const;
+	template<typename T>
+	Array<Handle<T>> get_files(const Directory &root) const
+	{
+		Array<Handle<T>> result;
+		find_files<T>(root, result);
+
+		std::sort(result.begin(), result.end(), [](const Handle<T> &f1, const Handle<T> &f2) -> bool {
+			return f1->path() < f2->path();
+		});
+
+		return result;
+	}
+
+	template<typename T>
+	void find_files(const Directory &dir, Array<Handle<T>> &files) const
+	{
+		for (auto &elem : dir)
+		{
+			if (dynamic_cast<T*>(elem.get())) {
+				files.append(recast<T>(elem));
+			}
+			else if (elem->is_directory()) {
+				find_files<T>(*recast<Directory>(elem), files);
+			}
+		}
+	}
 
     static Query::Type get_query_type(const String &path);
 
-    static AutoProject instance;
+    static std::unique_ptr<Project> instance;
 
 	Runtime &rt;
 

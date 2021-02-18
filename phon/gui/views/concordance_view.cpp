@@ -65,7 +65,7 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	auto intersection_tool = m_toolbar->AddButton(ICN(intersect), _("Intersect concordance... (matches in A and B)"));
 	auto complement_tool = m_toolbar->AddButton(ICN(complement), _("Get complement of concordance... (matches in B not A)"));
 
-	auto rename_tool = m_toolbar->AddButton(ICN(tag), _("Rename..."));
+	auto rename_tool = m_toolbar->AddButton(ICN(tag), _("Rename concordance..."));
 
 	m_toolbar->AddStretchableSpace();
 	auto help_tool = m_toolbar->AddHelpButton();
@@ -462,22 +462,27 @@ void ConcordanceView::EditCurrentEvent()
 	}
 
 	// Find first cell that contains a match on the selected the row so that we can position the editor there.
-	wxSize size(500, 60);
+	wxSize size(500, 150);
 	int j;
 	for (j = 1; j <= m_conc->column_count(); j++) {
 		if (m_conc->is_target(j)) break;
 	}
-	auto sel = m_grid->GetSelectedRows();
-	auto rect = m_grid->CellToRect(sel.front(), j);
-	auto pos = rect.GetPosition();
-	pos.x -= size.GetWidth() / 2;
-	pos.y += size.GetHeight() / 2;
+//	auto sel = m_grid->GetSelectedRows();
+//	auto rect = m_grid->CellToRect(sel.front(), j);
+//	auto pos = rect.GetPosition();
+//	pos.x -= size.GetWidth() / 2;
+//	pos.y += size.GetHeight() / 2;
 
 	auto offset = match->get_offset(1);
 	auto len = match->get_value(1).size();
 	edited_match = m_grid->GetSelectedRows().front() + 1; // index in base 1
-	event_editor = new EventEditor(this, match->annotation(), match->get_event(1), offset, len, pos, size);
+	event_editor = new EventEditor(this, match->annotation(), match->get_event(1), offset, len, size);
+	auto pos = wxGetMousePosition();
+	pos.x -= size.x / 2;
+	pos.y -= size.y / 2;
+	event_editor->Move(pos);
 	event_editor->done.connect(&ConcordanceView::EndMatchEditing, this);
+	event_editor->Show();
 }
 
 void ConcordanceView::Escape()
@@ -613,15 +618,17 @@ void ConcordanceView::OnRightClick(wxGridEvent &e)
 	PopupMenu(menu, pos);
 }
 
-void ConcordanceView::EndMatchEditing()
+void ConcordanceView::EndMatchEditing(bool value_changed)
 {
 	// This is a slot connected to EventEditor::done.
-
-	if (!m_conc->update_match(edited_match))
+	if (value_changed)
 	{
-		wxMessageBox(_("The current match is no longer valid and will be deleted"),
-			   _("Invalid match"), wxICON_WARNING);
-		DeleteRow(edited_match, true);
+		if (!m_conc->update_match(edited_match))
+		{
+			wxMessageBox(_("The current match is no longer valid and will be deleted"),
+			             _("Invalid match"), wxICON_WARNING);
+			DeleteRow(edited_match, true);
+		}
 	}
 
 	DeleteEventEditor();

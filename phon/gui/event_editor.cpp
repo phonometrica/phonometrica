@@ -26,24 +26,24 @@
 namespace phonometrica {
 
 
-EventEditor::EventEditor(wxWindow *parent, wxPoint position, wxSize size) :
-		wxWindow(parent, wxID_ANY, position, size)
+EventEditor::EventEditor(wxWindow *parent, wxSize size) :
+		wxDialog(parent, wxID_ANY, _("Edit event..."), wxDefaultPosition, size, wxCAPTION|wxCLOSE_BOX|wxSTAY_ON_TOP|wxRESIZE_BORDER)
 {
 	auto sizer = new VBoxSizer;
 	m_ctrl = new wxRichTextCtrl(this, wxID_ANY, wxString(), wxDefaultPosition, wxDefaultSize, wxRE_MULTILINE);
-	sizer->Add(m_ctrl, 1, wxEXPAND|wxALL, 5);
-	SetBackgroundColour(wxColor(126, 66, 245));
+	sizer->Add(m_ctrl, 1, wxEXPAND|wxALL, 0);
 	auto font = m_ctrl->GetFont();
 	font.MakeLarger();
 	m_ctrl->SetFont(font);
 	SetSizer(sizer);
 
 	m_ctrl->Bind(wxEVT_KEY_DOWN, &EventEditor::OnKeyPressed, this);
+	this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &) { done(false); });
 }
 
 
-EventEditor::EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, wxPoint position,
-                         wxSize size) : EventEditor(parent, position, size)
+EventEditor::EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, wxSize size) :
+	EventEditor(parent, size)
 {
 	m_annot = annot;
 	m_event = event;
@@ -51,9 +51,8 @@ EventEditor::EventEditor(wxWindow *parent, const Handle<Annotation> &annot, cons
 }
 
 
-EventEditor::EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, intptr_t sel_start,
-                         intptr_t len, wxPoint position, wxSize size) :
-		EventEditor(parent, position, size)
+EventEditor::EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, intptr_t sel_start, intptr_t len, wxSize size) :
+		EventEditor(parent, size)
 {
 	m_annot = annot;
 	m_event = event;
@@ -74,7 +73,6 @@ EventEditor::EventEditor(wxWindow *parent, const Handle<Annotation> &annot, cons
 
 void EventEditor::OnKeyPressed(wxKeyEvent &e)
 {
-	// Note: Escape is handled globally
 	switch (e.GetKeyCode())
 	{
 		case WXK_RETURN:
@@ -83,6 +81,11 @@ void EventEditor::OnKeyPressed(wxKeyEvent &e)
 			EditEvent();
 
 		} break;
+		case WXK_ESCAPE:
+		{
+			done(false);
+		}
+		break;
 		default:
 			e.Skip();
 	}
@@ -93,7 +96,7 @@ void EventEditor::EditEvent()
 	String text = m_ctrl->GetValue();
 	m_annot->set_event_text(m_event, text);
 	Project::updated();
-	done();
+	done(true);
 }
 
 } // namespace phonometrica

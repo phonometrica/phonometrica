@@ -101,7 +101,7 @@ protected:
 
 	void DeleteEventEditor();
 
-	void EndMatchEditing();
+	void EndMatchEditing(bool value_changed);
 
 	Match * GetSelectedMatch();
 

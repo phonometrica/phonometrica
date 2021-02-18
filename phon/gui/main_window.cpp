@@ -340,6 +340,7 @@ void MainWindow::SetBindings()
 	project->notify_closed.connect(&ProjectManager::OnProjectClosed, project_manager);
 	project->about_to_close.connect(&Viewer::CloseViews, viewer);
 	project->metadata_updated.connect(&ProjectManager::UpdateLabel, project_manager);
+	project->notify_error.connect(&MainWindow::OnError, this);
 	viewer->wake_up.connect(&MainWindow::OnWakeUp, this);
 //	project->start_activity.connect(&ProjectManager::StartActivity, project_manager);
 //	project->stop_activity.connect(&ProjectManager::StopActivity, project_manager);
@@ -1814,7 +1815,7 @@ void MainWindow::OnUpdateProgress(int i)
 {
 	progress_dialog->Update(i);
 	if (i == progress_dialog->GetRange()) {
-	    delete progress_dialog.release();
+	    progress_dialog = nullptr;
 	}
 }
 
@@ -1831,6 +1832,11 @@ void MainWindow::OnRedo(wxCommandEvent &)
 void MainWindow::OnWakeUp()
 {
     Raise();
+}
+
+void MainWindow::OnError(const String &msg)
+{
+	wxMessageBox(msg, _("Error"), wxICON_ERROR);
 }
 
 } // namespace phonometrica
