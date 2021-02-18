@@ -379,6 +379,7 @@ void TextQueryEditor::OnAddConstraint(wxCommandEvent &)
 	con->operator_selector->Bind(wxEVT_CHOICE, &TextQueryEditor::OnEnableSaving, this);
 	con->layer_ctrl->Bind(wxEVT_TEXT, &TextQueryEditor::OnEnableSaving, this);
 	con->relation_selector->Bind(wxEVT_CHOICE, &TextQueryEditor::OnEnableSaving, this);
+
 }
 
 void TextQueryEditor::OnRemoveConstraint(wxCommandEvent &)

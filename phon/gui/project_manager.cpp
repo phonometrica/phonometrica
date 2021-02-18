@@ -79,6 +79,8 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 #ifdef __WXGTK__
 	sizer->AddSpacer(2);
+#elif defined (__WXMAC__)
+	sizer->AddSpacer(5);
 #endif
 	sizer->Add(hsizer, 0, wxEXPAND | wxLEFT, 8);
 	sizer->Add(tree, 10, wxEXPAND | wxTOP, 5);

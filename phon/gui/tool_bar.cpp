@@ -70,7 +70,15 @@ wxToggleButton *ToolBar::AddToggleButton(const wxBitmap &bitmap, const wxString 
 
 wxButton *ToolBar::AddHelpButton()
 {
+#ifdef __WXMAC__
+	auto btn = new wxButton(this, wxID_HELP);
+	GetSizer()->Add(btn, 0, wxLEFT, padding);
+	btn->SetToolTip(_("Help"));
+
+	return btn;
+#else
 	return AddButton(wxBITMAP_PNG_FROM_DATA(question), _("Help"));
+#endif
 }
 
 void ToolBar::ShowMenu(wxButton *button, wxMenu *menu)

@@ -94,6 +94,8 @@ static const int ID_HELP_SOUND_INFO = wxNewId();
 
 #ifdef __WXMSW__
 #define EDITOR_SIZE wxSize(1100, 700)
+//#elif defined (__WXMAC__)
+//#define EDITOR_SIZE wxSize (1100, 700)
 #else
 #define EDITOR_SIZE wxSize(1100, 850)
 #endif

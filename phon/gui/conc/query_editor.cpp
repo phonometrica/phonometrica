@@ -68,7 +68,9 @@ void QueryEditor::Prepare()
 	scrolled_sizer->Add(MakeSearchPanel(main_window), search_prop, wxEXPAND | wxALL, 0);
 	scrolled_sizer->Add(MakeFileSelector(main_window), prop, wxEXPAND | wxALL, 0);
 	scrolled_sizer->Add(MakeProperties(main_window), prop, wxEXPAND | wxALL, 10);
+#ifndef __WXMAC__
 	scrolled_sizer->AddStretchSpacer();
+#endif
 	scrolled_sizer->Add(MakeButtons(main_window), 0, wxEXPAND | wxALL, 10);
 
 	main_window->SetSizer(scrolled_sizer);
