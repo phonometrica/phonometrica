@@ -36,7 +36,7 @@ ConcordanceJoinDialog::ConcordanceJoinDialog(wxWindow *parent, const wxString &t
 	sizer->Add(m_text, 0, wxEXPAND|wxALL, 10);
 	sizer->Add(new wxStaticText(this, wxID_ANY, _("Other concordance:")),  0, wxEXPAND|wxLEFT|wxBOTTOM|wxRIGHT, 10);
 	wxArrayString choices;
-	m_items = Project::get()->concordances();
+	m_items = Project::get()->get_concordances();
 
 	for (auto &conc : m_items) {
 		choices.Add(conc->label());

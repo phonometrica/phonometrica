@@ -63,11 +63,7 @@ public:
 
 	virtual wxString GetLabel() const = 0;
 
-	static Signal<> modified;
-
-	static Signal<> request_console;
-
-	static Signal<const Handle<Document>&> file_created;
+	void UpdateTitle();
 
 	virtual void Undo();
 
@@ -75,11 +71,15 @@ public:
 
 	void Submit(AutoCommand cmd);
 
+	static Signal<> modified;
+
+	static Signal<> request_console;
+
+	static Signal<const Handle<Document>&> file_created;
+
 protected:
 
 	void SetTitle(const wxString &title);
-
-	void UpdateTitle();
 
 	bool AskImportFile(const String &path);
 

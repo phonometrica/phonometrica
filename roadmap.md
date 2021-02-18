@@ -8,7 +8,7 @@ Done:
 - new user interface based on wxWidgets
 - new scripting engine
 - ability to search files in the project manager
-- ability to save and load queries and concordances
+- ability to save and load queries and get_concordances
 - redesigned query editor
 - query joints (union, intersection, complement)
 - press space to play a match or enter to edit it in a concordance view
@@ -68,7 +68,7 @@ Version 1.0:
 - Extraction d’une partie sélectionnée du fichier son. 
 - extraire extrait son + annotation
 - drag and drop des fichiers sur le projet
-- concordances avec n mots à gauche et à droite plutôt que des chaînes de n caractères
+- get_concordances avec n mots à gauche et à droite plutôt que des chaînes de n caractères
 - touchpad en plus de la molette dans les annotations ? 
 - Statistics (intégrer le code pour la régression)
 - Tool/wizzard to create plugins

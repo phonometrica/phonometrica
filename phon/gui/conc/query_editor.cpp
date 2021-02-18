@@ -215,7 +215,7 @@ wxBoxSizer *QueryEditor::MakeFileSelector(wxWindow *parent)
 	auto file_box = new wxStaticBox(parent, wxID_ANY, _("Annotations"));
 	auto file_sizer = new wxBoxSizer(wxVERTICAL);
 	wxArrayString annotations, tooltips;
-	for (auto &file : Project::get()->annotations()) {
+	for (auto &file : Project::get()->get_annotations()) {
 		annotations.Add(file->label());
 		tooltips.Add(file->path());
 	}

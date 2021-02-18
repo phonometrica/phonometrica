@@ -290,7 +290,7 @@ void Query::parse_constraints_from_xml(xml_node root)
 			throw error("Missing operator in Constraint node");
 		}
 		auto rel = Constraint::name_to_relation(op_attr.value());
-		Constraint::Operator op;
+		Constraint::Operator op = Constraint::Operator::None;
 		int layer_index = -1;
 		bool case_sensitive = false;
 		String layer_pattern, target;
@@ -323,7 +323,7 @@ void Query::parse_constraints_from_xml(xml_node root)
 				if (!attr) {
 					throw error("Missing attribute 'operator' in Target node");
 				}
-				op = static_cast<Constraint::Operator>(attr.as_int());
+				op = Constraint::name_to_operator(attr.value());
 
 				attr = subnode.attribute("case_sensitive");
 				if (!attr) {
@@ -528,7 +528,7 @@ Handle<Concordance> Query::execute()
 Array<AutoMatch> Query::search()
 {
 	Array<AutoMatch> result;
-	auto tmp = selected_annotations.empty() ? Project::get()->annotations() : selected_annotations;
+	auto tmp = selected_annotations.empty() ? Project::get()->get_annotations() : selected_annotations;
 	auto annotations = filter_annotations(std::move(tmp));
 
 	for (auto &c : m_constraints) {
@@ -536,7 +536,7 @@ Array<AutoMatch> Query::search()
 	}
 
 	int count = (int)annotations.size(), t = 0;
-	wxProgressDialog progress(_("Executing query"), _("Processing annotations..."), count);
+	wxProgressDialog progress(_("Executing query"), _("Processing annotations..."), count, nullptr, wxPD_AUTO_HIDE|wxPD_APP_MODAL|wxPD_CAN_ABORT);
 
 #ifdef PHON_TIMING
 	auto first_time = clock();

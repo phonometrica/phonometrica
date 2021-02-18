@@ -138,9 +138,9 @@ public:
 
     bool empty() const;
 
-    Array<Handle<Annotation>> annotations() const;
+    Array<Handle<Annotation>> get_annotations() const;
 
-    Array<Handle<Concordance>> concordances() const;
+    Array<Handle<Concordance>> get_concordances() const;
 
     void add_bookmark(Handle<Bookmark> bookmark);
 
@@ -219,6 +219,9 @@ private:
     void set_default_bindings();
 
     bool set_import_flag() { m_import_flag = true; return false; }
+
+	void find_concordances(const Directory &dir, Array<Handle<Concordance>> &files) const;
+	void find_annotations(const Directory &dir, Array<Handle<Annotation>> &files) const;
 
     static Query::Type get_query_type(const String &path);
 

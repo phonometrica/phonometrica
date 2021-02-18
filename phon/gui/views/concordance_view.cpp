@@ -20,6 +20,7 @@
  ***********************************************************************************************************************/
 
 #include <wx/msgdlg.h>
+#include <wx/textdlg.h>
 #include <wx/menu.h>
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/dialog.hpp>
@@ -53,16 +54,19 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 
 	auto praat_tool = m_toolbar->AddButton(ICN(praat), _("Open selection in Praat"));
 	auto view_tool = m_toolbar->AddButton(ICN(eye), _("Open match in annotation"));
+	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite24), _("Bookmark match"));
 
 	auto del_row_tool = m_toolbar->AddButton(ICN(delete_row), _("Delete selected row(s)"));
 	auto edit_row_tool = m_toolbar->AddButton(ICN(edit_row), _("Edit selected event"));
+
+	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
 
 	auto union_tool = m_toolbar->AddButton(ICN(unite), _("Unite concordance... (matches in A or B)"));
 	auto intersection_tool = m_toolbar->AddButton(ICN(intersect), _("Intersect concordance... (matches in A and B)"));
 	auto complement_tool = m_toolbar->AddButton(ICN(complement), _("Get complement of concordance... (matches in B not A)"));
 
-	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
-	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite24), _("Bookmark match"));
+	auto rename_tool = m_toolbar->AddButton(ICN(tag), _("Rename..."));
+
 	m_toolbar->AddStretchableSpace();
 	auto help_tool = m_toolbar->AddHelpButton();
 
@@ -119,6 +123,7 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	union_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnUnion, this);
 	intersection_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnIntersection, this);
 	complement_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnComplement, this);
+	rename_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ConcordanceView::OnRename, this);
 	m_col_tool->Bind(wxEVT_LEFT_DOWN, &ConcordanceView::OnColumnButtonClicked, this);
 	m_grid->Bind(wxEVT_KEY_DOWN, &ConcordanceView::OnKeyDown, this);
 	m_grid->Bind(wxEVT_GRID_CELL_LEFT_DCLICK, &ConcordanceView::OnDoubleClick, this);
@@ -505,7 +510,7 @@ Match * ConcordanceView::GetSelectedMatch()
 
 void ConcordanceView::OnUnion(wxCommandEvent &)
 {
-	ConcordanceJoinDialog dlg(this, _("Unite concordances..."));
+	ConcordanceJoinDialog dlg(this, _("Unite get_concordances..."));
 	if (dlg.ShowModal() != wxID_OK) {
 		return;
 	}
@@ -529,7 +534,7 @@ void ConcordanceView::OnUnion(wxCommandEvent &)
 
 void ConcordanceView::OnIntersection(wxCommandEvent &)
 {
-	ConcordanceJoinDialog dlg(this, _("Intersect concordances..."));
+	ConcordanceJoinDialog dlg(this, _("Intersect get_concordances..."));
 	if (dlg.ShowModal() != wxID_OK) {
 		return;
 	}
@@ -628,6 +633,17 @@ void ConcordanceView::DeleteRow(intptr_t i, bool update)
 	command_processor.submit(std::move(cmd));
 	if (update) {
 		UpdateView();
+	}
+}
+
+void ConcordanceView::OnRename(wxCommandEvent &)
+{
+	String name = wxGetTextFromUser(_("New concordance name:"), _("Rename concordance..."));
+
+	if (!name.empty())
+	{
+		m_conc->set_label(name, true);
+		View::UpdateView();
 	}
 }
 

@@ -17,7 +17,7 @@
  *                                                                                                                     *
  * Purpose: Abstract base class for tabular datasets, where each column represents a variable and each row represents  *
  * an observation. Derived classes are Dataset, which represents a CSV file, and Concordance, which is the base    *
- * for all the types of concordances available in Phonometrica.                                                        *
+ * for all the types of get_concordances available in Phonometrica.                                                        *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 

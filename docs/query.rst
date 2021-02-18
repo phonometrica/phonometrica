@@ -2,7 +2,7 @@ Queries
 =======
 
 
-Phonometrica offers a number of features to find concordances in a corpus. It
+Phonometrica offers a number of features to find get_concordances in a corpus. It
 also allows user to customize its search interface by creating search
 grammars specifically tailored for a project. Concordancing features are
 available in the ``Search`` menu.
@@ -125,7 +125,7 @@ Complex queries
 ---------------
 
 After performing a `simple queries <simple.md>`__ on a set of annotation
-files, Phonometrica attempts to find a set of concordances in one item (point
+files, Phonometrica attempts to find a set of get_concordances in one item (point
 or interval) at a time. While it is possible for an item to match a
 given search pattern several times if several substrings match the
 pattern, matches are nevertheless limited to a single item.

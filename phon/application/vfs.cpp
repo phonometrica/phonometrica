@@ -72,7 +72,7 @@ bool Element::is_document() const
 	return false;
 }
 
-bool Element::is_folder() const
+bool Element::is_directory() const
 {
 	return false;
 }
@@ -223,7 +223,7 @@ void Directory::remove(const Handle<Element> &node, bool mutate)
 	set_modified(mutate);
 }
 
-bool Directory::is_folder() const
+bool Directory::is_directory() const
 {
 	return true;
 }
@@ -263,7 +263,7 @@ void Directory::save_content()
 			assert(vf->has_path());
 			vf->save();
 		}
-		else if (file->is_folder())
+		else if (file->is_directory())
         {
 		    auto folder = raw_recast<Directory>(file);
 		    folder->save_content();

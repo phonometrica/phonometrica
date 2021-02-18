@@ -181,12 +181,6 @@ void ProjectManager::UpdateProject()
 	FillFolder(query_item, *project->queries());
 	FillFolder(script_item, *project->scripts());
 	FillFolder(bookmark_item, *project->bookmarks());
-
-	tree->Expand(corpus_item);
-	tree->Expand(query_item);
-	tree->Expand(data_item);
-	tree->Expand(script_item);
-	tree->Expand(bookmark_item);
 }
 
 void ProjectManager::ClearProject(bool set_flag)
@@ -219,7 +213,7 @@ void ProjectManager::FillFolder(wxTreeItemId item, Directory &folder)
 			continue;
 		}
 
-		if (node->is_folder())
+		if (node->is_directory())
 		{
 			auto &subfolder = dynamic_cast<Directory&>(*node);
 			auto data = new ItemData(&subfolder);
@@ -313,7 +307,7 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 	auto id = data->GetId();
 	assert(vnode);
 
-	if (vnode->is_folder())
+	if (vnode->is_directory())
 	{
 		if (tree->IsExpanded(id))
 		{
@@ -347,7 +341,7 @@ void ProjectManager::OnMiddleClick(wxTreeEvent &e)
 	auto id = data->GetId();
 	assert(vnode);
 
-	if (vnode->is_folder())
+	if (vnode->is_directory())
 	{
 		if (tree->IsExpanded(id))
 		{
@@ -370,7 +364,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 	{
 		auto &item = items.front();
 
-		if (item->is_folder())
+		if (item->is_directory())
 		{
 			auto folder = recast<Directory>(item);
 			wxArrayTreeItemIds ids;
@@ -648,7 +642,7 @@ void ProjectManager::RemoveFiles(ElementList files)
 	}
 	else if (files.size() == 1)
 	{
-		if (files.front()->is_folder())
+		if (files.front()->is_directory())
 		{
 			result = ask_question(_("Are you sure you want to remove this folder from the current project?\n"
 			                        "(It won't be deleted from your hard drive.)"), _("Confirm"));
@@ -753,7 +747,7 @@ void ProjectManager::SetExpansionFlag(wxTreeItemId node)
 	auto vnode = data->node;
 	assert(node);
 
-	if (vnode->is_folder())
+	if (vnode->is_directory())
 	{
 		auto vfolder = dynamic_cast<Directory*>(vnode);
 		vfolder->set_expanded(tree->IsExpanded(node));
@@ -829,7 +823,7 @@ void ProjectManager::OnDragItem(wxTreeEvent &e)
 
 	for (auto &item : dragged_files)
 	{
-		if (item->is_folder() && project->is_root(dynamic_cast<Directory*>(item.get())))
+		if (item->is_directory() && project->is_root(dynamic_cast<Directory*>(item.get())))
 		{
 			dragged_files.clear();
 			return;
@@ -864,7 +858,7 @@ void ProjectManager::OnDropItem(wxTreeEvent &e)
 	}
 
 	// If the target is a folder, append at the end
-	if (dest_node->is_folder())
+	if (dest_node->is_directory())
 	{
 		auto folder = dynamic_cast<Directory*>(dest_node);
 		tree->Expand(dest_item);
@@ -1138,6 +1132,15 @@ void ProjectManager::StartActivity()
 void ProjectManager::StopActivity()
 {
 	activity_indicator->Stop();
+}
+
+void ProjectManager::Expand()
+{
+	tree->Expand(corpus_item);
+	tree->Expand(query_item);
+	tree->Expand(data_item);
+	tree->Expand(script_item);
+	tree->Expand(bookmark_item);
 }
 
 #ifdef __WXMSW__

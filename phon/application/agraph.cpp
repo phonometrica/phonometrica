@@ -938,7 +938,7 @@ AutoEvent AGraph::find_event_starting_at(intptr_t layer_index, double time) cons
 {
 	// Find event whose left boundary is exactly at 'time'.
 	auto &layer = m_layers.at(layer_index);
-	auto it = std::lower_bound(layer->events.begin(), layer->events.end(), time, EventLess());
+	auto it = std::lower_bound(layer->events.begin(), layer->events.end(), time, EventLessEqual());
 
 	if (it == layer->events.end() || (*it)->start_time() != time) {
 		return nullptr;
@@ -953,13 +953,22 @@ AutoEvent AGraph::find_event_ending_at(intptr_t layer_index, double time) const
 	auto &layer = m_layers.at(layer_index);
 	auto it = std::lower_bound(layer->events.begin(), layer->events.end(), time, EventLessEqual());
 
-	if (it == layer->events.end() || (*it)->end_time() != time) {
-		return nullptr;
+	if (it != layer->events.end())
+	{
+		if ((*it)->is_instant()) {
+			return *it;
+		}
+		if (it != layer->events.begin()) {
+			it--;
+			if ((*it)->end_time() == time) {
+				return *it;
+			}
+		}
 	}
 
-	return *it;
+	return nullptr;
 }
-
+// FIXME: should this be the same as the previous method?
 AutoEvent AGraph::find_previous_event(intptr_t layer_index, double time) const
 {
 	// Find event whose right boundary is no greater than 'time'.

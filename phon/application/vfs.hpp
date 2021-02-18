@@ -80,7 +80,7 @@ public:
 
 	virtual bool is_document() const;
 
-	virtual bool is_folder() const;
+	virtual bool is_directory() const;
 
 	virtual bool is_query() const;
 
@@ -157,7 +157,7 @@ public:
 
 	bool modified() const override;
 
-	bool is_folder() const override;
+	bool is_directory() const override;
 
 	void discard_changes() override;
 

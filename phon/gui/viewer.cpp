@@ -208,4 +208,11 @@ void Viewer::OnEditEvent(const Handle<Annotation> &annot, const AutoEvent &event
 	GetCurrentView()->Submit(std::move(cmd));
 }
 
+void Viewer::UpdateLabels()
+{
+	for (size_t i = 0; i < GetPageCount(); i++) {
+		GetView(i)->UpdateTitle();
+	}
+}
+
 } // namespace phonometrica

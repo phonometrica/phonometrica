@@ -111,6 +111,8 @@ protected:
 
 	void OnComplement(wxCommandEvent &);
 
+	void OnRename(wxCommandEvent &);
+
 	wxGrid *m_grid;
 
 	wxStaticText *count_label;

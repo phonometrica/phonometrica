@@ -15,7 +15,7 @@
  *                                                                                                                     *
  * Created: 01/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Editor for text concordances in annotations.                                                               *
+ * Purpose: Editor for text get_concordances in annotations.                                                               *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 

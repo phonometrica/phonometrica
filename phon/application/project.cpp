@@ -899,7 +899,7 @@ void Project::remove(ElementList &files)
 {
 	for (auto &file : files)
 	{
-		if (file->is_folder())
+		if (file->is_directory())
 		{
 			remove(recast<Directory>(file));
 		}
@@ -1229,7 +1229,7 @@ void Project::remove(const Handle<Directory> &folder)
             auto file = recast<Document>(node);
             remove(file);
         }
-        else if (node->is_folder())
+        else if (node->is_directory())
         {
             auto subfolder = recast<Directory>(node);
             remove(subfolder);
@@ -1412,19 +1412,11 @@ bool Project::empty() const
     return m_corpus->empty() && m_data->empty() && m_scripts->empty() && m_bookmarks->empty();
 }
 
-Array<Handle<Annotation>> Project::annotations() const
+Array<Handle<Annotation>> Project::get_annotations() const
 {
 	Array<Handle<Annotation>> result;
+	find_annotations(*m_corpus, result);
 
-	for (auto &item : m_files)
-	{
-		auto &vf = item.second;
-
-		if (vf->is_annotation())
-		{
-			result.push_back(recast<Annotation>(vf));
-		}
-	}
 	std::sort(result.begin(), result.end(), [](const Handle<Annotation> &a1, const Handle<Annotation> &a2) -> bool {
 		return a1->path() < a2->path();
 	});
@@ -1432,19 +1424,11 @@ Array<Handle<Annotation>> Project::annotations() const
 	return result;
 }
 
-Array<Handle<Concordance>> Project::concordances() const
+Array<Handle<Concordance>> Project::get_concordances() const
 {
 	Array<Handle<Concordance>> result;
+	find_concordances(*m_data, result);
 
-	for (auto &item : m_files)
-	{
-		auto &vf = item.second;
-
-		if (vf->is_concordance())
-		{
-			result.push_back(recast<Concordance>(vf));
-		}
-	}
 	std::sort(result.begin(), result.end(), [](const Handle<Concordance> &c1, const Handle<Concordance> &c2) -> bool {
 		return c1->label() < c2->label();
 	});
@@ -1600,6 +1584,32 @@ void Project::set_label(const String &value)
 {
 	m_label = value;
 	m_modified = true;
+}
+
+void Project::find_concordances(const Directory &dir, Array<Handle<Concordance>> &files) const
+{
+	for (auto &elem : dir)
+	{
+		if (elem->is_concordance()) {
+			files.append(recast<Concordance>(elem));
+		}
+		else if (elem->is_directory()) {
+			find_concordances(*recast<Directory>(elem), files);
+		}
+	}
+}
+
+void Project::find_annotations(const Directory &dir, Array<Handle<Annotation>> &files) const
+{
+	for (auto &elem : dir)
+	{
+		if (elem->is_annotation()) {
+			files.append(recast<Annotation>(elem));
+		}
+		else if (elem->is_directory()) {
+			find_annotations(*recast<Directory>(elem), files);
+		}
+	}
 }
 
 } // namespace phonometrica

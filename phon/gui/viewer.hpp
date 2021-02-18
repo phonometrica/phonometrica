@@ -63,6 +63,8 @@ public:
 
 	void UpdateCurrentView();
 
+	void UpdateLabels();
+
 	Signal<> request_console;
 
 	// Work around a bug on Windows, whereby the application goes to the background when a concordance is displayed.

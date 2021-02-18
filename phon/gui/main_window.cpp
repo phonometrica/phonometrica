@@ -336,6 +336,7 @@ void MainWindow::SetBindings()
 	Document::file_modified.connect(&Viewer::UpdateCurrentView, viewer);
 	auto project = Project::get();
 	project->notify_update.connect(&ProjectManager::OnProjectUpdated, project_manager);
+	project->notify_update.connect(&Viewer::UpdateLabels, viewer);
 	project->notify_closed.connect(&ProjectManager::OnProjectClosed, project_manager);
 	project->about_to_close.connect(&Viewer::CloseViews, viewer);
 	project->metadata_updated.connect(&ProjectManager::UpdateLabel, project_manager);
@@ -833,6 +834,7 @@ void MainWindow::OnAddFilesToProject(wxCommandEvent &)
 
 	ProjectManager::CheckProjectImport();
 	Project::updated();
+	project_manager->Expand();
 }
 
 void MainWindow::OnAddDirectoryToProject(wxCommandEvent &)
@@ -847,6 +849,7 @@ void MainWindow::OnAddDirectoryToProject(wxCommandEvent &)
 	project->import_directory(dlg.GetPath());
 	ProjectManager::CheckProjectImport();
 	Project::updated();
+	project_manager->Expand();
 }
 
 void MainWindow::OnHelpScripting(wxCommandEvent &)
@@ -1268,6 +1271,7 @@ void MainWindow::OpenProject(const String &path)
 {
 	Project::get()->open(path);
 	UpdateRecentProjects(path);
+	project_manager->Expand();
 }
 
 void MainWindow::OpenMostRecentProject()
@@ -1488,14 +1492,24 @@ void MainWindow::SetShellFunctions()
 		auto &msg = cast<String>(args[0]);
 		auto &title = cast<String>(args[1]);
 		auto count = (int)cast<intptr_t>(args[2]);
-		progress_dialog = std::make_unique<wxProgressDialog>(title, msg, count);
+		if (count <= 0) {
+			wxMessageBox(_("Count value must be positive in progress dialog"), _("Invalid value"), wxICON_ERROR);
+		}
+		else {
+			progress_dialog = std::make_unique<wxProgressDialog>(title, msg, count, this, wxPD_AUTO_HIDE|wxPD_APP_MODAL|wxPD_CAN_ABORT);
+		}
 		return Variant();
 	};
 
 	auto update_progress_dialog = [this](Runtime &rt, std::span<Variant> args) -> Variant {
 		auto value = (int)cast<intptr_t>(args[0]);
-		progress_dialog->Update(value);
-		return Variant();
+		if (value <= 0 || value > progress_dialog->GetRange())
+		{
+			wxMessageBox(_("Value out of range in progress dialog"), _("Invalid value"), wxICON_ERROR);
+			progress_dialog = nullptr;
+			return Variant();
+		}
+		return progress_dialog->Update(value);
 	};
 
 	auto view_text = [this](Runtime &, std::span<Variant> args) -> Variant {
@@ -1793,7 +1807,7 @@ void MainWindow::RunQuery(QueryEditor &editor)
 
 void MainWindow::OnRequestProgress(const String &msg, const String &title, int count)
 {
-	progress_dialog = std::make_unique<wxProgressDialog>(title, msg, count);
+	progress_dialog = std::make_unique<wxProgressDialog>(title, msg, count, this, wxPD_AUTO_HIDE|wxPD_APP_MODAL|wxPD_CAN_ABORT);
 }
 
 void MainWindow::OnUpdateProgress(int i)

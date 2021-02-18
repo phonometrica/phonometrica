@@ -316,6 +316,10 @@ void Concordance::parse_matches_from_xml(xml_node root)
 {
 	using str = std::string_view;
 
+#ifdef PHON_TIMING
+	auto first_time = clock();
+#endif
+
 	auto attr = root.attribute("count");
 	if (!attr){
 		throw error("Matches node has no 'count' attribute");
@@ -340,6 +344,7 @@ void Concordance::parse_matches_from_xml(xml_node root)
 			throw error("Expected a Match, got a % in concordance", node.name());
 		}
 		update_progress(count++);
+
 		Handle<Annotation> annot;
 		std::unique_ptr<Match::Target> first_target;
 		Match::Target *last_target = nullptr;
@@ -412,10 +417,17 @@ void Concordance::parse_matches_from_xml(xml_node root)
 		assert(first_target);
 		m_matches.append(std::make_unique<Match>(annot, std::move(first_target)));
 	}
+
+#ifdef PHON_TIMING
+	auto last_time = clock();
+	auto total = double(last_time-first_time) * 1000 / CLOCKS_PER_SEC;
+	std::cerr << "Total loading time concordance: " << total << " ms\n";
+#endif
 }
 
 void Concordance::write()
 {
+	open();
 	xml_document doc;
 
 	auto root = doc.append_child("Phonometrica");
@@ -612,13 +624,13 @@ void Concordance::restore_match(intptr_t row, AutoMatch m)
 Handle<Concordance> Concordance::unite(const Concordance &other, const String &label) const
 {
 	if (m_target_count != other.m_target_count) {
-		throw error("Cannot unite concordances with different numbers of targets");
+		throw error("Cannot unite get_concordances with different numbers of targets");
 	}
 	if (m_context_type != other.m_context_type) {
-		throw error("Cannot unite concordances with different contexts");
+		throw error("Cannot unite get_concordances with different contexts");
 	}
 	if (m_context_length != other.m_context_length) {
-		throw error("Cannot unite concordances with different context lengths");
+		throw error("Cannot unite get_concordances with different context lengths");
 	}
 
 	std::set<AutoMatch, MatchLess> buffer;
@@ -647,13 +659,13 @@ Handle<Concordance> Concordance::unite(const Concordance &other, const String &l
 Handle<Concordance> Concordance::intersect(const Concordance &other, const String &label) const
 {
 	if (m_target_count != other.m_target_count) {
-		throw error("Cannot intersect concordances with different numbers of targets");
+		throw error("Cannot intersect get_concordances with different numbers of targets");
 	}
 	if (m_context_type != other.m_context_type) {
-		throw error("Cannot intersect concordances with different contexts");
+		throw error("Cannot intersect get_concordances with different contexts");
 	}
 	if (m_context_length != other.m_context_length) {
-		throw error("Cannot intersect concordances with different context lengths");
+		throw error("Cannot intersect get_concordances with different context lengths");
 	}
 
 	Array<AutoMatch> result;
@@ -679,13 +691,13 @@ Handle<Concordance> Concordance::intersect(const Concordance &other, const Strin
 Handle<Concordance> Concordance::complement(const Concordance &other, const String &label) const
 {
 	if (m_target_count != other.m_target_count) {
-		throw error("Cannot compute concordance complement for concordances with different numbers of targets");
+		throw error("Cannot compute concordance complement for get_concordances with different numbers of targets");
 	}
 	if (m_context_type != other.m_context_type) {
-		throw error("Cannot compute concordance complement for concordances with different contexts");
+		throw error("Cannot compute concordance complement for get_concordances with different contexts");
 	}
 	if (m_context_length != other.m_context_length) {
-		throw error("Cannot compute concordance complement for concordances with different context lengths");
+		throw error("Cannot compute concordance complement for get_concordances with different context lengths");
 	}
 
 	Array<AutoMatch> result;

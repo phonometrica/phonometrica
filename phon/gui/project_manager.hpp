@@ -51,6 +51,8 @@ public:
 
 	void StopActivity();
 
+	void Expand();
+
 	static void CheckProjectImport();
 
 	Signal<DocList> files_selected;
