@@ -19,15 +19,15 @@ In the remainder of this document, the term *character* is used to mean
 of "user-perceived character".
 
 
-Methods
--------
+Constructor
+-----------
 
 
 .. class:: String
 
 
 
-.. method:: init()
+.. method:: String()
 
 Creates an empty string.
 

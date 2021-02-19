@@ -22,10 +22,21 @@
 #ifndef PHONOMETRICA_SOUND_HPP
 #define PHONOMETRICA_SOUND_HPP
 
+#if PHON_WINDOWS
+#include <windows.h>
+#define ENABLE_SNDFILE_WINDOWS_PROTOTYPES 1
+#endif
+
+#include <cmath>
+#include <memory>
+
 #include <phon/application/vfs.hpp>
-#include <phon/application/audio_data.hpp>
 #include <phon/third_party/rtaudio/RtAudio.h>
 #include <phon/utils/matrix.hpp>
+#include <sndfile.hh>
+#include <phon/array.hpp>
+#include <phon/utils/span.hpp>
+
 
 namespace phonometrica {
 
@@ -41,7 +52,8 @@ public:
 	{
 		WAV  = SF_FORMAT_WAV,
 		AIFF = SF_FORMAT_AIFF,
-		FLAC = SF_FORMAT_FLAC
+		FLAC = SF_FORMAT_FLAC,
+		OGG  = SF_FORMAT_OGG
 	};
 
 	Sound(Directory *parent, String path);
@@ -66,9 +78,13 @@ public:
 
 	intptr_t nframes() const;
 
-    std::shared_ptr<AudioData> data();
+	double max_value() const;
 
-    std::shared_ptr<AudioData> light_data() const;
+	double min_value() const;
+
+    const Array<double> &data() const;
+
+    Array<double> &data();
 
     SndfileHandle handle() const;
 
@@ -88,6 +104,15 @@ public:
 
 	static void initialize(Runtime &rt);
 
+	intptr_t channel_size() const;
+
+	intptr_t size() const;
+
+
+	double frame_to_time(intptr_t index) const;
+
+	intptr_t time_to_frame(double time) const;
+
 private:
 
 	void load() override;
@@ -98,7 +123,9 @@ private:
 
 	static Array<String> the_supported_sound_formats, the_common_sound_formats;
 
-	std::shared_ptr<AudioData> m_data;
+	Array<double> m_data;
+
+	mutable SndfileHandle m_handle;
 };
 
 namespace traits {

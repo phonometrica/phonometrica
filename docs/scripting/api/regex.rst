@@ -65,12 +65,12 @@ since it extracts the shortest string that satisfies the regular
 expression. To enable non-greedy behavior, we must use the quantifier
 ``?`` after the star (in this case, ``"j.*?e"``).
 
-Methods
--------
+Constructors
+------------
 
 .. class:: Regex
 
-.. method:: init(pattern as String)
+.. method:: Regex(pattern as String)
 
 Create a new regular expression from a string pattern. The regex can be matched against any string.
 

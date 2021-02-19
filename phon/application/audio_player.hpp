@@ -25,10 +25,9 @@
 
 #include <atomic>
 #include <memory>
-#include <phon/application/audio_data.hpp>
 #include <phon/application/resampler.hpp>
 #include <phon/third_party/rtaudio/RtAudio.h>
-#include <phon/utils/signal.hpp>
+#include <phon/application/sound.hpp>
 
 namespace phonometrica {
 
@@ -38,7 +37,7 @@ class AudioPlayer final
 {
 public:
 
-    explicit AudioPlayer(std::shared_ptr<AudioData> data);
+    explicit AudioPlayer(const Handle<Sound> &data);
 
     AudioPlayer(const AudioPlayer &) = delete;
 
@@ -60,11 +59,9 @@ public:
 
     Resampler *resampler() { return m_resampler.get(); }
 
-
 //    void current_time(double);
 //
 //    void error(const std::string &);
-
 
     void interrupt();
 
@@ -73,8 +70,6 @@ public:
     void resume();
 
     void stop();
-
-    Signal<> done;
 
 private:
 
@@ -124,8 +119,7 @@ private:
     Array<double> m_buffer;
 #endif
 
-    // Current audio data being played, if any
-    std::shared_ptr<AudioData> data;
+    Handle<Sound> data;
 
 };
 

@@ -93,10 +93,28 @@ const Array<String> &Sound::common_sound_formats()
 
 void Sound::load()
 {
-    if (!m_data)
-    {
-		m_data = std::make_shared<AudioData>(handle());
-    }
+	auto h = handle();
+	Array<double> buffer;
+	int nchannel = h.channels();
+	// Samples are rows and channels are columns. For instance, the 5th sample in the second channel is at (i=5, j=2).
+	buffer.resize(BUFFER_SIZE * nchannel);
+	h.seek(0, SEEK_SET);
+	m_data = Array<double>((intptr_t) h.frames(), (intptr_t) nchannel);
+	auto ptr = buffer.begin();
+	intptr_t count = 1; // dummy value to enter the loop
+
+	while (count != 0)
+	{
+		count = (intptr_t) h.readf(ptr, BUFFER_SIZE);
+		for (intptr_t i = 1; i <= count; i += nchannel)
+		{
+			for (intptr_t j = 1; j <= nchannel; j++)
+			{
+				m_data(i,j) = (i - 1) + (j - 1);
+			}
+		}
+	}
+	h.seek(0, SEEK_SET);
 }
 
 void Sound::write()
@@ -155,7 +173,6 @@ String Sound::libsndfile_version()
 double Sound::duration() const
 {
     auto h = handle();
-
     return double(h.frames()) / h.samplerate();
 }
 
@@ -169,39 +186,25 @@ intptr_t Sound::nframes() const
 	return handle().frames();
 }
 
-std::shared_ptr<AudioData> Sound::data()
-{
-	load();
-	return m_data;
-}
-
 SndfileHandle Sound::handle() const
 {
-	if (m_data) return m_data->handle();
+	if (m_handle) {
+		return m_handle;
+	}
 
 #if PHON_WINDOWS
 	auto wpath = m_path.to_wide();
-        return SndfileHandle(wpath.data());
+	m_handle = SndfileHandle(wpath.data());
 #else
-	return SndfileHandle(m_path.data());
+	m_handle = SndfileHandle(m_path.data());
 #endif
+
+	return m_handle;
 }
 
 int Sound::nchannel() const
 {
     return handle().channels();
-}
-
-std::shared_ptr<AudioData> Sound::light_data() const
-{
-	// We don't to load the audio data, so we use the current data if it's already loaded, otherwise we create
-	// an AudioData which doesn't load the sound file.
-	if (m_data)
-	{
-		return m_data;
-	}
-
-	return std::make_shared<AudioData>(handle(), false);
 }
 
 void Sound::convert(const String &path, int sample_rate, Sound::Format fmt)
@@ -216,16 +219,16 @@ void Sound::convert(const String &path, int sample_rate, Sound::Format fmt)
 #else
 	SndfileHandle outfile(path.data(), SFM_WRITE, flags, 1, sample_rate);
 #endif
-	auto input = this->light_data();
-	Resampler resampler(input->sample_rate(), sample_rate, BUFFER_SIZE);
-	input->seek(0);
-	auto size = input->size();
+	auto input = this->handle();
+	Resampler resampler(input.samplerate(), sample_rate, BUFFER_SIZE);
+	input.seek(0, SEEK_SET);
+	auto size = input.frames() * input.channels();
 	double *out = nullptr;
-	intptr_t ol = double(size) * sample_rate / input->sample_rate();
+	intptr_t ol = double(size) * sample_rate / input.samplerate();
 
 	while (ol > 0)
 	{
-		auto count = input->read(buffer, BUFFER_SIZE);
+		auto count = input.read(buffer, BUFFER_SIZE);
 		if (count == 0) {
 			count = BUFFER_SIZE;
 			memset(buffer, 0, sizeof(double) * BUFFER_SIZE);
@@ -236,7 +239,7 @@ void Sound::convert(const String &path, int sample_rate, Sound::Format fmt)
 		ol -= len;
 	}
 
-	input->seek(0);
+	input.seek(0, SEEK_SET);
 }
 
 int Sound::get_intensity_window_size() const
@@ -245,7 +248,7 @@ int Sound::get_intensity_window_size() const
 	double min_pitch = 100;
 	double effective_duration = 3.2 / min_pitch;
 
-	return int(std::ceil(effective_duration * m_data->sample_rate()));
+	return int(std::ceil(effective_duration * m_handle.samplerate()));
 }
 
 Array<double>
@@ -281,6 +284,7 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 {
 	load();
 	Array<double> result(nformant, 2, 0.0);
+#if 0
 	using namespace speech;
 	PHON_LOG("Calculating formants");
 	//std::cerr << "get_formants at time " << time << std::endl;
@@ -288,13 +292,13 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 	window_size *= 2; // for the Gaussian window
 	double Fs = nyquist_frequency * 2;
 	int nframe_orig = int(ceil(window_size * this->sample_rate()));
-	auto first_sample = m_data->time_to_frame(time) - nframe_orig / 2;
+	auto first_sample = this->time_to_frame(time) - nframe_orig / 2;
 	auto last_sample = first_sample + nframe_orig;
 
 	if (first_sample < 1) {
 		throw error("File '%': time point % is too close to the beginning of the file", path(), time);
 	}
-	if (last_sample > m_data->size()) {
+	if (last_sample > this->channel_size()) {
 		throw error("File '%': time point % is too close to the end of the file", path(), time);
 	}
 
@@ -356,12 +360,13 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 		result(k, 1) = std::nan("");
 		result(k, 2) = std::nan("");
 	}
-
+#endif
 	return result;
 }
 
 double Sound::get_pitch(double time, double min_pitch, double max_pitch, double threshold)
 {
+#if 0
 	load();
 	PHON_LOG("Calculating pitch");
 	const double time_step = 0.01;
@@ -390,10 +395,14 @@ double Sound::get_pitch(double time, double min_pitch, double max_pitch, double 
 	PHON_LOG("point estimate at time %f = %f\n", time, pitch[5]);
 
 	return pitch[5];
+#endif
+
+	return 0;
 }
 
 double Sound::get_intensity(double time)
 {
+#if 0
 	load();
 	int window_size = get_intensity_window_size();
 	auto first_sample = m_data->time_to_frame(time) - (window_size / 2);
@@ -410,14 +419,20 @@ double Sound::get_intensity(double time)
 	auto win = speech::create_window(window_size, window_size, speech::WindowType::Hamming);
 
 	return speech::get_intensity(frame, win);
+#endif
+	return 0;
 }
 
 std::vector<double> Sound::get_intensity(intptr_t start_pos, intptr_t end_pos, double time_step)
 {
+#if 0
 	auto input = m_data->get(start_pos, end_pos);
 	int window_size = get_intensity_window_size();
 
-	return speech::get_intensity(input, m_data->sample_rate(), window_size, time_step);
+	return speech::get_intensity(input, sample_rate(), window_size, time_step);
+#endif
+
+	return std::vector<double>();
 }
 
 void Sound::initialize(Runtime &rt)
@@ -639,6 +654,47 @@ void Sound::initialize(Runtime &rt)
 	rt.add_global("semitones_to_hertz", st2hz3, {CLS(Array<double>) });
 	rt.add_global("semitones_to_hertz", st2hz4, {CLS(Array<double>), CLS(Number) });
 #undef CLS
+}
+
+double Sound::max_value() const
+{
+	return *std::max_element(m_data.begin(), m_data.end());
+}
+
+double Sound::min_value() const
+{
+	return *std::min_element(m_data.begin(), m_data.end());
+}
+
+const Array<double> &Sound::data() const
+{
+	return m_data;
+}
+
+Array<double> &Sound::data()
+{
+	return m_data;
+}
+
+intptr_t Sound::channel_size() const
+{
+	return (intptr_t) m_handle.frames();
+}
+
+intptr_t Sound::size() const
+{
+	return intptr_t(m_handle.frames() * m_handle.channels());
+}
+
+double Sound::frame_to_time(intptr_t index) const
+{
+	return double(index) / sample_rate();
+}
+
+intptr_t Sound::time_to_frame(double time) const
+{
+	auto s = (intptr_t) round(time * sample_rate());
+	return std::min<intptr_t>(s, m_handle.frames());
 }
 
 

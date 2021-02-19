@@ -4,8 +4,11 @@ Annotations
 This page documents the ``Annotation`` type, which corresponds to a time-aligned annotation of a sound file, on one or more layers.
 
 
-Global functions
-----------------
+Functions
+---------
+
+
+.. class:: Annotation
 
 
 .. function:: get_annotations()
@@ -22,10 +25,11 @@ Return a list of all the selected annotations in the current project.
 ------------
 
 
-.. function:: get_annotation(path)
+.. function:: get_annotation(path as String)
 
 Return the ``Annotation`` object from the current project whose path is ``path``, or ``null`` if there is no such
 annotation. If the object exists but is not an annotation, an error is thrown.
+
 
 ------------
 
@@ -34,15 +38,9 @@ annotation. If the object exists but is not an annotation, an error is thrown.
 Return the ``Annotation`` object loaded in the current view, or ``null`` if the current view is not an annotation view.
 
 
-Methods
--------
-
-.. class:: Annotation
-
-
 ------------
 
-.. method:: add_property(category, value)
+.. function:: add_property(file as Document, category as String, value as Object)
 
 Adds a property to the annotation. ``category`` must be a string and ``value`` can be a string, a number or a Boolean.
 If the file already has a property with the same category, the value will be replaced with the new one.
@@ -50,48 +48,48 @@ If the file already has a property with the same category, the value will be rep
 
 ------------
 
-.. method:: remove_property(category)
+.. function:: remove_property(file as Document, category as String)
 
 Removes the property whose category is ``category`` from the annotation. If there is no such category, this method 
 does nothing.
 
 ------------
 
-.. method:: remove_property(category)
+.. function:: remove_property(file as Document, category)
 
 Gets the property whose category is ``category`` from the annotation, or ``null`` if there is no such category.
 
 ------------
 
-.. method:: bind_to_sound(path)
+.. function:: bind_to_sound(annot as Annotaiton, path as String)
 
 Binds the annotation to the sound file whose path is ``path``. If the sound file is not in the current project,
 it will be automatically imported.
 
 ------------
 
-.. method:: get_event_start(layer_index, event_index)
+.. function:: get_event_start(layer_index, event_index)
 
 Gets the start time of an event on a given layer. Note that if the event is an instant, its start time is equal to
 its end time.
 
 ------------
 
-.. method:: get_event_end(layer_index, event_index)
+.. function:: get_event_end(layer_index, event_index)
 
 Gets the end time of an event on a given layer. Note that if the event is an instant, its end time is equal to
 its start time.
 
 ------------
 
-.. method:: get_event_text(layer_index, event_index)
+.. function:: get_event_text(layer_index, event_index)
 
 
 Gets the text of an event on a given layer.
 
 ------------
 
-.. method:: set_event_text(layer_index, event_index, new_text)
+.. function:: set_event_text(layer_index, event_index, new_text)
 
 
 Sets the text of an event on a given layer.
@@ -99,21 +97,21 @@ Sets the text of an event on a given layer.
 
 ------------
 
-.. method:: get_event_count(layer_index)
+.. function:: get_event_count(layer_index)
 
 Returns the number of events on a given layer. 
 
 
 ------------
 
-.. method:: get_layer_label(layer_index)
+.. function:: get_layer_label(layer_index)
 
 
 Gets the layer's label.
 
 ------------
 
-.. method:: set_layer_label(layer_index, new_label)
+.. function:: set_layer_label(layer_index, new_label)
 
 
 Sets the layer's label.

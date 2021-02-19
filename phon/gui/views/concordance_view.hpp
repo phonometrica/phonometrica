@@ -96,8 +96,6 @@ protected:
 
 	void StopPlayer();
 
-	void ResetPlayer();
-
 	void OnDoubleClick(wxGridEvent &);
 
 	void OnRightClick(wxGridEvent &);
@@ -128,7 +126,7 @@ protected:
 
 	wxSpinCtrl *m_active_target;
 
-	AudioPlayer *player = nullptr;
+	std::unique_ptr<AudioPlayer> player;
 
 	EventEditor *event_editor = nullptr;
 

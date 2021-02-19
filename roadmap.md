@@ -29,8 +29,7 @@ Done:
 - bug fixes
 
 TODO:
-- contexte autour de la target de la contrainte de référence + ajouter boutons radio pour sélectionner la cible active 
-- complex queries
+
 - coding protocols
 - priorité : refactoriser les vues spreadsheet (finir CSV)
 - bug décalage: décalage proportionnel à la taille du zoom. Si on fait glisser la fenêtre d'un côté ou de l'autre, le décalage sera tantôt à gauche ou à droite. Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers. 
@@ -50,6 +49,8 @@ TODO:
 
 Version 0.9.0+:
 
+- contexte autour de la target de la contrainte de référence 
+- complex queries
 - project metadata dans le panel info
 - measure pitch and intensity
 - settings: possibilité de sauvagarde périodique des annotations (peut-être fichier buffer ?)
@@ -76,6 +77,7 @@ Version 1.0:
 Post 1.0
 
 - POS tagging?
+- lexical measures (functional load, neighborhood density)
 
 
 ============================================================================

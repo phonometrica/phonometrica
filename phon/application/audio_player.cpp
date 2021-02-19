@@ -43,7 +43,7 @@
 
 namespace phonometrica {
 
-AudioPlayer::AudioPlayer(std::shared_ptr<AudioData> data) : m_stream(SOUND_API), data(std::move(data))
+AudioPlayer::AudioPlayer(const Handle<Sound> &snd) : m_stream(SOUND_API), data(snd)
 {
 	PHON_LOG("constructing audio player");
     prepare();
@@ -55,14 +55,13 @@ AudioPlayer::AudioPlayer(std::shared_ptr<AudioData> data) : m_stream(SOUND_API),
 AudioPlayer::~AudioPlayer()
 {
     assert(m_error == nullptr);
-	done();
 }
 
 int AudioPlayer::playback(void *out, void *, unsigned int nframe, double, RtAudioStreamStatus status, void *d)
 {
     auto player = reinterpret_cast<AudioPlayer*>(d);
     auto output = reinterpret_cast<double*>(out);
-    const intptr_t sample_count = nframe * player->data->channels();
+    const intptr_t sample_count = nframe * player->data->nchannel();
     play_silence(output, sample_count); // make sure we have a clean output buffer
 
 	if (status) {
@@ -160,7 +159,6 @@ int AudioPlayer::playback(void *out, void *, unsigned int nframe, double, RtAudi
     if (left_over > 0) {
 		return KEEP_PLAYING;
     }
-//    emit player->done();
 
     return STOP_PLAYING;
 }
@@ -177,7 +175,7 @@ void AudioPlayer::prepare()
     m_buffer.resize(input_size);
     m_cache.resize(input_size);
 #else
-    m_params.nChannels = (unsigned int) data->channels();
+    m_params.nChannels = (unsigned int) data->nchannel();
     output_rate = (unsigned int) data->sample_rate();
 #endif
     m_params.firstChannel = 0;

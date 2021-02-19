@@ -295,8 +295,7 @@ void ConcordanceView::PlayMatch(int row)
 	auto sound = match.annotation()->sound();
 	if (!sound) return;
 	StopPlayer();
-	player = new AudioPlayer(sound->light_data());
-	player->done.connect(&ConcordanceView::ResetPlayer, this);
+	player = std::make_unique<AudioPlayer>(sound);
 	int active_target = GetActiveTarget();
 	double from = match.get_start_time(active_target);
 	double to = match.get_end_time(active_target);
@@ -447,11 +446,6 @@ void ConcordanceView::StopPlayer()
 		player->stop();
 		player = nullptr;
 	}
-}
-
-void ConcordanceView::ResetPlayer()
-{
-	player = nullptr;
 }
 
 void ConcordanceView::OnDoubleClick(wxGridEvent &)
