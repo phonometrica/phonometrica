@@ -66,7 +66,21 @@ SearchBar::SearchBar(wxWindow *parent, const wxString &description, bool replace
 	sizer->Add(icon, 0, wxALIGN_CENTER);
 	SetSizer(sizer);
 
+	auto col = GetBackgroundColour();
+	double factor = 0.85;
+	auto r = col.Red();
+	auto g = col.Green();
+	auto b = col.Blue();
+	r = (unsigned char)(r + factor * (255 - r));
+	g = (unsigned char)(g + factor * (255 - g));
+	b = (unsigned char)(b + factor * (255 - b));
+	col = wxColor(r,g,b);
+
+	icon->Bind(wxEVT_ENTER_WINDOW, [icon,col](wxMouseEvent &) { icon->SetBackgroundColour(col); icon->Refresh(); });
+	icon->Bind(wxEVT_LEAVE_WINDOW, [icon,this](wxMouseEvent &) { icon->SetBackgroundColour(GetBackgroundColour()); icon->Refresh(); });
 	icon->Bind(wxEVT_LEFT_UP, &SearchBar::OnClickCloseButton, this);
+
+
 	search_ctrl->Bind(wxEVT_SEARCH, [this](wxCommandEvent &) { this->find(); });
 	repl_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &) { this->replace(); });
 	find_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent &) { this->find(); });

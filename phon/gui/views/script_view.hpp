@@ -101,6 +101,8 @@ private:
 
 	wxButton *m_save_tool;
 
+	ToggleButton *m_hint_tool;
+
 	SearchBar *m_searchbar;
 
 	Handle<Script> m_script;

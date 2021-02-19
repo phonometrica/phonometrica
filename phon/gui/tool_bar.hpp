@@ -23,7 +23,7 @@
 #define PHONOMETRICA_TOOL_BAR_HPP
 
 #include <wx/button.h>
-#include <wx/tglbtn.h>
+#include <phon/gui/toggle_button.hpp>
 
 namespace phonometrica {
 
@@ -43,13 +43,15 @@ public:
 
 	wxButton *AddMenuButton(const wxBitmap &bitmap, const wxString &tooltip, int id = wxID_ANY);
 
-	wxToggleButton *AddToggleButton(const wxBitmap &bitmap, const wxString &tooltip, int id = wxID_ANY);
+	ToggleButton *AddToggleButton(const wxBitmap &bitmap, const wxString &tooltip, int id = wxID_ANY);
 
 	wxButton *AddHelpButton();
 
 	void ShowMenu(wxButton *button, wxMenu *menu);
 
 protected:
+
+	wxColour GetHoverColour() const;
 
 	const wxSize button_size;
 };

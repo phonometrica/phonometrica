@@ -20,6 +20,7 @@
  ***********************************************************************************************************************/
 
 #include <wx/bitmap.h>
+#include <wx/bmpbuttn.h>
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/tool_bar.hpp>
 #include <phon/include/icons.hpp>
@@ -38,7 +39,7 @@ void ToolBar::AddSeparator()
 {
 	auto sep = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(1, 28));
 	sep->SetBackgroundColour(*wxLIGHT_GREY);
-	GetSizer()->Add(sep, 0, wxLEFT, padding);
+	GetSizer()->Add(sep, 0, wxLEFT|wxALIGN_CENTER, padding);
 }
 
 void ToolBar::AddStretchableSpace()
@@ -48,37 +49,30 @@ void ToolBar::AddStretchableSpace()
 
 wxButton *ToolBar::AddButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
 {
-	auto btn = new wxButton(this, id, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-	btn->SetBitmap(bitmap);
+	auto btn = new wxBitmapButton(this, id, bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	btn->SetMaxSize(button_size);
 	btn->SetToolTip(tooltip);
 	GetSizer()->Add(btn, 0, wxLEFT, padding);
 
 #ifndef __WXGTK__
-	auto col = GetBackgroundColour();
-	double factor = 0.25;
-	auto r = col.Red();
-	auto g = col.Green();
-	auto b = col.Blue();
-	r = (unsigned char)(r + factor * (255 - r));
-	g = (unsigned char)(g + factor * (255 - g));
-	b = (unsigned char)(b + factor * (255 - b));
-	col = wxColor(r,g,b);
-
-	btn->Bind(wxEVT_ENTER_WINDOW, [btn,col](wxMouseEvent &) { btn->SetBackgroundColour(col); });
-	btn->Bind(wxEVT_LEAVE_WINDOW, [btn,this](wxMouseEvent &) { btn->SetBackgroundColour(this->GetBackgroundColour()); });
+	btn->Bind(wxEVT_ENTER_WINDOW, [btn,this](wxMouseEvent &) { btn->SetBackgroundColour(GetHoverColour()); btn->Refresh(); });
+	btn->Bind(wxEVT_LEAVE_WINDOW, [btn,this](wxMouseEvent &) { btn->SetBackgroundColour(GetBackgroundColour()); btn->Refresh(); });
 #endif
 
 	return btn;
 }
 
-wxToggleButton *ToolBar::AddToggleButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
+ToggleButton *ToolBar::AddToggleButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
 {
-	auto btn = new wxToggleButton(this, id, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-	btn->SetBitmap(bitmap);
+	auto btn = new ToggleButton(this, id, bitmap, wxDefaultPosition, wxDefaultSize);
 	btn->SetMaxSize(button_size);
 	btn->SetToolTip(tooltip);
 	GetSizer()->Add(btn, 0, wxLEFT, padding);
+
+#ifndef __WXGTK__
+	btn->Bind(wxEVT_ENTER_WINDOW, [btn,this](wxMouseEvent &) { btn->SetBackgroundColour(GetHoverColour()); btn->Refresh(); });
+	btn->Bind(wxEVT_LEAVE_WINDOW, [btn](wxMouseEvent &) { btn->RestoreBackgroundColour(); btn->Refresh(); });
+#endif
 
 	return btn;
 }
@@ -112,6 +106,20 @@ wxButton *ToolBar::AddMenuButton(const wxBitmap &bitmap, const wxString &tooltip
 void ToolBar::AddSpacer(int space)
 {
 	GetSizer()->AddSpacer(space);
+}
+
+wxColour ToolBar::GetHoverColour() const
+{
+	auto col = GetBackgroundColour();
+	double factor = 0.85;
+	auto r = col.Red();
+	auto g = col.Green();
+	auto b = col.Blue();
+	r = (unsigned char)(r + factor * (255 - r));
+	g = (unsigned char)(g + factor * (255 - g));
+	b = (unsigned char)(b + factor * (255 - b));
+
+	return wxColour(r,g,b);
 }
 
 } // namespace phonometrica

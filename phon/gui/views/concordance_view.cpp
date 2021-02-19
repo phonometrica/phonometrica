@@ -107,7 +107,7 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	auto label_sizer = new HBoxSizer;
 	label_sizer->Add(count_label, 0, wxEXPAND);
 	label_sizer->AddStretchSpacer();
-	sizer->Add(m_toolbar, 0, wxEXPAND|wxTOP, 10);
+	sizer->Add(m_toolbar, 0, wxEXPAND|wxTOP|wxRIGHT, 10);
 	sizer->Add(label_sizer, 0, wxEXPAND|wxALL, 10);
 	sizer->Add(m_grid, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	SetSizer(sizer);
