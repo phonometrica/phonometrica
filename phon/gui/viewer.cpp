@@ -20,6 +20,7 @@
  ***********************************************************************************************************************/
 
 #include <wx/msgdlg.h>
+#include <phon/gui/views/sound_view.hpp>
 #include <phon/gui/viewer.hpp>
 #include <phon/gui/views/concordance_view.hpp>
 #include <phon/gui/tab_art_provider.hpp>
@@ -111,7 +112,12 @@ void Viewer::ViewFile(const Handle<Document> &file)
 		}
 	}
 
-	if (file->is<Script>())
+	if (file->is<Sound>())
+	{
+		auto snd = recast<Sound>(file);
+		AddView(new SoundView(this, snd), snd->label());
+	}
+	else if (file->is<Script>())
 	{
 		NewScript(recast<Script>(file));
 	}

@@ -100,9 +100,9 @@ public:
 
 	bool update(bool &modified);
 
-protected:
-
 	Target *get(intptr_t i) const;
+
+protected:
 
 	// Annotation in which the match was found.
 	Handle<Annotation> m_annot;

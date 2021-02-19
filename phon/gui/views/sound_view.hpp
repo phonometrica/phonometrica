@@ -13,30 +13,25 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 10/02/2021                                                                                                 *
+ * Created: 19/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Display a concordance (i.e. the result of a query).                                                        *
+ * Purpose: View to display a sound file. Since annotation views derive from this class.                               *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_CONCORDANCE_VIEW_HPP
-#define PHONOMETRICA_CONCORDANCE_VIEW_HPP
+#ifndef PHONOMETRICA_SOUND_VIEW_HPP
+#define PHONOMETRICA_SOUND_VIEW_HPP
 
-#include <wx/stattext.h>
-#include <wx/spinctrl.h>
-#include <phon/gui/tool_bar.hpp>
 #include <phon/gui/views/view.hpp>
-#include <phon/gui/event_editor.hpp>
-#include <phon/gui/ctrl/concordance_controller.hpp>
-#include <phon/application/audio_player.hpp>
+#include <phon/application/sound.hpp>
 
 namespace phonometrica {
 
-class ConcordanceView : public View
+class SoundView : public View
 {
 public:
 
-	ConcordanceView(wxWindow *parent, Handle<Concordance> conc);
+	SoundView(wxWindow *parent, const Handle<Sound> &snd);
 
 	bool IsModified() const override;
 
@@ -44,103 +39,14 @@ public:
 
 	wxString GetLabel() const override;
 
-	String GetPath() const override;
-
-	void Save() override;
-
-	void Escape() override;
-
-	bool Finalize(bool autosave) override;
-
 protected:
 
-	void OnSave(wxCommandEvent &);
+	Handle<Sound> m_sound;
 
-	void OnPlaySelection(wxCommandEvent &);
-
-	void OnStopPlaying(wxCommandEvent &);
-
-	void OnOpenInPraat(wxCommandEvent &);
-
-	void OpenInPraat(int row);
-
-	void OnKeyDown(wxKeyEvent &e);
-
-	void OnExportToCsv(wxCommandEvent &);
-
-	void OnViewMatch(wxCommandEvent &);
-
-	void OnBookmarkMatch(wxCommandEvent &);
-
-	void OnHelp(wxCommandEvent &);
-
-	void OnColumnButtonClicked(wxMouseEvent &);
-
-	void ShowFileInfo();
-
-	void ShowMetadata();
-
-	void PlayMatch(int row);
-
-	void OnDeleteRows(wxCommandEvent &);
-
-	void DeleteRow(intptr_t i, bool update);
-
-	void OnEditEvent(wxCommandEvent &);
-
-	void EditCurrentEvent();
-
-	void UpdateView() override;
-
-	void UpdateCountLabel();
-
-	void StopPlayer();
-
-	void ResetPlayer();
-
-	void OnDoubleClick(wxGridEvent &);
-
-	void OnRightClick(wxGridEvent &);
-
-	void DeleteEventEditor();
-
-	void EndMatchEditing(bool value_changed);
-
-	Match * GetSelectedMatch();
-
-	void OnUnion(wxCommandEvent &);
-
-	void OnIntersection(wxCommandEvent &);
-
-	void OnComplement(wxCommandEvent &);
-
-	void OnRename(wxCommandEvent &);
-
-	int GetActiveTarget() const;
-
-	wxGrid *m_grid;
-
-	wxStaticText *count_label;
-
-	ToolBar *m_toolbar;
-
-	wxButton *m_save_tool, *m_play_tool, *m_col_tool;
-
-	wxSpinCtrl *m_active_target;
-
-	AudioPlayer *player = nullptr;
-
-	EventEditor *event_editor = nullptr;
-
-	Handle<Concordance> m_conc;
-
-	intptr_t edited_match = 0; // index in base 1 (0 is invalid)
-
-	bool m_show_file_info = true, m_show_metadata = false;
 };
 
 } // namespace phonometrica
 
 
 
-#endif // PHONOMETRICA_CONCORDANCE_VIEW_HPP
+#endif // PHONOMETRICA_SOUND_VIEW_HPP

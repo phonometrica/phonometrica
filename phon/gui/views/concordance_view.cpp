@@ -104,9 +104,16 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	m_grid->SetCellHighlightPenWidth(0);
 	m_grid->SetCellHighlightROPenWidth(0);
 
+	m_active_target = new wxSpinCtrl(this, wxID_ANY);
+	m_active_target->SetRange(1, m_conc->target_count());
+
+
 	auto label_sizer = new HBoxSizer;
-	label_sizer->Add(count_label, 0, wxEXPAND);
+	label_sizer->Add(count_label, 0, wxALIGN_CENTER);
 	label_sizer->AddStretchSpacer();
+	label_sizer->Add(new wxStaticText(this, wxID_ANY, _("Active target:")), 0, wxALIGN_CENTER);
+	label_sizer->Add(m_active_target, 0, wxLEFT|wxRIGHT, 5);
+
 	sizer->Add(m_toolbar, 0, wxEXPAND|wxTOP|wxRIGHT, 10);
 	sizer->Add(label_sizer, 0, wxEXPAND|wxALL, 10);
 	sizer->Add(m_grid, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
@@ -214,7 +221,7 @@ void ConcordanceView::OpenInPraat(int row)
 
 	try
 	{
-		auto target = match.reference_target();
+		auto target = match.get(GetActiveTarget());
 		assert(target);
 		auto interval = annot->get_event_index(target->layer, target->start_time());
 		praat::open_interval(target->layer, interval, annot->path(), sound_path);
@@ -290,8 +297,9 @@ void ConcordanceView::PlayMatch(int row)
 	StopPlayer();
 	player = new AudioPlayer(sound->light_data());
 	player->done.connect(&ConcordanceView::ResetPlayer, this);
-	double from = match.get_start_time(1);
-	double to = match.get_end_time(1);
+	int active_target = GetActiveTarget();
+	double from = match.get_start_time(active_target);
+	double to = match.get_end_time(active_target);
 	player->play(from, to);
 }
 
@@ -473,10 +481,11 @@ void ConcordanceView::EditCurrentEvent()
 		if (m_conc->is_target(j)) break;
 	}
 
-	auto offset = match->get_offset(1);
-	auto len = match->get_value(1).size();
+	int active_target = GetActiveTarget();
+	auto offset = match->get_offset(active_target);
+	auto len = match->get_value(active_target).size();
 	edited_match = m_grid->GetSelectedRows().front() + 1; // index in base 1
-	event_editor = new EventEditor(this, match->annotation(), match->get_event(1), offset, len, size);
+	event_editor = new EventEditor(this, match->annotation(), match->get_event(active_target), offset, len, size);
 
 	auto sel = m_grid->GetSelectedRows();
 	auto rect = m_grid->CellToRect(sel.front(), j-1);
@@ -484,9 +493,6 @@ void ConcordanceView::EditCurrentEvent()
 	pos.x -= size.GetWidth() / 2;
 	pos.y += size.GetHeight() / 2;
 
-//	auto pos2 = wxGetMousePosition();
-//	pos.x -= size.x / 2;
-//	pos.y -= size.y / 2;
 	event_editor->Move(pos);
 	event_editor->done.connect(&ConcordanceView::EndMatchEditing, this);
 	event_editor->Show();
@@ -665,6 +671,11 @@ bool ConcordanceView::Finalize(bool autosave)
 {
 	Project::get()->remove_temp_concordance(m_conc);
 	return View::Finalize(autosave);
+}
+
+int ConcordanceView::GetActiveTarget() const
+{
+	return m_active_target->GetValue();
 }
 
 } // namespace phonometrica
