@@ -59,8 +59,6 @@ public:
 
 	void set_label(String value, bool mutate);
 
-	bool is_query() const override;
-
 	void set_selection(Array<Handle<Annotation>> files);
 
 	virtual void clear();

@@ -46,8 +46,6 @@ public:
 
 	bool empty() const override { return nrow == 0; }
 
-	bool is_spreadsheet() const override { return true; }
-
 	static void initialize(Runtime &rt);
 
 private:

@@ -39,11 +39,6 @@ Annotation::Annotation(Directory *parent, String path) :
 	if (is_native() && has_path()) preload();
 }
 
-bool Annotation::is_annotation() const
-{
-	return true;
-}
-
 void Annotation::preload()
 {
 	assert(!m_path.empty());

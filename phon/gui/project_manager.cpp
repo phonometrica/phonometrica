@@ -215,14 +215,14 @@ void ProjectManager::FillFolder(wxTreeItemId item, Directory &folder)
 			continue;
 		}
 
-		if (node->is_directory())
+		if (node->is<Directory>())
 		{
 			auto &subfolder = dynamic_cast<Directory&>(*node);
 			auto data = new ItemData(&subfolder);
 			child = tree->AppendItem(item, node->label(), folder_img, folder_img, data);
 			FillFolder(child, subfolder);
 		}
-		else if (node->is_bookmark())
+		else if (node->is<Bookmark>())
 		{
 //			auto &bookmark = dynamic_cast<Bookmark&>(*node);
 			auto data = new ItemData(node.get());
@@ -233,7 +233,7 @@ void ProjectManager::FillFolder(wxTreeItemId item, Directory &folder)
 			auto &vfile = dynamic_cast<Document&>(*node);
 			int img;
 
-			if (vfile.is_annotation())
+			if (vfile.is<Annotation>())
 			{
 				if (dynamic_cast<Annotation&>(vfile).is_textgrid()) {
 					img = textgrid_img;
@@ -242,23 +242,23 @@ void ProjectManager::FillFolder(wxTreeItemId item, Directory &folder)
 					img = annot_img;
 				}
 			}
-			else if (vfile.is_sound())
+			else if (vfile.is<Sound>())
 			{
 				img = sound_img;
 			}
-			else if (vfile.is_script())
+			else if (vfile.is<Script>())
 			{
 				img = script_img;
 			}
-			else if (vfile.is_concordance())
+			else if (vfile.is<Concordance>())
 			{
 				img = conc_img;
 			}
-			else if (vfile.is_dataset())
+			else if (vfile.is<Dataset>())
 			{
 				img = csv_img;
 			}
-			else if (vfile.is_query())
+			else if (vfile.is<Query>())
 			{
 				img = query_img;
 			}
@@ -292,7 +292,7 @@ void ProjectManager::OnItemSelected(wxTreeEvent &)
 		auto vnode = data->node;
 		assert(vnode);
 
-		if (vnode->is_document())
+		if (vnode->is<Document>())
 		{
 			auto doc = static_cast<Document*>(vnode);
 			files.append(Handle<Document>(doc));
@@ -309,7 +309,7 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 	auto id = data->GetId();
 	assert(vnode);
 
-	if (vnode->is_directory())
+	if (vnode->is<Directory>())
 	{
 		if (tree->IsExpanded(id))
 		{
@@ -324,7 +324,7 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 	{
 		auto doc = static_cast<Document*>(vnode);
 
-		if (doc->is_query())
+		if (doc->is<Query>())
 		{
 			edit_query(Handle<Query>(static_cast<Query*>(doc)));
 		}
@@ -343,7 +343,7 @@ void ProjectManager::OnMiddleClick(wxTreeEvent &e)
 	auto id = data->GetId();
 	assert(vnode);
 
-	if (vnode->is_directory())
+	if (vnode->is<Directory>())
 	{
 		if (tree->IsExpanded(id))
 		{
@@ -366,7 +366,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 	{
 		auto &item = items.front();
 
-		if (item->is_directory())
+		if (item->is<Directory>())
 		{
 			auto folder = recast<Directory>(item);
 			wxArrayTreeItemIds ids;
@@ -421,11 +421,11 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [this,folder](wxCommandEvent &) mutable { RemoveDirectory(folder); }, remove_id);
 			}
 		}
-		else if (item->is_document())
+		else if (item->is<Document>())
 		{
 			auto file = recast<Document>(item);
 
-			if (file->is_query())
+			if (file->is<Query>())
 			{
 				auto query = recast<Query>(file);
 				auto edit_id = wxNewId();
@@ -453,7 +453,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { view_file(file); }, view_id);
 			}
 
-			if (file->is_annotation())
+			if (file->is<Annotation>())
 			{
 				auto annot = recast<Annotation>(file);
 				auto convert_id = wxNewId();
@@ -474,7 +474,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 					Bind(wxEVT_COMMAND_MENU_SELECTED, [this,annot](wxCommandEvent &) { ConvertTextGridToAnnotation(annot); }, convert_id);
 				}
 			}
-			else if (file->is_concordance())
+			else if (file->is<Concordance>())
 			{
 				auto conc = recast<Concordance>(file);
 				auto rename_id = wxNewId();
@@ -482,7 +482,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 				Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { RenameConcordance(conc); }, rename_id);
 				menu->AppendSeparator();
 			}
-			else if (file->is_script())
+			else if (file->is<Script>())
 			{
 				auto script = recast<Script>(file);
 				auto run_id = wxNewId();
@@ -513,12 +513,12 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 		Handle<Annotation> annot;
 		Handle<Sound> sound;
 
-		if (items[1]->is_annotation() && items[2]->is_sound())
+		if (items[1]->is<Annotation>() && items[2]->is<Sound>())
 		{
 			annot = recast<Annotation>(items[1]);
 			sound = recast<Sound>(items[2]);
 		}
-		else if (items[1]->is_sound() && items[2]->is_annotation())
+		else if (items[1]->is<Sound>() && items[2]->is<Annotation>())
 		{
 			sound = recast<Sound>(items[1]);
 			annot = recast<Annotation>(items[2]);
@@ -644,7 +644,7 @@ void ProjectManager::RemoveFiles(ElementList files)
 	}
 	else if (files.size() == 1)
 	{
-		if (files.front()->is_directory())
+		if (files.front()->is<Directory>())
 		{
 			result = ask_question(_("Are you sure you want to remove this folder from the current project?\n"
 			                        "(It won't be deleted from your hard drive.)"), _("Confirm"));
@@ -749,7 +749,7 @@ void ProjectManager::SetExpansionFlag(wxTreeItemId node)
 	auto vnode = data->node;
 	assert(node);
 
-	if (vnode->is_directory())
+	if (vnode->is<Directory>())
 	{
 		auto vfolder = dynamic_cast<Directory*>(vnode);
 		vfolder->set_expanded(tree->IsExpanded(node));
@@ -825,7 +825,7 @@ void ProjectManager::OnDragItem(wxTreeEvent &e)
 
 	for (auto &item : dragged_files)
 	{
-		if (item->is_directory() && project->is_root(dynamic_cast<Directory*>(item.get())))
+		if (item->is<Directory>() && project->is_root(dynamic_cast<Directory*>(item.get())))
 		{
 			dragged_files.clear();
 			return;
@@ -860,7 +860,7 @@ void ProjectManager::OnDropItem(wxTreeEvent &e)
 	}
 
 	// If the target is a folder, append at the end
-	if (dest_node->is_directory())
+	if (dest_node->is<Directory>())
 	{
 		auto folder = dynamic_cast<Directory*>(dest_node);
 		tree->Expand(dest_item);
@@ -999,7 +999,7 @@ void ProjectManager::RemoveItems(const ElementList &items)
 
 	for (auto &item : items)
 	{
-		if (item->is_document())
+		if (item->is<Document>())
 		{
 			auto file = recast<Document>(item);
 			project->remove(file);
@@ -1149,7 +1149,7 @@ void ProjectManager::Expand()
 void ProjectManager::OnShowToolTip(wxTreeEvent &e)
 {
 	auto items = GetSelectedItems();
-	if (items.size() == 1 && items.front()->is_document())
+	if (items.size() == 1 && items.front()->is<Document>())
 	{
 		e.SetToolTip(recast<Document>(items.front())->path());
 	}

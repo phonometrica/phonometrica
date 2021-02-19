@@ -89,11 +89,6 @@ void Query::set_label(String value, bool mutate)
 	if (mutate) m_content_modified = true;
 }
 
-bool Query::is_query() const
-{
-	return true;
-}
-
 void Query::set_selection(Array<Handle<Annotation>> files)
 {
 	selected_annotations = std::move(files);
@@ -521,6 +516,7 @@ Handle<Concordance> Query::execute()
 		label.replace_first("Query ", "Concordance ");
 	}
 	conc->set_label(label, false);
+	Project::get()->add_temp_concordance(conc);
 
 	return conc;
 }

@@ -47,36 +47,6 @@ bool Element::modified() const
 	return m_content_modified;
 }
 
-bool Element::is_annotation() const
-{
-	return false;
-}
-
-bool Element::is_sound() const
-{
-	return false;
-}
-
-bool Element::is_bookmark() const
-{
-	return false;
-}
-
-bool Element::is_script() const
-{
-	return false;
-}
-
-bool Element::is_document() const
-{
-	return false;
-}
-
-bool Element::is_directory() const
-{
-	return false;
-}
-
 void Element::discard_changes()
 {
 	m_content_modified = false;
@@ -91,11 +61,6 @@ void Element::detach(bool mutate)
 	}
 }
 
-bool Element::is_dataset() const
-{
-	return false;
-}
-
 void Element::move_to(Directory *new_parent, intptr_t pos)
 {
 	new_parent->insert(pos, Handle<Element>(this));
@@ -104,16 +69,6 @@ void Element::move_to(Directory *new_parent, intptr_t pos)
 const Directory *Element::toplevel() const
 {
     return m_parent ? m_parent->toplevel() : nullptr;
-}
-
-bool Element::is_query() const
-{
-	return false;
-}
-
-bool Element::is_concordance() const
-{
-	return false;
 }
 
 
@@ -223,11 +178,6 @@ void Directory::remove(const Handle<Element> &node, bool mutate)
 	set_modified(mutate);
 }
 
-bool Directory::is_directory() const
-{
-	return true;
-}
-
 void Directory::discard_changes()
 {
 	for (auto &f : m_content) {
@@ -257,13 +207,13 @@ void Directory::save_content()
 {
 	for (auto &file : m_content)
 	{
-		if (file->is_document() && file->modified())
+		if (file->is<Document>() && file->modified())
 		{
 			auto vf = raw_recast<Document>(file);
 			assert(vf->has_path());
 			vf->save();
 		}
-		else if (file->is_directory())
+		else if (file->is<Directory>())
         {
 		    auto folder = raw_recast<Directory>(file);
 		    folder->save_content();
@@ -413,11 +363,6 @@ void Document::save()
 	{
 		throw error("Could not save file \"%\": %", m_path, e.what());
 	}
-}
-
-bool Document::is_document() const
-{
-	return true;
 }
 
 void Document::add_property(Property p, bool mutate)

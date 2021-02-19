@@ -661,4 +661,10 @@ void ConcordanceView::OnRename(wxCommandEvent &)
 	}
 }
 
+bool ConcordanceView::Finalize(bool autosave)
+{
+	Project::get()->remove_temp_concordance(m_conc);
+	return View::Finalize(autosave);
+}
+
 } // namespace phonometrica

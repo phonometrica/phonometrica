@@ -49,6 +49,8 @@ public:
 
 	void Escape() override;
 
+	bool Finalize(bool autosave) override;
+
 protected:
 
 	void OnSave(wxCommandEvent &);

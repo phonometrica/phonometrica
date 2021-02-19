@@ -60,8 +60,6 @@ public:
 
 	static bool supports_format(const String &format);
 
-	bool is_sound() const override;
-
 	double duration() const;
 
 	int sample_rate() const;

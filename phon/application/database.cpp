@@ -296,7 +296,7 @@ void MetaDatabase::add_metadata_to_file(const Handle<Document> &file)
 			{
 				file->set_description(field, false);
 			}
-			else if (name == "_soundref" && (!field.empty()) && file->is_annotation())
+			else if (name == "_soundref" && (!field.empty()) && file->is<Annotation>())
 			{
 				auto annot = recast<Annotation>(file);
 				notify_annotation_needs_sound(annot, field);

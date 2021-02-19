@@ -44,11 +44,6 @@ String Bookmark::label() const
 	return m_title;
 }
 
-bool Bookmark::is_bookmark() const
-{
-	return true;
-}
-
 void Bookmark::set_notes(const String &value, bool mutate)
 {
 	m_notes = value;

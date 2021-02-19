@@ -34,11 +34,6 @@ DataTable::DataTable(Class *klass, Directory *parent, String path) :
 
 }
 
-bool DataTable::is_dataset() const
-{
-	return true;
-}
-
 void DataTable::from_xml(xml_node root, const String &project_dir)
 {
 	static const std::string_view path_tag("Path");
@@ -64,7 +59,8 @@ void DataTable::save_metadata()
 
 bool DataTable::uses_external_metadata() const
 {
-	return is_spreadsheet();
+	// TODO: native datasets won't use external metadata
+	return is<Dataset>();
 }
 
 void DataTable::to_csv(const String &path, const String &sep)

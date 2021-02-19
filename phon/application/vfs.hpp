@@ -66,23 +66,8 @@ public:
 
 	virtual bool modified() const;
 
-	virtual bool is_annotation() const;
-
-	virtual bool is_sound() const;
-
-	virtual bool is_bookmark() const;
-
-	virtual bool is_script() const;
-
-	virtual bool is_dataset() const;
-
-	virtual bool is_concordance() const;
-
-	virtual bool is_document() const;
-
-	virtual bool is_directory() const;
-
-	virtual bool is_query() const;
+	template<typename T>
+	bool is() const { return dynamic_cast<const T*>(this) != nullptr; }
 
 	virtual void to_xml(xml_node root) = 0;
 
@@ -157,8 +142,6 @@ public:
 
 	bool modified() const override;
 
-	bool is_directory() const override;
-
 	void discard_changes() override;
 
 	void to_xml(xml_node root) override;
@@ -212,8 +195,6 @@ public:
 	const String &path() const;
 
 	virtual void set_path(String path, bool mutate);
-
-	bool is_document() const override;
 
 	void open();
 

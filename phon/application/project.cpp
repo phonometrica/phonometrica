@@ -531,7 +531,7 @@ void Project::parse_bookmarks(xml_node root, Directory *folder)
 				interpolate(path, directory());
 				auto file = get_file_handle(path, "needed by bookmark");
 
-				if (file->is_annotation())
+				if (file->is<Annotation>())
 				{
 					auto annot = recast<Annotation>(file);
 					auto bookmark = make_handle<TimeStamp>(folder, title, std::move(annot), layer, start, end, match, left, right);
@@ -832,10 +832,10 @@ String Project::import_file(String path)
 	{
         m_modified = true;
         auto &f = m_files[path];
-        if (f->is_annotation()) {
+        if (f->is<Annotation>()) {
 	        emit(annotation_imported, recast<Annotation>(f));
         }
-        else if (f->is_sound()) {
+        else if (f->is<Sound>()) {
         	emit(sound_imported, recast<Sound>(f));
         }
 	}
@@ -907,7 +907,7 @@ void Project::remove(ElementList &files)
 {
 	for (auto &file : files)
 	{
-		if (file->is_directory())
+		if (file->is<Directory>())
 		{
 			remove(recast<Directory>(file));
 		}
@@ -1000,7 +1000,7 @@ void Project::remove_empty_script()
 	{
 		auto &node = m_scripts->get(i);
 
-		if (node->is_script())
+		if (node->is<Script>())
 		{
 			auto script = raw_recast<Script>(node);
 
@@ -1089,7 +1089,7 @@ void Project::initialize(Runtime &rt)
 	    if (file == files.end()) {
 		    return Variant();
 	    }
-	    else if (file->second->is_annotation()) {
+	    else if (file->second->is<Annotation>()) {
 			return recast<Annotation>(file->second);
 	    }
 	    else {
@@ -1115,7 +1115,7 @@ void Project::initialize(Runtime &rt)
 		if (file == files.end()) {
 			return Variant();
 		}
-		else if (file->second->is_sound()) {
+		else if (file->second->is<Sound>()) {
 			return recast<Sound>(file->second);
 		}
 		else {
@@ -1212,12 +1212,12 @@ void Project::remove(const Handle<Directory> &folder)
     for (intptr_t i = folder->size(); i > 0; i--)
     {
     	auto &node = folder->get(i);
-        if (node->is_document())
+        if (node->is<Document>())
         {
             auto file = recast<Document>(node);
             remove(file);
         }
-        else if (node->is_directory())
+        else if (node->is<Directory>())
         {
             auto subfolder = recast<Directory>(node);
             remove(subfolder);
@@ -1344,7 +1344,7 @@ void Project::export_metadata(const String &path)
 		auto file = m_files[filename];
 		Array<String> row;
 		row.append(filesystem::base_name(file->path()));
-		if (file->is_annotation())
+		if (file->is<Annotation>())
 		{
 			auto annot = dynamic_cast<Annotation*>(file.get());
 			auto snd = annot->has_sound() ? annot->sound()->path() : String();
@@ -1378,7 +1378,7 @@ void Project::tag_file(Handle<Document> &file, const String &category, const Str
 
 	if (category == "%SOUND%")
 	{
-		if (filesystem::exists(value) && file->is_annotation())
+		if (filesystem::exists(value) && file->is<Annotation>())
 		{
 			auto annot = recast<Annotation>(file);
 			bind_annotation(annot, value);
@@ -1412,7 +1412,12 @@ Array<Handle<Annotation>> Project::get_annotations() const
 
 Array<Handle<Concordance>> Project::get_concordances() const
 {
-	return get_files<Concordance>(*m_data);
+	auto files = get_files<Concordance>(*m_data);
+	for (auto &conc : m_temp_conc_list) {
+		files.append(conc);
+	}
+
+	return files;
 }
 
 void Project::set_default_bindings()
@@ -1421,7 +1426,7 @@ void Project::set_default_bindings()
 	{
 		auto &vf = item.second;
 
-		if (vf->is_annotation())
+		if (vf->is<Annotation>())
 		{
 			auto annot = raw_recast<Annotation>(vf);
 			if (!annot->has_sound())
@@ -1563,6 +1568,16 @@ void Project::set_label(const String &value)
 {
 	m_label = value;
 	m_modified = true;
+}
+
+void Project::add_temp_concordance(const Handle<Concordance> &conc)
+{
+	m_temp_conc_list.append(conc);
+}
+
+void Project::remove_temp_concordance(const Handle<Concordance> &conc)
+{
+	m_temp_conc_list.remove(conc);
 }
 
 } // namespace phonometrica

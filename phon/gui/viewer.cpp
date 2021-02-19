@@ -111,11 +111,11 @@ void Viewer::ViewFile(const Handle<Document> &file)
 		}
 	}
 
-	if (file->is_script())
+	if (file->is<Script>())
 	{
 		NewScript(recast<Script>(file));
 	}
-	else if (file->is_concordance())
+	else if (file->is<Concordance>())
 	{
 		auto conc = recast<Concordance>(file);
 

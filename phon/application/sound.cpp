@@ -91,11 +91,6 @@ const Array<String> &Sound::common_sound_formats()
 	return the_common_sound_formats;
 }
 
-bool Sound::is_sound() const
-{
-	return true;
-}
-
 void Sound::load()
 {
     if (!m_data)

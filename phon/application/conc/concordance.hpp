@@ -45,8 +45,6 @@ public:
 
 	Concordance(const Concordance &other);
 
-	bool is_concordance() const override { return true; }
-
 	intptr_t target_count() const { return m_target_count; }
 
 	String get_header(intptr_t j) const override;

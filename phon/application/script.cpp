@@ -33,11 +33,6 @@ Script::Script(Directory *parent, String path) :
 
 }
 
-bool Script::is_script() const
-{
-	return true;
-}
-
 void Script::load()
 {
 	m_content = File::read_all(m_path);

@@ -156,7 +156,7 @@ void InfoPanel::DisplaySingleFile()
 	AddSectionHeading(single_page, _("File name:"), false);
 	AddLabel(single_page, file->label(), file->path());
 
-	if (file->is_annotation())
+	if (file->is<Annotation>())
 	{
 		auto annot = dynamic_cast<Annotation*>(file);
 		auto sound = annot->sound();

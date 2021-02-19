@@ -36,8 +36,6 @@ public:
 
 	explicit DataTable(Class *klass, Directory *parent, String path = String());
 
-	bool is_dataset() const override;
-
 	void from_xml(xml_node root, const String &project_dir);
 
 	virtual String get_header(intptr_t j) const = 0;
@@ -51,10 +49,6 @@ public:
 	virtual intptr_t column_count() const = 0;
 
 	virtual bool empty() const = 0;
-
-	bool is_concordance() const override { return false; }
-
-	virtual bool is_spreadsheet() const { return false; }
 
 	virtual void to_csv(const String &path, const String &sep);
 

@@ -49,8 +49,6 @@ public:
 
 	explicit Annotation(Directory *parent, String path = String());
 
-	bool is_annotation() const override;
-
 	void set_path(String path, bool mutate) override;
 
 	bool has_sound() const;

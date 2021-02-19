@@ -36,8 +36,6 @@ public:
 
 	String label() const override;
 
-	bool is_bookmark() const override;
-
 	void set_notes(const String &value, bool mutate = true);
 
 	virtual String tooltip() const { return String(); }

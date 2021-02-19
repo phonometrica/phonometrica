@@ -32,8 +32,6 @@ public:
 
 	explicit Script(Directory *parent, String path = String());
 
-	bool is_script() const override;
-
 	const String &content() const;
 
 	void set_content(String value, bool mutate = true);

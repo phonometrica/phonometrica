@@ -156,6 +156,9 @@ public:
 
 	bool import_flag() const { return m_import_flag; }
 
+	void add_temp_concordance(const Handle<Concordance> &conc);
+	void remove_temp_concordance(const Handle<Concordance> &conc);
+
 	// Some tasks such as saving the project can take time. Let the user know about it.
 	Signal<> start_activity, stop_activity;
 
@@ -241,7 +244,7 @@ private:
 			if (dynamic_cast<T*>(elem.get())) {
 				files.append(recast<T>(elem));
 			}
-			else if (elem->is_directory()) {
+			else if (elem->is<Directory>()) {
 				find_files<T>(*recast<Directory>(elem), files);
 			}
 		}
@@ -262,6 +265,10 @@ private:
 	// Map all registered file paths to a file object. This ensures that we don't create several
 	// objects for the same file.
 	Dictionary<Handle<Document>> m_files;
+
+	// Concordances don't appear in the tree are not saved unless they are modified, so we store them
+	// here when they are created
+	Array<Handle<Concordance>> m_temp_conc_list;
 
 	// When loading a project, an annotation may be loaded before the sound file it is bound to,
 	// so binding can't happen at that time. Instead, annotations are stored into this accumulator
