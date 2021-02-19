@@ -49,7 +49,8 @@ void ToolBar::AddStretchableSpace()
 
 wxButton *ToolBar::AddButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
 {
-	auto btn = new wxBitmapButton(this, id, bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	auto btn = new wxButton(this, id, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	btn->SetBitmap(bitmap);
 	btn->SetMaxSize(button_size);
 	btn->SetToolTip(tooltip);
 	GetSizer()->Add(btn, 0, wxLEFT, padding);
