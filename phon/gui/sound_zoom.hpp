@@ -13,48 +13,44 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 19/02/2021                                                                                                 *
+ * Created: 20/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: scrollbar that displays the whole sound file in a sound view or annotation view.                           *
+ * Purpose: Connects the wavebar to the sound plots in a sound view or the annotation layers in an annotation view.    *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_WAVE_BAR_HPP
-#define PHONOMETRICA_WAVE_BAR_HPP
+#ifndef PHONOMETRICA_SOUND_ZOOM_HPP
+#define PHONOMETRICA_SOUND_ZOOM_HPP
 
-#include <wx/dcclient.h>
 #include <wx/window.h>
-#include <wx/graphics.h>
-#include <phon/application/sound.hpp>
+#include <wx/dcclient.h>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
-class WaveBar final : public wxWindow
+struct PixelSelection
+{
+	double from, to;
+};
+
+
+class SoundZoom final : public wxWindow
 {
 public:
 
-	WaveBar(wxWindow *parent, const Handle <Sound> &snd);
+	SoundZoom(wxWindow *parent);
 
+	void OnSetPixelSelection(PixelSelection sel);
 
 private:
 
 	void OnPaint(wxPaintEvent &);
 
-	void Render(wxPaintDC &dc);
-
-	void MakePath(wxGraphicsPath &path);
-
-	double SampleToYPos(double s) const;;
-
-	Handle<Sound> m_sound;
-
-	double raw_magnitude = 0.0;
-
-	Array<std::pair<double,double>> m_cache;
+	PixelSelection m_sel;
 };
 
 } // namespace phonometrica
 
 
 
-#endif // PHONOMETRICA_WAVE_BAR_HPP
+#endif // PHONOMETRICA_SOUND_ZOOM_HPP

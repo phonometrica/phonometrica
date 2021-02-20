@@ -23,6 +23,10 @@
 #define PHONOMETRICA_SOUND_VIEW_HPP
 
 #include <phon/gui/views/view.hpp>
+#include <phon/gui/wave_bar.hpp>
+#include <phon/gui/sound_zoom.hpp>
+#include <phon/gui/tool_bar.hpp>
+#include <phon/gui/sizer.hpp>
 #include <phon/application/sound.hpp>
 
 namespace phonometrica {
@@ -33,15 +37,30 @@ public:
 
 	SoundView(wxWindow *parent, const Handle<Sound> &snd);
 
+	void Initialize();
+
 	bool IsModified() const override;
 
 	void DiscardChanges() override;
 
 	wxString GetLabel() const override;
 
+	String GetPath() const override;
+
 protected:
 
+	void SetToolBar();
+
 	Handle<Sound> m_sound;
+
+	ToolBar *m_toolbar;
+
+	// Sizer for sound plots
+	wxBoxSizer *m_inner_sizer;
+
+	SoundZoom *m_zoom;
+
+	WaveBar *m_wavebar;
 
 };
 

@@ -992,6 +992,11 @@ void MainWindow::LoadPluginsAndScripts(const String &root)
 
 void MainWindow::LoadPlugin(const String &path)
 {
+	auto ignore_path = filesystem::join(path, "ignore.txt");
+	if (filesystem::exists(ignore_path)) {
+		return;
+	}
+
 	auto menu = new wxMenu;
 
 	// Create callback to add a separator, a script or a protocol to the plugin's menu.
@@ -1651,8 +1656,6 @@ void MainWindow::SetShellFunctions()
 	runtime.add_global("create_progress_dialog", create_progress_dialog, {CLS(String), CLS(String), CLS(intptr_t) });
 	runtime.add_global("update_progress_dialog", update_progress_dialog, {CLS(intptr_t) });
 	runtime.add_global("launch_browser", launch_browser, {CLS(String) });
-//	runtime.add_global("set_status", set_status1, { CLS(String) });
-//	runtime.add_global("set_status", set_status2, { CLS(String), CLS(intptr_t) });
 //	runtime.add_global("get_current_sound", get_current_sound, { });
 //	runtime.add_global("get_current_annotation", get_current_annot, { });
 //	runtime.add_global("get_window_duration", get_window_duration,  { });
@@ -1672,7 +1675,6 @@ void MainWindow::SetShellFunctions()
 //	phon.define(rt, "import_metadata", import_metadata, { });
 //	phon.define(rt, "export_metadata", export_metadata, { });
 //	phon.define(rt, "get_plugin_list", get_plugin_list, { });
-//	phon.define(rt, "transphon", transphon, { });
 #undef CLS
 }
 

@@ -128,6 +128,12 @@ private:
 	mutable SndfileHandle m_handle;
 };
 
+
+struct TimeSelection
+{
+	double from, to;
+};
+
 namespace traits {
 template<> struct maybe_cyclic<Sound> : std::false_type { };
 }

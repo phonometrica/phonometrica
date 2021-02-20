@@ -13,48 +13,53 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 19/02/2021                                                                                                 *
+ * Created: 20/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: scrollbar that displays the whole sound file in a sound view or annotation view.                           *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_WAVE_BAR_HPP
-#define PHONOMETRICA_WAVE_BAR_HPP
-
-#include <wx/dcclient.h>
-#include <wx/window.h>
+#include <memory>
 #include <wx/graphics.h>
-#include <phon/application/sound.hpp>
+#include <phon/gui/sound_zoom.hpp>
 
 namespace phonometrica {
 
-class WaveBar final : public wxWindow
+SoundZoom::SoundZoom(wxWindow *parent) : wxWindow(parent, wxID_ANY)
 {
-public:
+	SetMinSize(wxSize(-1, 40));
+	SetMaxSize(wxSize(-1, 40));
+	m_sel = { 100, 150 };
+	Bind(wxEVT_PAINT, &SoundZoom::OnPaint, this);
+}
 
-	WaveBar(wxWindow *parent, const Handle <Sound> &snd);
+void SoundZoom::OnPaint(wxPaintEvent &)
+{
+	wxClientDC dc(this);
+	auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
+	if (!gc) return;
+	auto height = GetSize().GetHeight();
+	auto width = GetSize().GetWidth();
 
+	gc->SetPen(*wxRED_PEN);
+	wxBrush brush;
+	wxColour col(68, 18, 232, 60);
+	brush.SetColour(col);
+	gc->SetBrush(brush);
 
-private:
+	wxGraphicsPath path = gc->CreatePath();
+	path.MoveToPoint(0.0, 0.0);
+	path.AddLineToPoint(m_sel.from, height);
+	path.AddLineToPoint(m_sel.to, height);
+	path.AddLineToPoint(width, 0.0);
+	path.AddLineToPoint(0.0, 0.0);
+	gc->FillPath(path);
+	//gc->StrokePath(path);
+}
 
-	void OnPaint(wxPaintEvent &);
-
-	void Render(wxPaintDC &dc);
-
-	void MakePath(wxGraphicsPath &path);
-
-	double SampleToYPos(double s) const;;
-
-	Handle<Sound> m_sound;
-
-	double raw_magnitude = 0.0;
-
-	Array<std::pair<double,double>> m_cache;
-};
-
+void SoundZoom::OnSetPixelSelection(PixelSelection sel)
+{
+	m_sel = sel;
+	Refresh();
+}
 } // namespace phonometrica
-
-
-
-#endif // PHONOMETRICA_WAVE_BAR_HPP

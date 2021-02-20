@@ -5055,7 +5055,7 @@ void RtApiWasapi::wasapiThread()
     captureBuffer.setBufferSize( inBufferSize + outBufferSize, formatBytes( stream_.deviceFormat[INPUT] ) );
   }
 
-  // start render stream if applicable
+  // start Render stream if applicable
   if ( renderAudioClient ) {
     hr = renderAudioClient->GetMixFormat( &renderFormat );
     if ( FAILED( hr ) ) {

@@ -3,11 +3,11 @@
 Sounds
 ======
 
-This page documents the ``Sound`` type, which represents a sound file loaded in memory.
+This page documents the ``Sound`` type, which represents a sound file loaded in memory, and related functions.
 
 
-Global functions
-----------------
+Functions
+---------
 
 
 .. function:: get_sounds()
@@ -133,37 +133,10 @@ it is equal to 100 Hz.
 
 Note: if ``st`` is an ``Array``, the conversion is applied to all the elements in the array.
 
-Methods
--------
-
-.. class:: Sound
-
 
 ------------
 
-.. method:: add_property(category, value)
-
-Adds a property to the sound. ``category`` must be a string and ``value`` can be a string, a number or a Boolean.
-If the file already has a property with the same category, the value will be replaced with the new one.
-
-
-------------
-
-.. method:: remove_property(category)
-
-Removes the property whose category is ``category`` from the sound. If there is no such category, this method 
-does nothing.
-
-------------
-
-.. method:: remove_property(category)
-
-Gets the property whose category is ``category`` from the sound, or ``null`` if there is no such category.
-
-
-------------
-
-.. method:: get_intensity(time)
+.. function:: get_intensity(sound as Sound, time as Number)
 
 
 Measures the intensity (in dB) at the given time.
@@ -171,7 +144,7 @@ Measures the intensity (in dB) at the given time.
 
 ------------
 
-.. method:: get_pitch(time [, minimum_pitch [, maximum_pitch [, voicing_threshold]]])
+.. function:: get_pitch(sound as Sound, time [, minimum_pitch [, maximum_pitch [, voicing_threshold]]])
 
 Returns the pitch (in Hz) at the given time, or ``undefined`` if the sound is unvoiced at that time. Optionally, you can specify the minimum and maximum pitches, as well as the 
 voicing threshold used by the pitch detection algorithm. If these optional parameters are not provided, your current settings will be used instead.
@@ -179,7 +152,7 @@ voicing threshold used by the pitch detection algorithm. If these optional param
 
 ------------
 
-.. method:: get_formants(time [, nformant [, maximum_frequency [, maximum_bandwidth [, window_length [, lpc_order]]]]])
+.. function:: get_formants(sound as Sound, time [, nformant [, maximum_frequency [, maximum_bandwidth [, window_length [, lpc_order]]]]])
 
 Returns an ``Array`` containing ``nformant`` rows and 2 columns. The first column contains formant values (in Hertz), such that F1 is at index (1, 1), F2 is at index (2, 1), etc.
 The second column contains the formants' bandwidths: F1's bandwidth is at index (1, 2), F2's bandwidth is at (2, 2), etc. Optionally, you can specify the number of formants to extract,
@@ -210,7 +183,7 @@ Returns the sample rate of the file in Hertz.
 
 ------------
 
-.. attribute:: channel_count
+.. attribute:: nchannel
 
 Returns the number of channels in the file.
 

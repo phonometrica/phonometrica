@@ -40,56 +40,35 @@ Return the ``Annotation`` object loaded in the current view, or ``null`` if the 
 
 ------------
 
-.. function:: add_property(file as Document, category as String, value as Object)
-
-Adds a property to the annotation. ``category`` must be a string and ``value`` can be a string, a number or a Boolean.
-If the file already has a property with the same category, the value will be replaced with the new one.
-
-
-------------
-
-.. function:: remove_property(file as Document, category as String)
-
-Removes the property whose category is ``category`` from the annotation. If there is no such category, this method 
-does nothing.
-
-------------
-
-.. function:: remove_property(file as Document, category)
-
-Gets the property whose category is ``category`` from the annotation, or ``null`` if there is no such category.
-
-------------
-
-.. function:: bind_to_sound(annot as Annotaiton, path as String)
+.. function:: bind_to_sound(annot as Annotation, path as String)
 
 Binds the annotation to the sound file whose path is ``path``. If the sound file is not in the current project,
 it will be automatically imported.
 
 ------------
 
-.. function:: get_event_start(layer_index, event_index)
+.. function:: get_event_start(annot as Annotation, layer_index as Integer, event_index as Integer)
 
 Gets the start time of an event on a given layer. Note that if the event is an instant, its start time is equal to
 its end time.
 
 ------------
 
-.. function:: get_event_end(layer_index, event_index)
+.. function:: get_event_end(annot as Annotation, layer_index as Integer, event_index as Integer)
 
 Gets the end time of an event on a given layer. Note that if the event is an instant, its end time is equal to
 its start time.
 
 ------------
 
-.. function:: get_event_text(layer_index, event_index)
+.. function:: get_event_text(annot as Annotation, layer_index as Integer, event_index as Integer)
 
 
 Gets the text of an event on a given layer.
 
 ------------
 
-.. function:: set_event_text(layer_index, event_index, new_text)
+.. function:: set_event_text(annot as Annotation, layer_index as Intger, event_index as Integer, text as String)
 
 
 Sets the text of an event on a given layer.
@@ -97,21 +76,21 @@ Sets the text of an event on a given layer.
 
 ------------
 
-.. function:: get_event_count(layer_index)
+.. function:: get_event_count(annot as Annotation, layer_index as Integer)
 
 Returns the number of events on a given layer. 
 
 
 ------------
 
-.. function:: get_layer_label(layer_index)
+.. function:: get_layer_label(annot as Annotation, layer_index as Integer)
 
 
 Gets the layer's label.
 
 ------------
 
-.. function:: set_layer_label(layer_index, new_label)
+.. function:: set_layer_label(annot as Annotation, layer_index as Integer, new_label as String)
 
 
 Sets the layer's label.
@@ -134,6 +113,6 @@ Returns the ``Sound`` object to which the annotation is bound, or ``null`` if it
 
 ------------
 
-.. attribute:: layer_count
+.. attribute:: nlayer
 
 Returns the number of layers in the annotation.

@@ -30,7 +30,8 @@ Done:
 
 TODO:
 
-- coding protocols
+- coding protocols (coding protocol: champ libre texte (ex: mot précédent un codage) ????)
+- bookmarks and annotation views
 - priorité : refactoriser les vues spreadsheet (finir CSV)
 - bug décalage: décalage proportionnel à la taille du zoom. Si on fait glisser la fenêtre d'un côté ou de l'autre, le décalage sera tantôt à gauche ou à droite. Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers. 
 - std::bad_alloc: ouvre un fichier son -> catch and rethrow
@@ -43,7 +44,6 @@ TODO:
 - dialog edit : cliquer ailleurs devrait enlever le dialogue -> toggle button
 - mettre à jour la concordance en cours quand on édite un item. 
 - reset settings
-- bookmarks and annotation views
 - finalize settings dialog (add search operator selector)
 - update documentation
 
@@ -52,15 +52,13 @@ Version 0.9.0+:
 - contexte autour de la target de la contrainte de référence 
 - complex queries
 - project metadata dans le panel info
-- measure pitch and intensity
+- measure pitch, intensity and duration
 - settings: possibilité de sauvagarde périodique des annotations (peut-être fichier buffer ?)
 - npoint en plus de npoint average (diphtongues, pitch)
 - mesures acoustiques sur une sélection et pas seulement sur un point.
 - regarder suppression et curseur sur mac
-- multi-layer annotation queries
 - plugin section on the website
-- finalize documentation
-- coding protocol: champ libre texte (ex: mot précédent un codage)
+- finalize documentation (arborescence complète du modèle objet pour les scripts)
 - project metadata
 
 

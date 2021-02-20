@@ -115,7 +115,9 @@ void Viewer::ViewFile(const Handle<Document> &file)
 	if (file->is<Sound>())
 	{
 		auto snd = recast<Sound>(file);
-		AddView(new SoundView(this, snd), snd->label());
+		auto view = new SoundView(this, snd);
+		view->Initialize();
+		AddView(view, snd->label());
 	}
 	else if (file->is<Script>())
 	{

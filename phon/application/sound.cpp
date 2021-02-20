@@ -94,24 +94,41 @@ const Array<String> &Sound::common_sound_formats()
 void Sound::load()
 {
 	auto h = handle();
-	Array<double> buffer;
 	int nchannel = h.channels();
-	// Samples are rows and channels are columns. For instance, the 5th sample in the second channel is at (i=5, j=2).
-	buffer.resize(BUFFER_SIZE * nchannel);
 	h.seek(0, SEEK_SET);
+	// Samples are rows and channels are columns. For instance, the 5th sample in the second channel is at (i=5, j=2).
 	m_data = Array<double>((intptr_t) h.frames(), (intptr_t) nchannel);
-	auto ptr = buffer.begin();
-	intptr_t count = 1; // dummy value to enter the loop
 
-	while (count != 0)
+	if (nchannel == 1)
 	{
-		count = (intptr_t) h.readf(ptr, BUFFER_SIZE);
-		for (intptr_t i = 1; i <= count; i += nchannel)
+		auto ptr = m_data.begin();
+		auto end = m_data.end();
+
+		while (ptr < end)
 		{
-			for (intptr_t j = 1; j <= nchannel; j++)
+			auto count = m_handle.readf(ptr, BUFFER_SIZE);
+			ptr += count * m_handle.channels();
+		}
+	}
+	else
+	{
+		Array<double> buffer;
+		buffer.resize(BUFFER_SIZE * nchannel);
+		auto ptr = buffer.begin();
+		intptr_t count = 1; // dummy value to enter the loop
+		intptr_t ioffset = 0;
+
+		while (count != 0)
+		{
+			count = (intptr_t) h.readf(ptr, BUFFER_SIZE);
+			for (intptr_t i = 1; i <= count; i += nchannel)
 			{
-				m_data(i,j) = (i - 1) + (j - 1);
+				for (intptr_t j = 1; j <= nchannel; j++)
+				{
+					m_data(ioffset+i, j) = ptr[nchannel * (i - 1) + (j - 1)];
+				}
 			}
+			ioffset += count;
 		}
 	}
 	h.seek(0, SEEK_SET);
