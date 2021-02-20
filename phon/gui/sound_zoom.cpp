@@ -25,26 +25,26 @@
 
 namespace phonometrica {
 
-SoundZoom::SoundZoom(wxWindow *parent) : wxWindow(parent, wxID_ANY)
+SoundZoom::SoundZoom(wxWindow *parent) : wxWindow(parent, wxID_ANY), m_sel({-1, -1})
 {
 	SetMinSize(wxSize(-1, 40));
 	SetMaxSize(wxSize(-1, 40));
-	m_sel = { 100, 150 };
 	Bind(wxEVT_PAINT, &SoundZoom::OnPaint, this);
 }
 
 void SoundZoom::OnPaint(wxPaintEvent &)
 {
+	if (!HasSelection()) {
+		return;
+	}
 	wxClientDC dc(this);
 	auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
 	if (!gc) return;
 	auto height = GetSize().GetHeight();
 	auto width = GetSize().GetWidth();
 
-	gc->SetPen(*wxRED_PEN);
 	wxBrush brush;
-	wxColour col(68, 18, 232, 60);
-	brush.SetColour(col);
+	brush.SetColour(WAVEBAR_SEL_COLOUR);
 	gc->SetBrush(brush);
 
 	wxGraphicsPath path = gc->CreatePath();
@@ -54,10 +54,9 @@ void SoundZoom::OnPaint(wxPaintEvent &)
 	path.AddLineToPoint(width, 0.0);
 	path.AddLineToPoint(0.0, 0.0);
 	gc->FillPath(path);
-	//gc->StrokePath(path);
 }
 
-void SoundZoom::OnSetPixelSelection(PixelSelection sel)
+void SoundZoom::OnSetSelection(PixelSelection sel)
 {
 	m_sel = sel;
 	Refresh();

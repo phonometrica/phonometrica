@@ -24,7 +24,7 @@
 namespace phonometrica {
 
 WaveBar::WaveBar(wxWindow *parent, const Handle <Sound> &snd) : wxWindow(parent, wxID_ANY),
-	m_sound(snd)
+	m_sound(snd), m_sel({-1, -1})
 {
 	SetBackgroundColour(*wxWHITE);
 	Bind(wxEVT_PAINT, &WaveBar::OnPaint, this);
@@ -42,6 +42,10 @@ WaveBar::WaveBar(wxWindow *parent, const Handle <Sound> &snd) : wxWindow(parent,
 	        raw_magnitude = m;
         }
     }
+
+    Bind(wxEVT_LEFT_DOWN, &WaveBar::OnStartSelection, this);
+    Bind(wxEVT_LEFT_UP, &WaveBar::OnEndSelection, this);
+    Bind(wxEVT_MOTION, &WaveBar::OnMotion, this);
 }
 
 void WaveBar::OnPaint(wxPaintEvent &)
@@ -52,6 +56,8 @@ void WaveBar::OnPaint(wxPaintEvent &)
 
 void WaveBar::Render(wxPaintDC &dc)
 {
+	UpdateCache();
+
 	auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
 	if (!gc) return;
 	auto height = GetSize().GetHeight();
@@ -64,8 +70,30 @@ void WaveBar::Render(wxPaintDC &dc)
 	// Draw wave
 	gc->SetPen(wxPen(*wxBLACK, 1));
 	wxGraphicsPath path = gc->CreatePath();
-	MakePath(path);
+	path.MoveToPoint(0.0, m_cache[0].first);
+	path.AddLineToPoint(0.0, m_cache[0].second);
+
+	for (size_t x = 1; x < m_cache.size(); x++)
+	{
+		path.AddLineToPoint(x-1, m_cache[x].first);
+		path.AddLineToPoint(x-1, m_cache[x].second);
+	}
 	gc->DrawPath(path);
+
+	if (!HasSelection()) {
+		return;
+	}
+	path.MoveToPoint(m_sel.from, 0.0);
+	path.AddLineToPoint(m_sel.to, 0.0);
+	path.AddLineToPoint(m_sel.to, height);
+	path.AddLineToPoint(m_sel.from, height);
+	path.AddLineToPoint(m_sel.from, 0.0);
+	wxBrush brush;
+	brush.SetColour(WAVEBAR_SEL_COLOUR);
+	gc->SetBrush(brush);
+	gc->FillPath(path);
+
+
 
 
 //	QColor col(Qt::blue);
@@ -91,13 +119,16 @@ void WaveBar::Render(wxPaintDC &dc)
 
 }
 
-void WaveBar::MakePath(wxGraphicsPath &path)
+void WaveBar::UpdateCache()
 {
-	int x = 0;
+	if (m_cache.size() == (size_t)GetSize().GetWidth()) {
+		return;
+	}
+	m_cache.clear();
+
 	auto sample_count = m_sound->channel_size();
 	auto &data = m_sound->data();
 	int nchannel = m_sound->nchannel();
-	auto height = GetSize().GetHeight();
 	auto width = GetSize().GetWidth();
 
 	// Subtract 1 to width so that the last pixel is assigned the left-over frames.
@@ -126,18 +157,7 @@ void WaveBar::MakePath(wxGraphicsPath &path)
 		{
 			auto y1 = SampleToYPos(maximum);
 			auto y2 = SampleToYPos(minimum);
-
-			if (x == 0)
-			{
-				path.MoveToPoint(0.0, y1);
-			}
-			else
-			{
-				path.AddLineToPoint(x, y1);
-			}
-			path.AddLineToPoint(x, y2);
-			x++;
-
+			m_cache.emplace_back(y1, y2);
 			// reset values
 			maximum = (std::numeric_limits<double>::min)();
 			minimum = (std::numeric_limits<double>::max)();
@@ -146,8 +166,8 @@ void WaveBar::MakePath(wxGraphicsPath &path)
 
 	auto y1 = SampleToYPos(maximum);
 	auto y2 = SampleToYPos(minimum);
-	path.AddLineToPoint(x, y1);
-	path.AddLineToPoint(x, y2);
+	m_cache.emplace_back(y1, y2);
+	assert(m_cache.size() == (size_t)GetSize().GetWidth());
 }
 
 //
@@ -165,6 +185,42 @@ double WaveBar::SampleToYPos(double s) const
 {
     const int H = GetSize().GetHeight()/ 2;
     return H - s * (double(H) / raw_magnitude);
+}
+
+void WaveBar::SetSelection(PixelSelection sel)
+{
+	m_sel = sel;
+	selection_changed(sel);
+}
+
+void WaveBar::OnStartSelection(wxMouseEvent &e)
+{
+	auto pos = e.GetPosition();
+	m_sel_start = pos.x;
+	e.Skip();
+}
+
+void WaveBar::OnEndSelection(wxMouseEvent &e)
+{
+	m_sel_start = -1;
+	e.Skip();
+}
+
+void WaveBar::OnMotion(wxMouseEvent &e)
+{
+	if (m_sel_start >= 0)
+	{
+		auto pos = e.GetPosition();
+		double x = pos.x;
+
+		if (x < m_sel_start) {
+			SetSelection({x, m_sel_start});
+		}
+		else {
+			SetSelection({m_sel_start, x});
+		}
+		Refresh();
+	}
 }
 
 } // namespace phonometrica

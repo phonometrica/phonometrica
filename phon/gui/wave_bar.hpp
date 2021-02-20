@@ -25,7 +25,9 @@
 #include <wx/dcclient.h>
 #include <wx/window.h>
 #include <wx/graphics.h>
+#include <phon/gui/helpers.hpp>
 #include <phon/application/sound.hpp>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
@@ -35,6 +37,7 @@ public:
 
 	WaveBar(wxWindow *parent, const Handle <Sound> &snd);
 
+	Signal<PixelSelection> selection_changed;
 
 private:
 
@@ -42,15 +45,34 @@ private:
 
 	void Render(wxPaintDC &dc);
 
-	void MakePath(wxGraphicsPath &path);
+	void UpdateCache();
 
-	double SampleToYPos(double s) const;;
+	double SampleToYPos(double s) const;
+
+	bool HasSelection() const { return m_sel.from >= 0; }
+
+	void SetSelection(PixelSelection sel);
+
+	void OnStartSelection(wxMouseEvent &e);
+
+	void OnEndSelection(wxMouseEvent &e);
+
+	void OnMotion(wxMouseEvent &e);
 
 	Handle<Sound> m_sound;
 
+	// To avoid recomputing the data on every paint event, we cache it here. We only
+	// recompute if if the size of the window has changed.
+	std::vector<std::pair<double,double>> m_cache;
+
+	// Current selection
+	PixelSelection m_sel;
+
+	// Cached magnitude to normalize amplitudes (computed once since height is fixed).
 	double raw_magnitude = 0.0;
 
-	Array<std::pair<double,double>> m_cache;
+	// Start of the selection when the user clicks on the wavebar.
+	double m_sel_start = -1;
 };
 
 } // namespace phonometrica

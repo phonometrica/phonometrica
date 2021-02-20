@@ -54,6 +54,8 @@ void SoundView::Initialize()
 	outer_sizer->Add(mid_sizer, 0, wxEXPAND | wxALL, 10);
 
 	SetSizer(outer_sizer);
+
+	m_wavebar->selection_changed.connect(&SoundZoom::OnSetSelection, m_zoom);
 }
 
 bool SoundView::IsModified() const

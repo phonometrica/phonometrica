@@ -24,15 +24,10 @@
 
 #include <wx/window.h>
 #include <wx/dcclient.h>
+#include <phon/gui/helpers.hpp>
 #include <phon/utils/signal.hpp>
 
 namespace phonometrica {
-
-struct PixelSelection
-{
-	double from, to;
-};
-
 
 class SoundZoom final : public wxWindow
 {
@@ -40,9 +35,11 @@ public:
 
 	SoundZoom(wxWindow *parent);
 
-	void OnSetPixelSelection(PixelSelection sel);
+	void OnSetSelection(PixelSelection sel);
 
 private:
+
+	bool HasSelection() const { return m_sel.from >= 0; }
 
 	void OnPaint(wxPaintEvent &);
 
