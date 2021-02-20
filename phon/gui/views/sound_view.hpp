@@ -25,6 +25,7 @@
 #include <phon/gui/views/view.hpp>
 #include <phon/gui/wave_bar.hpp>
 #include <phon/gui/sound_zoom.hpp>
+#include <phon/gui/plot/waveform.hpp>
 #include <phon/gui/tool_bar.hpp>
 #include <phon/gui/sizer.hpp>
 #include <phon/application/sound.hpp>
@@ -47,13 +48,25 @@ public:
 
 	String GetPath() const override;
 
+	void SetTimeSelection(double from, double to);
+
 protected:
 
 	void SetToolBar();
 
+	void OnPlay(wxCommandEvent &);
+
+	void OnStop(wxCommandEvent &);
+
+	void OnHelp(wxCommandEvent &);
+
+	virtual void ShowHelp();
+
 	Handle<Sound> m_sound;
 
 	ToolBar *m_toolbar;
+
+	Array<SoundPlot*> m_plots;
 
 	// Sizer for sound plots
 	wxBoxSizer *m_inner_sizer;

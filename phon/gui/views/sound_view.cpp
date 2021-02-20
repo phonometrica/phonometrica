@@ -20,7 +20,9 @@
  ***********************************************************************************************************************/
 
 #include <phon/gui/views/sound_view.hpp>
+#include <phon/gui/plot_separator.hpp>
 #include <phon/application/macros.hpp>
+#include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
 
 namespace phonometrica {
@@ -39,7 +41,13 @@ void SoundView::Initialize()
 
 	// Packs the plots and wavebar
 	m_inner_sizer = new VBoxSizer;
-	m_inner_sizer->AddStretchSpacer();
+	for (int i = 1; i <= m_sound->nchannel(); i++)
+	{
+		auto waveform = new Waveform(this, m_sound, i);
+		m_inner_sizer->Add(waveform, 1, wxEXPAND|wxLEFT|wxRIGHT, 10);
+		m_inner_sizer->Add(new PlotSeparator(this));
+		m_plots.append(waveform);
+	}
 	m_inner_sizer->Add(m_zoom, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
 	m_inner_sizer->Add(m_wavebar, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 
@@ -51,11 +59,15 @@ void SoundView::Initialize()
 	// Packs the toolbar and the mid sizer
 	auto outer_sizer = new VBoxSizer;
 	outer_sizer->Add(m_toolbar, 0, wxEXPAND | wxALL, 10);
-	outer_sizer->Add(mid_sizer, 0, wxEXPAND | wxALL, 10);
+	outer_sizer->Add(mid_sizer, 1, wxEXPAND | wxALL, 10);
 
 	SetSizer(outer_sizer);
 
 	m_wavebar->selection_changed.connect(&SoundZoom::OnSetSelection, m_zoom);
+	for (auto plot : m_plots) {
+		m_wavebar->change_window.connect(&SoundPlot::ChangeWindow, plot);
+	}
+
 }
 
 bool SoundView::IsModified() const
@@ -78,16 +90,54 @@ void SoundView::SetToolBar()
 #define ICN(x) wxBITMAP_PNG_FROM_DATA(x)
 	m_toolbar = new ToolBar(this);
 	auto save_tool = m_toolbar->AddButton(ICN(save), _("Save concordance... (" CTRL_KEY "S)"));
+	save_tool->Disable();
 	m_toolbar->AddSeparator();
+	auto play_tool = m_toolbar->AddButton(ICN(play), _("Play window or selection"));
+	auto stop_tool = m_toolbar->AddButton(ICN(stop), _("Stop playing"));
 	m_toolbar->AddStretchableSpace();
 	auto help_tool = m_toolbar->AddHelpButton();
-
 #undef ICN
+
+	play_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnPlay, this);
+	stop_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnStop, this);
+	help_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnHelp, this);
 }
 
 String SoundView::GetPath() const
 {
 	return m_sound->path();
+}
+
+void SoundView::SetTimeSelection(double from, double to)
+{
+	if (to > from + m_sound->duration()) {
+		to = from + m_sound->duration();
+	}
+	for (auto plot : m_plots) {
+		plot->ChangeWindow({from, to});
+	}
+	m_wavebar->SetTimeSelection({from, to});
+}
+
+void SoundView::OnPlay(wxCommandEvent &)
+{
+
+}
+
+void SoundView::OnStop(wxCommandEvent &)
+{
+
+}
+
+void SoundView::OnHelp(wxCommandEvent &)
+{
+	ShowHelp();
+}
+
+void SoundView::ShowHelp()
+{
+	auto url = Settings::get_documentation_page("sound.html");
+	wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
 }
 
 

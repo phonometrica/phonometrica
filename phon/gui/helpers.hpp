@@ -5,7 +5,7 @@ namespace phonometrica {
 
 // Structures to represent time or screen selections.
 
-struct TimeSelection
+struct TimeSpan
 {
 	double from, to;
 };

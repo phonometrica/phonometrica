@@ -27,7 +27,6 @@ WaveBar::WaveBar(wxWindow *parent, const Handle <Sound> &snd) : wxWindow(parent,
 	m_sound(snd), m_sel({-1, -1})
 {
 	SetBackgroundColour(*wxWHITE);
-	Bind(wxEVT_PAINT, &WaveBar::OnPaint, this);
 	SetMinSize(wxSize(-1, 50));
 	SetMaxSize(wxSize(-1, 50));
 
@@ -43,6 +42,7 @@ WaveBar::WaveBar(wxWindow *parent, const Handle <Sound> &snd) : wxWindow(parent,
         }
     }
 
+	Bind(wxEVT_PAINT, &WaveBar::OnPaint, this);
     Bind(wxEVT_LEFT_DOWN, &WaveBar::OnStartSelection, this);
     Bind(wxEVT_LEFT_UP, &WaveBar::OnEndSelection, this);
     Bind(wxEVT_MOTION, &WaveBar::OnMotion, this);
@@ -92,31 +92,6 @@ void WaveBar::Render(wxPaintDC &dc)
 	brush.SetColour(WAVEBAR_SEL_COLOUR);
 	gc->SetBrush(brush);
 	gc->FillPath(path);
-
-
-
-
-//	QColor col(Qt::blue);
-//	col = col.lighter(160);
-//	col.setAlpha(60);
-//
-//	// If the user if making a selection backward, make sure that it is displayed properly
-//	auto w = int(round(std::abs(to - from)));
-//	auto x = int(round((from < to) ? from : to));
-//
-//	if (w <= 1)
-//	{
-//		QPen pen;
-//		col.setAlpha(120);
-//		pen.setColor(col);
-//		painter.setPen(pen);
-//		painter.drawLine(x, 0, x, height());
-//	}
-//	else
-//	{
-//		painter.fillRect(x, 0, w, height(), col);
-//	}
-
 }
 
 void WaveBar::UpdateCache()
@@ -170,16 +145,15 @@ void WaveBar::UpdateCache()
 	assert(m_cache.size() == (size_t)GetSize().GetWidth());
 }
 
-//
-//double WaveBar::SampleToXPos(intptr_t s) const
-//{
-//    return s * ((double)GetSize().GetWidth() / m_sound->channel_size());
-//}
-//
-//intptr_t WaveBar::XPosToSample(double x) const
-//{
-//    return (intptr_t) round(x * m_sound->channel_size() / GetSize().GetWidth()) + 1;
-//}
+double WaveBar::TimeToXPos(double t) const
+{
+    return t * GetSize().GetWidth() / m_sound->duration();
+}
+
+double WaveBar::XPosToTime(double x) const
+{
+    return x * m_sound->duration() / GetSize().GetWidth();
+}
 
 double WaveBar::SampleToYPos(double s) const
 {
@@ -203,6 +177,9 @@ void WaveBar::OnStartSelection(wxMouseEvent &e)
 void WaveBar::OnEndSelection(wxMouseEvent &e)
 {
 	m_sel_start = -1;
+	auto t1 = XPosToTime(m_sel.from);
+	auto t2 = XPosToTime(m_sel.to);
+	change_window(TimeSpan{t1, t2});
 	e.Skip();
 }
 
@@ -211,7 +188,8 @@ void WaveBar::OnMotion(wxMouseEvent &e)
 	if (m_sel_start >= 0)
 	{
 		auto pos = e.GetPosition();
-		double x = pos.x;
+		double x = (std::max)(pos.x, 0);
+		x = (std::min)(x, (double)GetSize().GetWidth());
 
 		if (x < m_sel_start) {
 			SetSelection({x, m_sel_start});
@@ -221,6 +199,14 @@ void WaveBar::OnMotion(wxMouseEvent &e)
 		}
 		Refresh();
 	}
+}
+
+void WaveBar::SetTimeSelection(TimeSpan win)
+{
+	auto from = TimeToXPos(win.from);
+	auto to = TimeToXPos(win.to);
+	SetSelection(PixelSelection{from, to});
+	Refresh();
 }
 
 } // namespace phonometrica

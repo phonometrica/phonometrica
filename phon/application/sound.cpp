@@ -46,6 +46,9 @@ namespace phonometrica {
 
 Array<String> Sound::the_supported_sound_formats;
 Array<String> Sound::the_common_sound_formats;
+Signal<const String&, const String&, int> Sound::start_loading;
+Signal<int> Sound::update_loading;
+
 
 Sound::Sound(Directory *parent, String path) :
 		Document(meta::get_class<Sound>(), parent, std::move(path))
@@ -98,6 +101,11 @@ void Sound::load()
 	h.seek(0, SEEK_SET);
 	// Samples are rows and channels are columns. For instance, the 5th sample in the second channel is at (i=5, j=2).
 	m_data = Array<double>((intptr_t) h.frames(), (intptr_t) nchannel);
+	auto slice = size_t(this->channel_size() / 100);
+	auto msg = String::format("Reading file %s from disk...", this->label().data());
+	start_loading(msg, "Loading data", 100);
+	size_t accumulator = 0;
+	int counter = 1;
 
 	if (nchannel == 1)
 	{
@@ -108,6 +116,12 @@ void Sound::load()
 		{
 			auto count = m_handle.readf(ptr, BUFFER_SIZE);
 			ptr += count * m_handle.channels();
+			accumulator += count;
+			if (accumulator >= slice)
+			{
+				update_loading(counter++);
+				accumulator = accumulator - slice;
+			}
 		}
 	}
 	else
@@ -129,6 +143,12 @@ void Sound::load()
 				}
 			}
 			ioffset += count;
+			accumulator += count;
+			if (accumulator >= slice)
+			{
+				update_loading(counter++);
+				accumulator = accumulator - slice;
+			}
 		}
 	}
 	h.seek(0, SEEK_SET);
@@ -705,13 +725,28 @@ intptr_t Sound::size() const
 
 double Sound::frame_to_time(intptr_t index) const
 {
-	return double(index) / sample_rate();
+	return double(--index) / sample_rate();
 }
 
 intptr_t Sound::time_to_frame(double time) const
 {
-	auto s = (intptr_t) round(time * sample_rate());
+	auto s = (intptr_t) round(time * sample_rate()) + 1;
 	return std::min<intptr_t>(s, m_handle.frames());
+}
+
+std::span<const double> Sound::get_channel(int n) const
+{
+	assert(n <= nchannel());
+	auto start = m_data.data() + (n-1) * channel_size();
+
+	return { start, start + channel_size() };
+}
+
+std::span<const double> Sound::get_channel(int n, intptr_t first_sample, intptr_t last_sample) const
+{
+	auto data = get_channel(n);
+	// We shift first sample to base 1 but we leave last_sample untouched because we want to include it.
+	return { data.data() + first_sample - 1, data.data() + last_sample };
 }
 
 

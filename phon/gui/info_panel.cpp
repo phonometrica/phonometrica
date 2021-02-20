@@ -166,6 +166,16 @@ void InfoPanel::DisplaySingleFile()
 		auto path = sound ? wxString(sound->path()) : wxString();
 		AddSoundLabel(single_page, label, path);
 	}
+	else if (file->is<Sound>())
+	{
+		auto snd = dynamic_cast<Sound*>(file);
+		AddSectionHeading(single_page, _("Duration:"), false);
+		AddLabel(single_page, wxString::Format("%f seconds", snd->duration()));
+		AddSectionHeading(single_page, _("Sample rate:"), false);
+		AddLabel(single_page, wxString::Format("%d Hz", (int)snd->sample_rate()));
+		AddSectionHeading(single_page, _("Number of channels:"), false);
+		AddLabel(single_page, wxString::Format("%d", (int)snd->nchannel()));
+	}
 
 	AddProperties(single_page, false);
 	AddDescription(file->description());

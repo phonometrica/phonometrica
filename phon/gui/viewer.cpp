@@ -118,6 +118,7 @@ void Viewer::ViewFile(const Handle<Document> &file)
 		auto view = new SoundView(this, snd);
 		view->Initialize();
 		AddView(view, snd->label());
+		view->SetTimeSelection(0, 10);
 	}
 	else if (file->is<Script>())
 	{

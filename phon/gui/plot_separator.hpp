@@ -13,78 +13,33 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 19/02/2021                                                                                                 *
+ * Created: 20/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: scrollbar that displays the whole sound file in a sound view or annotation view.                           *
+ * Purpose: Thin line to separate plots in sound and annotation views.                                                 *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_WAVE_BAR_HPP
-#define PHONOMETRICA_WAVE_BAR_HPP
+#ifndef PHONOMETRICA_PLOT_SEPARATOR_HPP
+#define PHONOMETRICA_PLOT_SEPARATOR_HPP
 
-#include <wx/dcclient.h>
 #include <wx/window.h>
-#include <wx/graphics.h>
-#include <phon/gui/helpers.hpp>
-#include <phon/application/sound.hpp>
-#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
-class WaveBar final : public wxWindow
+class PlotSeparator final : public wxWindow
 {
 public:
 
-	WaveBar(wxWindow *parent, const Handle <Sound> &snd);
+	PlotSeparator(wxWindow *parent) : wxWindow(parent, wxID_ANY)
+	{
+		SetSize(wxSize(-1, 1));
+		SetBackgroundColour(wxColour(0, 0, 0, 50));
+	}
 
-	void SetTimeSelection(TimeSpan win);
-
-	Signal<PixelSelection> selection_changed;
-
-	Signal<TimeSpan> change_window;
-
-private:
-
-	void OnPaint(wxPaintEvent &);
-
-	void Render(wxPaintDC &dc);
-
-	void UpdateCache();
-
-	double SampleToYPos(double s) const;
-
-	bool HasSelection() const { return m_sel.from >= 0; }
-
-	double TimeToXPos(double t) const;
-
-	double XPosToTime(double x) const;
-
-	void SetSelection(PixelSelection sel);
-
-	void OnStartSelection(wxMouseEvent &e);
-
-	void OnEndSelection(wxMouseEvent &e);
-
-	void OnMotion(wxMouseEvent &e);
-
-	Handle<Sound> m_sound;
-
-	// To avoid recomputing the data on every paint event, we cache it here. We only
-	// recompute if if the size of the window has changed.
-	std::vector<std::pair<double,double>> m_cache;
-
-	// Current selection
-	PixelSelection m_sel;
-
-	// Cached magnitude to normalize amplitudes (computed once since height is fixed).
-	double raw_magnitude = 0.0;
-
-	// Start of the selection when the user clicks on the wavebar.
-	double m_sel_start = -1;
 };
 
 } // namespace phonometrica
 
 
 
-#endif // PHONOMETRICA_WAVE_BAR_HPP
+#endif // PHONOMETRICA_PLOT_SEPARATOR_HPP

@@ -344,6 +344,8 @@ void MainWindow::SetBindings()
 	project->metadata_updated.connect(&ProjectManager::UpdateLabel, project_manager);
 	project->notify_error.connect(&MainWindow::OnError, this);
 	viewer->wake_up.connect(&MainWindow::OnWakeUp, this);
+	Sound::start_loading.connect(&MainWindow::OnRequestProgress, this);
+	Sound::update_loading.connect(&MainWindow::OnUpdateProgress, this);
 //	project->start_activity.connect(&ProjectManager::StartActivity, project_manager);
 //	project->stop_activity.connect(&ProjectManager::StopActivity, project_manager);
 
@@ -1817,10 +1819,21 @@ void MainWindow::OnRequestProgress(const String &msg, const String &title, int c
 
 void MainWindow::OnUpdateProgress(int i)
 {
-	progress_dialog->Update(i);
-	if (i == progress_dialog->GetRange()) {
-	    progress_dialog = nullptr;
+	if (progress_dialog)
+	{
+		if (progress_dialog->WasCancelled())
+		{
+			progress_dialog = nullptr;
+		}
+		else
+		{
+			progress_dialog->Update(i);
+			if (i == progress_dialog->GetRange()) {
+				progress_dialog = nullptr;
+			}
+		}
 	}
+
 }
 
 void MainWindow::OnUndo(wxCommandEvent &)

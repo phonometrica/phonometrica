@@ -36,6 +36,7 @@
 #include <sndfile.hh>
 #include <phon/array.hpp>
 #include <phon/utils/span.hpp>
+#include <phon/utils/signal.hpp>
 
 
 namespace phonometrica {
@@ -108,10 +109,18 @@ public:
 
 	intptr_t size() const;
 
+	std::span<const double> get_channel(int n) const;
+
+	std::span<const double> get_channel(int n, intptr_t first_sample, intptr_t last_sample) const;
+
 
 	double frame_to_time(intptr_t index) const;
 
 	intptr_t time_to_frame(double time) const;
+
+	static Signal<const String&, const String&, int> start_loading;
+
+	static Signal<int> update_loading;
 
 private:
 

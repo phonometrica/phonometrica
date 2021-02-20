@@ -13,78 +13,68 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 19/02/2021                                                                                                 *
+ * Created: 20/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: scrollbar that displays the whole sound file in a sound view or annotation view.                           *
+ * Purpose: Represents the waveform for a single channel in a sound file.                                              *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_WAVE_BAR_HPP
-#define PHONOMETRICA_WAVE_BAR_HPP
+#ifndef PHONOMETRICA_WAVEFORM_HPP
+#define PHONOMETRICA_WAVEFORM_HPP
 
-#include <wx/dcclient.h>
-#include <wx/window.h>
-#include <wx/graphics.h>
-#include <phon/gui/helpers.hpp>
-#include <phon/application/sound.hpp>
-#include <phon/utils/signal.hpp>
+#include <phon/gui/plot/sound_plot.hpp>
 
 namespace phonometrica {
 
-class WaveBar final : public wxWindow
+class Waveform final : public SoundPlot
 {
+	enum class Scaling
+    {
+    	Global,
+    	Local,
+    	Fixed
+    };
+
 public:
 
-	WaveBar(wxWindow *parent, const Handle <Sound> &snd);
-
-	void SetTimeSelection(TimeSpan win);
-
-	Signal<PixelSelection> selection_changed;
-
-	Signal<TimeSpan> change_window;
+	Waveform(wxWindow *parent, const Handle<Sound> &snd, int channel);
 
 private:
+
+	void ClearCache() override;
+
+	void UpdateCache();
+
+	// Map sample to plot y coordinate.
+    double SampleToHeight(double s) const;
+
+    void SetMagnitude(double value);
+
+    void SetLocalMagnitude(std::span<const double> data);
+
+    void SetGlobalMagnitude(double value);
 
 	void OnPaint(wxPaintEvent &);
 
 	void Render(wxPaintDC &dc);
 
-	void UpdateCache();
+    // We precompute and cache a downsampled representation of the signal. Each point corresponds to a pixed and stores
+    // the amplitude extrema found in the range represented by the pixel.
+    std::vector<std::pair<double,double>> m_cache;
 
-	double SampleToYPos(double s) const;
+    // Cache the size of the plot when we compute the data
+    wxSize m_cached_size;
 
-	bool HasSelection() const { return m_sel.from >= 0; }
+    Scaling scaling = Scaling::Fixed;
+    double magnitude = 1.0;
+    double global_magnitude = 1.0;
+    std::pair<double,double> extrema = {-1, 1};
 
-	double TimeToXPos(double t) const;
-
-	double XPosToTime(double x) const;
-
-	void SetSelection(PixelSelection sel);
-
-	void OnStartSelection(wxMouseEvent &e);
-
-	void OnEndSelection(wxMouseEvent &e);
-
-	void OnMotion(wxMouseEvent &e);
-
-	Handle<Sound> m_sound;
-
-	// To avoid recomputing the data on every paint event, we cache it here. We only
-	// recompute if if the size of the window has changed.
-	std::vector<std::pair<double,double>> m_cache;
-
-	// Current selection
-	PixelSelection m_sel;
-
-	// Cached magnitude to normalize amplitudes (computed once since height is fixed).
-	double raw_magnitude = 0.0;
-
-	// Start of the selection when the user clicks on the wavebar.
-	double m_sel_start = -1;
+    int m_channel;
 };
 
 } // namespace phonometrica
 
 
 
-#endif // PHONOMETRICA_WAVE_BAR_HPP
+#endif // PHONOMETRICA_WAVEFORM_HPP
