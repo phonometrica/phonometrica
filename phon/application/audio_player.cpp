@@ -173,7 +173,7 @@ void AudioPlayer::prepare()
     remaining = (data->size() / data->channels()) * double(output_rate) / data->sample_rate();
     auto input_size = floor(FRAME_COUNT * double(output_rate) / data->sample_rate());
     m_buffer.resize(input_size);
-    m_cache.resize(input_size);
+    m_cache_data.resize(input_size);
 #else
     m_params.nChannels = (unsigned int) data->nchannel();
     output_rate = (unsigned int) data->sample_rate();

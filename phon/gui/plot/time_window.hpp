@@ -55,7 +55,7 @@ protected:
 
 	double TimeToXPos(double t) const;
 
-	virtual void ClearCache() = 0;
+	virtual void InvalidateCache() = 0;
 
 	// The current window
 	TimeSpan m_window;

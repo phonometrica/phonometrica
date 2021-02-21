@@ -41,9 +41,11 @@ public:
 
 private:
 
-	void ClearCache() override;
+	void InvalidateCache() override;
 
 	void UpdateCache();
+
+	std::vector<std::pair<double,double>> DownsampleWaveform();
 
 	void ReadSettings();
 
@@ -62,9 +64,11 @@ private:
 
 	void Render(wxPaintDC &dc);
 
-    // We precompute and cache a downsampled representation of the signal. Each point corresponds to a pixed and stores
-    // the amplitude extrema found in the range represented by the pixel.
-    std::vector<std::pair<double,double>> m_cache;
+	void DrawBitmap();
+
+	// We precompute and cache a downsampled representation of the signal. Each point corresponds to a pixed and stores
+	// the amplitude extrema found in the range represented by the pixel.
+    wxBitmap m_cached_bmp;
 
     // Cache the size of the plot when we compute the data
     wxSize m_cached_size;

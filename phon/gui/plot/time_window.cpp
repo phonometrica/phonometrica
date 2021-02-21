@@ -32,7 +32,7 @@ TimeAlignedWindow::TimeAlignedWindow(wxWindow *parent) :
 void TimeAlignedWindow::SetTimeWindow(TimeSpan win)
 {
 	m_window = win;
-	ClearCache();
+	InvalidateCache();
 	Refresh();
 }
 

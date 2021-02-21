@@ -108,11 +108,11 @@ private:
 
 #if PHON_MACOS
 
-	double * cache() { return m_cache.data(); }
+	double * cache() { return m_cache_data.data(); }
 
 	intptr_t remaining = 0;
 
-	std::vector<double> m_cache; // extra samples are stored here for the next iteration
+	std::vector<double> m_cache_data; // extra samples are stored here for the next iteration
 
 	intptr_t cached_samples = 0; // number of samples in the cache
 

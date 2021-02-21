@@ -19,6 +19,8 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <wx/dcmemory.h>
+#include <wx/dcgraph.h>
 #include <wx/msgdlg.h>
 #include <phon/gui/plot/waveform.hpp>
 #include <phon/application/settings.hpp>
@@ -74,7 +76,7 @@ void Waveform::ReadSettings()
 	}
 }
 
-void Waveform::ClearCache()
+void Waveform::InvalidateCache()
 {
 	// Don't clear the cache here, it will be done in UpdateCache() once the invalid size is detected.
 	m_cached_size = wxDefaultSize;
@@ -91,24 +93,97 @@ void Waveform::Render(wxPaintDC &dc)
 {
 	auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
 	if (!gc) return;
+	auto height = GetHeight();
+	auto width = GetWidth();
+
+	// Draw waveform
+	dc.DrawBitmap(m_cached_bmp, 0.0, 0.0, true);
+
+	// Draw selection
+//	if (!HasSelection()) {
+//		return;
+//	}
+//	path.MoveToPoint(m_sel.from, 0.0);
+//	path.AddLineToPoint(m_sel.to, 0.0);
+//	path.AddLineToPoint(m_sel.to, height);
+//	path.AddLineToPoint(m_sel.from, height);
+//	path.AddLineToPoint(m_sel.from, 0.0);
+//	wxBrush brush;
+//	brush.SetColour(WAVEBAR_SEL_COLOUR);
+//	gc->SetBrush(brush);
+//	gc->FillPath(path);
+}
+
+void Waveform::UpdateCache()
+{
+	if (GetSize() == m_cached_size) {
+		return;
+	}
+	DrawBitmap();
+	m_cached_size = GetSize();
+}
+
+double Waveform::SampleToHeight(double s) const
+{
+	const double H = (double)GetSize().GetHeight() / 2;
+    return H - s * H / magnitude;
+}
+
+void Waveform::SetMagnitude(double value)
+{
+    magnitude = value;
+    extrema = {-value, value};
+}
+
+void Waveform::SetLocalMagnitude(std::span<const double> data)
+{
+	double e1 = std::abs(double(*std::max_element(data.begin(), data.end())));
+	double e2 = std::abs(double(*std::min_element(data.begin(), data.end())));
+	auto m = (std::max)(e1, e2);
+	SetMagnitude(m);
+}
+
+void Waveform::SetGlobalMagnitude(double value)
+{
+	global_magnitude = value;
+}
+
+void Waveform::OnEraseBackground(wxEraseEvent &e)
+{
+	auto dc = e.GetDC();
+	dc->SetBackground(*wxWHITE);
+	dc->Clear();
+}
+
+void Waveform::DrawBitmap()
+{
+	auto wave = DownsampleWaveform();
+	wxMemoryDC dc;
+	wxBitmap bmp(GetSize());
+	dc.SelectObject(bmp);
+	dc.SetBackground(*wxWHITE);
+	dc.Clear();
+	auto gc = dc.GetGraphicsContext();
+	if (!gc) return;
 	auto height = GetSize().GetHeight();
 	auto width = GetSize().GetWidth();
 
+
 	// Draw zero-crossing line.
 	dc.SetPen(wxPen(*wxBLUE, 1, wxPENSTYLE_DOT));
-	dc.DrawLine(0, height/2, width, height/2);
+	dc.DrawLine(0, height / 2, width, height / 2);
 
-	if (m_cache.size() >= width)
+	if (wave.size() >= width)
 	{
 		gc->SetPen(wxPen(*wxBLACK, 1));
 		wxGraphicsPath path = gc->CreatePath();
-		path.MoveToPoint(0.0, m_cache[0].first);
-		path.AddLineToPoint(0.0, m_cache[0].second);
+		path.MoveToPoint(0.0, wave[0].first);
+		path.AddLineToPoint(0.0, wave[0].second);
 
-		for (size_t x = 1; x < m_cache.size(); x++)
+		for (size_t x = 1; x < wave.size(); x++)
 		{
-			path.AddLineToPoint(x-1, m_cache[x].first);
-			path.AddLineToPoint(x-1, m_cache[x].second);
+			path.AddLineToPoint(x-1, wave[x].first);
+			path.AddLineToPoint(x-1, wave[x].second);
 		}
 		gc->DrawPath(path);
 	}
@@ -161,27 +236,14 @@ void Waveform::Render(wxPaintDC &dc)
         }
 #endif
 	}
-
-//	if (!HasSelection()) {
-//		return;
-//	}
-//	path.MoveToPoint(m_sel.from, 0.0);
-//	path.AddLineToPoint(m_sel.to, 0.0);
-//	path.AddLineToPoint(m_sel.to, height);
-//	path.AddLineToPoint(m_sel.from, height);
-//	path.AddLineToPoint(m_sel.from, 0.0);
-//	wxBrush brush;
-//	brush.SetColour(WAVEBAR_SEL_COLOUR);
-//	gc->SetBrush(brush);
-//	gc->FillPath(path);
+	dc.SelectObject(wxNullBitmap);
+	m_cached_bmp = bmp;
 }
 
-void Waveform::UpdateCache()
+std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 {
-	if (GetSize() == m_cached_size) {
-		return;
-	}
-	m_cache.clear();
+	std::vector<std::pair<double, double>> wave;
+	wave.reserve(GetWidth());
 
 	// If the number of samples to display is greater than the number of pixels,
 	// map several frames to one pixel. We find the maximum and minimum amplitudes
@@ -234,7 +296,7 @@ void Waveform::UpdateCache()
 			{
 				double y1 = SampleToHeight(maximum);
 				double y2 = SampleToHeight(minimum);
-				m_cache.emplace_back(y1, y2);
+				wave.emplace_back(y1, y2);
 
 				// reset values
 				maximum = -(std::numeric_limits<double>::max)();
@@ -248,41 +310,10 @@ void Waveform::UpdateCache()
 		if (min_index < max_index) {
 			std::swap(y1, y2);
 		}
-		m_cache.emplace_back(y1, y2);
+		wave.emplace_back(y1, y2);
 	}
-	m_cached_size = GetSize();
-}
 
-double Waveform::SampleToHeight(double s) const
-{
-	const double H = (double)GetSize().GetHeight() / 2;
-    return H - s * H / magnitude;
-}
-
-void Waveform::SetMagnitude(double value)
-{
-    magnitude = value;
-    extrema = {-value, value};
-}
-
-void Waveform::SetLocalMagnitude(std::span<const double> data)
-{
-	double e1 = std::abs(double(*std::max_element(data.begin(), data.end())));
-	double e2 = std::abs(double(*std::min_element(data.begin(), data.end())));
-	auto m = (std::max)(e1, e2);
-	SetMagnitude(m);
-}
-
-void Waveform::SetGlobalMagnitude(double value)
-{
-	global_magnitude = value;
-}
-
-void Waveform::OnEraseBackground(wxEraseEvent &e)
-{
-	auto dc = e.GetDC();
-	dc->SetBackground(*wxWHITE);
-	dc->Clear();
+	return wave;
 }
 
 } // namespace phonometrica
