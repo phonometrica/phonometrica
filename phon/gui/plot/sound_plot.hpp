@@ -35,7 +35,21 @@ public:
 
 	SoundPlot(wxWindow *parent, const Handle<Sound> &snd);
 
-	void OnSelectionChanged(PixelSelection sel);
+	void SetSelection(PixelSelection sel);
+
+	void ZoomToSelection();
+
+	void ZoomIn();
+
+	void ZoomOut();
+
+	void ViewAll();
+
+	void MoveForward();
+
+	void MoveBackward();
+
+	void EnableMouseTracking(bool value);
 
 	Signal<PixelSelection> update_selection;
 
@@ -51,6 +65,14 @@ protected:
 
 	void OnLeaveWindow(wxMouseEvent &e);
 
+	void OnMouseWheel(wxMouseEvent &e);
+
+	TimeSpan ComputeZoomIn() const;
+
+	TimeSpan ComputeZoomOut() const;
+
+    double ClipTime(double t) const;
+
 	Handle<Sound> m_sound;
 
 	// Current selection on screen
@@ -58,6 +80,8 @@ protected:
 
 	// Start of the selection when the user clicks on the wavebar.
 	double m_sel_start = -1;
+
+	bool m_track_mouse;
 
 };
 

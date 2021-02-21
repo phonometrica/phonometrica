@@ -29,11 +29,26 @@ TimeAlignedWindow::TimeAlignedWindow(wxWindow *parent) :
 	SetBackgroundColour(*wxWHITE);
 }
 
-void TimeAlignedWindow::ChangeWindow(TimeSpan win)
+void TimeAlignedWindow::SetTimeWindow(TimeSpan win)
 {
 	m_window = win;
 	ClearCache();
 	Refresh();
+}
+
+double TimeAlignedWindow::XPosToTime(double x) const
+{
+    return m_window.from + (x * GetWindowDuration() / GetWidth());
+}
+
+double TimeAlignedWindow::TimeToXPos(double t) const
+{
+    return (t - m_window.from) * GetWidth() / GetWindowDuration();
+}
+
+TimeSpan TimeAlignedWindow::GetTimeWindow() const
+{
+	return m_window;
 }
 
 } // namespace phonometrica

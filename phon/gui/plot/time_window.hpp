@@ -37,11 +37,23 @@ public:
 
 	~TimeAlignedWindow() override = default;
 
-	void ChangeWindow(TimeSpan win);
+	TimeSpan GetTimeWindow() const;
 
-	Signal<TimeSpan> window_changed;
+	void SetTimeWindow(TimeSpan win);
+
+	Signal<TimeSpan> update_window;
 
 protected:
+
+	double GetWindowDuration() const { return m_window.to - m_window.from; }
+
+	int GetWidth() const { return GetSize().GetWidth(); }
+
+	int GetHeight() const { return GetSize().GetHeight(); }
+
+	double XPosToTime(double x) const;
+
+	double TimeToXPos(double t) const;
 
 	virtual void ClearCache() = 0;
 

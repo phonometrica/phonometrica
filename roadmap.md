@@ -76,6 +76,7 @@ Post 1.0
 
 - POS tagging?
 - lexical measures (functional load, neighborhood density)
+- recording
 
 
 ============================================================================

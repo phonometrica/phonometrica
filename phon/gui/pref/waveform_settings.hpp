@@ -13,54 +13,36 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 19/01/2021                                                                                                 *
+ * Created: 21/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: Base class for all preferences dialog.                                                                     *
+ * Purpose: Settings for waveforms.                                                                                    *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_PREFERENCES_DIALOG_HPP
-#define PHONOMETRICA_PREFERENCES_DIALOG_HPP
+#ifndef PHONOMETRICA_WAVEFORM_SETTINGS_HPP
+#define PHONOMETRICA_WAVEFORM_SETTINGS_HPP
 
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/notebook.h>
-#include <phon/application/settings.hpp>
+#include <wx/textctrl.h>
+#include <wx/choice.h>
+#include <phon/gui/pref/preferences_dialog.hpp>
 
 namespace phonometrica {
 
-class PreferencesDialog : public wxDialog
+class WaveformSettings final : public PreferencesDialog
 {
 public:
 
-	PreferencesDialog(wxWindow *parent, const wxString &title);
+	WaveformSettings(wxWindow *parent);
 
-protected:
+private:
 
-	void AddPage(wxWindow *page, const wxString &title);
+	wxChoice *scaling_choice;
 
-	void CreateButtons();
-
-	void OnReset(wxCommandEvent &);
-
-	void OnOk(wxCommandEvent &);
-
-	void OnCancel(wxCommandEvent &);
-
-	// Override these functions in subclasses to implement custom behavior. These will be called
-	// automatically when the buttons are clicked.
-	virtual void DoReset() = 0;
-
-	virtual void DoOk() = 0;
-
-	virtual void DoCancel() { }
-
-	wxNotebook *m_book;
-
-	wxBoxSizer *m_sizer;
-
+	wxTextCtrl *scaling_ctrl;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_PREFERENCES_DIALOG_HPP
+
+
+#endif // PHONOMETRICA_WAVEFORM_SETTINGS_HPP

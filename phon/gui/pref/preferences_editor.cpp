@@ -107,7 +107,7 @@ void PreferencesEditor::DoOk()
 
 void PreferencesEditor::DoReset()
 {
-
+	Settings::reset();
 }
 
 

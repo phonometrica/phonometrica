@@ -26,12 +26,8 @@
 #ifdef PHON_GUI
 #include <phon/application/macros.hpp>
 #endif
-
-//#ifdef PHON_EMBED_SCRIPTS
 #include <phon/include/write_settings_phon.hpp>
-//#include <phon/include/reset_general_settings_phon.hpp>
-//#include <phon/include/reset_sound_settings_phon.hpp>
-//#endif
+
 
 namespace phonometrica {
 
@@ -306,16 +302,6 @@ String Settings::get_std_plugin_directory()
 	return filesystem::join(Settings::resources_directory(), name);
 }
 
-void Settings::reset_general_settings()
-{
-	//run_script(rt, reset_general_settings);
-}
-
-void Settings::reset_sound_settings()
-{
-//	run_script(rt, reset_sound_settings);
-}
-
 void Settings::read()
 {
 	// `read_settings_script` must always be embedded because we need the resources directory
@@ -427,7 +413,7 @@ void Settings::post_initialize()
 	}
 	catch (...)
 	{
-		mono_font = MONOSPACE_FONT;
+		reset_mono_font();
 	}
 #endif
 
@@ -436,22 +422,183 @@ void Settings::post_initialize()
 	auto &settings = cast<Table>(phon.get(settings_key)).data();
 
 	if (!settings.contains("autohints")) {
-		settings["autohints"] = true;
+		reset_autohints();
 	}
 	if (!settings.contains("restore_views"))
 	{
-		settings["restore_views"] = false;
-		settings["recent_views"] = make_handle<List>(runtime);
-		settings["selected_view"] = intptr_t(-1);
+		reset_recent_views();
 	}
 	if (!settings.contains("concordance"))
 	{
-		auto table = make_handle<Table>(runtime);
-		auto &map = table->data();
-		map["context_length"] = intptr_t(40);
-		map["discard_empty"] = true;
-		Settings::set_value("concordance", std::move(table));
+		reset_concordance();
 	}
+}
+
+void Settings::reset()
+{
+	reset_geometry();
+	reset_recent_projects();
+	reset_mono_font();
+	reset_autohints();
+	reset_autoload();
+	reset_autosave();
+	reset_last_directory();
+	reset_waveform();
+	reset_sound_plots();
+	reset_pitch_tracking();
+	reset_formants();
+	reset_spectrogram();
+	reset_intensity();
+	reset_mouse_tracking();
+	reset_concordance();
+}
+
+void Settings::reset_waveform()
+{
+	auto table = make_handle<Table>(runtime);
+	auto &map = table->data();
+
+	map["magnitude"] = 1.0;
+	map["scaling"] = "local";
+
+	Settings::set_value("waveform", std::move(table));
+}
+
+void Settings::reset_mono_font()
+{
+	mono_font = MONOSPACE_FONT;
+}
+
+void Settings::reset_autohints()
+{
+	Settings::set_value("autohints", true);
+}
+
+void Settings::reset_autoload()
+{
+	Settings::set_value("autoload", false);
+}
+
+void Settings::reset_autosave()
+{
+	Settings::set_value("autosave", false);
+}
+
+void Settings::reset_recent_views()
+{
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key)).data();
+
+	settings["restore_views"] = false;
+	settings["recent_views"] = make_handle<List>(runtime);
+	settings["selected_view"] = intptr_t(-1);
+}
+
+void Settings::reset_geometry()
+{
+	auto &phon = cast<Module>((*runtime)[phon_key]);
+	auto &settings = cast<Table>(phon.get(settings_key)).data();
+
+	settings["project_ratio"] = 0.17;
+	settings["console_ratio"] = 0.80;
+	settings["info_ratio"] = 0.80;
+	settings["full_screen"] = true;
+	settings["hide_project"] = false;
+	settings["hide_console"] = false;
+	settings["hide_info"] = false;
+	std::initializer_list<Variant> geo = { .0, .0, .0, .0 };
+	settings["geometry"] = make_handle<List>(runtime, geo);
+}
+
+void Settings::reset_concordance()
+{
+	auto table = make_handle<Table>(runtime);
+	auto &map = table->data();
+	map["context_length"] = intptr_t(40);
+	map["discard_empty"] = true;
+	Settings::set_value("concordance", std::move(table));
+}
+
+void Settings::reset_mouse_tracking()
+{
+	Settings::set_value("enable_mouse_tracking", true);
+}
+
+void Settings::reset_sound_plots()
+{
+	auto table = make_handle<Table>(runtime);
+	auto &map = table->data();
+
+	map["waveform"] = true;
+	map["spectrogram"] = true;
+	map["formants"] = true;
+	map["pitch"] = true;
+	map["intensity"] = true;
+
+	Settings::set_value("sound_plots", std::move(table));
+}
+
+void Settings::reset_last_directory()
+{
+	Settings::set_value("last_directory", String());
+}
+
+void Settings::reset_pitch_tracking()
+{
+	auto table = make_handle<Table>(runtime);
+	auto &map = table->data();
+
+	map["minimum_pitch"] = intptr_t(70);
+	map["maximum_pitch"] = intptr_t(500);
+	map["time_step"] = 0.01;
+	map["voicing_threshold"] = 0.25;
+
+	Settings::set_value("pitch_tracking", std::move(table));
+}
+
+void Settings::reset_formants()
+{
+	auto table = make_handle<Table>(runtime);
+	auto &map = table->data();
+
+	map["number_of_formants"] = intptr_t(4);
+	map["window_size"] = 0.025,
+	map["lpc_order"] = intptr_t(10);
+	map["max_frequency"] = intptr_t(5500);
+	map["max_bandwidth"] = intptr_t(400);
+
+	Settings::set_value("formants", std::move(table));
+}
+
+void Settings::reset_spectrogram()
+{
+	auto table = make_handle<Table>(runtime);
+	auto &map = table->data();
+
+	map["window_size"] = 0.005;
+	map["frequency_range"] = intptr_t(5500);
+	map["window_type"] = "Gaussian";
+	map["dynamic_range"] = intptr_t(70);
+	map["preemphasis_threshold"] = intptr_t(1000);
+
+	Settings::set_value("spectrogram", std::move(table));
+}
+
+void Settings::reset_intensity()
+{
+	auto table = make_handle<Table>(runtime);
+	auto &map = table->data();
+
+	map["minimum_intensity"] = intptr_t(50);
+	map["maximum_intensity"] = intptr_t(100);
+	map["time_step"] = 0.01;
+
+	Settings::set_value("intensity", std::move(table));
+}
+
+void Settings::reset_recent_projects()
+{
+	Settings::set_value("recent_projects", make_handle<List>(runtime));
 }
 
 } // namespace phonometrica

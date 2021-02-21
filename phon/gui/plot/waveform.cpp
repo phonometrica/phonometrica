@@ -19,19 +19,64 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <wx/msgdlg.h>
 #include <phon/gui/plot/waveform.hpp>
+#include <phon/application/settings.hpp>
 
 namespace phonometrica {
 
 Waveform::Waveform(wxWindow *parent, const Handle<Sound> &snd, int channel) :
 	SoundPlot(parent, snd), m_cached_size(wxDefaultSize), m_channel(channel)
 {
+	try
+	{
+		ReadSettings();
+	}
+	catch (...)
+	{
+		Settings::reset_waveform();
+		ReadSettings();
+	}
+//	Bind(wxEVT_ERASE_BACKGROUND, &Waveform::OnEraseBackground, this);
 	Bind(wxEVT_PAINT, &Waveform::OnPaint, this);
+}
+
+void Waveform::ReadSettings()
+{
+	String category("waveform");
+	auto m = Settings::get_number(category, "magnitude");
+
+	if (m <= 0 || m > 1.0)
+	{
+		wxMessageBox( _("Your waveform settings have an invalid magnitude and will be reinitialized."), _("Invalid settings"), wxICON_WARNING);
+		throw std::runtime_error("");
+	}
+	SetMagnitude(m);
+
+	String method = Settings::get_string(category, "scaling");
+
+	if (method == "global")
+	{
+		scaling = Scaling::Global;
+	}
+	else if (method == "local")
+	{
+		scaling = Scaling::Local;
+	}
+	else if (method == "fixed")
+	{
+		scaling = Scaling::Fixed;
+	}
+	else
+	{
+		wxMessageBox( _("Your waveform settings have an invalid magnitude and will be reinitialized."), _("Invalid settings"), wxICON_WARNING);
+		throw std::runtime_error("");
+	}
 }
 
 void Waveform::ClearCache()
 {
-	m_cache.clear();
+	// Don't clear the cache here, it will be done in UpdateCache() once the invalid size is detected.
 	m_cached_size = wxDefaultSize;
 }
 
@@ -136,6 +181,8 @@ void Waveform::UpdateCache()
 	if (GetSize() == m_cached_size) {
 		return;
 	}
+	m_cache.clear();
+
 	// If the number of samples to display is greater than the number of pixels,
 	// map several frames to one pixel. We find the maximum and minimum amplitudes
 	// over the range of frames, and we draw a line from the previous minimum to the
@@ -229,6 +276,13 @@ void Waveform::SetLocalMagnitude(std::span<const double> data)
 void Waveform::SetGlobalMagnitude(double value)
 {
 	global_magnitude = value;
+}
+
+void Waveform::OnEraseBackground(wxEraseEvent &e)
+{
+	auto dc = e.GetDC();
+	dc->SetBackground(*wxWHITE);
+	dc->Clear();
 }
 
 } // namespace phonometrica

@@ -83,10 +83,6 @@ public:
 
     static void set_last_directory(const String &path);
 
-    static void reset_general_settings();
-
-    static void reset_sound_settings();
-
     static void read();
 
     static void write();
@@ -98,6 +94,40 @@ public:
 
     static void set_mono_font(const wxFont &font);
 #endif
+
+    static void reset();
+
+    static void reset_mono_font();
+
+    static void reset_waveform();
+
+    static void reset_pitch_tracking();
+
+    static void reset_formants();
+
+    static void reset_spectrogram();
+
+    static void reset_intensity();
+
+    static void reset_autohints();
+
+    static void reset_autoload();
+
+    static void reset_autosave();
+
+    static void reset_recent_views();
+
+    static void reset_concordance();
+
+    static void reset_geometry();
+
+    static void reset_mouse_tracking();
+
+    static void reset_sound_plots();
+
+    static void reset_last_directory();
+
+    static void reset_recent_projects();
 
 private:
 

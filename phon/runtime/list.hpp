@@ -37,6 +37,8 @@ public:
 
 	List() = default;
 
+	List(std::initializer_list<Variant> lst) : _items(lst) { }
+
 	explicit List(intptr_t size) : _items(size, Variant()) { }
 
 	List(const List &other);

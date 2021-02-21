@@ -45,6 +45,8 @@ private:
 
 	void UpdateCache();
 
+	void ReadSettings();
+
 	// Map sample to plot y coordinate.
     double SampleToHeight(double s) const;
 
@@ -56,6 +58,8 @@ private:
 
 	void OnPaint(wxPaintEvent &);
 
+	void OnEraseBackground(wxEraseEvent &);
+
 	void Render(wxPaintDC &dc);
 
     // We precompute and cache a downsampled representation of the signal. Each point corresponds to a pixed and stores
@@ -66,8 +70,11 @@ private:
     wxSize m_cached_size;
 
     Scaling scaling = Scaling::Fixed;
+
     double magnitude = 1.0;
+
     double global_magnitude = 1.0;
+
     std::pair<double,double> extrema = {-1, 1};
 
     int m_channel;

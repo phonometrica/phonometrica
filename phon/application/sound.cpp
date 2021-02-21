@@ -749,5 +749,10 @@ std::span<const double> Sound::get_channel(int n, intptr_t first_sample, intptr_
 	return { data.data() + first_sample - 1, data.data() + last_sample };
 }
 
+bool Sound::is_mono() const
+{
+	return nchannel() == 1;
+}
+
 
 } // namespace phonometrica

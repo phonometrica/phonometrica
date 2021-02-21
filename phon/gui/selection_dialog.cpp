@@ -13,54 +13,62 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 19/01/2021                                                                                                 *
+ * Created: 21/02/2021                                                                                                 *
  *                                                                                                                     *
- * purpose: Base class for all preferences dialog.                                                                     *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_PREFERENCES_DIALOG_HPP
-#define PHONOMETRICA_PREFERENCES_DIALOG_HPP
-
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/notebook.h>
-#include <phon/application/settings.hpp>
+#include <wx/button.h>
+#include <wx/stattext.h>
+#include <phon/gui/sizer.hpp>
+#include <phon/gui/selection_dialog.hpp>
+#include <phon/string.hpp>
 
 namespace phonometrica {
 
-class PreferencesDialog : public wxDialog
+SelectionDialog::SelectionDialog(wxWindow *parent) :
+	wxDialog(parent, wxID_ANY, _("Set selection window..."), wxDefaultPosition, wxSize(300, -1), wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
-public:
+	auto sizer = new VBoxSizer;
+	sizer->Add(new wxStaticText(this, wxID_ANY, _("From (seconds):")), 0, wxEXPAND|wxALL, 10);
+	from_ctrl = new wxTextCtrl(this, wxID_ANY);
+	sizer->Add(from_ctrl, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
+	sizer->Add(new wxStaticText(this, wxID_ANY, _("To (seconds):")), 0, wxEXPAND|wxALL, 10);
+	to_ctrl = new wxTextCtrl(this, wxID_ANY);
+	sizer->Add(to_ctrl, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
+	sizer->AddStretchSpacer();
+	auto btn_sizer = new HBoxSizer;
+	btn_sizer->AddStretchSpacer();
+	auto ok_btn = new wxButton(this, wxID_OK, _("OK"));
+	auto cancel_btn = new wxButton(this, wxID_CANCEL, _("Cancel"));
+	btn_sizer->Add(cancel_btn);
+	btn_sizer->AddSpacer(5);
+	btn_sizer->Add(ok_btn);
+	sizer->Add(btn_sizer, 0, wxEXPAND|wxALL, 10);
 
-	PreferencesDialog(wxWindow *parent, const wxString &title);
+	SetSizer(sizer);
+}
 
-protected:
+TimeSpan SelectionDialog::GetSelection() const
+{
+	auto t1 = ParseNumber(from_ctrl);
+	auto t2 = ParseNumber(to_ctrl);
 
-	void AddPage(wxWindow *page, const wxString &title);
+	return TimeSpan{t1, t2};
+}
 
-	void CreateButtons();
+double SelectionDialog::ParseNumber(wxTextCtrl *ctrl) const
+{
+	String text = ctrl->GetValue();
+	bool ok;
+	auto value = text.to_float(&ok);
 
-	void OnReset(wxCommandEvent &);
+	if (!ok) {
+		throw error("Could not convert string \"%\" to number");
+	}
 
-	void OnOk(wxCommandEvent &);
-
-	void OnCancel(wxCommandEvent &);
-
-	// Override these functions in subclasses to implement custom behavior. These will be called
-	// automatically when the buttons are clicked.
-	virtual void DoReset() = 0;
-
-	virtual void DoOk() = 0;
-
-	virtual void DoCancel() { }
-
-	wxNotebook *m_book;
-
-	wxBoxSizer *m_sizer;
-
-};
+	return value;
+}
 
 } // namespace phonometrica
-
-#endif // PHONOMETRICA_PREFERENCES_DIALOG_HPP

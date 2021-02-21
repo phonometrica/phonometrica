@@ -113,6 +113,7 @@ public:
 
 	std::span<const double> get_channel(int n, intptr_t first_sample, intptr_t last_sample) const;
 
+	bool is_mono() const;
 
 	double frame_to_time(intptr_t index) const;
 

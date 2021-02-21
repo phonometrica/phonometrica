@@ -52,7 +52,15 @@ public:
 
 protected:
 
+	virtual void ShowHelp();
+
 	void SetToolBar();
+
+	void UpdateTimeWindow(TimeSpan win);
+
+	SoundPlot *GetFirstPlot() const;
+
+	TimeSpan GetTimeWindow() const;
 
 	void OnPlay(wxCommandEvent &);
 
@@ -60,7 +68,39 @@ protected:
 
 	void OnHelp(wxCommandEvent &);
 
-	virtual void ShowHelp();
+	void OnMoveForward(wxCommandEvent &);
+
+	void OnMoveBackward(wxCommandEvent &);
+
+	void OnZoomIn(wxCommandEvent &);
+
+	void OnZoomOut(wxCommandEvent &);
+
+	void OnZoomToSelection(wxCommandEvent &);
+
+	void OnViewAll(wxCommandEvent &);
+
+	void OnSelectWindow(wxCommandEvent &);
+
+	void OnWaveMenu(wxCommandEvent &);
+
+	void OnSpectrogramMenu(wxCommandEvent &);
+
+	void OnFormantsMenu(wxCommandEvent &);
+
+	void OnPitchMenu(wxCommandEvent &);
+
+	void OnIntensityMenu(wxCommandEvent &);
+
+	void OnEnableMouseTracking(wxCommandEvent &);
+
+	void OnUpdateTimeWindow(TimeSpan win);
+
+	void OnUpdateSelection(PixelSelection sel);
+
+	wxButton *m_wave_tool, *m_spectrum_tool, *m_formant_tool, *m_pitch_tool, *m_intensity_tool;
+
+	ToggleButton *m_mouse_tool;
 
 	Handle<Sound> m_sound;
 

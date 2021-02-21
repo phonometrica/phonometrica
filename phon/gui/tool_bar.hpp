@@ -23,6 +23,7 @@
 #define PHONOMETRICA_TOOL_BAR_HPP
 
 #include <wx/button.h>
+#include <wx/menu.h>
 #include <phon/gui/toggle_button.hpp>
 
 namespace phonometrica {

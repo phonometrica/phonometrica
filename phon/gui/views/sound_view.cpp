@@ -19,8 +19,10 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <wx/msgdlg.h>
 #include <phon/gui/views/sound_view.hpp>
 #include <phon/gui/plot_separator.hpp>
+#include <phon/gui/selection_dialog.hpp>
 #include <phon/application/macros.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
@@ -64,10 +66,12 @@ void SoundView::Initialize()
 	SetSizer(outer_sizer);
 
 	m_wavebar->selection_changed.connect(&SoundZoom::OnSetSelection, m_zoom);
-	for (auto plot : m_plots) {
-		m_wavebar->change_window.connect(&SoundPlot::ChangeWindow, plot);
+	for (auto plot : m_plots)
+	{
+		m_wavebar->change_window.connect(&SoundPlot::SetTimeWindow, plot);
+		plot->update_window.connect(&SoundView::OnUpdateTimeWindow, this);
+		plot->update_selection.connect(&SoundView::OnUpdateSelection, this);
 	}
-
 }
 
 bool SoundView::IsModified() const
@@ -94,6 +98,27 @@ void SoundView::SetToolBar()
 	m_toolbar->AddSeparator();
 	auto play_tool = m_toolbar->AddButton(ICN(play), _("Play window or selection"));
 	auto stop_tool = m_toolbar->AddButton(ICN(stop), _("Stop playing"));
+	m_toolbar->AddSeparator();
+
+	auto backward_tool = m_toolbar->AddButton(ICN(back), _("Shift window backward"));
+	auto forward_tool = m_toolbar->AddButton(ICN(next), _("Shift window forward"));
+	auto zoom_out_tool = m_toolbar->AddButton(ICN(zoom_minus), _("Zoom out"));
+	auto zoom_in_tool = m_toolbar->AddButton(ICN(zoom_plus), _("Zoom in"));
+	auto zoom_sel_tool = m_toolbar->AddButton(ICN(collapse), _("Zoom to selection"));
+	auto zoom_all_tool = m_toolbar->AddButton(ICN(expand), _("View whole file"));
+	auto sel_tool = m_toolbar->AddButton(ICN(move_to_selection), _("Select window"));
+	m_toolbar->AddSeparator();
+
+	m_wave_tool = m_toolbar->AddMenuButton(ICN(waveform), _("Waveform settings"));
+	m_spectrum_tool = m_toolbar->AddMenuButton(ICN(spectrum), _("Spectrogram settings"));
+	m_formant_tool = m_toolbar->AddMenuButton(ICN(formants), _("Formants settings"));
+	m_pitch_tool = m_toolbar->AddMenuButton(ICN(voice), _("Pitch settings"));
+	m_intensity_tool = m_toolbar->AddMenuButton(ICN(hearing), _("Intensity settings"));
+	m_toolbar->AddSeparator();
+
+	m_mouse_tool = m_toolbar->AddToggleButton(ICN(mouse), _("Enable mouse tracking"));
+	m_mouse_tool->Check(Settings::get_boolean("enable_mouse_tracking"));
+
 	m_toolbar->AddStretchableSpace();
 	auto help_tool = m_toolbar->AddHelpButton();
 #undef ICN
@@ -101,6 +126,19 @@ void SoundView::SetToolBar()
 	play_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnPlay, this);
 	stop_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnStop, this);
 	help_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnHelp, this);
+	forward_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnMoveForward, this);
+	backward_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnMoveBackward, this);
+	zoom_in_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnZoomIn, this);
+	zoom_out_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnZoomOut, this);
+	zoom_sel_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnZoomToSelection, this);
+	zoom_all_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnViewAll, this);
+	sel_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnSelectWindow, this);
+	m_wave_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnWaveMenu, this);
+	m_spectrum_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnSpectrogramMenu, this);
+	m_formant_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnFormantsMenu, this);
+	m_pitch_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnPitchMenu, this);
+	m_intensity_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnIntensityMenu, this);
+	m_mouse_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnEnableMouseTracking, this);
 }
 
 String SoundView::GetPath() const
@@ -114,7 +152,7 @@ void SoundView::SetTimeSelection(double from, double to)
 		to = from + m_sound->duration();
 	}
 	for (auto plot : m_plots) {
-		plot->ChangeWindow({from, to});
+		plot->SetTimeWindow({from, to});
 	}
 	m_wavebar->SetTimeSelection({from, to});
 }
@@ -140,5 +178,156 @@ void SoundView::ShowHelp()
 	wxLaunchDefaultBrowser(url, wxBROWSER_NOBUSYCURSOR);
 }
 
+void SoundView::OnMoveForward(wxCommandEvent &)
+{
+	for (auto plot : m_plots) {
+		plot->MoveForward();
+	}
+	auto win = GetTimeWindow();
+	UpdateTimeWindow(win);
+}
+
+void SoundView::OnMoveBackward(wxCommandEvent &)
+{
+	for (auto plot : m_plots) {
+		plot->MoveBackward();
+	}
+	auto win = GetTimeWindow();
+	UpdateTimeWindow(win);
+}
+
+void SoundView::OnZoomIn(wxCommandEvent &)
+{
+	for (auto plot : m_plots) {
+		plot->ZoomIn();
+	}
+	auto win = GetTimeWindow();
+	UpdateTimeWindow(win);
+}
+
+void SoundView::OnZoomOut(wxCommandEvent &)
+{
+	for (auto plot : m_plots) {
+		plot->ZoomOut();
+	}
+	auto win = GetTimeWindow();
+	UpdateTimeWindow(win);
+}
+
+void SoundView::OnZoomToSelection(wxCommandEvent &)
+{
+	for (auto plot : m_plots) {
+		plot->ZoomToSelection();
+	}
+	auto win = GetTimeWindow();
+	UpdateTimeWindow(win);
+}
+
+void SoundView::OnViewAll(wxCommandEvent &)
+{
+	for (auto plot : m_plots) {
+		plot->ViewAll();
+	}
+	auto win = GetTimeWindow();
+	UpdateTimeWindow(win);
+}
+
+void SoundView::OnSelectWindow(wxCommandEvent &)
+{
+	try
+	{
+		SelectionDialog dlg(this);
+		dlg.Move(wxGetMousePosition());
+
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			auto win = dlg.GetSelection();
+
+			for (auto plot : m_plots) {
+				plot->SetTimeWindow(win);
+			}
+			UpdateTimeWindow(win);
+		}
+	}
+	catch (std::exception &e)
+	{
+		wxMessageBox(e.what(), _("Selection error"), wxICON_ERROR);
+	}
+}
+
+void SoundView::OnUpdateTimeWindow(TimeSpan win)
+{
+	for (auto plot : m_plots) {
+		plot->SetTimeWindow(win);
+	}
+	UpdateTimeWindow(win);
+}
+
+void SoundView::OnUpdateSelection(PixelSelection sel)
+{
+	for (auto plot : m_plots) {
+		plot->SetSelection(sel);
+	}
+}
+
+void SoundView::UpdateTimeWindow(TimeSpan win)
+{
+	m_wavebar->SetTimeSelection(win);
+}
+
+SoundPlot *SoundView::GetFirstPlot() const
+{
+	return m_plots.first();
+}
+
+TimeSpan SoundView::GetTimeWindow() const
+{
+	return GetFirstPlot()->GetTimeWindow();
+}
+
+void SoundView::OnWaveMenu(wxCommandEvent &)
+{
+	auto menu = new wxMenu;
+	auto show_msg = m_sound->is_mono() ? _("Show waveform") : _("Show waveforms");
+	auto show_tool = menu->AppendCheckItem(wxID_ANY, show_msg);
+	auto meta_tool = menu->AppendCheckItem(wxID_ANY, _("Waveform settings"));
+	show_tool->Check(true);
+	show_tool->Enable(false);
+//	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent &) { m_show_file_info = !m_show_file_info; ShowFileInfo(); }, info_tool->GetId());
+//	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent &) { m_show_metadata = !m_show_metadata; ShowMetadata(); }, meta_tool->GetId());
+
+	m_toolbar->ShowMenu(m_wave_tool, menu);
+}
+
+void SoundView::OnSpectrogramMenu(wxCommandEvent &)
+{
+
+}
+
+void SoundView::OnFormantsMenu(wxCommandEvent &)
+{
+
+}
+
+void SoundView::OnPitchMenu(wxCommandEvent &)
+{
+
+}
+
+void SoundView::OnIntensityMenu(wxCommandEvent &)
+{
+
+}
+
+void SoundView::OnEnableMouseTracking(wxCommandEvent &)
+{
+	m_mouse_tool->Toggle();
+	auto value = m_mouse_tool->IsChecked();
+	Settings::set_value("enable_mouse_tracking", value);
+
+	for (auto plot : m_plots) {
+		plot->EnableMouseTracking(value);
+	}
+}
 
 } // namespace phonometrica
