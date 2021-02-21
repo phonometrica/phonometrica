@@ -71,6 +71,8 @@ void SoundView::Initialize()
 		m_wavebar->change_window.connect(&SoundPlot::SetTimeWindow, plot);
 		plot->update_window.connect(&SoundView::OnUpdateTimeWindow, this);
 		plot->update_selection.connect(&SoundView::OnUpdateSelection, this);
+		plot->update_cursor.connect(&SoundView::OnUpdateCursor, this);
+		plot->update_anchor.connect(&SoundView::OnUpdateAnchor, this);
 	}
 }
 
@@ -327,6 +329,20 @@ void SoundView::OnEnableMouseTracking(wxCommandEvent &)
 
 	for (auto plot : m_plots) {
 		plot->EnableMouseTracking(value);
+	}
+}
+
+void SoundView::OnUpdateCursor(double pos)
+{
+	for (auto plot : m_plots) {
+		plot->SetCursorPosition(pos);
+	}
+}
+
+void SoundView::OnUpdateAnchor(double pos)
+{
+	for (auto plot : m_plots) {
+		plot->SetAnchorPosition(pos);
 	}
 }
 

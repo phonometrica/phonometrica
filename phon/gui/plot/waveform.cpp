@@ -39,7 +39,7 @@ Waveform::Waveform(wxWindow *parent, const Handle<Sound> &snd, int channel) :
 		Settings::reset_waveform();
 		ReadSettings();
 	}
-//	Bind(wxEVT_ERASE_BACKGROUND, &Waveform::OnEraseBackground, this);
+
 	Bind(wxEVT_PAINT, &Waveform::OnPaint, this);
 }
 
@@ -91,27 +91,10 @@ void Waveform::OnPaint(wxPaintEvent &)
 
 void Waveform::Render(wxPaintDC &dc)
 {
-	auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
-	if (!gc) return;
-	auto height = GetHeight();
-	auto width = GetWidth();
-
-	// Draw waveform
 	dc.DrawBitmap(m_cached_bmp, 0.0, 0.0, true);
-
-	// Draw selection
-//	if (!HasSelection()) {
-//		return;
-//	}
-//	path.MoveToPoint(m_sel.from, 0.0);
-//	path.AddLineToPoint(m_sel.to, 0.0);
-//	path.AddLineToPoint(m_sel.to, height);
-//	path.AddLineToPoint(m_sel.from, height);
-//	path.AddLineToPoint(m_sel.from, 0.0);
-//	wxBrush brush;
-//	brush.SetColour(WAVEBAR_SEL_COLOUR);
-//	gc->SetBrush(brush);
-//	gc->FillPath(path);
+	DrawSelection(dc);
+	DrawTimeAnchor(dc);
+	DrawCursor(dc);
 }
 
 void Waveform::UpdateCache()
@@ -148,13 +131,6 @@ void Waveform::SetGlobalMagnitude(double value)
 	global_magnitude = value;
 }
 
-void Waveform::OnEraseBackground(wxEraseEvent &e)
-{
-	auto dc = e.GetDC();
-	dc->SetBackground(*wxWHITE);
-	dc->Clear();
-}
-
 void Waveform::DrawBitmap()
 {
 	auto wave = DownsampleWaveform();
@@ -185,7 +161,7 @@ void Waveform::DrawBitmap()
 			path.AddLineToPoint(x-1, wave[x].first);
 			path.AddLineToPoint(x-1, wave[x].second);
 		}
-		gc->DrawPath(path);
+		gc->StrokePath(path);
 	}
 	else
 	{

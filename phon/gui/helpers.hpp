@@ -17,6 +17,6 @@ struct PixelSelection
 
 }
 
-#define WAVEBAR_SEL_COLOUR wxColour(68, 18, 232, 60)
+#define WAVEBAR_SEL_COLOUR wxColour(159, 41, 255, 50)
 
 #endif // PHONOMETRICA_GUI_HELPERS_HPP

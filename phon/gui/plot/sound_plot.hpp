@@ -37,6 +37,10 @@ public:
 
 	void SetSelection(PixelSelection sel);
 
+	void SetCursorPosition(double pos);
+
+	void SetAnchorPosition(double pos);
+
 	void ZoomToSelection();
 
 	void ZoomIn();
@@ -53,9 +57,23 @@ public:
 
 	Signal<PixelSelection> update_selection;
 
+	Signal<double> update_cursor;
+
+	Signal<double> update_anchor;
+
 protected:
 
 	bool HasSelection() const { return m_sel.from >= 0; }
+
+	bool HasTimeAnchor() const { return m_time_anchor >= 0; }
+
+	bool HasCursor() const { return m_cursor_pos >= 0; }
+
+	void DrawSelection(wxPaintDC &dc);
+
+	void DrawTimeAnchor(wxPaintDC &dc);
+
+	void DrawCursor(wxPaintDC &dc);
 
 	void OnStartSelection(wxMouseEvent &e);
 
@@ -81,8 +99,11 @@ protected:
 	// Start of the selection when the user clicks on the wavebar.
 	double m_sel_start = -1;
 
-	bool m_track_mouse;
+	double m_time_anchor = -1;
 
+	double m_cursor_pos = -1;
+
+	bool m_track_mouse;
 };
 
 } // namespace phonometrica

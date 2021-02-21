@@ -98,6 +98,10 @@ protected:
 
 	void OnUpdateSelection(PixelSelection sel);
 
+	void OnUpdateCursor(double pos);
+
+	void OnUpdateAnchor(double pos);
+
 	wxButton *m_wave_tool, *m_spectrum_tool, *m_formant_tool, *m_pitch_tool, *m_intensity_tool;
 
 	ToggleButton *m_mouse_tool;

@@ -43,16 +43,15 @@ void SoundZoom::OnPaint(wxPaintEvent &)
 	auto height = GetSize().GetHeight();
 	auto width = GetSize().GetWidth();
 
-	wxBrush brush;
-	brush.SetColour(WAVEBAR_SEL_COLOUR);
-	gc->SetBrush(brush);
-
 	wxGraphicsPath path = gc->CreatePath();
 	path.MoveToPoint(0.0, 0.0);
 	path.AddLineToPoint(m_sel.from, height);
 	path.AddLineToPoint(m_sel.to, height);
 	path.AddLineToPoint(width, 0.0);
 	path.AddLineToPoint(0.0, 0.0);
+	wxBrush brush;
+	brush.SetColour(WAVEBAR_SEL_COLOUR);
+	gc->SetBrush(brush);
 	gc->FillPath(path);
 }
 

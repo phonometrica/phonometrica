@@ -20,12 +20,14 @@
  ***********************************************************************************************************************/
 
 #include <phon/gui/plot/sound_plot.hpp>
+#include <phon/application/settings.hpp>
 
 namespace phonometrica {
 
 SoundPlot::SoundPlot(wxWindow *parent, const Handle<Sound> &snd) :
-	TimeAlignedWindow(parent), m_sound(snd)
+	TimeAlignedWindow(parent), m_sound(snd), m_sel{-1, -1}
 {
+	m_track_mouse = Settings::get_boolean("enable_mouse_tracking");
 	Bind(wxEVT_LEFT_DOWN, &SoundPlot::OnStartSelection, this);
 	Bind(wxEVT_LEFT_UP, &SoundPlot::OnEndSelection, this);
 	Bind(wxEVT_MOTION, &SoundPlot::OnMotion, this);
@@ -35,13 +37,23 @@ SoundPlot::SoundPlot(wxWindow *parent, const Handle<Sound> &snd) :
 
 void SoundPlot::OnStartSelection(wxMouseEvent &e)
 {
+	// Erase the anchor (if any) and start a selection.
 	auto pos = e.GetPosition();
 	m_sel_start = pos.x;
+	update_anchor(-1);
 	e.Skip();
 }
 
 void SoundPlot::OnEndSelection(wxMouseEvent &e)
 {
+	auto pos = e.GetPosition();
+	// Set an anchor if the mouse button was released in the same location that it was clicked.
+	if (m_track_mouse && pos.x == m_sel_start)
+	{
+		update_anchor(pos.x);
+		update_selection(PixelSelection{-1, -1});
+		Refresh();
+	}
 	m_sel_start = -1;
 	e.Skip();
 }
@@ -62,11 +74,17 @@ void SoundPlot::OnMotion(wxMouseEvent &e)
 			update_selection(PixelSelection{m_sel_start, x});
 		}
 	}
+	else if (m_track_mouse)
+	{
+		auto pos = ScreenToClient(wxGetMousePosition());
+		update_cursor(pos.x);
+	}
 }
 
 void SoundPlot::OnLeaveWindow(wxMouseEvent &e)
 {
 	m_sel_start = -1;
+	update_cursor(-1);
 	e.Skip();
 }
 
@@ -141,6 +159,12 @@ void SoundPlot::MoveBackward()
 void SoundPlot::EnableMouseTracking(bool value)
 {
 	m_track_mouse = value;
+
+	if (!value)
+	{
+		m_time_anchor = -1;
+		Refresh(); // erase anchor if there's one.
+	}
 }
 
 void SoundPlot::OnMouseWheel(wxMouseEvent &e)
@@ -171,6 +195,58 @@ TimeSpan SoundPlot::ComputeZoomOut() const
 	auto t2 = ClipTime(m_window.to + zoom);
 
 	return TimeSpan{t1, t2};
+}
+
+void SoundPlot::DrawSelection(wxPaintDC &dc)
+{
+	if (!HasSelection()) {
+		return;
+	}
+	auto gc = dc.GetGraphicsContext();
+	if (!gc) return;
+	auto height = GetHeight();
+	auto path = gc->CreatePath();
+
+
+	path.MoveToPoint(m_sel.from, 0.0);
+	path.AddLineToPoint(m_sel.to, 0.0);
+	path.AddLineToPoint(m_sel.to, height);
+	path.AddLineToPoint(m_sel.from, height);
+	path.AddLineToPoint(m_sel.from, 0.0);
+	wxBrush brush;
+	brush.SetColour(wxColour(255, 159, 41, 50));
+	gc->SetBrush(brush);
+	gc->FillPath(path);
+}
+
+void SoundPlot::DrawTimeAnchor(wxPaintDC &dc)
+{
+	if (!HasTimeAnchor()) {
+		return;
+	}
+	dc.SetPen(wxPen(wxColour(41, 255, 159)));
+	dc.DrawLine(m_time_anchor, 0.0, m_time_anchor, GetHeight());
+}
+
+void SoundPlot::DrawCursor(wxPaintDC &dc)
+{
+	if (m_track_mouse && HasCursor())
+	{
+		dc.SetPen(wxPen(wxColour(255, 0, 0, 75)));
+		dc.DrawLine(m_cursor_pos, 0, m_cursor_pos, GetHeight());
+	}
+}
+
+void SoundPlot::SetCursorPosition(double pos)
+{
+	m_cursor_pos = pos;
+	Refresh();
+}
+
+void SoundPlot::SetAnchorPosition(double pos)
+{
+	m_time_anchor = pos;
+	Refresh();
 }
 
 } // namespace phonometrica
