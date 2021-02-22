@@ -73,4 +73,10 @@ wxString ConcordanceController::GetColLabelValue(int col)
 	return m_conc->get_header(col + 1);
 }
 
+bool ConcordanceController::DeleteRows(size_t pos, size_t numRows)
+{
+	m_conc->remove_match(intptr_t(pos+1));
+	return true;
+}
+
 } // namespace phonometrica

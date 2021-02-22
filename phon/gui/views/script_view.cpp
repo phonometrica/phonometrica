@@ -67,8 +67,9 @@ void ScriptView::SetupUi()
 	m_toolbar->AddSeparator();
 
 	wxBitmap run_icon(wxBITMAP_PNG_FROM_DATA(start));
-	auto run_tool = m_toolbar->AddButton(run_icon, _("Execute script or selection (" CTRL_KEY "↵)"));
+
 	sizer->Add(m_toolbar, 0, wxEXPAND|wxALL, 10);
+	auto run_tool = m_toolbar->AddButton(run_icon, _("Execute script or selection (" CTRL_KEY RETURN_KEY ")"));
 
 	wxBitmap hint_icon(wxBITMAP_PNG_FROM_DATA(hint));
 	m_hint_tool = m_toolbar->AddToggleButton(hint_icon, _("Activate auto-completion and call tips"));

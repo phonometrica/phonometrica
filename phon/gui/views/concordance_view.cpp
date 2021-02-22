@@ -416,6 +416,9 @@ void ConcordanceView::OnDeleteRows(wxCommandEvent &)
 	for (int i = 1; i < (int)sel.size(); i++)
 	{
 		row = i + 1 - shift++;
+		//FIXME: doesn't call the controller's DeleteRows.
+//		wxGridTableMessage msg(m_grid->GetTable(), wxGRIDTABLE_NOTIFY_ROWS_INSERTED, row-1, 1);
+//		m_grid->ProcessTableMessage(msg);
 		cmd->append(std::make_unique<DeleteMatchCommand>(m_conc, row));
 
 	}

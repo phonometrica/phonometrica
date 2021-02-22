@@ -32,18 +32,16 @@ TODO:
 
 - coding protocols (coding protocol: champ libre texte (ex: mot précédent un codage) ????)
 - bookmarks and annotation views
+- formant queries: mesures acoustiques sur une sélection et pas seulement sur un point.
+- npoint en plus de npoint average (diphtongues, pitch)
 - priorité : refactoriser les vues spreadsheet (finir CSV)
 - bug décalage: décalage proportionnel à la taille du zoom. Si on fait glisser la fenêtre d'un côté ou de l'autre, le décalage sera tantôt à gauche ou à droite. Si on met un curseur fixe (tracking on), décalage avec la borne dans les layers. 
 - std::bad_alloc: ouvre un fichier son -> catch and rethrow
 - raccourcis play/pause stop, ajout/suppression d'ancres
-- Export to plain text, lorsque l’on sélectionne un autre chemin d’accès il n’y a pas l’extension .txt
-- mac : vérifier settings / edit preferences
 - mac : bug aléatoire quand on clique play
 - recherches formantiques, mettre les unités dans la view plutôt que dans le query editor
 - bug selecting_tier
-- dialog edit : cliquer ailleurs devrait enlever le dialogue -> toggle button
 - mettre à jour la concordance en cours quand on édite un item. 
-- reset settings
 - finalize settings dialog (add search operator selector)
 - update documentation
 
@@ -54,27 +52,27 @@ Version 0.9.0+:
 - project metadata dans le panel info
 - measure pitch, intensity and duration
 - settings: possibilité de sauvagarde périodique des annotations (peut-être fichier buffer ?)
-- npoint en plus de npoint average (diphtongues, pitch)
-- mesures acoustiques sur une sélection et pas seulement sur un point.
 - regarder suppression et curseur sur mac
 - plugin section on the website
 - finalize documentation (arborescence complète du modèle objet pour les scripts)
-- project metadata
+- project metadata 
 
 
 Version 1.0:
 
 - Extraction d’une partie sélectionnée du fichier son. 
 - extraire extrait son + annotation
+- couper/coller/modifier son
 - drag and drop des fichiers sur le projet
-- get_concordances avec n mots à gauche et à droite plutôt que des chaînes de n caractères
-- touchpad en plus de la molette dans les annotations ? 
-- Statistics (intégrer le code pour la régression)
-- Tool/wizzard to create plugins
+- touchpad en plus de la molette dans les annotations ? Touchpad supporté par wxWidgets ?
+
 
 Post 1.0
 
+- Tool/wizzard to create plugins
 - POS tagging?
+- Statistics (intégrer le code pour la régression)
+- get_concordances avec n mots à gauche et à droite plutôt que des chaînes de n caractères
 - lexical measures (functional load, neighborhood density)
 - recording
 

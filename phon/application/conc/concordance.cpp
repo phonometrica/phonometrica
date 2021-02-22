@@ -133,10 +133,10 @@ String Concordance::get_cell(intptr_t i, intptr_t j) const
 		return String::convert(m_matches[i]->get_layer(1));
 	}
 	else if (j == 3) {
-		return String::format("%.6f", m_matches[i]->get_event(1)->start_time());
+		return String::format("%.4f", m_matches[i]->get_event(1)->start_time());
 	}
 	else if (j == 4) {
-		return String::format("%.6f", m_matches[i]->get_event(1)->end_time());
+		return String::format("%.4f", m_matches[i]->get_event(1)->end_time());
 	}
 	else if (j == 5 && has_context()) {
 		return get_left_context(i);

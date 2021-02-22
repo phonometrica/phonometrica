@@ -53,8 +53,8 @@ void SoundView::Initialize()
 		m_inner_sizer->Add(new HLine(this));
 		m_plots.append(waveform);
 	}
-	m_inner_sizer->Add(m_zoom, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
-	m_inner_sizer->Add(m_wavebar, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
+	m_inner_sizer->Add(m_zoom, 0, wxEXPAND|wxRIGHT, 10);
+	m_inner_sizer->Add(m_wavebar, 0, wxEXPAND|wxRIGHT|wxBOTTOM, 10);
 
 	// Packs the y axis and the plots
 	auto mid_sizer = new HBoxSizer;

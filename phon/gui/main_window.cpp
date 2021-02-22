@@ -56,6 +56,7 @@ static const int ID_FILE_IMPORT_METADATA = wxNewId();
 static const int ID_FILE_EXPORT_ANNOTATIONS = wxNewId();
 static const int ID_FILE_EXPORT_METADATA = wxNewId();
 static const int ID_FILE_CLOSE_VIEW = wxID_CLOSE;
+static const int ID_FILE_CLOSE_ALL_VIEWS = wxNewId();
 static const int ID_FILE_EXIT = wxID_EXIT;
 
 // Edit menu
@@ -182,6 +183,7 @@ wxMenu *MainWindow::MakeFileMenu()
 	menu->AppendSeparator();
 
 	menu->Append(ID_FILE_CLOSE_VIEW, _("Close current view\tctrl+w"));
+	menu->Append(ID_FILE_CLOSE_ALL_VIEWS, _("Close all views"));
 	menu->AppendSeparator();
 
 	menu->Append(ID_FILE_EXIT, _("Quit\tCtrl+q"));
@@ -284,6 +286,7 @@ void MainWindow::SetBindings()
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExportMetadata, this, ID_FILE_EXPORT_METADATA);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnExportAnnotations, this, ID_FILE_EXPORT_ANNOTATIONS);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseCurrentView, this, ID_FILE_CLOSE_VIEW);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnCloseAllViews, this, ID_FILE_CLOSE_ALL_VIEWS);
 
 	// Edit menu
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &MainWindow::OnUndo, this, ID_EDIT_UNDO);
@@ -865,6 +868,11 @@ void MainWindow::OnHelpScripting(wxCommandEvent &)
 void MainWindow::OnCloseCurrentView(wxCommandEvent &)
 {
 	viewer->CloseCurrentView();
+}
+
+void MainWindow::OnCloseAllViews(wxCommandEvent &)
+{
+	viewer->CloseViews();
 }
 
 void MainWindow::OnOpenProject(wxCommandEvent &)

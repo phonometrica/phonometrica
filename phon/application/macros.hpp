@@ -40,6 +40,13 @@
 #define CTRL_KEY "ctrl+"
 #endif
 
+// On Windows, the return key symbol is not displayed properly
+#ifdef __WXMSW__
+#define RETURN_KEY "Return"
+#else
+#define RETURN_KEY "↵"
+#endif
+
 // Default ratios for the main window
 #define DEFAULT_PROJECT_RATIO 0.17
 #define DEFAULT_INFO_RATIO 0.8

@@ -84,6 +84,8 @@ private:
 
 	void OnPageChanged(wxAuiNotebookEvent &);
 
+	void OnMainCloseButtonClicked(wxAuiNotebookEvent &);
+
 	void OnEditEvent(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value);
 
 	// Used to set bindings.

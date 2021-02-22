@@ -147,6 +147,8 @@ private:
 
 	void OnCloseCurrentView(wxCommandEvent &);
 
+	void OnCloseAllViews(wxCommandEvent &);
+
 	void SetAccelerators();
 
 	void OnExecute(wxCommandEvent &);

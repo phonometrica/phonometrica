@@ -9,7 +9,7 @@ namespace phonometrica {
 
 #define CURSOR_COLOUR wxColour(199, 179, 0)
 #define ANCHOR_COLOUR wxColour(200, 0, 0)
-#define WAVEBAR_SEL_COLOUR wxColour(96, 96, 96, 75)
+#define WAVEBAR_SEL_COLOUR wxColour(0, 0, 204, 60)
 #define PLOT_SEL_COLOUR wxColour(209, 116, 23, 50)
 #define PLOT_SEL_TEXT_COLOUR wxColour(155, 101, 31)
 #define LINE_COLOUR wxColour(0, 0, 0, 50)

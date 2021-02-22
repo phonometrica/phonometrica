@@ -66,6 +66,8 @@ public:
 
 	wxString GetColLabelValue(int col) override;
 
+	bool DeleteRows(size_t pos, size_t numRows) override;
+
 protected:
 
 	Handle<Concordance> m_conc;
