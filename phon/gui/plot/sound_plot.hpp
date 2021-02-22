@@ -35,11 +35,13 @@ public:
 
 	SoundPlot(wxWindow *parent, const Handle<Sound> &snd);
 
+	PixelSelection GetSelection() const;
+
 	void SetSelection(PixelSelection sel);
 
 	void SetCursorPosition(double pos);
 
-	void SetAnchorPosition(double pos);
+	void SetAnchor(TimeAnchor anchor);
 
 	void ZoomToSelection();
 
@@ -55,17 +57,32 @@ public:
 
 	void EnableMouseTracking(bool value);
 
+	bool IsTop() const;
+
+	void MakeTop(bool value);
+
+	void SetTimeWindow(TimeSpan win) override;
+
 	Signal<PixelSelection> update_selection;
 
 	Signal<double> update_cursor;
 
-	Signal<double> update_anchor;
+	Signal<TimeAnchor> update_anchor;
+
+	Signal<> zoom_to_selection;
 
 protected:
 
-	bool HasSelection() const { return m_sel.from >= 0; }
+	enum class SelectionState : char
+	{
+		Inactive,
+		Started,
+		Active
+	};
 
-	bool HasTimeAnchor() const { return m_time_anchor >= 0; }
+	bool HasSelection() const { return m_sel.first >= 0; }
+
+	bool HasTimeAnchor() const { return m_anchor.first >= 0; }
 
 	bool HasCursor() const { return m_cursor_pos >= 0; }
 
@@ -94,16 +111,20 @@ protected:
 	Handle<Sound> m_sound;
 
 	// Current selection on screen
-	PixelSelection m_sel;
+	PixelSelection m_sel = {-1.0, -1.0};
 
 	// Start of the selection when the user clicks on the wavebar.
 	double m_sel_start = -1;
 
-	double m_time_anchor = -1;
+	TimeAnchor m_anchor = {-1, -1.0};
 
 	double m_cursor_pos = -1;
 
-	bool m_track_mouse;
+	bool m_track_mouse = false;
+
+	bool m_is_top = false;
+
+	SelectionState m_sel_state = SelectionState::Inactive;
 };
 
 } // namespace phonometrica

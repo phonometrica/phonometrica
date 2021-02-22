@@ -15,39 +15,44 @@
  *                                                                                                                     *
  * Created: 20/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Connects the wavebar to the sound plots in a sound view or the annotation layers in an annotation view.    *
+ * Purpose: Thin lines to separate widgets.                                                                            *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SOUND_ZOOM_HPP
-#define PHONOMETRICA_SOUND_ZOOM_HPP
+#ifndef PHONOMETRICA_LINES_HPP
+#define PHONOMETRICA_LINES_HPP
 
 #include <wx/window.h>
-#include <wx/dcclient.h>
 #include <phon/gui/helpers.hpp>
-#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
-class SoundZoom final : public wxWindow
+class HLine final : public wxWindow
 {
 public:
 
-	SoundZoom(wxWindow *parent);
+	HLine(wxWindow *parent) : wxWindow(parent, wxID_ANY)
+	{
+		SetSize(wxSize(-1, 1));
+		SetBackgroundColour(LINE_COLOUR);
+	}
 
-	void OnSetSelection(PixelSelection sel);
+};
 
-private:
+class VLine final : public wxWindow
+{
+public:
 
-	bool HasSelection() const { return m_sel.first >= 0; }
+	VLine(wxWindow *parent) : wxWindow(parent, wxID_ANY)
+	{
+		SetSize(wxSize(1, 30));
+		SetBackgroundColour(LINE_COLOUR);
+	}
 
-	void OnPaint(wxPaintEvent &);
-
-	PixelSelection m_sel;
 };
 
 } // namespace phonometrica
 
 
 
-#endif // PHONOMETRICA_SOUND_ZOOM_HPP
+#endif // PHONOMETRICA_LINES_HPP

@@ -13,41 +13,41 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 20/02/2021                                                                                                 *
+ * Created: 22/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Connects the wavebar to the sound plots in a sound view or the annotation layers in an annotation view.    *
+ * Purpose: Display information on the left of plots and layers in sound and annotation views.                         *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SOUND_ZOOM_HPP
-#define PHONOMETRICA_SOUND_ZOOM_HPP
+#ifndef PHONOMETRICA_Y_AXIS_INFO_HPP
+#define PHONOMETRICA_Y_AXIS_INFO_HPP
 
 #include <wx/window.h>
-#include <wx/dcclient.h>
-#include <phon/gui/helpers.hpp>
-#include <phon/utils/signal.hpp>
+#include <phon/gui/plot/time_window.hpp>
+#include <phon/array.hpp>
 
 namespace phonometrica {
 
-class SoundZoom final : public wxWindow
+class YAxisInfo final : public wxWindow
 {
 public:
 
-	SoundZoom(wxWindow *parent);
+	YAxisInfo(wxWindow *parent);
 
-	void OnSetSelection(PixelSelection sel);
+	void AddWindow(TimeAlignedWindow *win);
+
+	void RemoveWindow(TimeAlignedWindow *win);
 
 private:
 
-	bool HasSelection() const { return m_sel.first >= 0; }
-
 	void OnPaint(wxPaintEvent &);
 
-	PixelSelection m_sel;
+	Array<TimeAlignedWindow*> m_windows;
+
 };
 
 } // namespace phonometrica
 
 
 
-#endif // PHONOMETRICA_SOUND_ZOOM_HPP
+#endif // PHONOMETRICA_Y_AXIS_INFO_HPP

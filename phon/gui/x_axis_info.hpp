@@ -13,41 +13,54 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 20/02/2021                                                                                                 *
+ * Created: 22/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Connects the wavebar to the sound plots in a sound view or the annotation layers in an annotation view.    *
+ * Purpose: Widget to display time information between the toolbar and the plots in annotation and sound views.        *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SOUND_ZOOM_HPP
-#define PHONOMETRICA_SOUND_ZOOM_HPP
+#ifndef PHONOMETRICA_X_AXIS_INFO_HPP
+#define PHONOMETRICA_X_AXIS_INFO_HPP
 
-#include <wx/window.h>
 #include <wx/dcclient.h>
+#include <wx/window.h>
 #include <phon/gui/helpers.hpp>
-#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
-class SoundZoom final : public wxWindow
+class XAxisInfo final : public wxWindow
 {
 public:
 
-	SoundZoom(wxWindow *parent);
+	XAxisInfo(wxWindow *parent);
 
-	void OnSetSelection(PixelSelection sel);
+	void SetTimeWindow(TimeSpan win);
+
+	void SetAnchor(TimeAnchor anchor);
+
+	void SetSelection(PixelSelection sel, TimeSpan tsel);
 
 private:
 
+	bool HasTimeWindow() const { return m_win.first >= 0; }
+
 	bool HasSelection() const { return m_sel.first >= 0; }
 
-	void OnPaint(wxPaintEvent &);
+	bool HasTimeAnchor() const { return m_anchor.first >= 0; }
 
-	PixelSelection m_sel;
+	void OnPaint(wxPaintEvent &e);
+
+	TimeSpan m_win = {-1., -1.};
+
+	PixelSelection m_sel = {-1, -1};
+
+	TimeSpan  m_time_sel = {-1., -1.};
+
+	TimeAnchor m_anchor = {-1., -1.};
 };
 
 } // namespace phonometrica
 
 
 
-#endif // PHONOMETRICA_SOUND_ZOOM_HPP
+#endif // PHONOMETRICA_X_AXIS_INFO_HPP

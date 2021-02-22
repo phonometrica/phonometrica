@@ -13,51 +13,109 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 20/02/2021                                                                                                 *
+ * Created: 22/02/2021                                                                                                 *
  *                                                                                                                     *
  * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <memory>
-#include <wx/graphics.h>
-#include <phon/gui/sound_zoom.hpp>
+#include <phon/gui/x_axis_info.hpp>
 
 namespace phonometrica {
 
-SoundZoom::SoundZoom(wxWindow *parent) : wxWindow(parent, wxID_ANY), m_sel({-1, -1})
+XAxisInfo::XAxisInfo(wxWindow *parent) :
+	wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 20))
 {
-	SetMinSize(wxSize(-1, 40));
-	SetMaxSize(wxSize(-1, 40));
-	Bind(wxEVT_PAINT, &SoundZoom::OnPaint, this);
+	Bind(wxEVT_PAINT, &XAxisInfo::OnPaint, this);
 }
 
-void SoundZoom::OnPaint(wxPaintEvent &)
+void XAxisInfo::SetTimeWindow(TimeSpan win)
 {
-	if (!HasSelection()) {
-		return;
-	}
-	wxClientDC dc(this);
-	auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
-	if (!gc) return;
-	auto height = GetSize().GetHeight();
-	auto width = GetSize().GetWidth();
-
-	wxGraphicsPath path = gc->CreatePath();
-	path.MoveToPoint(0.0, 0.0);
-	path.AddLineToPoint(m_sel.first, height);
-	path.AddLineToPoint(m_sel.second, height);
-	path.AddLineToPoint(width, 0.0);
-	path.AddLineToPoint(0.0, 0.0);
-	wxBrush brush;
-	brush.SetColour(WAVEBAR_SEL_COLOUR);
-	gc->SetBrush(brush);
-	gc->FillPath(path);
-}
-
-void SoundZoom::OnSetSelection(PixelSelection sel)
-{
-	m_sel = sel;
+	m_win = win;
 	Refresh();
 }
+
+void XAxisInfo::OnPaint(wxPaintEvent &)
+{
+	if (!HasTimeWindow()) {
+		return;
+	}
+	wxPaintDC dc(this);
+	wxCoord width, height, x, y;
+	auto size = GetSize();
+
+
+	wxRect used_area1, used_area2;
+
+	if (HasTimeAnchor())
+	{
+		auto colour = dc.GetTextForeground();
+		dc.SetTextForeground(ANCHOR_COLOUR);
+		auto time = wxString::Format("%.4f", m_anchor.second);
+		dc.GetTextExtent(time, &width, &height);
+		x = m_anchor.first + 3;
+		y = size.y - height - 1;
+		if (x + width > size.x) {
+			x = size.x - width;
+		}
+		dc.DrawText(time, x, y);
+		used_area1 = wxRect(x, y, width, height);
+		dc.SetTextForeground(colour);
+	}
+	else if (HasSelection())
+	{
+		auto colour = dc.GetTextForeground();
+		dc.SetTextForeground(PLOT_SEL_TEXT_COLOUR);
+		auto time = wxString::Format("%.4f", m_time_sel.first);
+		dc.GetTextExtent(time, &width, &height);
+		x = (std::max)(0, int(m_sel.first) - width);
+		y = size.y - height - 1;
+		dc.DrawText(time, x, y);
+		used_area1 = wxRect(x, y, width, height);
+
+		time = wxString::Format("%.4f", m_time_sel.second);
+		dc.GetTextExtent(time, &width, &height);
+		int xlimit = used_area1.x + used_area1.width + 5; // 5 pixels for spacing
+		x = (std::max)(xlimit, int(m_sel.second + 3));
+		y = size.y - height - 1;
+		dc.DrawText(time, x, y);
+		used_area2 = wxRect(x, y, width, height);
+
+		dc.SetTextForeground(colour);
+	}
+
+	auto from = wxString::Format("%.4f", m_win.first);
+	dc.GetTextExtent(from, &width, &height);
+	x = 0;
+	y = size.y - height - 1;
+	wxRect rect(x, y, width, height);
+
+	if (!used_area1.Intersects(rect) && !used_area2.Intersects(rect)) {
+		dc.DrawText(from, x, y);
+	}
+
+	auto to = wxString::Format("%.4f", m_win.second);
+	dc.GetTextExtent(to, &width, &height);
+	x = size.x - width;
+	y = size.y - height - 1;
+	rect = wxRect(x, y, width, height);
+
+	if (!used_area1.Intersects(rect) && !used_area2.Intersects(rect)) {
+		dc.DrawText(to, x, y);
+	}
+}
+
+void XAxisInfo::SetAnchor(TimeAnchor anchor)
+{
+	m_anchor = anchor;
+	Refresh();
+}
+
+void XAxisInfo::SetSelection(PixelSelection sel, TimeSpan tsel)
+{
+	m_sel = sel;
+	m_time_sel = tsel;
+	Refresh();
+}
+
 } // namespace phonometrica

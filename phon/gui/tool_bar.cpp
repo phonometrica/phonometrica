@@ -19,6 +19,8 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <wx/dcmemory.h>
+#include <wx/dcclient.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
 #include <phon/gui/sizer.hpp>
@@ -32,19 +34,24 @@ static const int padding = 5;
 ToolBar::ToolBar(wxWindow *parent) :
 	wxWindow(parent, wxID_ANY), button_size(28, 28)
 {
-	SetSizer(new HBoxSizer);
+	inner_sizer = new HBoxSizer;
+	auto sizer = new VBoxSizer;
+	sizer->Add(inner_sizer, 1, wxEXPAND|wxALL, 10);
+	SetSizer(sizer);
+	dropdown_bmp = wxBITMAP_PNG_FROM_DATA(dropdown);
+	Bind(wxEVT_PAINT, &ToolBar::OnPaint, this);
 }
 
 void ToolBar::AddSeparator()
 {
 	auto sep = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(1, 28));
 	sep->SetBackgroundColour(*wxLIGHT_GREY);
-	GetSizer()->Add(sep, 0, wxLEFT|wxALIGN_CENTER, padding);
+	inner_sizer->Add(sep, 0, wxLEFT|wxALIGN_CENTER, padding);
 }
 
 void ToolBar::AddStretchableSpace()
 {
-	GetSizer()->AddStretchSpacer();
+	inner_sizer->AddStretchSpacer();
 }
 
 wxButton *ToolBar::AddButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
@@ -53,7 +60,7 @@ wxButton *ToolBar::AddButton(const wxBitmap &bitmap, const wxString &tooltip, in
 	btn->SetBitmap(bitmap);
 	btn->SetMaxSize(button_size);
 	btn->SetToolTip(tooltip);
-	GetSizer()->Add(btn, 0, wxLEFT, padding);
+	inner_sizer->Add(btn, 0, wxLEFT, padding);
 
 #ifndef __WXGTK__
 	btn->Bind(wxEVT_ENTER_WINDOW, [btn,this](wxMouseEvent &) { btn->SetBackgroundColour(GetHoverColour()); btn->Refresh(); });
@@ -68,7 +75,7 @@ ToggleButton *ToolBar::AddToggleButton(const wxBitmap &bitmap, const wxString &t
 	auto btn = new ToggleButton(this, id, bitmap, wxDefaultPosition, wxDefaultSize);
 	btn->SetMaxSize(button_size);
 	btn->SetToolTip(tooltip);
-	GetSizer()->Add(btn, 0, wxLEFT, padding);
+	inner_sizer->Add(btn, 0, wxLEFT, padding);
 
 #ifndef __WXGTK__
 	btn->Bind(wxEVT_ENTER_WINDOW, [btn,this](wxMouseEvent &) { btn->SetBackgroundColour(GetHoverColour()); btn->Refresh(); });
@@ -82,7 +89,7 @@ wxButton *ToolBar::AddHelpButton()
 {
 #ifdef __WXMAC__
 	auto btn = new wxButton(this, wxID_HELP);
-	GetSizer()->Add(btn, 0, wxLEFT, padding);
+	inner_sizer->Add(btn, 0, wxLEFT, padding);
 	btn->SetToolTip(_("Help"));
 
 	return btn;
@@ -100,13 +107,18 @@ void ToolBar::ShowMenu(wxButton *button, wxMenu *menu)
 
 wxButton *ToolBar::AddMenuButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
 {
-	// This method doesn't do anything special, but indicates that the menu has a drop-down menu
-	return AddButton(bitmap, tooltip, id);
+	wxMemoryDC dc;
+	auto bmp = bitmap;
+	dc.SelectObject(bmp);
+	dc.DrawBitmap(dropdown_bmp, 0, 0);
+	dc.SelectObject(wxNullBitmap);
+
+	return AddButton(bmp, tooltip, id);
 }
 
 void ToolBar::AddSpacer(int space)
 {
-	GetSizer()->AddSpacer(space);
+	inner_sizer->AddSpacer(space);
 }
 
 wxColour ToolBar::GetHoverColour() const
@@ -121,6 +133,19 @@ wxColour ToolBar::GetHoverColour() const
 	b = (unsigned char)(b + factor * (255 - b));
 
 	return wxColour(r,g,b);
+}
+
+void ToolBar::OnPaint(wxPaintEvent &e)
+{
+	wxPaintDC dc(this);
+	dc.SetPen(wxPen(*wxLIGHT_GREY));
+	auto size = GetSize();
+	dc.DrawLine(0, 0, size.x, 0);
+	dc.DrawLine(0, size.y-1, size.x, size.y-1);
+	dc.DrawLine(0, 0, 0, size.y);
+	dc.DrawLine(size.x-1, 0, size.x-1, size.y);
+
+	e.Skip();
 }
 
 } // namespace phonometrica

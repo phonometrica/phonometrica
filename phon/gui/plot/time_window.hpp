@@ -23,6 +23,7 @@
 #ifndef PHONOMETRICA_TIME_WINDOW_HPP
 #define PHONOMETRICA_TIME_WINDOW_HPP
 
+#include <wx/dcclient.h>
 #include <wx/window.h>
 #include <phon/gui/helpers.hpp>
 #include <phon/utils/signal.hpp>
@@ -39,13 +40,17 @@ public:
 
 	TimeSpan GetTimeWindow() const;
 
-	void SetTimeWindow(TimeSpan win);
+	virtual void SetTimeWindow(TimeSpan win);
+
+	virtual void DrawYAxis(wxPaintDC &dc, const wxRect &rect) = 0;
 
 	Signal<TimeSpan> update_window;
 
 protected:
 
-	double GetWindowDuration() const { return m_window.to - m_window.from; }
+	friend class SoundView;
+
+	double GetWindowDuration() const { return m_window.second - m_window.first; }
 
 	int GetWidth() const { return GetSize().GetWidth(); }
 
@@ -58,8 +63,7 @@ protected:
 	virtual void InvalidateCache() = 0;
 
 	// The current window
-	TimeSpan m_window;
-
+	TimeSpan m_window = {-1.0, -1.0};
 };
 
 } // namespace phonometrica

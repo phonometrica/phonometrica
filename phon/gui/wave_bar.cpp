@@ -83,11 +83,11 @@ void WaveBar::Render(wxPaintDC &dc)
 	if (!HasSelection()) {
 		return;
 	}
-	path.MoveToPoint(m_sel.from, 0.0);
-	path.AddLineToPoint(m_sel.to, 0.0);
-	path.AddLineToPoint(m_sel.to, height);
-	path.AddLineToPoint(m_sel.from, height);
-	path.AddLineToPoint(m_sel.from, 0.0);
+	path.MoveToPoint(m_sel.first, 0.0);
+	path.AddLineToPoint(m_sel.second, 0.0);
+	path.AddLineToPoint(m_sel.second, height);
+	path.AddLineToPoint(m_sel.first, height);
+	path.AddLineToPoint(m_sel.first, 0.0);
 	wxBrush brush;
 	brush.SetColour(WAVEBAR_SEL_COLOUR);
 	gc->SetBrush(brush);
@@ -177,8 +177,8 @@ void WaveBar::OnStartSelection(wxMouseEvent &e)
 void WaveBar::OnEndSelection(wxMouseEvent &e)
 {
 	m_sel_start = -1;
-	auto t1 = XPosToTime(m_sel.from);
-	auto t2 = XPosToTime(m_sel.to);
+	auto t1 = XPosToTime(m_sel.first);
+	auto t2 = XPosToTime(m_sel.second);
 	change_window(TimeSpan{t1, t2});
 	e.Skip();
 }
@@ -203,8 +203,8 @@ void WaveBar::OnMotion(wxMouseEvent &e)
 
 void WaveBar::SetTimeSelection(TimeSpan win)
 {
-	auto from = TimeToXPos(win.from);
-	auto to = TimeToXPos(win.to);
+	auto from = TimeToXPos(win.first);
+	auto to = TimeToXPos(win.second);
 	SetSelection(PixelSelection{from, to});
 	Refresh();
 }

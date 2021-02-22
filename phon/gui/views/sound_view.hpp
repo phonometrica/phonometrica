@@ -27,6 +27,8 @@
 #include <phon/gui/sound_zoom.hpp>
 #include <phon/gui/plot/waveform.hpp>
 #include <phon/gui/tool_bar.hpp>
+#include <phon/gui/x_axis_info.hpp>
+#include <phon/gui/y_axis_info.hpp>
 #include <phon/gui/sizer.hpp>
 #include <phon/application/sound.hpp>
 
@@ -78,6 +80,8 @@ protected:
 
 	void OnZoomToSelection(wxCommandEvent &);
 
+	void ZoomToSelection();
+
 	void OnViewAll(wxCommandEvent &);
 
 	void OnSelectWindow(wxCommandEvent &);
@@ -98,9 +102,13 @@ protected:
 
 	void OnUpdateSelection(PixelSelection sel);
 
+	void UpdateXAxisSelection(PixelSelection sel);
+
 	void OnUpdateCursor(double pos);
 
-	void OnUpdateAnchor(double pos);
+	void OnUpdateAnchor(TimeAnchor pos);
+
+	void SetTopPlot();
 
 	wxButton *m_wave_tool, *m_spectrum_tool, *m_formant_tool, *m_pitch_tool, *m_intensity_tool;
 
@@ -111,6 +119,10 @@ protected:
 	ToolBar *m_toolbar;
 
 	Array<SoundPlot*> m_plots;
+
+	XAxisInfo *m_x_axis;
+
+	YAxisInfo *m_y_axis;
 
 	// Sizer for sound plots
 	wxBoxSizer *m_inner_sizer;

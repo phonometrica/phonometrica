@@ -13,33 +13,56 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 20/02/2021                                                                                                 *
+ * Created: 22/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Thin line to separate plots in sound and annotation views.                                                 *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_PLOT_SEPARATOR_HPP
-#define PHONOMETRICA_PLOT_SEPARATOR_HPP
-
-#include <wx/window.h>
+#include <wx/dcclient.h>
+#include <phon/gui/y_axis_info.hpp>
 
 namespace phonometrica {
 
-class PlotSeparator final : public wxWindow
+YAxisInfo::YAxisInfo(wxWindow *parent) : wxWindow(parent, wxID_ANY)
 {
-public:
+	const int width = 80;
+	SetMinSize(wxSize(width, -1));
+	SetMaxSize(wxSize(width, -1));
+	Bind(wxEVT_PAINT, &YAxisInfo::OnPaint, this);
+}
 
-	PlotSeparator(wxWindow *parent) : wxWindow(parent, wxID_ANY)
-	{
-		SetSize(wxSize(-1, 1));
-		SetBackgroundColour(wxColour(0, 0, 0, 50));
-	}
+void YAxisInfo::AddWindow(TimeAlignedWindow *win)
+{
+	m_windows.append(win);
+}
 
-};
+void YAxisInfo::RemoveWindow(TimeAlignedWindow *win)
+{
+	m_windows.remove(win);
+}
+
+void YAxisInfo::OnPaint(wxPaintEvent &)
+{
+	wxPaintDC dc(this);
+
+    for (auto win : m_windows)
+    {
+        if (win->IsShown())
+        {
+            // Get bounding rectangle for the widget on the Y axis.
+            auto size = win->GetSize();
+            auto pos = win->GetPosition();
+            auto msize = this->GetSize();
+            auto mpos = this->GetPosition();
+            auto x = 0;
+            auto y = pos.y - mpos.y;
+			auto w = msize.GetWidth();
+			auto h = size.GetHeight();
+			wxRect rect(x, y, w, h);
+            win->DrawYAxis(dc, rect);
+        }
+    }
+}
 
 } // namespace phonometrica
-
-
-
-#endif // PHONOMETRICA_PLOT_SEPARATOR_HPP

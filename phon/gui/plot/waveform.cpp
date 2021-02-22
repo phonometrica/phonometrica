@@ -225,8 +225,8 @@ std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 	// map several frames to one pixel. We find the maximum and minimum amplitudes
 	// over the range of frames, and we draw a line from the previous minimum to the
 	// current maximum, and from the current maximum to the current mimimum.
-	auto first_sample = m_sound->time_to_frame(m_window.from);
-	auto last_sample = m_sound->time_to_frame(m_window.to);
+	auto first_sample = m_sound->time_to_frame(m_window.first);
+	auto last_sample = m_sound->time_to_frame(m_window.second);
 	auto data = m_sound->get_channel(m_channel, first_sample, last_sample);
 	auto sample_count = data.size();
 
@@ -243,7 +243,7 @@ std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 
 	if (sample_count >= width)
 	{
-		assert(m_window.to <= m_sound->duration());
+		assert(m_window.second <= m_sound->duration());
 
 		// Subtract 1 to width so that the last pixel is assigned the left-over frames.
 		auto frames_per_pixel = sample_count / (width - 1);
@@ -290,6 +290,28 @@ std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 	}
 
 	return wave;
+}
+
+void Waveform::DrawYAxis(wxPaintDC &dc, const wxRect &rect)
+{
+	auto top = wxString::Format("+%.4f", extrema.second);
+	wxString center("0");
+	auto bottom = wxString::Format("-%.4f", extrema.first);
+	wxCoord w, h;
+	int padding = 2;
+	dc.GetTextExtent(top, &w, &h);
+    int x1 = rect.width - w - padding;
+    dc.DrawText(top, x1, rect.y);
+
+    dc.GetTextExtent(center, &w, &h);
+    int x2 = rect.width - w - padding;
+    int y2 = rect.y + (rect.height - h) / 2;
+    dc.DrawText(center, x2, y2);
+
+    dc.GetTextExtent(bottom, &w, &h);
+    int x3 = rect.width - w - padding;
+    int y3 = rect.y + rect.height - h;
+    dc.DrawText(bottom, x3, y3);
 }
 
 } // namespace phonometrica

@@ -62,7 +62,7 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 
 	auto del_row_tool = m_toolbar->AddButton(ICN(delete_row), _("Delete selected row(s)"));
 	auto edit_row_tool = m_toolbar->AddButton(ICN(edit_row), _("Edit selected event"));
-	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column_dropdown), _("Show/hide columns"));
+	m_col_tool = m_toolbar->AddMenuButton(ICN(select_column), _("Show/hide columns"));
 	m_toolbar->AddSeparator();
 
 	auto union_tool = m_toolbar->AddButton(ICN(unite), _("Unite concordance... (matches in A or B)"));
@@ -114,8 +114,8 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	label_sizer->Add(new wxStaticText(this, wxID_ANY, _("Active target:")), 0, wxALIGN_CENTER);
 	label_sizer->Add(m_active_target, 0, wxLEFT|wxRIGHT, 5);
 
-	sizer->Add(m_toolbar, 0, wxEXPAND|wxTOP|wxRIGHT, 10);
-	sizer->Add(label_sizer, 0, wxEXPAND|wxALL, 10);
+	sizer->Add(m_toolbar, 0, wxEXPAND|wxALL, 10);
+	sizer->Add(label_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	sizer->Add(m_grid, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
 	SetSizer(sizer);
 

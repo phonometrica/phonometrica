@@ -54,7 +54,13 @@ protected:
 
 	wxColour GetHoverColour() const;
 
+	void OnPaint(wxPaintEvent &e);
+
 	const wxSize button_size;
+
+	wxBoxSizer *inner_sizer;
+
+	wxBitmap dropdown_bmp;
 };
 
 } // namespace phonometrica

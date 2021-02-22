@@ -53,7 +53,7 @@ private:
 
 	double SampleToYPos(double s) const;
 
-	bool HasSelection() const { return m_sel.from >= 0; }
+	bool HasSelection() const { return m_sel.first >= 0; }
 
 	double TimeToXPos(double t) const;
 

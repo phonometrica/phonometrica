@@ -21,7 +21,7 @@
 
 #include <wx/msgdlg.h>
 #include <phon/gui/views/sound_view.hpp>
-#include <phon/gui/plot_separator.hpp>
+#include <phon/gui/lines.hpp>
 #include <phon/gui/selection_dialog.hpp>
 #include <phon/application/macros.hpp>
 #include <phon/application/settings.hpp>
@@ -40,14 +40,17 @@ void SoundView::Initialize()
 	SetToolBar();
 	m_zoom = new SoundZoom(this);
 	m_wavebar = new WaveBar(this, m_sound);
+	m_x_axis = new XAxisInfo(this);
+	m_y_axis = new YAxisInfo(this);
 
 	// Packs the plots and wavebar
 	m_inner_sizer = new VBoxSizer;
+	m_inner_sizer->Add(m_x_axis, 0, wxEXPAND|wxRIGHT, 10);
 	for (int i = 1; i <= m_sound->nchannel(); i++)
 	{
 		auto waveform = new Waveform(this, m_sound, i);
-		m_inner_sizer->Add(waveform, 1, wxEXPAND|wxLEFT|wxRIGHT, 10);
-		m_inner_sizer->Add(new PlotSeparator(this));
+		m_inner_sizer->Add(waveform, 1, wxEXPAND|wxRIGHT, 10);
+		m_inner_sizer->Add(new HLine(this));
 		m_plots.append(waveform);
 	}
 	m_inner_sizer->Add(m_zoom, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
@@ -55,25 +58,29 @@ void SoundView::Initialize()
 
 	// Packs the y axis and the plots
 	auto mid_sizer = new HBoxSizer;
-	mid_sizer->AddSpacer(60); // This will have info on the left
+	mid_sizer->Add(m_y_axis, 0, wxEXPAND, 0);
 	mid_sizer->Add(m_inner_sizer, 1, wxEXPAND, 0);
 
 	// Packs the toolbar and the mid sizer
 	auto outer_sizer = new VBoxSizer;
-	outer_sizer->Add(m_toolbar, 0, wxEXPAND | wxALL, 10);
-	outer_sizer->Add(mid_sizer, 1, wxEXPAND | wxALL, 10);
+	outer_sizer->Add(m_toolbar, 0, wxEXPAND|wxALL, 10);
+	outer_sizer->Add(mid_sizer, 1, wxEXPAND|wxALL, 10);
 
 	SetSizer(outer_sizer);
 
 	m_wavebar->selection_changed.connect(&SoundZoom::OnSetSelection, m_zoom);
 	for (auto plot : m_plots)
 	{
+		m_y_axis->AddWindow(plot);
 		m_wavebar->change_window.connect(&SoundPlot::SetTimeWindow, plot);
 		plot->update_window.connect(&SoundView::OnUpdateTimeWindow, this);
 		plot->update_selection.connect(&SoundView::OnUpdateSelection, this);
 		plot->update_cursor.connect(&SoundView::OnUpdateCursor, this);
 		plot->update_anchor.connect(&SoundView::OnUpdateAnchor, this);
+		plot->zoom_to_selection.connect(&SoundView::ZoomToSelection, this);
 	}
+	m_wavebar->change_window.connect(&XAxisInfo::SetTimeWindow, m_x_axis);
+	SetTopPlot();
 }
 
 bool SoundView::IsModified() const
@@ -108,14 +115,14 @@ void SoundView::SetToolBar()
 	auto zoom_in_tool = m_toolbar->AddButton(ICN(zoom_plus), _("Zoom in"));
 	auto zoom_sel_tool = m_toolbar->AddButton(ICN(collapse), _("Zoom to selection"));
 	auto zoom_all_tool = m_toolbar->AddButton(ICN(expand), _("View whole file"));
-	auto sel_tool = m_toolbar->AddButton(ICN(move_to_selection), _("Select window"));
+	auto sel_tool = m_toolbar->AddButton(ICN(selection), _("Select window"));
 	m_toolbar->AddSeparator();
 
 	m_wave_tool = m_toolbar->AddMenuButton(ICN(waveform), _("Waveform settings"));
 	m_spectrum_tool = m_toolbar->AddMenuButton(ICN(spectrum), _("Spectrogram settings"));
 	m_formant_tool = m_toolbar->AddMenuButton(ICN(formants), _("Formants settings"));
-	m_pitch_tool = m_toolbar->AddMenuButton(ICN(voice), _("Pitch settings"));
-	m_intensity_tool = m_toolbar->AddMenuButton(ICN(hearing), _("Intensity settings"));
+	m_pitch_tool = m_toolbar->AddMenuButton(ICN(pitch), _("Pitch settings"));
+	m_intensity_tool = m_toolbar->AddMenuButton(ICN(intensity), _("Intensity settings"));
 	m_toolbar->AddSeparator();
 
 	m_mouse_tool = m_toolbar->AddToggleButton(ICN(mouse), _("Enable mouse tracking"));
@@ -156,7 +163,7 @@ void SoundView::SetTimeSelection(double from, double to)
 	for (auto plot : m_plots) {
 		plot->SetTimeWindow({from, to});
 	}
-	m_wavebar->SetTimeSelection({from, to});
+	UpdateTimeWindow(TimeSpan{from, to});
 }
 
 void SoundView::OnPlay(wxCommandEvent &)
@@ -218,6 +225,12 @@ void SoundView::OnZoomOut(wxCommandEvent &)
 
 void SoundView::OnZoomToSelection(wxCommandEvent &)
 {
+	ZoomToSelection();
+}
+
+void SoundView::ZoomToSelection()
+{
+	// This function is also called by plots when clicking on the middle button.
 	for (auto plot : m_plots) {
 		plot->ZoomToSelection();
 	}
@@ -270,11 +283,23 @@ void SoundView::OnUpdateSelection(PixelSelection sel)
 	for (auto plot : m_plots) {
 		plot->SetSelection(sel);
 	}
+	UpdateXAxisSelection(sel);
+}
+
+void SoundView::UpdateXAxisSelection(PixelSelection sel)
+{
+	// The x axis needs to know both position and time, but is not able to convert screen positions to times,
+	// so we do it here.
+	auto t1 = GetFirstPlot()->XPosToTime(sel.first);
+	auto t2 = GetFirstPlot()->XPosToTime(sel.second);
+	m_x_axis->SetSelection(sel, std::make_pair(t1, t2));
 }
 
 void SoundView::UpdateTimeWindow(TimeSpan win)
 {
 	m_wavebar->SetTimeSelection(win);
+	m_x_axis->SetTimeWindow(win);
+	UpdateXAxisSelection(GetFirstPlot()->GetSelection());
 }
 
 SoundPlot *SoundView::GetFirstPlot() const
@@ -330,6 +355,7 @@ void SoundView::OnEnableMouseTracking(wxCommandEvent &)
 	for (auto plot : m_plots) {
 		plot->EnableMouseTracking(value);
 	}
+	m_x_axis->SetAnchor({-1., -1.});
 }
 
 void SoundView::OnUpdateCursor(double pos)
@@ -339,10 +365,33 @@ void SoundView::OnUpdateCursor(double pos)
 	}
 }
 
-void SoundView::OnUpdateAnchor(double pos)
+void SoundView::OnUpdateAnchor(TimeAnchor anchor)
 {
 	for (auto plot : m_plots) {
-		plot->SetAnchorPosition(pos);
+		plot->SetAnchor(anchor);
+	}
+	m_x_axis->SetAnchor(anchor);
+}
+
+void SoundView::SetTopPlot()
+{
+	// Unmark previous top
+	for (auto plot : m_plots)
+	{
+		if (plot->IsTop())
+		{
+			plot->MakeTop(false);
+			break;
+		}
+	}
+	// Set new top plot
+	for (auto plot : m_plots)
+	{
+		if (plot->IsShown())
+		{
+			plot->MakeTop(true);
+			break;
+		}
 	}
 }
 

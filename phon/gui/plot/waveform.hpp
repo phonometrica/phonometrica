@@ -43,6 +43,8 @@ private:
 
 	void InvalidateCache() override;
 
+	void DrawYAxis(wxPaintDC &dc, const wxRect &rect) override;
+
 	void UpdateCache();
 
 	std::vector<std::pair<double,double>> DownsampleWaveform();

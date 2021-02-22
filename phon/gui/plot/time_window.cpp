@@ -33,17 +33,17 @@ void TimeAlignedWindow::SetTimeWindow(TimeSpan win)
 {
 	m_window = win;
 	InvalidateCache();
-	Refresh();
+	// Don't refresh here: this is done in overrides
 }
 
 double TimeAlignedWindow::XPosToTime(double x) const
 {
-    return m_window.from + (x * GetWindowDuration() / GetWidth());
+    return m_window.first + (x * GetWindowDuration() / GetWidth());
 }
 
 double TimeAlignedWindow::TimeToXPos(double t) const
 {
-    return (t - m_window.from) * GetWidth() / GetWindowDuration();
+    return (t - m_window.first) * GetWidth() / GetWindowDuration();
 }
 
 TimeSpan TimeAlignedWindow::GetTimeWindow() const
