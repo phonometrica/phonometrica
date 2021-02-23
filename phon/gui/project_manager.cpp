@@ -50,6 +50,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	wxPanel(parent), runtime(rt)
 {
 	tree = new wxTreeCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTR_HIDE_ROOT | wxTR_MULTIPLE | wxTR_NO_LINES | wxTR_DEFAULT_STYLE);
+	timer.SetOwner(tree);
 	mono_font = Settings::get_mono_font();
 	mono_font.SetPointSize(tree->GetFont().GetPointSize());
 
@@ -135,7 +136,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	Bind(wxEVT_TREE_SEL_CHANGED, &ProjectManager::OnItemSelected, this);
 	Bind(wxEVT_TREE_ITEM_ACTIVATED, &ProjectManager::OnItemDoubleClicked, this);
 	Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &ProjectManager::OnRightClick, this);
-	// FIXME: the middle button event doesn't seem to be handled on Windows
+	// FIXME: the middle button event doesn't seem to be handled on Windows, so we simulate it.
 #ifdef __WXMSW__
 	tree->Bind(wxEVT_MIDDLE_UP, &ProjectManager::OnMouseMiddleClick, this);
 #else
@@ -143,8 +144,13 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 #endif
 	search_ctrl->Bind(wxEVT_TEXT, &ProjectManager::OnQuickSearch, this);
 	menu_btn->Bind(wxEVT_LEFT_DOWN, &ProjectManager::OnProjectContextMenu, this);
+
+	// Tooltips are only supported on Windows, so we simulate them on other platforms.
 #ifdef __WXMSW__
 	Bind(wxEVT_TREE_ITEM_GETTOOLTIP, &ProjectManager::OnShowToolTip, this);
+#else
+	tree->Bind(wxEVT_MOTION, &ProjectManager::OnMouseMove, this);
+	tree->Bind(wxEVT_TIMER, &ProjectManager::OnTimerDone, this);
 #endif
 
 	SetScriptingFunctions();
@@ -342,9 +348,12 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 
 void ProjectManager::OnMouseMiddleClick(wxMouseEvent &e)
 {
-    int i = 1;
-    wxTreeEvent evt(0, tree);
-    OnMiddleClick(evt);
+    auto item = FindItem(e.GetPosition());
+    if (item.IsOk())
+    {
+	    wxTreeEvent evt(0, tree, item);
+	    OnMiddleClick(evt);
+    }
 }
 
 void ProjectManager::OnMiddleClick(wxTreeEvent &e)
@@ -1159,14 +1168,64 @@ void ProjectManager::Expand()
 	tree->Expand(bookmark_item);
 }
 
-#ifdef __WXMSW__
 void ProjectManager::OnShowToolTip(wxTreeEvent &e)
 {
-	auto items = GetSelectedItems();
-	if (items.size() == 1 && items.front()->is<Document>())
+	auto data = dynamic_cast<ItemData*>(tree->GetItemData(e.GetItem()));
+	auto node = data->node;
+	Document *doc;
+
+	if ((doc = dynamic_cast<Document*>(node)))
 	{
-		e.SetToolTip(recast<Document>(items.front())->path());
+		// Note: the title is truncated on Linux.
+		wxRichToolTip tip(doc->class_name(), doc->path());
+		auto pos = tree->ScreenToClient(wxGetMousePosition()) - wxPoint(40, 30);
+		wxRect rect(pos.x, pos.y, 80, 50);
+		tip.ShowFor(tree, &rect);
 	}
 }
-#endif
+
+wxTreeItemId ProjectManager::FindItem(wxPoint pos)
+{
+	return FindItem(pos, root);
+}
+
+wxTreeItemId ProjectManager::FindItem(wxPoint pos, wxTreeItemId node)
+{
+	wxTreeItemIdValue cookie;
+	wxTreeItemId child = tree->GetFirstChild(node, cookie);
+
+	while (child.IsOk())
+	{
+		wxRect rect;
+		tree->GetBoundingRect(child, rect);
+
+		if (rect.Contains(pos)) {
+			return child;
+		}
+		auto item = FindItem(pos, child);
+		if (item.IsOk()) {
+			return item;
+		}
+		child = tree->GetNextChild(node, cookie);
+	}
+
+	return wxTreeItemId();
+}
+
+void ProjectManager::OnMouseMove(wxMouseEvent &)
+{
+	timer.Start(1000, true);
+}
+
+void ProjectManager::OnTimerDone(wxTimerEvent &)
+{
+	auto pos = tree->ScreenToClient(wxGetMousePosition());
+	auto item = FindItem(pos);
+	if (item.IsOk())
+	{
+		wxTreeEvent evt(0, tree, item);
+		OnShowToolTip(evt);
+	}
+}
+
 } // namespace phonometrica

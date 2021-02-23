@@ -22,7 +22,9 @@
 #ifndef PHONOMETRICA_PROJECT_MANAGER_HPP
 #define PHONOMETRICA_PROJECT_MANAGER_HPP
 
+#include <wx/timer.h>
 #include <wx/panel.h>
+#include <wx/richtooltip.h>
 #include <wx/stattext.h>
 #include <wx/treectrl.h>
 #include <wx/srchctrl.h>
@@ -88,6 +90,8 @@ private:
 	void OnMouseMiddleClick(wxMouseEvent &e);
 
 	wxTreeItemId FindItem(wxPoint pos);
+
+	wxTreeItemId FindItem(wxPoint pos, wxTreeItemId node);
 
 	void RemoveDirectory(Handle<Directory> &folder);
 
@@ -155,9 +159,12 @@ private:
 
 	void OnKeyDown(wxKeyEvent &e);
 
-#ifdef __WXMSW__
 	void OnShowToolTip(wxTreeEvent &e);
-#endif
+
+	void OnMouseMove(wxMouseEvent &);
+
+	void OnTimerDone(wxTimerEvent &);
+
 
 	wxTreeCtrl *tree = nullptr;
 
@@ -170,6 +177,8 @@ private:
 	wxButton *menu_btn;
 
 	wxActivityIndicator *activity_indicator = nullptr;
+
+	wxTimer timer;
 
 	int corpus_img, queries_img, datasets_img, scripts_img, bookmarks_img;
 	int annot_img, textgrid_img, folder_img, bookmark_img, sound_img, document_img, query_img, script_img, conc_img, csv_img;
