@@ -145,13 +145,10 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	search_ctrl->Bind(wxEVT_TEXT, &ProjectManager::OnQuickSearch, this);
 	menu_btn->Bind(wxEVT_LEFT_DOWN, &ProjectManager::OnProjectContextMenu, this);
 
-	// Tooltips are only supported on Windows, so we simulate them on other platforms.
-#ifdef __WXMSW__
-	Bind(wxEVT_TREE_ITEM_GETTOOLTIP, &ProjectManager::OnShowToolTip, this);
-#else
+	// Tooltips are only supported on Windows, so we roll our own cross-platform tooltips.
+//	Bind(wxEVT_TREE_ITEM_GETTOOLTIP, &ProjectManager::OnShowToolTip, this);
 	tree->Bind(wxEVT_MOTION, &ProjectManager::OnMouseMove, this);
 	tree->Bind(wxEVT_TIMER, &ProjectManager::OnTimerDone, this);
-#endif
 
 	SetScriptingFunctions();
 }
@@ -1214,6 +1211,7 @@ wxTreeItemId ProjectManager::FindItem(wxPoint pos, wxTreeItemId node)
 
 void ProjectManager::OnMouseMove(wxMouseEvent &)
 {
+    timer.Stop();
 	timer.Start(1000, true);
 }
 
