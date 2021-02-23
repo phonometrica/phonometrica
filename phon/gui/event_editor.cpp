@@ -38,7 +38,8 @@ EventEditor::EventEditor(wxWindow *parent, wxSize size) :
 	SetSizer(sizer);
 
 	m_ctrl->Bind(wxEVT_KEY_DOWN, &EventEditor::OnKeyPressed, this);
-	this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &) { done(false); });
+	// BUG: crashes on windows
+	//this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &) { done(false); });
 }
 
 

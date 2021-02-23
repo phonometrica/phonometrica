@@ -35,11 +35,12 @@ ConstraintCtrl::ConstraintCtrl(wxWindow *parent, int index, bool enable_relation
 	auto size = wxDefaultSize;
 	auto layer_size = size;
 #endif
-	layer_ctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, layer_size);
+	layer_ctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, layer_size, wxTE_LEFT);
 	layer_ctrl->SetToolTip(_("Leave this field empty to search anywhere, type in the index of a specific layer, or use a regular expression "
 						  "to match a layer's name against"));
 	SetLayerDescriptiveText(false);
-	search_ctrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString);
+	// FIXME: on Windows, the cursor behaves funnily if we don't explicitly set the alignment.
+	search_ctrl = new wxSearchCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT);
 	search_ctrl->ShowCancelButton(true);
 	search_ctrl->SetDescriptiveText(_("Search target"));
 

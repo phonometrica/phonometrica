@@ -22,6 +22,10 @@
 #include <wx/dcclient.h>
 #include <phon/gui/y_axis_info.hpp>
 
+#ifdef __WXMSW__
+#undef DrawText
+#endif
+
 namespace phonometrica {
 
 YAxisInfo::YAxisInfo(wxWindow *parent) : wxWindow(parent, wxID_ANY)

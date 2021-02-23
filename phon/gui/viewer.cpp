@@ -32,14 +32,14 @@
 namespace phonometrica {
 
 Viewer::Viewer(Runtime &rt, wxWindow *parent, MainWindow *win) :
-	wxAuiNotebook(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_NB_DEFAULT_STYLE|wxAUI_NB_CLOSE_BUTTON), runtime(rt)
+	wxAuiNotebook(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxAUI_NB_DEFAULT_STYLE), runtime(rt)
 {
 	main_window = win;
 	SetArtProvider(new TabArtProvider());
 	Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSE, &Viewer::OnCloseView, this);
 	Bind(wxEVT_AUINOTEBOOK_PAGE_CLOSED, &Viewer::OnViewClosed, this);
 	Bind(wxEVT_AUINOTEBOOK_PAGE_CHANGED, &Viewer::OnPageChanged, this);
-	Bind(wxEVT_AUINOTEBOOK_BUTTON, &Viewer::OnMainCloseButtonClicked, this);
+//	Bind(wxEVT_AUINOTEBOOK_BUTTON, &Viewer::OnMainCloseButtonClicked, this);
 	Annotation::edit_event.connect(&Viewer::OnEditEvent, this);
 }
 

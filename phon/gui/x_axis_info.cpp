@@ -21,6 +21,10 @@
 
 #include <phon/gui/x_axis_info.hpp>
 
+#ifdef __WXMSW__
+#undef DrawText
+#endif
+
 namespace phonometrica {
 
 XAxisInfo::XAxisInfo(wxWindow *parent) :

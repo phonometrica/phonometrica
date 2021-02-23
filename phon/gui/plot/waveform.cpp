@@ -71,7 +71,7 @@ void Waveform::ReadSettings()
 	}
 	else
 	{
-		wxMessageBox( _("Your waveform settings have an invalid magnitude and will be reinitialized."), _("Invalid settings"), wxICON_WARNING);
+		wxMessageBox(_("Your waveform settings have an invalid magnitude and will be reinitialized."), _("Invalid settings"), wxICON_WARNING);
 		throw std::runtime_error("");
 	}
 }

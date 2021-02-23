@@ -135,7 +135,12 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	Bind(wxEVT_TREE_SEL_CHANGED, &ProjectManager::OnItemSelected, this);
 	Bind(wxEVT_TREE_ITEM_ACTIVATED, &ProjectManager::OnItemDoubleClicked, this);
 	Bind(wxEVT_TREE_ITEM_RIGHT_CLICK, &ProjectManager::OnRightClick, this);
+	// FIXME: the middle button event doesn't seem to be handled on Windows
+#ifdef __WXMSW__
+	tree->Bind(wxEVT_MIDDLE_UP, &ProjectManager::OnMouseMiddleClick, this);
+#else
 	Bind(wxEVT_TREE_ITEM_MIDDLE_CLICK, &ProjectManager::OnMiddleClick, this);
+#endif
 	search_ctrl->Bind(wxEVT_TEXT, &ProjectManager::OnQuickSearch, this);
 	menu_btn->Bind(wxEVT_LEFT_DOWN, &ProjectManager::OnProjectContextMenu, this);
 #ifdef __WXMSW__
@@ -333,6 +338,13 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 			view_file(Handle<Document>(doc));
 		}
 	}
+}
+
+void ProjectManager::OnMouseMiddleClick(wxMouseEvent &e)
+{
+    int i = 1;
+    wxTreeEvent evt(0, tree);
+    OnMiddleClick(evt);
 }
 
 void ProjectManager::OnMiddleClick(wxTreeEvent &e)

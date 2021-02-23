@@ -22,6 +22,10 @@
 #include <phon/gui/plot/sound_plot.hpp>
 #include <phon/application/settings.hpp>
 
+#ifdef __WXMSW__
+#undef DrawText
+#endif
+
 namespace phonometrica {
 
 SoundPlot::SoundPlot(wxWindow *parent, const Handle<Sound> &snd) :

@@ -85,6 +85,10 @@ private:
 
 	void OnMiddleClick(wxTreeEvent &);
 
+	void OnMouseMiddleClick(wxMouseEvent &e);
+
+	wxTreeItemId FindItem(wxPoint pos);
+
 	void RemoveDirectory(Handle<Directory> &folder);
 
 	void RemoveFile(Handle<Document> &file);
