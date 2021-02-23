@@ -25,7 +25,7 @@
 #include <phon/gui/views/concordance_view.hpp>
 #include <phon/gui/tab_art_provider.hpp>
 #include <phon/utils/file_system.hpp>
-#include <phon/application/cmd/edit_event_command.hpp>
+#include <phon/gui/cmd/edit_event_command.hpp>
 #include <phon/application/project.hpp>
 #include <phon/application/settings.hpp>
 
@@ -101,48 +101,55 @@ View *Viewer::GetCurrentView()
 
 void Viewer::ViewFile(const Handle<Document> &file)
 {
-	file->open();
-
-	for (size_t i = 0; i < GetPageCount(); i++)
+	try
 	{
-		auto path = file->path();
-		if (!path.empty() && GetView(i)->GetPath() == path)
+		file->open();
+
+		for (size_t i = 0; i < GetPageCount(); i++)
 		{
-			SetSelection(i);
-			return;
+			auto path = file->path();
+			if (!path.empty() && GetView(i)->GetPath() == path)
+			{
+				SetSelection(i);
+				return;
+			}
 		}
-	}
 
-	if (file->is<Sound>())
-	{
-		auto snd = recast<Sound>(file);
-		auto view = new SoundView(this, snd);
-		view->Initialize();
-		AddView(view, snd->label());
-		view->SetTimeSelection(0, 10);
-	}
-	else if (file->is<Script>())
-	{
-		NewScript(recast<Script>(file));
-	}
-	else if (file->is<Concordance>())
-	{
-		auto conc = recast<Concordance>(file);
-
-		if (conc->empty() && Settings::get_boolean("concordance", "discard_empty"))
+		if (file->is<Sound>())
 		{
-			wxMessageBox(_("No match found!"), _("Empty concordance"), wxICON_INFORMATION);
+			auto snd = recast<Sound>(file);
+			auto view = new SoundView(this, snd);
+			view->Initialize();
+			AddView(view, snd->label());
+			view->SetTimeSelection(0, 10);
+		}
+		else if (file->is<Script>())
+		{
+			NewScript(recast<Script>(file));
+		}
+		else if (file->is<Concordance>())
+		{
+			auto conc = recast<Concordance>(file);
+
+			if (conc->empty() && Settings::get_boolean("concordance", "discard_empty"))
+			{
+				wxMessageBox(_("No match found!"), _("Empty concordance"), wxICON_INFORMATION);
+			}
+			else
+			{
+				wake_up();
+				auto label = conc->label();
+				AddView(new ConcordanceView(this, std::move(conc)), label);
+			}
 		}
 		else
 		{
-		    wake_up();
-			auto label = conc->label();
-			AddView(new ConcordanceView(this, std::move(conc)), label);
+			wxMessageBox(_("Not implemented yet!"), _("Information"), wxICON_INFORMATION);
 		}
 	}
-	else
+	catch (std::exception &e)
 	{
-		wxMessageBox(_("Not implemented yet!"), _("Information"), wxICON_INFORMATION);
+		wxMessageBox(e.what(), _("Cannot open view"), wxICON_ERROR);
 	}
 }
 

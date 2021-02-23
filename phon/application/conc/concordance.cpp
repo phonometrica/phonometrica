@@ -180,7 +180,23 @@ String Concordance::get_cell(intptr_t i, intptr_t j) const
 
 void Concordance::set_cell(intptr_t i, intptr_t j, const String &value)
 {
+	throw error("Cannot write cell value in concordance");
+}
 
+bool Concordance::is_left_context(intptr_t col) const
+{
+	// TODO: adjust context position for complex queries
+	return has_context() && col == 5;
+}
+
+bool Concordance::is_right_context(intptr_t col) const
+{
+	return has_context() && col == 7;
+}
+
+bool Concordance::is_time(intptr_t col) const
+{
+	return col == 3 || col == 4;
 }
 
 intptr_t Concordance::row_count() const
@@ -727,6 +743,11 @@ bool Concordance::update_match(intptr_t i)
 	if (modified) modify();
 
 	return result;
+}
+
+bool Concordance::is_layer(intptr_t col) const
+{
+	return col == 2;
 }
 
 } // namespace phonometrica

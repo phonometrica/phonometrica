@@ -65,6 +65,8 @@ public:
 
 	Signal<Directory*> new_script;
 
+	Signal<> request_save;
+
 private:
 
 	void Populate();

@@ -35,9 +35,11 @@ public:
 
 	virtual ~Command() = default;
 
-	bool execute();
+	// Returns true if the command was successfully performed, and false otherwise
+	virtual bool execute() = 0;
 
-	bool restore();
+	// Returs true if the command was successfully undone, and false otherwise
+	virtual bool restore() = 0;
 
 	const String &name() const;
 
@@ -49,15 +51,11 @@ protected:
 
 	friend class CommandProcessor;
 
-	// Returns true if the command was successfully performed, and false otherwise
-	virtual bool do_execute() = 0;
-
-	// Returs true if the command was successfully undone, and false otherwise
-	virtual bool do_restore() = 0;
-
 
 	String m_name;
 
+	// Next subcommand. Commands are responsible for handling the execution/restoration of subcommands in the
+	// order appropriate for them.
 	std::unique_ptr<Command> next;
 
 	bool m_can_undo;

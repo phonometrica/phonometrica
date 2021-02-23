@@ -13,14 +13,45 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 10/02/2021                                                                                                 *
+ * Created: 23/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: Update a match in a concordance when the corresponding event was edited.                                   *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include "data_controller.hpp"
+#ifndef PHONOMETRICA_UPDATE_MATCH_COMMAND_HPP
+#define PHONOMETRICA_UPDATE_MATCH_COMMAND_HPP
+
+#include <phon/gui/cmd/command.hpp>
+#include <phon/application/conc/match.hpp>
 
 namespace phonometrica {
 
+class ConcordanceView;
+
+
+class UpdateMatchCommand : public Command
+{
+public:
+
+	UpdateMatchCommand(ConcordanceView *view, const AutoEvent &event, Match *match);
+
+	bool execute() override;
+
+	bool restore() override;
+
+private:
+
+	ConcordanceView *m_view;
+
+	AutoEvent m_event;
+
+	// This pointer is valid during the lifetime of the command.
+	Match *m_match;
+};
+
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_UPDATE_MATCH_COMMAND_HPP

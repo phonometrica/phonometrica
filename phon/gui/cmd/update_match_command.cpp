@@ -13,31 +13,30 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 10/02/2021                                                                                                 *
+ * Created: 23/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: To present dataset to the user, we adopt the model/view/controller (MVC) approach. The controller is a     *
- * bridge between the model (the dataset itself) and the view.                                                         *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_DATA_CONTROLLER_HPP
-#define PHONOMETRICA_DATA_CONTROLLER_HPP
-
-#include <wx/grid.h>
+#include <phon/gui/cmd/update_match_command.hpp>
+#include <phon/gui/views/concordance_view.hpp>
 
 namespace phonometrica {
 
-class DataController : public wxGridTableBase
+UpdateMatchCommand::UpdateMatchCommand(ConcordanceView *view, const AutoEvent &event, Match *match) :
+	Command("Update match"), m_view(view), m_event(event), m_match(match)
 {
-public:
 
-protected:
+}
 
-};
+bool UpdateMatchCommand::execute()
+{
+	return false;
+}
 
-
+bool UpdateMatchCommand::restore()
+{
+	return false;
+}
 } // namespace phonometrica
-
-
-
-#endif // PHONOMETRICA_DATA_CONTROLLER_HPP

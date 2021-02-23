@@ -25,7 +25,7 @@
 #include <wx/panel.h>
 #include <wx/cmdproc.h>
 #include <phon/utils/signal.hpp>
-#include <phon/application/cmd/command_processor.hpp>
+#include <phon/gui/cmd/command_processor.hpp>
 #include <phon/application/vfs.hpp>
 
 namespace phonometrica {

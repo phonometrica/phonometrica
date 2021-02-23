@@ -251,13 +251,12 @@ if (WITH_GUI)
     file(GLOB APP_FILES
             phon/application/*.cpp
             phon/application/conc/*.cpp
-            phon/application/cmd/*.cpp
             phon/analysis/*.cpp
+            phon/gui/cmd/*.cpp
             phon/gui/*.cpp
             phon/gui/views/*.cpp
             phon/gui/pref/*.cpp
             phon/gui/conc/*.cpp
-            phon/gui/ctrl/*.cpp
             phon/gui/plot/*.cpp
             phon/third_party/pugixml/pugixml.cpp
             phon/third_party/rtaudio/RtAudio.cpp

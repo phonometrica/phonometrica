@@ -19,7 +19,7 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/application/cmd/command.hpp>
+#include <phon/gui/cmd/command.hpp>
 
 namespace phonometrica {
 
@@ -48,30 +48,4 @@ void Command::append(std::unique_ptr<Command> cmd)
 	current->next = std::move(cmd);
 }
 
-bool Command::execute()
-{
-	if (!do_execute()) {
-		return false;
-	}
-
-	if (this->next)
-	{
-		if (!this->next->execute()) {
-			return false;
-		}
-	}
-	return true;
-}
-
-bool Command::restore()
-{
-	if (this->next)
-	{
-		if (!this->next->restore()) {
-			return false;
-		}
-	}
-
-	return do_restore();
-}
 } // namespace phonometrica

@@ -23,7 +23,6 @@
 #include <wx/dcclient.h>
 #include <wx/bitmap.h>
 #include <wx/bmpbuttn.h>
-#include <phon/gui/sizer.hpp>
 #include <phon/gui/tool_bar.hpp>
 #include <phon/include/icons.hpp>
 

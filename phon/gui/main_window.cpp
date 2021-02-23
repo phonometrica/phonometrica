@@ -333,6 +333,7 @@ void MainWindow::SetBindings()
 	project_manager->execute_script.connect(&Console::RunScript, console);
 	project_manager->new_script.connect(&Viewer::NewScriptWithParent, viewer);
 	project_manager->edit_query.connect(&MainWindow::EditQuery, this);
+	project_manager->request_save.connect(&MainWindow::SaveProject, this);
 	View::modified.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	View::request_console.connect(&MainWindow::OnRequestConsole, this);
 	View::file_created.connect(&Viewer::ViewFile, viewer);

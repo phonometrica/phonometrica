@@ -13,70 +13,59 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 10/02/2021                                                                                                 *
+ * Created: 13/02/2021                                                                                                 *
  *                                                                                                                     *
  * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/gui/ctrl/concordance_controller.hpp>
+#include <wx/msgdlg.h>
+#include <phon/gui/cmd/command_processor.hpp>
 
 namespace phonometrica {
 
-
-ConcCellAttrProvider::ConcCellAttrProvider(const Concordance &conc, const wxFont &match_font) : m_conc(conc)
-{
-	m_match_attr = new wxGridCellAttr();
-	m_normal_attr = new wxGridCellAttr();
-//		m_match_attr->SetRenderer(new wxGridCellFloatRenderer(-1, 3));
-	m_match_attr->SetTextColour(*wxRED);
-	m_match_attr->SetFont(match_font);
-	m_match_attr->SetAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
-	m_normal_attr->SetAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
-}
-
-wxGridCellAttr *ConcCellAttrProvider::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind kind) const
-{
-	return m_conc.is_target(col + 1) ? m_match_attr->Clone() : m_normal_attr->Clone();
-}
-
-//---------------------------------------------------------------------------------------------------------------------
-
-ConcordanceController::ConcordanceController(Handle<Concordance> conc) :
-	DataController(), m_conc(std::move(conc))
+CommandProcessor::CommandProcessor(size_t limit) :
+		m_limit(limit)
 {
 
 }
 
-int ConcordanceController::GetNumberRows()
+void CommandProcessor::submit(AutoCommand cmd)
 {
-	return (int) m_conc->row_count();
+	if (cmd->execute())
+	{
+		m_commands.resize(m_pos);
+		m_commands.push_back(std::move(cmd));
+		m_pos++;
+
+		if ((ssize_t)m_commands.size() > m_limit) {
+			m_commands.pop_front();
+		}
+	}
 }
 
-int ConcordanceController::GetNumberCols()
+void CommandProcessor::undo()
 {
-	return (int) m_conc->column_count();
+	if (m_commands.empty() || m_pos <= 0)
+	{
+		wxMessageBox(_("Nothing to undo in the current view!"), _("Invalid edit operation"), wxICON_INFORMATION);
+	}
+	else
+	{
+		m_commands[--m_pos]->restore();
+	}
 }
 
-wxString ConcordanceController::GetValue(int row, int col)
+void CommandProcessor::redo()
 {
-	return m_conc->get_cell(row + 1, col + 1);
-}
-
-void ConcordanceController::SetValue(int row, int col, const wxString &value)
-{
-	m_conc->set_cell(row + 1, col + 1, value);
-}
-
-wxString ConcordanceController::GetColLabelValue(int col)
-{
-	return m_conc->get_header(col + 1);
-}
-
-bool ConcordanceController::DeleteRows(size_t pos, size_t numRows)
-{
-	m_conc->remove_match(intptr_t(pos+1));
-	return true;
+	if (m_commands.empty() || m_pos >= (ssize_t) m_commands.size())
+	{
+		wxMessageBox(_("Nothing to redo in the current view!"), _("Invalid edit operation"), wxICON_INFORMATION);
+	}
+	else
+	{
+		m_commands[m_pos++]->execute();
+	}
 }
 
 } // namespace phonometrica

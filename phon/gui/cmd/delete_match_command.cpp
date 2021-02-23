@@ -13,38 +13,84 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 15/02/2021                                                                                                 *
+ * Created: 13/02/2021                                                                                                 *
  *                                                                                                                     *
  * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/application/cmd/edit_event_command.hpp>
+#include <wx/msgdlg.h>
+#include <phon/gui/cmd/delete_match_command.hpp>
+#include <phon/gui/views/concordance_view.hpp>
 
 namespace phonometrica {
 
-EditEventCommand::EditEventCommand(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value) :
-	Command("Edit event", true), m_annot(annot), m_event(event), value(new_value)
+DeleteMatchCommand::DeleteMatchCommand(ConcordanceView *view, const Handle <Concordance> &conc, intptr_t row) :
+	Command(_("Delete match"), true), m_view(view), m_conc(conc), m_row(row)
 {
 
 }
 
-bool EditEventCommand::do_execute()
+bool DeleteMatchCommand::execute()
 {
-	return change_value();
+	if (this->next)
+	{
+		if (!this->next->execute()) {
+			return false;
+		}
+	}
+
+	return do_execute();
 }
 
-bool EditEventCommand::do_restore()
+bool DeleteMatchCommand::restore()
 {
-	return change_value();
-}
+	if (!do_restore()) {
+		return false;
+	}
 
-bool EditEventCommand::change_value()
-{
-	auto previous_value = m_event->text();
-	m_annot->set_event_text(m_event, this->value);
-	this->value = previous_value;
+	if (this->next)
+	{
+		if (!this->next->restore()) {
+			return false;
+		}
+	}
 
 	return true;
+}
+
+bool DeleteMatchCommand::do_execute()
+{
+	try
+	{
+		m_match = m_conc->remove_match(m_row);
+		m_view->DeleteRow((int)m_row - 1);
+
+		return true;
+	}
+	catch (std::exception &e)
+	{
+		auto msg = wxString::Format(_("Could not delete row %d: %s"), (int)m_row, e.what());
+		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+
+		return false;
+	}
+}
+
+bool DeleteMatchCommand::do_restore()
+{
+	try
+	{
+		m_conc->restore_match(m_row, std::move(m_match));
+		m_view->RestoreRow((int)m_row - 1);
+
+		return true;
+	}
+	catch (std::exception &e)
+	{
+		auto msg = wxString::Format(_("Could not restore row %d: %s"), (int)m_row, e.what());
+		wxMessageBox(msg, _("Error"), wxICON_ERROR);
+		return false;
+	}
 }
 } // namespace phonometrica

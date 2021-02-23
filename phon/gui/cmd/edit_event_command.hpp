@@ -13,50 +13,43 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 13/02/2021                                                                                                 *
+ * Created: 15/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: Edit the text of an event.                                                                                 *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/msgdlg.h>
-#include <phon/application/cmd/delete_match_command.hpp>
+#ifndef PHONOMETRICA_EDIT_EVENT_COMMAND_HPP
+#define PHONOMETRICA_EDIT_EVENT_COMMAND_HPP
+
+#include <phon/gui/cmd/command.hpp>
+#include <phon/application/annotation.hpp>
 
 namespace phonometrica {
 
-DeleteMatchCommand::DeleteMatchCommand(const Handle<Concordance> &conc, intptr_t row) :
-	Command(_("Delete match"), true), m_conc(conc), m_row(row)
+class EditEventCommand final : public Command
 {
+public:
 
-}
+	EditEventCommand(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value);
 
-bool DeleteMatchCommand::do_execute()
-{
-	try
-	{
-		m_match = m_conc->remove_match(m_row);
-		return true;
-	}
-	catch (std::exception &e)
-	{
-		auto msg = wxString::Format(_("Could not delete row %d: %s"), (int)m_row, e.what());
-		wxMessageBox(msg, _("Error"), wxICON_ERROR);
-		return false;
-	}
-}
+	bool execute() override;
 
-bool DeleteMatchCommand::do_restore()
-{
-	try
-	{
-		m_conc->restore_match(m_row, std::move(m_match));
-		return true;
-	}
-	catch (std::exception &e)
-	{
-		auto msg = wxString::Format(_("Could not restore row %d: %s"), (int)m_row, e.what());
-		wxMessageBox(msg, _("Error"), wxICON_ERROR);
-		return false;
-	}
-}
+	bool restore() override;
+
+private:
+
+	bool change_value();
+
+	Handle<Annotation> m_annot;
+
+	AutoEvent m_event;
+
+	String value;
+};
+
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_EDIT_EVENT_COMMAND_HPP

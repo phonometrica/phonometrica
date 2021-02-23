@@ -22,13 +22,14 @@
 #ifndef PHONOMETRICA_CONCORDANCE_VIEW_HPP
 #define PHONOMETRICA_CONCORDANCE_VIEW_HPP
 
+#include <wx/grid.h>
 #include <wx/stattext.h>
 #include <wx/spinctrl.h>
 #include <phon/gui/tool_bar.hpp>
 #include <phon/gui/views/view.hpp>
 #include <phon/gui/event_editor.hpp>
-#include <phon/gui/ctrl/concordance_controller.hpp>
 #include <phon/application/audio_player.hpp>
+#include <phon/application/conc/concordance.hpp>
 
 namespace phonometrica {
 
@@ -52,7 +53,13 @@ public:
 
 	bool Finalize(bool autosave) override;
 
+	void DeleteRow(int i);
+
+	void RestoreRow(int i);
+
 protected:
+
+	void Undo() override;
 
 	void OnSave(wxCommandEvent &);
 
@@ -84,6 +91,8 @@ protected:
 
 	void OnDeleteRows(wxCommandEvent &);
 
+	void DeleteSelectedRows();
+
 	void DeleteRow(intptr_t i, bool update);
 
 	void OnEditEvent(wxCommandEvent &);
@@ -113,6 +122,10 @@ protected:
 	void OnComplement(wxCommandEvent &);
 
 	void OnRename(wxCommandEvent &);
+
+	void FillGrid();
+
+	void FillRow(intptr_t i);
 
 	int GetActiveTarget() const;
 

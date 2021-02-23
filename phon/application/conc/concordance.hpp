@@ -65,6 +65,14 @@ public:
 
 	bool is_target(intptr_t col) const;
 
+	bool is_left_context(intptr_t col) const;
+
+	bool is_right_context(intptr_t col) const;
+
+	bool is_time(intptr_t col) const;
+
+	bool is_layer(intptr_t col) const;
+
 	Match &get_match(intptr_t i);
 
 	bool is_file_info_column(intptr_t col) const;

@@ -1093,9 +1093,11 @@ void ProjectManager::OnProjectContextMenu(wxMouseEvent &e)
 	auto expand_entry = menu->Append(wxNewId(), _("Expand project"));
 	auto collapse_entry = menu->Append(wxNewId(), _("Collapse project"));
 	menu->AppendSeparator();
+	auto save_entry = menu->Append(wxNewId(), _("Save project"));
 	auto rename_entry = menu->Append(wxNewId(), _("Rename project..."));
 	Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { tree->ExpandAll(); }, expand_entry->GetId());
 	Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { tree->CollapseAll(); }, collapse_entry->GetId());
+	Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { request_save(); }, save_entry->GetId());
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnRenameProject, this, rename_entry->GetId());
 
 	auto pos =  menu_btn->GetPosition();

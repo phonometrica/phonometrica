@@ -15,42 +15,36 @@
  *                                                                                                                     *
  * Created: 15/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Edit the text of an event.                                                                                 *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_EDIT_EVENT_COMMAND_HPP
-#define PHONOMETRICA_EDIT_EVENT_COMMAND_HPP
-
-#include <phon/application/cmd/command.hpp>
-#include <phon/application/annotation.hpp>
+#include <phon/gui/cmd/edit_event_command.hpp>
 
 namespace phonometrica {
 
-class EditEventCommand final : public Command
+EditEventCommand::EditEventCommand(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value) :
+	Command("Edit event", true), m_annot(annot), m_event(event), value(new_value)
 {
-public:
 
-	EditEventCommand(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value);
+}
 
-private:
+bool EditEventCommand::execute()
+{
+	return change_value();
+}
 
-	bool do_execute() override;
+bool EditEventCommand::restore()
+{
+	return change_value();
+}
 
-	bool do_restore() override;
+bool EditEventCommand::change_value()
+{
+	auto previous_value = m_event->text();
+	m_annot->set_event_text(m_event, this->value);
+	this->value = previous_value;
 
-	bool change_value();
-
-	Handle<Annotation> m_annot;
-
-	AutoEvent m_event;
-
-	String value;
-
-};
-
+	return true;
+}
 } // namespace phonometrica
-
-
-
-#endif // PHONOMETRICA_EDIT_EVENT_COMMAND_HPP

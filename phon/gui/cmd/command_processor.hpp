@@ -23,7 +23,7 @@
 #define PHONOMETRICA_COMMAND_PROCESSOR_HPP
 
 #include <deque>
-#include <phon/application/cmd/command.hpp>
+#include <phon/gui/cmd/command.hpp>
 
 namespace phonometrica {
 

@@ -15,57 +15,48 @@
  *                                                                                                                     *
  * Created: 13/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: Delete a match in a concordance.                                                                           *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/msgdlg.h>
-#include <phon/application/cmd/command_processor.hpp>
+#ifndef PHONOMETRICA_DELETE_MATCH_COMMAND_HPP
+#define PHONOMETRICA_DELETE_MATCH_COMMAND_HPP
+
+#include <phon/gui/cmd/command.hpp>
+#include <phon/application/conc/concordance.hpp>
 
 namespace phonometrica {
 
-CommandProcessor::CommandProcessor(size_t limit) :
-		m_limit(limit)
+class ConcordanceView;
+
+
+class DeleteMatchCommand final : public Command
 {
+public:
 
-}
+	DeleteMatchCommand(ConcordanceView *view, const Handle <Concordance> &conc, intptr_t row);
 
-void CommandProcessor::submit(AutoCommand cmd)
-{
-	if (cmd->execute())
-	{
-		m_commands.resize(m_pos);
-		m_commands.push_back(std::move(cmd));
-		m_pos++;
+	bool execute() override;
 
-		if ((ssize_t)m_commands.size() > m_limit) {
-			m_commands.pop_front();
-		}
-	}
-}
+	bool restore() override;
 
-void CommandProcessor::undo()
-{
-	if (m_commands.empty() || m_pos <= 0)
-	{
-		wxMessageBox(_("Nothing to undo in the current view!"), _("Invalid edit operation"), wxICON_INFORMATION);
-	}
-	else
-	{
-		m_commands[--m_pos]->restore();
-	}
-}
+private:
 
-void CommandProcessor::redo()
-{
-	if (m_commands.empty() || m_pos >= (ssize_t) m_commands.size())
-	{
-		wxMessageBox(_("Nothing to redo in the current view!"), _("Invalid edit operation"), wxICON_INFORMATION);
-	}
-	else
-	{
-		m_commands[m_pos++]->execute();
-	}
-}
+	bool do_execute();
+
+	bool do_restore();
+
+	ConcordanceView *m_view;
+
+	Handle<Concordance> m_conc;
+
+	AutoMatch m_match;
+
+	intptr_t m_row;
+};
 
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_DELETE_MATCH_COMMAND_HPP

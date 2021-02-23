@@ -26,7 +26,7 @@
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/views/concordance_view.hpp>
 #include <phon/gui/conc/concordance_join_dialog.hpp>
-#include <phon/application/cmd/delete_match_command.hpp>
+#include <phon/gui/cmd/delete_match_command.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/application/macros.hpp>
@@ -76,7 +76,8 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	auto help_tool = m_toolbar->AddHelpButton();
 
 	m_grid = new wxGrid(this, wxID_ANY);
-	auto ctrl = new ConcordanceController(m_conc);
+	m_grid->CreateGrid((int)m_conc->row_count(), (int)m_conc->column_count());
+
 	count_label = new wxStaticText(this, wxID_ANY, wxString());
 	// FIXME: on Linux, the label is truncated after the number if it is bold, but it is displayed correctly if the
 	//  user clicks on another file in the project manager (which must trigger a refresh).
@@ -92,17 +93,12 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	mono_font.SetPointSize(pt_size);
 	m_grid->SetDefaultCellFont(mono_font);
 	m_grid->EnableEditing(false);
-
-	mono_font.MakeBold();
-	auto prov = new ConcCellAttrProvider(*m_conc, mono_font);
-	ctrl->SetAttrProvider(prov);
-	m_grid->SetTable(ctrl, true);
-	m_grid->AutoSizeColumns();
 	m_grid->SetDefaultRowSize(30);
 	m_grid->DisableDragRowSize();
 	m_grid->SetSelectionMode(wxGrid::wxGridSelectRows);
 	m_grid->SetCellHighlightPenWidth(0);
 	m_grid->SetCellHighlightROPenWidth(0);
+	m_grid->SetDefaultCellAlignment(wxALIGN_LEFT, wxALIGN_CENTRE);
 
 	m_active_target = new wxSpinCtrl(this, wxID_ANY);
 	m_active_target->SetRange(1, m_conc->target_count());
@@ -141,6 +137,8 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	m_grid->Bind(wxEVT_GRID_CELL_LEFT_DCLICK, &ConcordanceView::OnDoubleClick, this);
 	m_grid->Bind(wxEVT_GRID_CELL_RIGHT_CLICK, &ConcordanceView::OnRightClick, this);
 #undef ICN
+
+	FillGrid();
 }
 
 bool ConcordanceView::IsModified() const
@@ -262,6 +260,11 @@ void ConcordanceView::OnKeyDown(wxKeyEvent &e)
 				PlayMatch(sel.front());
 			}
 		} break;
+		case WXK_DELETE:
+		case WXK_NUMPAD_DELETE:
+		{
+			DeleteSelectedRows();
+		} break;
 		case WXK_RETURN:
 		case WXK_NUMPAD_ENTER:
 		{
@@ -327,17 +330,18 @@ void ConcordanceView::OnColumnButtonClicked(wxMouseEvent &)
 
 void ConcordanceView::ShowFileInfo()
 {
-	for (int i = 1; i <= m_conc->column_count(); i++)
+	for (int j = 1; j <= m_conc->column_count(); j++)
 	{
-		if (m_conc->is_file_info_column(i))
+		if (m_conc->is_file_info_column(j))
 		{
 			if (m_show_file_info)
 			{
-				m_grid->ShowCol(i - 1);
+				m_grid->ShowCol(j - 1);
+				m_grid->AutoSizeColumn(j - 1);
 			}
 			else
 			{
-				m_grid->HideCol(i - 1);
+				m_grid->HideCol(j - 1);
 			}
 		}
 		else
@@ -349,17 +353,18 @@ void ConcordanceView::ShowFileInfo()
 
 void ConcordanceView::ShowMetadata()
 {
-	for (int i = 1; i <= m_conc->column_count(); i++)
+	for (int j = 1; j <= m_conc->column_count(); j++)
 	{
-		if (m_conc->is_metadata_column(i))
+		if (m_conc->is_metadata_column(j))
 		{
 			if (m_show_metadata)
 			{
-				m_grid->ShowCol(i - 1);
+				m_grid->ShowCol(j - 1);
+				m_grid->AutoSizeColumn(j - 1);
 			}
 			else
 			{
-				m_grid->HideCol(i - 1);
+				m_grid->HideCol(j - 1);
 			}
 		}
 	}
@@ -403,24 +408,25 @@ void ConcordanceView::OnHelp(wxCommandEvent &)
 
 void ConcordanceView::OnDeleteRows(wxCommandEvent &)
 {
+	DeleteSelectedRows();
+}
+
+void ConcordanceView::DeleteSelectedRows()
+{
 	auto sel = m_grid->GetSelectedRows();
 	if (sel.empty()) {
 		wxMessageBox(_("No row selected"), _("Empty selection"), wxICON_INFORMATION);
 		return;
 	}
-	int shift = 0;
+
 	int first_row = sel.front();
-	int row = first_row + 1 - shift++;
-	auto cmd = std::make_unique<DeleteMatchCommand>(m_conc, row);
+	int row = first_row + 1; // to base 1
+	auto cmd = std::make_unique<DeleteMatchCommand>(this, m_conc, row);
 
 	for (int i = 1; i < (int)sel.size(); i++)
 	{
-		row = i + 1 - shift++;
-		//FIXME: doesn't call the controller's DeleteRows.
-//		wxGridTableMessage msg(m_grid->GetTable(), wxGRIDTABLE_NOTIFY_ROWS_INSERTED, row-1, 1);
-//		m_grid->ProcessTableMessage(msg);
-		cmd->append(std::make_unique<DeleteMatchCommand>(m_conc, row));
-
+		row = sel[i] + 1; // to base 1
+		cmd->append(std::make_unique<DeleteMatchCommand>(this, m_conc, row));
 	}
 	command_processor.submit(std::move(cmd));
 	m_grid->ClearSelection();
@@ -646,7 +652,7 @@ void ConcordanceView::EndMatchEditing(bool value_changed)
 
 void ConcordanceView::DeleteRow(intptr_t i, bool update)
 {
-	auto cmd = std::make_unique<DeleteMatchCommand>(m_conc, i);
+	auto cmd = std::make_unique<DeleteMatchCommand>(this, m_conc, i);
 	command_processor.submit(std::move(cmd));
 	if (update) {
 		UpdateView();
@@ -674,5 +680,98 @@ int ConcordanceView::GetActiveTarget() const
 {
 	return m_active_target->GetValue();
 }
+
+void ConcordanceView::FillGrid()
+{
+	int nrow = (int)m_conc->row_count();
+	int ncol = (int)m_conc->column_count();
+	auto bold_font = m_grid->GetDefaultCellFont();
+	bold_font.MakeBold();
+
+	for (int j = 0; j < ncol; j++) {
+		m_grid->SetColLabelValue(j, m_conc->get_header(j+1));
+	}
+
+	for (int i = 0; i < nrow; i++)
+	{
+		for (int j = 0; j < ncol; j++)
+		{
+			wxString value = m_conc->get_cell(i+1, j+1);
+			m_grid->SetCellValue(i, j, value);
+
+			if (m_conc->is_layer(j+1)) {
+				m_grid->SetCellAlignment(i, j, wxALIGN_CENTER, wxALIGN_CENTER);
+			}
+			else if (m_conc->is_target(j+1))
+			{
+				m_grid->SetCellFont(i, j, bold_font);
+				m_grid->SetCellTextColour(i, j, *wxRED);
+				m_grid->SetCellAlignment(i, j, wxALIGN_CENTER, wxALIGN_CENTER);
+			}
+			else if (m_conc->is_time(j+1) || m_conc->is_left_context(j+1))
+			{
+				m_grid->SetCellAlignment(i, j, wxALIGN_RIGHT, wxALIGN_CENTER);
+			}
+		}
+	}
+	m_grid->AutoSizeColumns();
+}
+
+void ConcordanceView::FillRow(intptr_t i)
+{
+	// Note: i is in base 0
+	auto bold_font = m_grid->GetDefaultCellFont();
+	bold_font.MakeBold();
+	int ncol = (int) m_conc->column_count();
+
+	for (int j = 0; j < ncol; j++)
+	{
+		// This may happen if the user added metadata after displaying this concordance.
+		if (unlikely(j >= m_grid->GetNumberCols()))
+		{
+			m_grid->AppendCols(int(ncol - m_grid->GetNumberCols()));
+			m_grid->ClearGrid();
+			FillGrid();
+
+			return;
+		}
+
+		String value = m_conc->get_cell(i+1, j+1);
+		m_grid->SetCellValue(i, j, value);
+
+		if (m_conc->is_layer(j+1)) {
+			m_grid->SetCellAlignment(i, j, wxALIGN_CENTER, wxALIGN_CENTER);
+		}
+		else if (m_conc->is_target(j+1))
+		{
+			m_grid->SetCellFont(i, j, bold_font);
+			m_grid->SetCellTextColour(i, j, *wxRED);
+			m_grid->SetCellAlignment(i, j, wxALIGN_CENTER, wxALIGN_CENTER);
+		}
+		else if (m_conc->is_time(j+1) || m_conc->is_left_context(j+1))
+		{
+			m_grid->SetCellAlignment(i, j, wxALIGN_RIGHT, wxALIGN_CENTER);
+		}
+	}
+}
+
+void ConcordanceView::DeleteRow(int i)
+{
+	m_grid->DeleteRows(i, 1);
+}
+
+void ConcordanceView::RestoreRow(int i)
+{
+	m_grid->InsertRows(i);
+	FillRow(i);
+	m_grid->SelectRow(i, true);
+}
+
+void ConcordanceView::Undo()
+{
+	m_grid->ClearSelection();
+	View::Undo();
+}
+
 
 } // namespace phonometrica
