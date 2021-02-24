@@ -20,6 +20,7 @@ Done:
 - "Search annotations" is now "Find in annotations"
 - Edit menu (find/replace, undo/redo)
 - syntax completion and call tips in script views
+- improved bookmarks
 - ability to use modules in plugins
 - signal/slot mechanism for plugins (``create_signal()``, ``connect()``, ``disconnect()``, ``emit()``)
 - option to restore open views from previous session
@@ -31,7 +32,7 @@ Done:
 TODO:
 
 - coding protocols (coding protocol: champ libre texte (ex: mot précédent un codage) ????)
-- bookmarks and annotation views
+- annotation views
 - formant queries: mesures acoustiques sur une sélection et pas seulement sur un point.
 - npoint en plus de npoint average (diphtongues, pitch)
 - priorité : refactoriser les vues spreadsheet (finir CSV)

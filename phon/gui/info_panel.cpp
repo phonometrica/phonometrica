@@ -83,6 +83,7 @@ void InfoPanel::SetupBook()
 	SetEmptyPage();
 	SetSingleFilePage();
 	SetMultipleFilesPage();
+	SetBookmarkPage();
 	UpdateInformation();
 }
 
@@ -110,6 +111,14 @@ void InfoPanel::SetSingleFilePage()
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	single_page->SetSizer(sizer);
 	book->AddPage(single_page, _("File information"));
+}
+
+void InfoPanel::SetBookmarkPage()
+{
+	bookmark_page = new wxPanel(book);
+	auto sizer = new wxBoxSizer(wxVERTICAL);
+	bookmark_page->SetSizer(sizer);
+	book->AddPage(bookmark_page, _("File information"));
 }
 
 void InfoPanel::SetMultipleFilesPage()
@@ -182,6 +191,31 @@ void InfoPanel::DisplaySingleFile()
 	AddMetadataButtons(single_page);
 }
 
+void InfoPanel::DisplayBookmark()
+{
+	if (bookmark->is<TimeStamp>())
+	{
+		auto stamp = recast<TimeStamp>(bookmark);
+
+		AddSectionHeading(bookmark_page, _("Title:"), false);
+		AddLabel(bookmark_page, stamp->label());
+		AddSectionHeading(bookmark_page, _("Annotation:"), false);
+		AddLabel(bookmark_page, stamp->annotation()->label(), stamp->annotation()->path());
+		AddSectionHeading(bookmark_page, _("Layer:"), false);
+		AddLabel(bookmark_page, wxString::Format("%d", (int)stamp->layer()));
+		AddSectionHeading(bookmark_page, _("Time:"), false);
+		if (stamp->start() == stamp->end()) {
+			AddLabel(bookmark_page, wxString::Format("%.4f", stamp->start()));
+		}
+		else {
+			AddLabel(bookmark_page, wxString::Format("%.4f to %.4f", stamp->start(), stamp->end()));
+		}
+
+		AddMatch(*stamp);
+		AddNotes(stamp->notes());
+	}
+}
+
 void InfoPanel::DisplayMultipleFiles()
 {
 	AddSectionHeading(multiple_page, _("Files:"), false);
@@ -209,6 +243,23 @@ void InfoPanel::AddDescription(const wxString &desc)
 	single_page->GetSizer()->Add(hsizer, 0, wxEXPAND|wxALL, SIDE_PADDING);
 	ctrl_desc->Bind(wxEVT_TEXT, &InfoPanel::OnDescriptionEdited, this);
 	btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnSaveDescription, this);
+	save_desc_btn = btn;
+}
+
+void InfoPanel::AddNotes(const wxString &notes)
+{
+	// Re-use the description control.
+	ctrl_desc = new wxRichTextCtrl(bookmark_page, -1, notes, wxDefaultPosition, wxDefaultSize, wxRE_MULTILINE);
+	AddSectionHeading(bookmark_page, "Notes:", false);
+	bookmark_page->GetSizer()->AddSpacer(5);
+	bookmark_page->GetSizer()->Add(ctrl_desc, 2, wxEXPAND|wxRIGHT|wxLEFT, SIDE_PADDING);
+	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
+	auto btn = new wxButton(bookmark_page, wxID_ANY, _("Save notes"));
+	btn->Enable(false);
+	hsizer->Add(btn, 1, wxEXPAND, 0);
+	bookmark_page->GetSizer()->Add(hsizer, 0, wxEXPAND|wxALL, SIDE_PADDING);
+	ctrl_desc->Bind(wxEVT_TEXT, &InfoPanel::OnDescriptionEdited, this);
+	btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnSaveNotes, this);
 	save_desc_btn = btn;
 }
 
@@ -363,6 +414,13 @@ void InfoPanel::OnSaveDescription(wxCommandEvent &)
 {
 	auto file = selected_files.front().get();
 	file->set_description(ctrl_desc->GetValue());
+	save_desc_btn->Enable(false);
+	Project::updated();
+}
+
+void InfoPanel::OnSaveNotes(wxCommandEvent &)
+{
+	bookmark->set_notes(ctrl_desc->GetValue());
 	save_desc_btn->Enable(false);
 	Project::updated();
 }
@@ -726,5 +784,36 @@ void InfoPanel::OnValueComboKeyPressed(wxKeyEvent &e)
 	}
 }
 
+void InfoPanel::OnBookmarkSelected(const Handle<Bookmark> &bookmark)
+{
+	this->bookmark = bookmark;
+	ClearPanel(bookmark_page);
+	DisplayBookmark();
+	book->SetSelection(3);
+	book->GetCurrentPage()->Layout();
+}
+
+void InfoPanel::AddMatch(const TimeStamp &stamp)
+{
+	AddSectionHeading(bookmark_page, "Match:", false);
+	auto ctrl = new wxRichTextCtrl(bookmark_page, wxID_ANY, wxString(), wxDefaultPosition, wxDefaultSize, wxRE_MULTILINE|wxRE_READONLY);
+	auto ctx = stamp.context();
+	if (!ctx.first.empty() && !ctx.second.empty()) {
+		ctrl->WriteText(ctx.first);
+
+	}
+	ctrl->BeginTextColour(*wxRED);
+	ctrl->BeginBold();
+	ctrl->WriteText(stamp.target());
+	ctrl->EndBold();
+	ctrl->EndTextColour();
+
+	if (!ctx.first.empty() && !ctx.second.empty()) {
+		ctrl->WriteText(ctx.second);
+	}
+
+	auto sizer = bookmark_page->GetSizer();
+	sizer->Add(ctrl, 1, wxEXPAND|wxLEFT|wxRIGHT, SIDE_PADDING);
+}
 
 } // namespace phonometrica

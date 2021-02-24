@@ -39,6 +39,7 @@
 #include <wx/richtext/richtextctrl.h>
 #include <phon/runtime.hpp>
 #include <phon/application/vfs.hpp>
+#include <phon/application/bookmark.hpp>
 
 namespace phonometrica {
 
@@ -56,6 +57,8 @@ public:
 
 	void OnSetFileSelection(DocList files);
 
+	void OnBookmarkSelected(const Handle<Bookmark> &bookmark);
+
 	void ImportMetadata();
 
 	void ExportMetadata();
@@ -68,11 +71,15 @@ private:
 
 	void SetSingleFilePage();
 
+	void SetBookmarkPage();
+
 	void SetMultipleFilesPage();
 
 	void UpdateInformation();
 
 	void DisplaySingleFile();
+
+	void DisplayBookmark();
 
 	void DisplayMultipleFiles();
 
@@ -103,6 +110,8 @@ private:
 	void AddMetadataButtons(wxPanel *panel);
 
 	void OnSaveDescription(wxCommandEvent &);
+
+	void OnSaveNotes(wxCommandEvent &);
 
 	void OnBindSound(wxCommandEvent &);
 
@@ -138,14 +147,20 @@ private:
 
 	void OnValueComboKeyPressed(wxKeyEvent &);
 
+	void AddNotes(const wxString &notes);
+
+	void AddMatch(const TimeStamp &stamp);
+
 
 	Runtime &runtime;
 
 	DocList selected_files;
 
+	Handle<Bookmark> bookmark;
+
 	wxSimplebook *book;
 
-	wxPanel *empty_page, *single_page, *multiple_page;
+	wxPanel *empty_page, *single_page, *multiple_page, *bookmark_page;
 
 	wxButton *prop_rm_btn, *save_desc_btn, *validate_btn, *clear_btn, *help_btn;
 

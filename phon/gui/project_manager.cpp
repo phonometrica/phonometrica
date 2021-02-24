@@ -233,7 +233,6 @@ void ProjectManager::FillFolder(wxTreeItemId item, Directory &folder)
 		}
 		else if (node->is<Bookmark>())
 		{
-//			auto &bookmark = dynamic_cast<Bookmark&>(*node);
 			auto data = new ItemData(node.get());
 			child = tree->AppendItem(item, node->label(), bookmark_img, bookmark_img, data);
 		}
@@ -271,6 +270,10 @@ void ProjectManager::FillFolder(wxTreeItemId item, Directory &folder)
 			{
 				img = query_img;
 			}
+			else if (vfile.is<Bookmark>())
+			{
+				img = bookmark_img;
+			}
 			else
 			{
 				img = document_img;
@@ -298,13 +301,19 @@ void ProjectManager::OnItemSelected(wxTreeEvent &)
 	{
 		auto data = dynamic_cast<ItemData*>(tree->GetItemData(item));
 		if (!data) return; // should never happen
-		auto vnode = data->node;
-		assert(vnode);
+		auto elem = data->node;
+		assert(elem);
 
-		if (vnode->is<Document>())
+		if (elem->is<Document>())
 		{
-			auto doc = static_cast<Document*>(vnode);
+			auto doc = static_cast<Document*>(elem);
 			files.append(Handle<Document>(doc));
+		}
+		else if (elem->is<Bookmark>() && items.size() == 1)
+		{
+			auto bookmark = static_cast<Bookmark*>(elem);
+			bookmark_selected(Handle<Bookmark>(bookmark));
+			return;
 		}
 	}
 	files_selected(std::move(files));
@@ -314,11 +323,11 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 {
 	auto data = dynamic_cast<ItemData*>(tree->GetItemData(e.GetItem()));
 	if (!data) return; // should never happen
-	auto vnode = data->node;
+	auto elem = data->node;
 	auto id = data->GetId();
-	assert(vnode);
+	assert(elem);
 
-	if (vnode->is<Directory>())
+	if (elem->is<Directory>())
 	{
 		if (tree->IsExpanded(id))
 		{
@@ -329,9 +338,14 @@ void ProjectManager::OnItemDoubleClicked(wxTreeEvent &e)
 			tree->Expand(id);
 		}
 	}
+	else if (elem->is<Bookmark>())
+	{
+		wxCommandEvent dummy;
+		OnViewBookmark(dummy);
+	}
 	else
 	{
-		auto doc = static_cast<Document*>(vnode);
+		auto doc = static_cast<Document*>(elem);
 
 		if (doc->is<Query>())
 		{
@@ -526,6 +540,30 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 			menu->Append(remove_id, _("Remove file from project"));
 			Bind(wxEVT_COMMAND_MENU_SELECTED, [this,file](wxCommandEvent &) mutable { RemoveFile(file); }, remove_id);
 		}
+		else if (item->is<Bookmark>())
+		{
+			auto view_id = wxNewId();
+			menu->Append(view_id, _("View bookmark"));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnViewBookmark, this, view_id);
+
+			if (item->is<TimeStamp>())
+			{
+				auto stamp = recast<TimeStamp>(item);
+				auto annot = stamp->annotation();
+
+				if (annot->is_textgrid())
+				{
+					auto praat_id = wxNewId();
+					menu->Append(praat_id, _("Open in Praat"));
+					Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { OpenBookmarkInPraat(stamp); }, praat_id);
+				}
+			}
+			auto bookmark = recast<Bookmark>(item);
+			menu->AppendSeparator();
+			auto remove_id = wxNewId();
+			menu->Append(remove_id, _("Remove"));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) mutable { RemoveBookmark(bookmark); }, remove_id);
+		}
 	}
 	else if (items.size() == 2)
 	{
@@ -562,6 +600,7 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 		Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { RemoveItems(items); }, remove_id);
 	}
 
+	timer.Stop();
 	PopupMenu(menu);
 }
 
@@ -637,6 +676,12 @@ void ProjectManager::RemoveDirectory(Handle<Directory> &folder)
 	}
 
 	Project::get()->remove(folder);
+	Project::updated();
+}
+
+void ProjectManager::RemoveBookmark(Handle<Bookmark> &bookmark)
+{
+	Project::get()->remove(bookmark);
 	Project::updated();
 }
 
@@ -1172,13 +1217,26 @@ void ProjectManager::Expand()
 void ProjectManager::OnShowToolTip(wxTreeEvent &e)
 {
 	auto data = dynamic_cast<ItemData*>(tree->GetItemData(e.GetItem()));
-	auto node = data->node;
+	auto elem = data->node;
 	Document *doc;
+	Bookmark *bookmark;
+	wxString title, content;
 
-	if ((doc = dynamic_cast<Document*>(node)))
+	if ((doc = dynamic_cast<Document*>(elem)))
+	{
+		title = doc->class_name();
+		content = doc->path();
+	}
+	else if ((bookmark = dynamic_cast<Bookmark*>(elem)))
+	{
+		title = _("Bookmark");
+		content = bookmark->tooltip();
+	}
+
+	if (!content.empty())
 	{
 		// Note: the title is truncated on Linux.
-		wxRichToolTip tip(doc->class_name(), doc->path());
+		wxRichToolTip tip(title, content);
 		auto pos = tree->ScreenToClient(wxGetMousePosition()) - wxPoint(40, 30);
 		wxRect rect(pos.x, pos.y, 80, 50);
 		tip.ShowFor(tree, &rect);
@@ -1257,6 +1315,48 @@ void ProjectManager::OnSummaryStatistics(wxCommandEvent &)
 
 	TextViewer viewer(this, _("Summary statistics"), result);
 	viewer.ShowModal();
+}
+
+void ProjectManager::OnViewBookmark(wxCommandEvent &)
+{
+	wxMessageBox(_("Not implemented yet!"), _(""), wxICON_INFORMATION);
+}
+
+void ProjectManager::OpenBookmarkInPraat(const Handle<TimeStamp> &stamp)
+{
+	auto annot = stamp->annotation();
+	annot->open();
+	String sound_path;
+
+	if (annot->has_sound()) {
+		sound_path = annot->sound()->path();
+	}
+	try
+	{
+		// We can't reliably get the interval because Phonometrica's precision and Praat's differ.
+		auto &events = annot->get_layer_events(stamp->layer());
+		double t = stamp->start();
+		const double threshold = 0.0000000001;
+
+		for (intptr_t i = 1; i <= events.size(); i++)
+		{
+			auto &e = events[i];
+
+			if (std::abs(e->start_time() - t) < threshold)
+			{
+				praat::open_interval(stamp->layer(), i, annot->path(), sound_path);
+				return;
+			}
+		}
+
+		wxMessageBox(_("Event not found!"), _("Praat error"), wxICON_ERROR);
+	}
+	catch (std::exception &e)
+	{
+		wxString msg = _("Cannot open event in Praat");
+		msg.Append(wxString::FromUTF8(e.what()));
+		wxMessageBox(msg, _("System error"), wxICON_ERROR);
+	}
 }
 
 } // namespace phonometrica

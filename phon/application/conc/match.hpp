@@ -25,6 +25,7 @@
 #define PHONOMETRICA_MATCH_HPP
 
 #include <phon/application/annotation.hpp>
+#include <phon/application/bookmark.hpp>
 #include <phon/utils/xml.hpp>
 
 namespace phonometrica {
@@ -99,6 +100,8 @@ public:
 	bool operator<(const Match &other) const;
 
 	bool update(intptr_t target, bool &modified);
+
+	Handle<Bookmark> to_bookmark(intptr_t target, const String &title, const String &notes, std::pair<String, String> context) const;
 
 	Target *get(intptr_t i) const;
 

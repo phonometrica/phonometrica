@@ -36,7 +36,7 @@
 #include "string.hpp"
 
 
-#define MAX_FORMAT_BUFFER 256
+#define MAX_FORMAT_BUFFER 128
 
 #define USE_WINDOWS_NATIVE_UTF 1
 

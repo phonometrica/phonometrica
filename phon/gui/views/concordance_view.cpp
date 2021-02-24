@@ -28,6 +28,7 @@
 #include <phon/gui/conc/concordance_join_dialog.hpp>
 #include <phon/gui/cmd/delete_match_command.hpp>
 #include <phon/gui/cmd/update_match_command.hpp>
+#include <phon/gui/time_stamp_editor.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/application/macros.hpp>
@@ -229,7 +230,7 @@ void ConcordanceView::OpenInPraat(int row)
 	}
 	catch (std::exception &e)
 	{
-		wxString msg = _("Cannot open interval in Praat");
+		wxString msg = _("Cannot open event in Praat");
 		msg.Append(wxString::FromUTF8(e.what()));
 		wxMessageBox(msg, _("System error"), wxICON_ERROR);
 	}
@@ -315,7 +316,27 @@ void ConcordanceView::OnViewMatch(wxCommandEvent &)
 
 void ConcordanceView::OnBookmarkMatch(wxCommandEvent &)
 {
-	wxMessageBox(_("Not implemented yet!"), _(""), wxICON_INFORMATION);
+	auto match = GetSelectedMatch();
+
+	if (match)
+	{
+		TimeStampEditor editor(this);
+
+		if (editor.ShowModal() == wxID_OK)
+		{
+			String title = editor.GetBookmarkTitle();
+
+			if (title.empty())
+			{
+				wxMessageBox(_("Cannot create bookmark with empty title!"), _("Invalid bookmark"), wxICON_ERROR);
+				return;
+			}
+
+			String notes = editor.GetNotes();
+			auto ctx = m_conc->get_context(m_grid->GetSelectedRows().front());
+			Project::get()->add_bookmark(match->to_bookmark(GetActiveTarget(), title, notes, std::move(ctx)));
+		}
+	}
 }
 
 void ConcordanceView::OnColumnButtonClicked(wxMouseEvent &)

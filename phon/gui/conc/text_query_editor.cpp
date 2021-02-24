@@ -75,6 +75,8 @@ wxPanel *TextQueryEditor::MakeSearchPanel(wxWindow *parent)
 	remove_constraint_btn->SetMaxClientSize(btn_size);
 	add_constraint_btn->SetToolTip(_("Add constraint"));
 	remove_constraint_btn->SetToolTip(_("Remove constraint"));
+	add_constraint_btn->Hide(); // TODO: unhide buttons for complex queries
+	remove_constraint_btn->Hide();
 	auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 	btn_sizer->AddStretchSpacer();
 	btn_sizer->Add(add_constraint_btn);

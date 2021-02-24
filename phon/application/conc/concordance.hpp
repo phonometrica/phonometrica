@@ -99,6 +99,8 @@ public:
 
 	void update_context(intptr_t i);
 
+	std::pair<String, String> get_context(intptr_t i) const;
+
 protected:
 
 	void preload();

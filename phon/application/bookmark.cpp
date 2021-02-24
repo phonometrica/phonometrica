@@ -27,14 +27,14 @@
 namespace phonometrica {
 
 Bookmark::Bookmark(Class *klass, Directory *parent) :
-		Element(nullptr, parent)
+		Element(klass, parent)
 {
 
 }
 
 
-Bookmark::Bookmark(Directory *parent, String title) :
-		Element(nullptr, parent), m_title(std::move(title))
+Bookmark::Bookmark(Class *klass, Directory *parent, String title) :
+		Element(klass, parent), m_title(std::move(title))
 {
 
 }
@@ -56,9 +56,9 @@ bool Bookmark::quick_search(const String &text) const
 }
 
 TimeStamp::TimeStamp(Directory *parent, String title, Handle<Annotation> annot, size_t layer,
-					 double start, double end, String match, String left, String right) :
-		Bookmark(parent, std::move(title)), m_annot(std::move(annot)), m_match(std::move(match)),
-		m_left(std::move(left)), m_right(std::move(right))
+					 double start, double end, String match, std::pair<String, String> context) :
+		Bookmark(meta::get_class<TimeStamp>(), parent, std::move(title)), m_annot(std::move(annot)), m_target(std::move(match)),
+		m_context(std::move(context))
 {
 	m_layer = layer;
 	m_start = start;
@@ -76,9 +76,9 @@ void TimeStamp::to_xml(xml_node root)
 
 	add_data_node(node, "Title", m_title);
 	add_data_node(node, "Notes", m_notes);
-	add_data_node(node, "LeftContext", m_left);
-	add_data_node(node, "Match", m_match);
-	add_data_node(node, "RightContext", m_right);
+	add_data_node(node, "LeftContext", m_context.first);
+	add_data_node(node, "Match", m_target);
+	add_data_node(node, "RightContext", m_context.second);
 	add_data_node(node, "Annotation", path);
 	add_data_node(node, "Layer", String::convert(intptr_t(m_layer)));
 	add_data_node(node, "Start", String::convert(m_start));
@@ -87,18 +87,18 @@ void TimeStamp::to_xml(xml_node root)
 
 String TimeStamp::tooltip() const
 {
-	String s("<b>File:</b><br/>");
+	String s("File:\n");
 	s.append(filesystem::base_name(m_annot->path()));
-	s.append("<br/><b>Match:</b><br/>");
-	s.append(m_left);
-	s.append(" <font color = \"red\"><strong>");
-	s.append(m_match);
-	s.append("</string></font> ");
-	s.append(m_right);
+	s.append("\nMatch:\n");
+	s.append(m_context.first);
+	s.append(' ');
+	s.append(m_target);
+	s.append(' ');
+	s.append(m_context.second);
 
-	if (! m_notes.empty())
+	if (!m_notes.empty())
 	{
-		s.append("<br/><b>Notes:</b><br/>");
+		s.append("\nNotes:\n");
 		s.append(m_notes);
 	}
 

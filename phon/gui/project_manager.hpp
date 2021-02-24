@@ -59,6 +59,8 @@ public:
 
 	Signal<DocList> files_selected;
 
+	Signal<const Handle<Bookmark> &> bookmark_selected;
+
 	Signal<const Handle<Document> &> view_file;
 
 	Signal<const String &> execute_script;
@@ -94,6 +96,8 @@ private:
 	wxTreeItemId FindItem(wxPoint pos, wxTreeItemId node);
 
 	void RemoveDirectory(Handle<Directory> &folder);
+
+	void RemoveBookmark(Handle<Bookmark> &bookmark);
 
 	void RemoveFile(Handle<Document> &file);
 
@@ -166,6 +170,10 @@ private:
 	void OnTimerDone(wxTimerEvent &);
 
 	void OnSummaryStatistics(wxCommandEvent &);
+
+	void OnViewBookmark(wxCommandEvent &);
+
+	void OpenBookmarkInPraat(const Handle<TimeStamp> &stamp);
 
 
 	wxTreeCtrl *tree = nullptr;

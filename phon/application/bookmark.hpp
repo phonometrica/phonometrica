@@ -32,15 +32,15 @@ public:
 
 	Bookmark(Class *klass, Directory *parent);
 
-	Bookmark(Directory *parent, String title);
+	Bookmark(Class *klass, Directory *parent, String title);
 
 	String label() const override;
+
+	String notes() const { return m_notes; }
 
 	void set_notes(const String &value, bool mutate = true);
 
 	virtual String tooltip() const { return String(); }
-
-	virtual bool is_annotation_stamp() const { return false; }
 
 	bool quick_search(const String &text) const override;
 
@@ -59,7 +59,7 @@ class TimeStamp final : public Bookmark
 public:
 
 	TimeStamp(Directory *parent, String title, Handle<Annotation> annot, size_t layer, double start,
-			  double end, String match, String left, String right);
+			  double end, String match, std::pair<String, String> context);
 
 
 	static void initialize(Runtime &rt);
@@ -67,8 +67,6 @@ public:
 	void to_xml(xml_node root) override;
 
 	String tooltip() const override;
-
-	bool is_annotation_stamp() const override { return true; }
 
 	double start() const { return m_start; }
 
@@ -78,15 +76,19 @@ public:
 
 	Handle<Annotation> annotation() const { return m_annot; }
 
+	std::pair<String, String> context() const { return m_context; }
+
+	String target() const { return m_target; }
+
 private:
 
 	Handle<Annotation> m_annot;
 
-	// Text of the match.
-	String m_match;
+	// Target of the match.
+	String m_target;
 
 	// KWIC context (empty for complex queries).
-	String m_left, m_right;
+	std::pair<String, String> m_context;
 
 	// Layer where the bookmark belongs (starting from 0).
 	intptr_t m_layer;

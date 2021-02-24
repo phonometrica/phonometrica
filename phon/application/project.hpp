@@ -100,6 +100,8 @@ public:
 
 	void remove(ElementList &files);
 
+	void remove(const Handle<Bookmark> &bookmark);
+
 	void remove(const Handle<Document> &folder);
 
 	void remove(const Handle<Directory> &folder);

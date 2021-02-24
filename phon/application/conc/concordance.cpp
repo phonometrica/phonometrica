@@ -782,4 +782,13 @@ std::pair<String, String> Concordance::get_labels_context(const Match &match) co
 	return ctx;
 }
 
+std::pair<String, String> Concordance::get_context(intptr_t i) const
+{
+	if (has_context()) {
+		return m_context[i];
+	}
+
+	return std::pair<String, String>();
+}
+
 } // namespace phonometrica

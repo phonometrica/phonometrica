@@ -534,7 +534,9 @@ void Project::parse_bookmarks(xml_node root, Directory *folder)
 				if (file->is<Annotation>())
 				{
 					auto annot = recast<Annotation>(file);
-					auto bookmark = make_handle<TimeStamp>(folder, title, std::move(annot), layer, start, end, match, left, right);
+					auto bookmark = make_handle<TimeStamp>(folder, title, std::move(annot), layer, start, end, match,
+											std::make_pair(std::move(left), std::move(right)));
+					bookmark->set_notes(notes, false);
 					folder->append(std::move(bookmark), false);
 				}
 				else
@@ -1228,6 +1230,11 @@ void Project::remove(const Handle<Directory> &folder)
         }
     }
     folder->detach();
+}
+
+void Project::remove(const Handle<Bookmark> &bookmark)
+{
+	bookmark->detach();
 }
 
 void Project::remove(const Handle<Document> &folder)

@@ -330,6 +330,7 @@ void MainWindow::SetBindings()
 
 	project_manager->view_file.connect(&Viewer::ViewFile, viewer);
 	project_manager->files_selected.connect(&InfoPanel::OnSetFileSelection, info_panel);
+	project_manager->bookmark_selected.connect(&InfoPanel::OnBookmarkSelected, info_panel);
 	project_manager->execute_script.connect(&Console::RunScript, console);
 	project_manager->new_script.connect(&Viewer::NewScriptWithParent, viewer);
 	project_manager->edit_query.connect(&MainWindow::EditQuery, this);
