@@ -237,7 +237,9 @@ void ProjectManager::FillFolder(wxTreeItemId item, Directory &folder)
 		else if (node->is<Bookmark>())
 		{
 			auto data = new ItemData(node.get());
-			child = tree->AppendItem(item, node->label(), bookmark_img, bookmark_img, data);
+			auto label = node->label();
+			if (node->modified()) label.append('*');
+			child = tree->AppendItem(item, label, bookmark_img, bookmark_img, data);
 		}
 		else
 		{
@@ -562,6 +564,10 @@ void ProjectManager::OnRightClick(wxTreeEvent &)
 				}
 			}
 			auto bookmark = recast<Bookmark>(item);
+			menu->AppendSeparator();
+			auto rename_id = wxNewId();
+			menu->Append(rename_id, _("Rename..."));
+			Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { RenameBookmark(bookmark); }, rename_id);
 			menu->AppendSeparator();
 			auto remove_id = wxNewId();
 			menu->Append(remove_id, _("Remove"));
@@ -1087,6 +1093,17 @@ void ProjectManager::RenameConcordance(const Handle<Concordance> &conc)
 	if (!name.empty())
 	{
 		conc->set_label(name, true);
+		Project::updated();
+	}
+}
+
+void ProjectManager::RenameBookmark(const Handle<Bookmark> &bookmark)
+{
+	String name = wxGetTextFromUser(_("New bookmark title:"), _("Change bookmark title..."));
+
+	if (!name.empty())
+	{
+		bookmark->set_title(name);
 		Project::updated();
 	}
 }

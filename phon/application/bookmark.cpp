@@ -55,6 +55,12 @@ bool Bookmark::quick_search(const String &text) const
 	return m_title.to_lower().contains(text) || m_notes.to_lower().contains(text);
 }
 
+void Bookmark::set_title(const String &value)
+{
+	m_title = value;
+	m_content_modified = true;
+}
+
 TimeStamp::TimeStamp(Directory *parent, String title, Handle<Annotation> annot, size_t layer,
 					 double start, double end, String match, std::pair<String, String> context) :
 		Bookmark(meta::get_class<TimeStamp>(), parent, std::move(title)), m_annot(std::move(annot)), m_target(std::move(match)),

@@ -36,6 +36,8 @@ public:
 
 	String label() const override;
 
+	void set_title(const String &value);
+
 	String notes() const { return m_notes; }
 
 	void set_notes(const String &value, bool mutate = true);

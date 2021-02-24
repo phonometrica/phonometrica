@@ -153,6 +153,8 @@ private:
 
 	void RenameConcordance(const Handle<Concordance> &conc);
 
+	void RenameBookmark(const Handle<Bookmark> &bookmark);
+
 	void SaveFile(const Handle<Document> &file);
 
 	void OnQuickSearch(wxCommandEvent &e);

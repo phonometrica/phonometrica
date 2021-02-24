@@ -97,9 +97,9 @@ std::string get_version()
 	std::ostringstream os;
 	os << PHON_VERSION_MAJOR << "." << PHON_VERSION_MINOR << "." << PHON_VERSION_MICRO;
 
-	if (PHON_VERSION_NANO > 0)
+	if (PHON_VERSION_DEVEL > 0)
 	{
-		os << " (devel " << PHON_VERSION_NANO << ")";
+		os << " (devel " << PHON_VERSION_DEVEL << ")";
 	}
 
 	return os.str();
