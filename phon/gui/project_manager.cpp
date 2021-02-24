@@ -145,14 +145,14 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 #endif
 	search_ctrl->Bind(wxEVT_TEXT, &ProjectManager::OnQuickSearch, this);
 	menu_btn->Bind(wxEVT_LEFT_DOWN, &ProjectManager::OnProjectContextMenu, this);
-
-	// Tooltips are only supported on Windows, so we roll our own cross-platform tooltips.
-#ifdef __WXMSW__
-	Bind(wxEVT_TREE_ITEM_GETTOOLTIP, &ProjectManager::OnShowToolTip, this);
-#else
-	tree->Bind(wxEVT_MOTION, &ProjectManager::OnMouseMove, this);
-	tree->Bind(wxEVT_TIMER, &ProjectManager::OnTimerDone, this);
-#endif
+	// Disable tooltips for now.
+//	// Tooltips are only supported on Windows, so we roll our own cross-platform tooltips.
+//#ifdef __WXMSW__
+//	Bind(wxEVT_TREE_ITEM_GETTOOLTIP, &ProjectManager::OnShowToolTip, this);
+//#else
+//	tree->Bind(wxEVT_MOTION, &ProjectManager::OnMouseMove, this);
+//	tree->Bind(wxEVT_TIMER, &ProjectManager::OnTimerDone, this);
+//#endif
 
 	SetScriptingFunctions();
 }
@@ -1219,7 +1219,7 @@ void ProjectManager::Expand()
 
 void ProjectManager::OnShowToolTip(wxTreeEvent &e)
 {
-#if __WXMSW__
+#ifdef __WXMSW__
 	auto items = GetSelectedItems();
 	if (items.size() != 1) { return; }
 	auto &item = items.front();
