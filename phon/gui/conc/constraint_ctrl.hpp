@@ -15,7 +15,7 @@
  *                                                                                                                     *
  * Created: 03/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Display a search constraint in the query editor.                                                           *
+ * Purpose: Prepare a search constraint in the query editor.                                                           *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 

@@ -183,7 +183,7 @@ wxMenu *MainWindow::MakeFileMenu()
 	menu->AppendSeparator();
 
 	menu->Append(ID_FILE_CLOSE_VIEW, _("Close current view\tctrl+w"));
-	menu->Append(ID_FILE_CLOSE_ALL_VIEWS, _("Close all views"));
+	menu->Append(ID_FILE_CLOSE_ALL_VIEWS, _("Close all views\tctrl+shift+w"));
 	menu->AppendSeparator();
 
 	menu->Append(ID_FILE_EXIT, _("Quit\tCtrl+q"));

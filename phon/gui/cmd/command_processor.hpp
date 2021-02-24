@@ -33,7 +33,7 @@ public:
 
 	explicit CommandProcessor(size_t limit = 50);
 
-	void submit(AutoCommand cmd);
+	bool submit(AutoCommand cmd);
 
 	void undo();
 

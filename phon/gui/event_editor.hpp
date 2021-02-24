@@ -24,6 +24,7 @@
 
 #include <wx/dialog.h>
 #include <wx/richtext/richtextctrl.h>
+#include <phon/gui/cmd/edit_event_command.hpp>
 #include <phon/application/annotation.hpp>
 #include <phon/utils/signal.hpp>
 
@@ -33,23 +34,29 @@ class EventEditor final : public wxDialog
 {
 public:
 
-	EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, wxSize size);
+	EventEditor(wxWindow *parent, wxSize size = wxSize(500, 150));
 
-	EventEditor(wxWindow *parent, const Handle<Annotation> &annot, const AutoEvent &event, intptr_t sel_start, intptr_t len, wxSize size);
+	void Prepare(const Handle<Annotation> &annot, const AutoEvent &event);
 
-	Signal<bool> done;
+	void Prepare(const Handle<Annotation> &annot, const AutoEvent &event, intptr_t sel_start, intptr_t len);
+
+	AutoCommand GetCommand() const;
+
+	Signal<> process;
 
 private:
 
-	EventEditor(wxWindow *parent, wxSize size);
-
 	void OnKeyPressed(wxKeyEvent &e);
 
-	void EditEvent();
+	void OnClose(wxCloseEvent &);
 
 	wxRichTextCtrl *m_ctrl;
 
 	Handle<Annotation> m_annot;
+
+	wxColour m_default_colour;
+
+	wxFont m_default_font, m_bold_font;
 
 	AutoEvent m_event;
 };

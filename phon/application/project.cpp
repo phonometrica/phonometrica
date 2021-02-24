@@ -1580,4 +1580,38 @@ void Project::remove_temp_concordance(const Handle<Concordance> &conc)
 	m_temp_conc_list.remove(conc);
 }
 
+Dictionary<int> Project::get_statistics() const
+{
+	Dictionary<int> stat;
+	get_statistics(*m_corpus, stat);
+	get_statistics(*m_queries, stat);
+	get_statistics(*m_data, stat);
+	get_statistics(*m_scripts, stat);
+
+	return stat;
+}
+
+void Project::get_statistics(const Directory &dir, Dictionary<int> &stat) const
+{
+	for (auto &node : dir)
+	{
+		if (node->is<Directory>())
+		{
+			get_statistics(*dynamic_cast<const Directory*>(node.get()), stat);
+		}
+		else
+		{
+			String cls = node->class_name();
+			auto it = stat.find(cls);
+
+			if (it == stat.end()) {
+				stat[cls] = 1;
+			}
+			else {
+				it->second++;
+			}
+		}
+	}
+}
+
 } // namespace phonometrica

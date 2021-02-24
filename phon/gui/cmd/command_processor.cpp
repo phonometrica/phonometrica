@@ -30,9 +30,11 @@ CommandProcessor::CommandProcessor(size_t limit) :
 
 }
 
-void CommandProcessor::submit(AutoCommand cmd)
+bool CommandProcessor::submit(AutoCommand cmd)
 {
-	if (cmd->execute())
+	auto result = cmd->execute();
+
+	if (result)
 	{
 		m_commands.resize(m_pos);
 		m_commands.push_back(std::move(cmd));
@@ -42,6 +44,8 @@ void CommandProcessor::submit(AutoCommand cmd)
 			m_commands.pop_front();
 		}
 	}
+
+	return result;
 }
 
 void CommandProcessor::undo()

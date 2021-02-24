@@ -23,18 +23,18 @@
 #define PHONOMETRICA_UPDATE_MATCH_COMMAND_HPP
 
 #include <phon/gui/cmd/command.hpp>
-#include <phon/application/conc/match.hpp>
+#include <phon/application/conc/concordance.hpp>
 
 namespace phonometrica {
 
 class ConcordanceView;
 
 
-class UpdateMatchCommand : public Command
+class UpdateMatchCommand final : public Command
 {
 public:
 
-	UpdateMatchCommand(ConcordanceView *view, const AutoEvent &event, Match *match);
+	UpdateMatchCommand(ConcordanceView *view, const Handle <Concordance> &conc, intptr_t match, intptr_t target);
 
 	bool execute() override;
 
@@ -42,12 +42,13 @@ public:
 
 private:
 
+	void update_matches();
+
 	ConcordanceView *m_view;
 
-	AutoEvent m_event;
+	const Handle<Concordance> m_conc;
 
-	// This pointer is valid during the lifetime of the command.
-	Match *m_match;
+	intptr_t m_match, m_target;
 };
 
 } // namespace phonometrica

@@ -98,7 +98,7 @@ public:
 	bool operator!=(const Match &other) const;
 	bool operator<(const Match &other) const;
 
-	bool update(bool &modified);
+	bool update(intptr_t target, bool &modified);
 
 	Target *get(intptr_t i) const;
 

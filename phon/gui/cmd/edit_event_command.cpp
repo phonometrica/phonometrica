@@ -31,12 +31,24 @@ EditEventCommand::EditEventCommand(const Handle<Annotation> &annot, const AutoEv
 
 bool EditEventCommand::execute()
 {
-	return change_value();
+	change_value();
+
+	if (next) {
+		return next->execute();
+	}
+
+	return true;
 }
 
 bool EditEventCommand::restore()
 {
-	return change_value();
+	change_value();
+
+	if (next) {
+		return next->restore();
+	}
+
+	return true;
 }
 
 bool EditEventCommand::change_value()
@@ -47,4 +59,5 @@ bool EditEventCommand::change_value()
 
 	return true;
 }
+
 } // namespace phonometrica

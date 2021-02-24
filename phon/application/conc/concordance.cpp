@@ -25,6 +25,7 @@
 
 namespace phonometrica {
 
+static constexpr const char *EVENT_SEPARATOR = " ";
 // file, layer, start time, end time
 static const int FILE_INFO_COLUMN_COUNT = 4;
 
@@ -499,7 +500,7 @@ void Concordance::find_context()
 	switch (m_context_type)
 	{
 		case Context::Labels:
-			find_label_context();
+			find_labels_context();
 			break;
 		case Context::KWIC:
 			find_kwic_context();
@@ -511,7 +512,7 @@ void Concordance::find_context()
 
 void Concordance::find_kwic_context()
 {
-	String sep(" ");
+	String sep(EVENT_SEPARATOR);
 	// FIXME: the progress dialog slows things down absurdly on macOS.
 	//auto msg = String("Extracting KWIC context for concordance %1").arg(label());
 	//request_progress(msg, "Loading matches", (int)m_matches.size());
@@ -520,19 +521,7 @@ void Concordance::find_kwic_context()
 	for (auto &match : m_matches)
 	{
 		//update_progress(count++);
-		auto target = match->reference_target();
-		auto annot = match->annotation().get();
-		std::pair<String, String> ctx;
-		if (target)
-		{
-			auto i = annot->get_event_index(target->layer, target->start_time());
-			assert(i != 0);
-			auto offset = target->offset;
-			ctx.first = annot->left_context(target->layer, i, offset, m_context_length, sep);
-			offset += target->value.size();
-			ctx.second = annot->right_context(target->layer, i, offset, m_context_length, sep);
-		}
-		m_context.append(std::move(ctx));
+		m_context.append(get_kwic_context(*match, sep));
 	}
 }
 
@@ -547,7 +536,7 @@ bool Concordance::is_metadata_column(intptr_t col) const
 	return col > bound;
 }
 
-void Concordance::find_label_context()
+void Concordance::find_labels_context()
 {
 //	auto msg = String("Extracting surrounding labels for concordance %1").arg(label());
 	//request_progress(msg, "Loading matches", (int)m_matches.size());
@@ -556,18 +545,7 @@ void Concordance::find_label_context()
 	for (auto &match : m_matches)
 	{
 		//update_progress(count++);
-		auto target = match->reference_target();
-		std::pair<String, String> ctx;
-		if (target)
-		{
-			auto &annot = *match->annotation();
-			auto &events = annot.get_layer_events(target->layer);
-			auto i = annot.get_event_index(target->layer, target->start_time());
-			assert(i != 0);
-			ctx.first = (i == 1) ? String() : events[i-1]->text();
-			ctx.second = (i == events.size()) ? String() : events[i+1]->text();
-		}
-		m_context.append(std::move(ctx));
+		m_context.append(get_labels_context(*match));
 	}
 }
 
@@ -736,10 +714,10 @@ Handle<Concordance> Concordance::complement(const Concordance &other, const Stri
 	return conc;
 }
 
-bool Concordance::update_match(intptr_t i)
+bool Concordance::update_match(intptr_t i, intptr_t target)
 {
 	bool modified;
-	auto result = m_matches[i]->update(modified);
+	auto result = m_matches[i]->update(target, modified);
 	if (modified) modify();
 
 	return result;
@@ -748,6 +726,60 @@ bool Concordance::update_match(intptr_t i)
 bool Concordance::is_layer(intptr_t col) const
 {
 	return col == 2;
+}
+
+void Concordance::update_context(intptr_t i)
+{
+	if (this->has_context())
+	{
+		if (m_context_type == Context::KWIC)
+		{
+			m_context[i] = get_kwic_context(*m_matches[i], EVENT_SEPARATOR);
+			m_content_modified = true;
+		}
+		else if (m_context_type == Context::Labels)
+		{
+			m_context[i] = get_labels_context(*m_matches[i]);
+			m_content_modified = true;
+		}
+	}
+}
+
+std::pair<String, String> Concordance::get_kwic_context(const Match &match, const String &sep) const
+{
+	auto target = match.reference_target();
+	auto annot = match.annotation().get();
+	std::pair<String, String> ctx;
+
+	if (target)
+	{
+		auto i = annot->get_event_index(target->layer, target->start_time());
+		assert(i != 0);
+		auto offset = target->offset;
+		ctx.first = annot->left_context(target->layer, i, offset, m_context_length, sep);
+		offset += target->value.size();
+		ctx.second = annot->right_context(target->layer, i, offset, m_context_length, sep);
+	}
+
+	return ctx;
+}
+
+std::pair<String, String> Concordance::get_labels_context(const Match &match) const
+{
+	auto target = match.reference_target();
+	std::pair<String, String> ctx;
+
+	if (target)
+	{
+		auto &annot = *match.annotation();
+		auto &events = annot.get_layer_events(target->layer);
+		auto i = annot.get_event_index(target->layer, target->start_time());
+		assert(i != 0);
+		ctx.first = (i == 1) ? String() : events[i-1]->text();
+		ctx.second = (i == events.size()) ? String() : events[i+1]->text();
+	}
+
+	return ctx;
 }
 
 } // namespace phonometrica

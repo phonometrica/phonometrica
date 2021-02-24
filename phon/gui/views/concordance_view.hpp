@@ -15,7 +15,7 @@
  *                                                                                                                     *
  * Created: 10/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Display a concordance (i.e. the result of a query).                                                        *
+ * Purpose: Prepare a concordance (i.e. the result of a query).                                                        *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -57,6 +57,14 @@ public:
 
 	void RestoreRow(int i);
 
+	void UpdateRow(intptr_t i);
+
+	void DeleteRow(intptr_t i, bool update);
+
+	void SelectRow(intptr_t i);
+
+	void ClearSelection();
+
 protected:
 
 	void Undo() override;
@@ -93,8 +101,6 @@ protected:
 
 	void DeleteSelectedRows();
 
-	void DeleteRow(intptr_t i, bool update);
-
 	void OnEditEvent(wxCommandEvent &);
 
 	void EditCurrentEvent();
@@ -109,9 +115,7 @@ protected:
 
 	void OnRightClick(wxGridEvent &);
 
-	void DeleteEventEditor();
-
-	void EndMatchEditing(bool value_changed);
+	void DoEventEditing();
 
 	Match * GetSelectedMatch();
 
@@ -124,8 +128,6 @@ protected:
 	void OnRename(wxCommandEvent &);
 
 	void FillGrid();
-
-	void FillRow(intptr_t i);
 
 	int GetActiveTarget() const;
 
@@ -141,11 +143,11 @@ protected:
 
 	std::unique_ptr<AudioPlayer> player;
 
-	EventEditor *event_editor = nullptr;
+	std::unique_ptr<EventEditor> event_editor;
 
 	Handle<Concordance> m_conc;
 
-	intptr_t edited_match = 0; // index in base 1 (0 is invalid)
+	intptr_t edited_match = -1; // index in base 1
 
 	bool m_show_file_info = true, m_show_metadata = false;
 };

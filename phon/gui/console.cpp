@@ -112,8 +112,9 @@ void Console::OnKeyDown(wxKeyEvent &e)
 			return;
 		}
 	}
-	else if (key == WXK_RETURN)
+	else if (key == WXK_RETURN || key == WXK_NUMPAD_ENTER)
 	{
+		text_ctrl->MoveToLineEnd();
 		GrabLine();
 		return;
 	}

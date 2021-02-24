@@ -62,7 +62,7 @@ InfoPanel::InfoPanel(Runtime &rt, wxWindow *parent) :
     help_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(question));
     help_btn->SetMaxClientSize(wxSize(40, 100));
 #endif
-	help_btn->SetToolTip(_("Display help about metadata"));
+	help_btn->SetToolTip(_("Prepare help about metadata"));
 	help_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InfoPanel::OnOpenHelp, this);
 
 	hsizer->Add(header, 1, wxALIGN_CENTER, 0);

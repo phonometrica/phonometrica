@@ -27,6 +27,7 @@
 #include <phon/gui/views/concordance_view.hpp>
 #include <phon/gui/conc/concordance_join_dialog.hpp>
 #include <phon/gui/cmd/delete_match_command.hpp>
+#include <phon/gui/cmd/update_match_command.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/application/macros.hpp>
@@ -38,8 +39,9 @@ namespace phonometrica {
 ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	View(parent), m_conc(std::move(conc))
 {
-#define ICN(x) wxBITMAP_PNG_FROM_DATA(x)
+	event_editor = std::make_unique<EventEditor>(this);
 
+#define ICN(x) wxBITMAP_PNG_FROM_DATA(x)
 	auto sizer = new VBoxSizer;
 
 	m_toolbar = new ToolBar(this);
@@ -136,6 +138,7 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	m_grid->Bind(wxEVT_KEY_DOWN, &ConcordanceView::OnKeyDown, this);
 	m_grid->Bind(wxEVT_GRID_CELL_LEFT_DCLICK, &ConcordanceView::OnDoubleClick, this);
 	m_grid->Bind(wxEVT_GRID_CELL_RIGHT_CLICK, &ConcordanceView::OnRightClick, this);
+	event_editor->process.connect(&ConcordanceView::DoEventEditing, this);
 #undef ICN
 
 	FillGrid();
@@ -470,7 +473,7 @@ void ConcordanceView::OnEditEvent(wxCommandEvent &)
 
 void ConcordanceView::EditCurrentEvent()
 {
-	DeleteEventEditor();
+	event_editor->Hide();
 
 	auto match = GetSelectedMatch();
 	if (!match) {
@@ -478,7 +481,7 @@ void ConcordanceView::EditCurrentEvent()
 	}
 
 	// Find first cell that contains a match on the selected the row so that we can position the editor there.
-	wxSize size(500, 150);
+	auto size = event_editor->GetSize();
 	int j;
 	for (j = 1; j <= m_conc->column_count(); j++) {
 		if (m_conc->is_target(j)) break;
@@ -488,7 +491,7 @@ void ConcordanceView::EditCurrentEvent()
 	auto offset = match->get_offset(active_target);
 	auto len = match->get_value(active_target).size();
 	edited_match = m_grid->GetSelectedRows().front() + 1; // index in base 1
-	event_editor = new EventEditor(this, match->annotation(), match->get_event(active_target), offset, len, size);
+	event_editor->Prepare(match->annotation(), match->get_event(active_target), offset, len);
 
 	auto sel = m_grid->GetSelectedRows();
 	auto rect = m_grid->CellToRect(sel.front(), j-1);
@@ -497,25 +500,13 @@ void ConcordanceView::EditCurrentEvent()
 	pos.y += size.GetHeight() / 2;
 
 	event_editor->Move(pos);
-	event_editor->done.connect(&ConcordanceView::EndMatchEditing, this);
 	event_editor->Show();
 }
 
 void ConcordanceView::Escape()
 {
-	DeleteEventEditor();
+	event_editor->Hide();
 	StopPlayer();
-}
-
-void ConcordanceView::DeleteEventEditor()
-{
-	if (event_editor)
-	{
-		delete event_editor;
-		event_editor = nullptr;
-		edited_match = 0;
-		m_grid->SetFocus();
-	}
 }
 
 Match * ConcordanceView::GetSelectedMatch()
@@ -634,26 +625,25 @@ void ConcordanceView::OnRightClick(wxGridEvent &e)
 	PopupMenu(menu, pos);
 }
 
-void ConcordanceView::EndMatchEditing(bool value_changed)
+void ConcordanceView::DoEventEditing()
 {
-	// This is a slot connected to EventEditor::done.
-	if (value_changed)
-	{
-		if (!m_conc->update_match(edited_match))
-		{
-			wxMessageBox(_("The current match is no longer valid and will be deleted"),
-			             _("Invalid match"), wxICON_WARNING);
-			DeleteRow(edited_match, true);
-		}
-	}
+	auto cmd = event_editor->GetCommand();
+	auto subcmd = std::make_unique<UpdateMatchCommand>(this, m_conc, edited_match, GetActiveTarget());
+	cmd->append(std::move(subcmd));
+	command_processor.submit(std::move(cmd));
 
-	DeleteEventEditor();
+	Project::updated();
+	edited_match = -1;
+	m_grid->SetFocus();
 }
 
 void ConcordanceView::DeleteRow(intptr_t i, bool update)
 {
 	auto cmd = std::make_unique<DeleteMatchCommand>(this, m_conc, i);
-	command_processor.submit(std::move(cmd));
+	if (!command_processor.submit(std::move(cmd))) {
+		wxMessageBox(_("The current row could not be deleted"),
+			   _("Error"), wxICON_ERROR);
+	}
 	if (update) {
 		UpdateView();
 	}
@@ -717,7 +707,7 @@ void ConcordanceView::FillGrid()
 	m_grid->AutoSizeColumns();
 }
 
-void ConcordanceView::FillRow(intptr_t i)
+void ConcordanceView::UpdateRow(intptr_t i)
 {
 	// Note: i is in base 0
 	auto bold_font = m_grid->GetDefaultCellFont();
@@ -763,7 +753,7 @@ void ConcordanceView::DeleteRow(int i)
 void ConcordanceView::RestoreRow(int i)
 {
 	m_grid->InsertRows(i);
-	FillRow(i);
+	UpdateRow(i);
 	m_grid->SelectRow(i, true);
 }
 
@@ -771,6 +761,17 @@ void ConcordanceView::Undo()
 {
 	m_grid->ClearSelection();
 	View::Undo();
+}
+
+void ConcordanceView::SelectRow(intptr_t i)
+{
+	m_grid->SelectRow(i, true);
+	m_grid->MakeCellVisible(i, 4); // 4 == first cell after info
+}
+
+void ConcordanceView::ClearSelection()
+{
+	m_grid->ClearSelection();
 }
 
 

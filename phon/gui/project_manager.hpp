@@ -165,6 +165,8 @@ private:
 
 	void OnTimerDone(wxTimerEvent &);
 
+	void OnSummaryStatistics(wxCommandEvent &);
+
 
 	wxTreeCtrl *tree = nullptr;
 

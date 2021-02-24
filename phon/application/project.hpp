@@ -156,6 +156,8 @@ public:
 
 	bool import_flag() const { return m_import_flag; }
 
+	Dictionary<int> get_statistics() const;
+
 	void add_temp_concordance(const Handle<Concordance> &conc);
 	void remove_temp_concordance(const Handle<Concordance> &conc);
 
@@ -249,6 +251,8 @@ private:
 			}
 		}
 	}
+
+	void get_statistics(const Directory &dir, Dictionary<int> &stat) const;
 
     static Query::Type get_query_type(const String &path);
 

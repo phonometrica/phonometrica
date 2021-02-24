@@ -95,7 +95,9 @@ public:
 
 	Handle<Concordance> complement(const Concordance &other, const String &label) const;
 
-	bool update_match(intptr_t i);
+	bool update_match(intptr_t i, intptr_t target);
+
+	void update_context(intptr_t i);
 
 protected:
 
@@ -109,13 +111,17 @@ protected:
 
 	void parse_matches_from_xml(xml_node root);
 
-	void find_label_context();
+	void find_labels_context();
 
 	String get_left_context(intptr_t i) const;
 
 	String get_right_context(intptr_t i) const;
 
 	void find_kwic_context();
+
+	std::pair<String, String> get_kwic_context(const Match &match, const String &sep) const;
+
+	std::pair<String, String> get_labels_context(const Match &match) const;
 
 	int match_region_size() const;
 

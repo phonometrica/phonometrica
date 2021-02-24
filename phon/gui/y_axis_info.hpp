@@ -15,7 +15,7 @@
  *                                                                                                                     *
  * Created: 22/02/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Display information on the left of plots and layers in sound and annotation views.                         *
+ * Purpose: Prepare information on the left of plots and layers in sound and annotation views.                         *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 

@@ -76,7 +76,6 @@ Post 1.0
 - lexical measures (functional load, neighborhood density)
 - recording
 
-
 ============================================================================
 
     3) Dans le plugin IPFC dolmen, search grammar, voyelle ou consonne :

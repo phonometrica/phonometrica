@@ -506,6 +506,16 @@ Variant &Variant::operator=(Variant other)
 			}
 		}
 	}
+	else if (other.is_alias() && this->as.alias == other.as.alias)
+	{
+		// The following code, with a global reference, would try to assign
+		// the global reference to iself if run twice:
+		//     x = "string"
+		//     y = ref x
+		// On the following run, the variable would try to resolve itself, ending
+		// in an infinite loop.
+		return *this;
+	}
 	else
 	{
 		self.swap(other);
@@ -584,6 +594,9 @@ Variant &Variant::resolve()
 
 	while (v->is_alias())
 	{
+		if (v == &v->as.alias->variant) {
+			break;
+		}
 		v = &v->as.alias->variant;
 	}
 

@@ -28,6 +28,7 @@
 #include <wx/clipbrd.h>
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/project_manager.hpp>
+#include <phon/gui/text_viewer.hpp>
 #include <phon/include/icons.hpp>
 #include <phon/application/macros.hpp>
 #include <phon/application/settings.hpp>
@@ -1113,10 +1114,13 @@ void ProjectManager::OnProjectContextMenu(wxMouseEvent &e)
 	menu->AppendSeparator();
 	auto save_entry = menu->Append(wxNewId(), _("Save project"));
 	auto rename_entry = menu->Append(wxNewId(), _("Rename project..."));
+	menu->AppendSeparator();
+	auto stat_entry = menu->Append(wxNewId(), _("Summary statistics"));
 	Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { tree->ExpandAll(); }, expand_entry->GetId());
 	Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { tree->CollapseAll(); }, collapse_entry->GetId());
 	Bind(wxEVT_COMMAND_MENU_SELECTED, [=](wxCommandEvent &) { request_save(); }, save_entry->GetId());
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnRenameProject, this, rename_entry->GetId());
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &ProjectManager::OnSummaryStatistics, this, stat_entry->GetId());
 
 	auto pos =  menu_btn->GetPosition();
 	pos.y +=  menu_btn->GetSize().GetHeight();
@@ -1193,15 +1197,19 @@ wxTreeItemId ProjectManager::FindItem(wxPoint pos, wxTreeItemId node)
 
 	while (child.IsOk())
 	{
-		wxRect rect;
-		tree->GetBoundingRect(child, rect);
+		if (tree->IsVisible(child))
+		{
+			wxRect rect;
+			tree->GetBoundingRect(child, rect);
 
-		if (rect.Contains(pos)) {
-			return child;
-		}
-		auto item = FindItem(pos, child);
-		if (item.IsOk()) {
-			return item;
+			if (rect.Contains(pos)) {
+				return child;
+			}
+
+			auto item = FindItem(pos, child);
+			if (item.IsOk()) {
+				return item;
+			}
 		}
 		child = tree->GetNextChild(node, cookie);
 	}
@@ -1224,6 +1232,31 @@ void ProjectManager::OnTimerDone(wxTimerEvent &)
 		wxTreeEvent evt(0, tree, item);
 		OnShowToolTip(evt);
 	}
+}
+
+void ProjectManager::OnSummaryStatistics(wxCommandEvent &)
+{
+	auto stat = Project::get()->get_statistics();
+	auto keys = stat.keys();
+	std::sort(keys.begin(), keys.end());
+	intptr_t total = 0;
+	String result;
+
+	for (auto &key : keys)
+	{
+		result.append(key);
+		result.append(": ");
+		intptr_t value = stat[key];
+		total += value;
+		result.append(String::convert(value));
+		result.append(" files\n");
+	}
+	result.append("------------------------\nTotal: ");
+	result.append(String::convert(total));
+	result.append(" files\n");
+
+	TextViewer viewer(this, _("Summary statistics"), result);
+	viewer.ShowModal();
 }
 
 } // namespace phonometrica
