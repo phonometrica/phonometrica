@@ -147,9 +147,12 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	menu_btn->Bind(wxEVT_LEFT_DOWN, &ProjectManager::OnProjectContextMenu, this);
 
 	// Tooltips are only supported on Windows, so we roll our own cross-platform tooltips.
-//	Bind(wxEVT_TREE_ITEM_GETTOOLTIP, &ProjectManager::OnShowToolTip, this);
+#ifdef __WXMSW__
+	Bind(wxEVT_TREE_ITEM_GETTOOLTIP, &ProjectManager::OnShowToolTip, this);
+#else
 	tree->Bind(wxEVT_MOTION, &ProjectManager::OnMouseMove, this);
 	tree->Bind(wxEVT_TIMER, &ProjectManager::OnTimerDone, this);
+#endif
 
 	SetScriptingFunctions();
 }
@@ -1216,6 +1219,19 @@ void ProjectManager::Expand()
 
 void ProjectManager::OnShowToolTip(wxTreeEvent &e)
 {
+#if __WXMSW__
+	auto items = GetSelectedItems();
+	if (items.size() != 1) { return; }
+	auto &item = items.front();
+	if (item->is<Document>())
+	{
+		e.SetToolTip(recast<Document>(item)->path());
+	}
+	else if (item->is<Bookmark>())
+	{
+		e.SetToolTip(recast<Bookmark>(item)->tooltip());
+	}
+#else
 	auto data = dynamic_cast<ItemData*>(tree->GetItemData(e.GetItem()));
 	auto elem = data->node;
 	Document *doc;
@@ -1241,6 +1257,7 @@ void ProjectManager::OnShowToolTip(wxTreeEvent &e)
 		wxRect rect(pos.x, pos.y, 80, 50);
 		tip.ShowFor(tree, &rect);
 	}
+#endif
 }
 
 wxTreeItemId ProjectManager::FindItem(wxPoint pos)
