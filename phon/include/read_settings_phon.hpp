@@ -34,7 +34,7 @@ phon.settings = {
 "concordance": {
 "discard_empty": true,
 "context_length": 40
-}
+},
 
 "sound_plots": {
 "spectrogram": true,
