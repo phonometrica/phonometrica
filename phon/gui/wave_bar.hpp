@@ -67,6 +67,12 @@ private:
 
 	void OnMotion(wxMouseEvent &e);
 
+	void OnMouseWheel(wxMouseEvent &e);
+
+	void MoveForward();
+
+	void MoveBackward();
+
 	Handle<Sound> m_sound;
 
 	// To avoid recomputing the data on every paint event, we cache it here. We only

@@ -189,11 +189,17 @@ void SoundPlot::EnableMouseTracking(bool value)
 
 void SoundPlot::OnMouseWheel(wxMouseEvent &e)
 {
-	if (e.GetWheelRotation() > 0) {
-		update_window(ComputeZoomIn());
-    }
-	else {
-		update_window(ComputeZoomOut());
+	auto steps = e.GetWheelRotation() / e.GetWheelDelta();
+	auto count = std::abs(steps);
+
+	for (int i = 1; i <= count; i++)
+	{
+		if (steps > 0) {
+			update_window(ComputeZoomIn());
+		}
+		else {
+			update_window(ComputeZoomOut());
+		}
 	}
 }
 

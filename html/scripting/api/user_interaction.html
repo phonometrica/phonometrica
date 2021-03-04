@@ -7,14 +7,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User interaction &#8212; Phonometrica 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     
     <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
     <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -55,6 +54,23 @@
 <div class="section" id="global-functions">
 <h2>Global functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
 <dl class="lua function">
+<dt id="create_progress_dialog">
+<code class="sig-name descname">create_progress_dialog</code><span class="sig-paren">(</span><em class="sig-param">message as String</em>, <em class="sig-param">title as String</em>, <em class="sig-param">count as Integer</em><span class="sig-paren">)</span><a class="headerlink" href="#create_progress_dialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Create a progress dialog with the provided message and title, set up for <cite>count</cite> elements. You must update the value of the dialog using <cite>update_progress_dialog()</cite>.</p>
+<p>See also: <a class="reference internal" href="#update_progress_dialog" title="update_progress_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">update_progress_dialog()</span></code></a></p>
+<hr class="docutils" />
+<dl class="lua function">
+<dt id="update_progress_dialog">
+<code class="sig-name descname">update_progress_dialog</code><span class="sig-paren">(</span><em class="sig-param">value as Integer</em><span class="sig-paren">)</span><a class="headerlink" href="#update_progress_dialog" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Update the progress dialog to the provided <cite>value</cite>. If <cite>value</cite> equals the progress dialog’s count, the dialog is closed. The first value that should be provided to this
+function is 1, and the last one is the number of elements passed to the dialog when it was created.</p>
+<p>See also: <a class="reference internal" href="#create_progress_dialog" title="create_progress_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">create_progress_dialog()</span></code></a></p>
+<hr class="docutils" />
+<dl class="lua function">
 <dt id="warning">
 <code class="sig-name descname">warning</code><span class="sig-paren">(</span><em class="sig-param">message</em><span class="optional">[</span>, <em class="sig-param">title</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#warning" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -85,43 +101,43 @@
 <p>Asks a Yes/No question to the user. Returns <code class="docutils literal notranslate"><span class="pre">true</span></code> of the user clicked <code class="docutils literal notranslate"><span class="pre">Yes</span></code>, and <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
 <hr class="docutils" />
 <dl class="lua function">
-<dt>
-<code class="sig-name descname">get\_input(label, title, text)</code></dt>
+<dt id="get_input">
+<code class="sig-name descname">get_input</code><span class="sig-paren">(</span><em class="sig-param">label</em>, <em class="sig-param">title</em>, <em class="sig-param">text</em><span class="sig-paren">)</span><a class="headerlink" href="#get_input" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Displays an input dialog whose title is <cite>title</cite> and whose informative text is <cite>label</cite>. The dialog contains a
 field whose value is <cite>text</cite>. This function returns the content of the field.</p>
 <hr class="docutils" />
 <dl class="lua function">
-<dt>
-<code class="sig-name descname">open\_file\_dialog(message)</code></dt>
+<dt id="open_file_dialog">
+<code class="sig-name descname">open_file_dialog</code><span class="sig-paren">(</span><em class="sig-param">message</em><span class="sig-paren">)</span><a class="headerlink" href="#open_file_dialog" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Displays a dialog that lets the user select a file.</p>
-<p>See also: <code class="xref lua lua-func docutils literal notranslate"><span class="pre">save_file_dialog()</span></code>,
-<code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_directory_dialog()</span></code></p>
+<p>See also: <a class="reference internal" href="#save_file_dialog" title="save_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">save_file_dialog()</span></code></a>,
+<a class="reference internal" href="#open_directory_dialog" title="open_directory_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_directory_dialog()</span></code></a></p>
 <hr class="docutils" />
 <dl class="lua function">
-<dt>
-<code class="sig-name descname">save\_file\_dialog(message)</code></dt>
+<dt id="save_file_dialog">
+<code class="sig-name descname">save_file_dialog</code><span class="sig-paren">(</span><em class="sig-param">message</em><span class="sig-paren">)</span><a class="headerlink" href="#save_file_dialog" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Displays a dialog that lets the user choose a path to save a file.</p>
-<p>See also: <code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_file_dialog()</span></code>,
-<code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_directory_dialog()</span></code></p>
+<p>See also: <a class="reference internal" href="#open_file_dialog" title="open_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_file_dialog()</span></code></a>,
+<a class="reference internal" href="#open_directory_dialog" title="open_directory_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_directory_dialog()</span></code></a></p>
 <hr class="docutils" />
 <dl class="lua function">
-<dt>
-<code class="sig-name descname">open\_directory\_dialog(message)</code></dt>
+<dt id="open_directory_dialog">
+<code class="sig-name descname">open_directory_dialog</code><span class="sig-paren">(</span><em class="sig-param">message</em><span class="sig-paren">)</span><a class="headerlink" href="#open_directory_dialog" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Displays a dialog that lets the user select a directory.</p>
-<p>See also: <code class="xref lua lua-func docutils literal notranslate"><span class="pre">save_file_dialog()</span></code>,
-<code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_file_dialog()</span></code></p>
+<p>See also: <a class="reference internal" href="#save_file_dialog" title="save_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">save_file_dialog()</span></code></a>,
+<a class="reference internal" href="#open_file_dialog" title="open_file_dialog"><code class="xref lua lua-func docutils literal notranslate"><span class="pre">open_file_dialog()</span></code></a></p>
 <hr class="docutils" />
 <dl class="lua function">
-<dt>
-<code class="sig-name descname">set\_status(message, timeout)</code></dt>
+<dt id="set_status">
+<code class="sig-name descname">set_status</code><span class="sig-paren">(</span><em class="sig-param">message</em>, <em class="sig-param">timeout</em><span class="sig-paren">)</span><a class="headerlink" href="#set_status" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Displays <code class="docutils literal notranslate"><span class="pre">message</span></code> in the status bar for <code class="docutils literal notranslate"><span class="pre">timeout</span></code> seconds. If
@@ -129,8 +145,8 @@ field whose value is <cite>text</cite>. This function returns the content of the
 appears.</p>
 <hr class="docutils" />
 <dl class="lua function">
-<dt>
-<code class="sig-name descname">view\_text(path [, title [, width]])</code></dt>
+<dt id="view_text">
+<code class="sig-name descname">view_text</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="optional">[</span>, <em class="sig-param">title</em><span class="optional">[</span>, <em class="sig-param">width</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#view_text" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>Opens the plain text file <code class="docutils literal notranslate"><span class="pre">path</span></code> in a new dialog. Optionally, you can specify the dialog’s <code class="docutils literal notranslate"><span class="pre">title</span></code> and set its
@@ -192,7 +208,7 @@ appears.</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.4.3.
     </div>
   </body>
 </html>

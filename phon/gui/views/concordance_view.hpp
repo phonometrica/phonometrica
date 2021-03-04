@@ -139,7 +139,7 @@ protected:
 
 	wxButton *m_save_tool, *m_play_tool, *m_col_tool;
 
-	wxSpinCtrl *m_active_target;
+	wxSpinCtrl *m_active_target = nullptr;
 
 	std::unique_ptr<AudioPlayer> player;
 

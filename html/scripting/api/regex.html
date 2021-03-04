@@ -7,19 +7,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Regular expressions &#8212; Phonometrica 0.8.0 documentation</title>
-    <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
     
     <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
     <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="../../_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Sounds" href="sound.html" />
+    <link rel="next" title="Signals and slots" href="signal.html" />
     <link rel="prev" title="Mathematical functions and constants" href="math.html" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <!--[if lt IE 9]>
@@ -33,7 +32,7 @@
           <a href="../../genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="sound.html" title="Sounds"
+          <a href="signal.html" title="Signals and slots"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="math.html" title="Mathematical functions and constants"
@@ -111,16 +110,16 @@ expression. To enable non-greedy behavior, we must use the quantifier
 <code class="docutils literal notranslate"><span class="pre">?</span></code> after the star (in this case, <code class="docutils literal notranslate"><span class="pre">&quot;j.*?e&quot;</span></code>).</p>
 </div>
 </div>
-<div class="section" id="methods">
-<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="constructors">
+<h2>Constructors<a class="headerlink" href="#constructors" title="Permalink to this headline">¶</a></h2>
 <dl class="lua class">
 <dt id="Regex">
 <em class="property">class </em><code class="sig-name descname">Regex</code><a class="headerlink" href="#Regex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="lua method">
-<dt id="init">
-<code class="sig-name descname">init</code><span class="sig-paren">(</span><em class="sig-param">pattern as String</em><span class="sig-paren">)</span><a class="headerlink" href="#init" title="Permalink to this definition">¶</a></dt>
+<dt>
+<code class="sig-name descname">Regex</code><span class="sig-paren">(</span><em class="sig-param">pattern as String</em><span class="sig-paren">)</span></dt>
 <dd></dd></dl>
 
 <p>Create a new regular expression from a string pattern. The regex can be matched against any string.</p>
@@ -277,7 +276,7 @@ expression was constructed.</p>
 <li><a class="reference internal" href="#syntax">Syntax</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#methods">Methods</a></li>
+<li><a class="reference internal" href="#constructors">Constructors</a></li>
 <li><a class="reference internal" href="#functions">Functions</a></li>
 <li><a class="reference internal" href="#fields">Fields</a></li>
 </ul>
@@ -288,8 +287,8 @@ expression was constructed.</p>
   <p class="topless"><a href="math.html"
                         title="previous chapter">Mathematical functions and constants</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="sound.html"
-                        title="next chapter">Sounds</a></p>
+  <p class="topless"><a href="signal.html"
+                        title="next chapter">Signals and slots</a></p>
 <div id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
@@ -311,7 +310,7 @@ expression was constructed.</p>
           <a href="../../genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="sound.html" title="Sounds"
+          <a href="signal.html" title="Signals and slots"
              >next</a> |</li>
         <li class="right" >
           <a href="math.html" title="Mathematical functions and constants"
@@ -323,7 +322,7 @@ expression was constructed.</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2019, Julien Eychenne &amp; Léa Courdès-Murphy.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.4.3.
     </div>
   </body>
 </html>

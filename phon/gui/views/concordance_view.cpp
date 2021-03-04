@@ -103,15 +103,16 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	m_grid->SetCellHighlightROPenWidth(0);
 	m_grid->SetDefaultCellAlignment(wxALIGN_LEFT, wxALIGN_CENTRE);
 
-	m_active_target = new wxSpinCtrl(this, wxID_ANY);
-	m_active_target->SetRange(1, m_conc->target_count());
+	// Disable active target for now, it will be added in 0.9
+//	m_active_target = new wxSpinCtrl(this, wxID_ANY);
+//	m_active_target->SetRange(1, m_conc->target_count());
 
 
 	auto label_sizer = new HBoxSizer;
 	label_sizer->Add(count_label, 0, wxALIGN_CENTER);
 	label_sizer->AddStretchSpacer();
-	label_sizer->Add(new wxStaticText(this, wxID_ANY, _("Active target:")), 0, wxALIGN_CENTER);
-	label_sizer->Add(m_active_target, 0, wxLEFT|wxRIGHT, 5);
+//	label_sizer->Add(new wxStaticText(this, wxID_ANY, _("Active target:")), 0, wxALIGN_CENTER);
+//	label_sizer->Add(m_active_target, 0, wxLEFT|wxRIGHT, 5);
 
 	sizer->Add(m_toolbar, 0, wxEXPAND|wxALL, 10);
 	sizer->Add(label_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);

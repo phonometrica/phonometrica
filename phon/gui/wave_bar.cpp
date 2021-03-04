@@ -46,6 +46,7 @@ WaveBar::WaveBar(wxWindow *parent, const Handle <Sound> &snd) : wxWindow(parent,
     Bind(wxEVT_LEFT_DOWN, &WaveBar::OnStartSelection, this);
     Bind(wxEVT_LEFT_UP, &WaveBar::OnEndSelection, this);
     Bind(wxEVT_MOTION, &WaveBar::OnMotion, this);
+   	Bind(wxEVT_MOUSEWHEEL, &WaveBar::OnMouseWheel, this);
 }
 
 void WaveBar::OnPaint(wxPaintEvent &)
@@ -207,6 +208,53 @@ void WaveBar::SetTimeSelection(TimeSpan win)
 	auto to = TimeToXPos(win.second);
 	SetSelection(PixelSelection{from, to});
 	Refresh();
+}
+
+void WaveBar::OnMouseWheel(wxMouseEvent &e)
+{
+	auto steps = e.GetWheelRotation() / e.GetWheelDelta();
+	auto count = std::abs(steps);
+
+	for (int i = 1; i <= count; i++)
+	{
+		if (steps > 0) {
+			MoveBackward();
+		}
+		else {
+			MoveForward();
+		}
+	}
+}
+
+void WaveBar::MoveForward()
+{
+	auto width = GetSize().GetWidth();
+	if (m_sel.second == width) {
+		return;
+	}
+	auto delta = (m_sel.second - m_sel.first) * 0.25; // shift by 25%
+	auto x1 = m_sel.first + delta;
+	auto x2 = (std::min<double>)(m_sel.second + delta, width);
+	auto t1 = XPosToTime(x1);
+	auto t2 = XPosToTime(x2);
+	SetSelection({x1, x2});
+	Refresh();
+	change_window(TimeSpan{t1, t2});
+}
+
+void WaveBar::MoveBackward()
+{
+	if (m_sel.first == 0) {
+		return;
+	}
+	auto delta = (m_sel.second - m_sel.first) * 0.25; // shift by 25%
+	auto x1 = (std::max)(0.0, m_sel.first - delta);
+	auto x2 = m_sel.second - delta;
+	auto t1 = XPosToTime(x1);
+	auto t2 = XPosToTime(x2);
+	SetSelection({x1, x2});
+	Refresh();
+	change_window(TimeSpan{t1, t2});
 }
 
 } // namespace phonometrica
