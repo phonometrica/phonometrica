@@ -72,6 +72,10 @@ public:
 
 	void SetSelectionStart(double value);
 
+	TimeWindow GetPlayWindow() const;
+
+	void SetTick(double time);
+
 	Signal<const TimeSelection&> update_selection;
 
 	Signal<> invalidate_selection;
@@ -106,6 +110,8 @@ protected:
 
 	void OnEndSelection(wxMouseEvent &e);
 
+	void DrawTimeTick(wxPaintDC &dc);
+
 	void OnMotion(wxMouseEvent &e);
 
 	void OnLeaveWindow(wxMouseEvent &e);
@@ -124,9 +130,12 @@ protected:
 	TimeSelection m_sel = {-1.0, -1.0 };
 
 	// Start of the selection when the user clicks on the wavebar.
-	double m_sel_start = -1;
+	double m_sel_start = -1.0;
 
-	double m_cursor_pos = -1;
+	double m_cursor_pos = -1.0;
+
+	// Time tick when a sound is being played.
+	double m_tick_time = -1.0;
 
 	bool m_track_mouse = false;
 

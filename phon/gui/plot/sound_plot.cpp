@@ -320,4 +320,29 @@ void SoundPlot::SetSelectionStart(double value)
 	m_sel_start = value;
 }
 
+TimeWindow SoundPlot::GetPlayWindow() const
+{
+	if (HasSelection() && !HasPointSelection()) {
+		return {m_sel.t1, m_sel.t2};
+	}
+
+	return m_window;
+}
+
+void SoundPlot::SetTick(double time)
+{
+	m_tick_time = time;
+	Refresh();
+}
+
+void SoundPlot::DrawTimeTick(wxPaintDC &dc)
+{
+	if (m_tick_time >= 0)
+	{
+		dc.SetPen(wxPen(wxColor(65, 65, 65)));
+		auto x = TimeToXPos(m_tick_time);
+		dc.DrawLine(x, 0, x, GetHeight());
+	}
+}
+
 } // namespace phonometrica

@@ -30,9 +30,11 @@
 namespace phonometrica {
 
 SoundView::SoundView(wxWindow *parent, const Handle<Sound> &snd) :
-	View(parent), m_sound(snd)
+	View(parent), m_sound(snd), player(snd)
 {
 	snd->open();
+	player.done.connect(&SoundView::OnPlayingDone, this);
+	player.current_time.connect(&SoundView::SetTick, this);
 }
 
 void SoundView::Initialize()
@@ -113,7 +115,9 @@ void SoundView::SetToolBar()
 	auto save_tool = m_toolbar->AddButton(ICN(save), _("Save concordance... (" CTRL_KEY "S)"));
 	save_tool->Disable();
 	m_toolbar->AddSeparator();
-	auto play_tool = m_toolbar->AddButton(ICN(play), _("Play window or selection"));
+	m_play_icon = ICN(play);
+	m_pause_icon = ICN(pause);
+	m_play_tool = m_toolbar->AddButton(m_play_icon, _("Play window or selection"));
 	auto stop_tool = m_toolbar->AddButton(ICN(stop), _("Stop playing"));
 	m_toolbar->AddSeparator();
 
@@ -140,7 +144,7 @@ void SoundView::SetToolBar()
 	auto help_tool = m_toolbar->AddHelpButton();
 #undef ICN
 
-	play_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnPlay, this);
+	m_play_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnPlay, this);
 	stop_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnStop, this);
 	help_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnHelp, this);
 	forward_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnMoveForward, this);
@@ -176,12 +180,43 @@ void SoundView::SetTimeSelection(double from, double to)
 
 void SoundView::OnPlay(wxCommandEvent &)
 {
-
+    if (player.running())
+    {
+        if (player.paused())
+        {
+            SetPauseIcon();
+            player.resume();
+        }
+        else
+        {
+            SetPlayIcon();
+            player.pause();
+        }
+    }
+    else
+    {
+        auto times = GetFirstPlot()->GetPlayWindow();
+        SetPauseIcon();
+		try {
+			player.play(times.first, times.second);
+			if (player.has_error())
+			{
+				player.raise_error();
+			}
+		}
+		catch (std::exception &e)
+		{
+			auto msg = wxString::Format(_("Cannot play sound: %s"), e.what());
+			wxMessageBox(msg, _("Sound error"), wxICON_ERROR);
+		}
+    }
 }
 
 void SoundView::OnStop(wxCommandEvent &)
 {
-
+    player.interrupt();
+    SetPlayIcon();
+    HideTick();
 }
 
 void SoundView::OnHelp(wxCommandEvent &)
@@ -395,6 +430,35 @@ void SoundView::SetTopPlot()
 			plot->MakeTop(true);
 			break;
 		}
+	}
+}
+
+void SoundView::SetPauseIcon()
+{
+	m_play_tool->SetBitmap(m_pause_icon);
+}
+
+void SoundView::SetPlayIcon()
+{
+	m_play_tool->SetBitmap(m_play_icon);
+}
+
+void SoundView::HideTick()
+{
+	SetTick(-1.0);
+}
+
+void SoundView::OnPlayingDone()
+{
+	SetPlayIcon();
+	HideTick();
+}
+
+void SoundView::SetTick(double t)
+{
+	for (auto plot : m_plots)
+	{
+		plot->SetTick(t);
 	}
 }
 

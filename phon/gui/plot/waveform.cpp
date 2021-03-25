@@ -94,6 +94,7 @@ void Waveform::Render(wxPaintDC &dc)
 	dc.DrawBitmap(m_cached_bmp, 0.0, 0.0, true);
 	DrawSelection(dc);
 	DrawCursor(dc);
+	DrawTimeTick(dc);
 }
 
 void Waveform::UpdateCache()

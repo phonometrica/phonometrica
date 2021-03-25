@@ -30,6 +30,7 @@
 #include <phon/gui/x_axis_info.hpp>
 #include <phon/gui/y_axis_info.hpp>
 #include <phon/gui/sizer.hpp>
+#include <phon/application/audio_player.hpp>
 #include <phon/application/sound.hpp>
 
 namespace phonometrica {
@@ -110,7 +111,21 @@ protected:
 
 	void SetTopPlot();
 
+	void SetPauseIcon();
+
+	void SetPlayIcon();
+
+	void HideTick();
+
+	void OnPlayingDone();
+
+	void SetTick(double t);
+
 	wxButton *m_wave_tool, *m_spectrum_tool, *m_formant_tool, *m_pitch_tool, *m_intensity_tool;
+
+	wxButton *m_play_tool;
+
+	wxBitmap m_play_icon, m_pause_icon;
 
 	ToggleButton *m_mouse_tool;
 
@@ -131,6 +146,7 @@ protected:
 
 	WaveBar *m_wavebar;
 
+	AudioPlayer player;
 };
 
 } // namespace phonometrica

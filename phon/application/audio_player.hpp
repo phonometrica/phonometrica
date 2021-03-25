@@ -49,6 +49,8 @@ public:
 
     bool paused() const;
 
+    bool running() const;
+
 	bool has_error() const { return m_error != nullptr;  }
 
 	void raise_error();
@@ -59,9 +61,11 @@ public:
 
     Resampler *resampler() { return m_resampler.get(); }
 
-//    void current_time(double);
-//
-//    void error(const std::string &);
+    Signal<double> current_time;
+
+	Signal<> done;
+
+	//    void error(const std::string &);
 
     void interrupt();
 
@@ -99,6 +103,8 @@ private:
     unsigned int output_rate = 0;
 
     std::atomic<bool> m_paused = false;
+
+    std::atomic<bool> m_running = false;
 
     intptr_t first_frame = -1, last_frame = -1;
 

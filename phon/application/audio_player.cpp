@@ -153,14 +153,20 @@ int AudioPlayer::playback(void *out, void *, unsigned int nframe, double, RtAudi
     player->position += handle.readf(output, len);
 #endif
 
-//    auto t = double(player->position) / handle.samplerate();
-//    emit player->current_time(t);
+    auto t = double(player->position) / handle.samplerate();
+    player->current_time(t);
 
-    if (left_over > 0) {
+    if (left_over > 0)
+    {
 		return KEEP_PLAYING;
     }
+    else
+    {
+		player->m_running.store(false, std::memory_order_relaxed);
+		player->done();
 
-    return STOP_PLAYING;
+		return STOP_PLAYING;
+	}
 }
 
 void AudioPlayer::prepare()
@@ -274,6 +280,7 @@ void AudioPlayer::stop()
 	if (m_stream.isStreamOpen()) {
 		m_stream.closeStream();
 	}
+	m_running.store(false, std::memory_order_relaxed);
 }
 
 void AudioPlayer::run()
@@ -282,6 +289,7 @@ void AudioPlayer::run()
 
 	try
 	{
+		m_running.store(true, std::memory_order_relaxed);
 		m_stream.openStream(&m_params,
 		                    nullptr,
 		                    RTAUDIO_FLOAT64,
@@ -296,8 +304,14 @@ void AudioPlayer::run()
 	}
 	catch (...)
 	{
+		m_running.store(false, std::memory_order_relaxed);
 		m_error = std::current_exception();
 	}
+}
+
+bool AudioPlayer::running() const
+{
+	return m_running.load(std::memory_order_relaxed);
 }
 
 
