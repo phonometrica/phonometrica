@@ -38,9 +38,13 @@ public:
 
 	void RemoveWindow(TimeAlignedWindow *win);
 
+	Signal<> invalidate_selection;
+
 private:
 
 	void OnPaint(wxPaintEvent &);
+
+	void OnClick(wxMouseEvent &);
 
 	Array<TimeAlignedWindow*> m_windows;
 

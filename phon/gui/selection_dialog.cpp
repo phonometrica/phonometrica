@@ -50,12 +50,12 @@ SelectionDialog::SelectionDialog(wxWindow *parent) :
 	SetSizer(sizer);
 }
 
-TimeSpan SelectionDialog::GetSelection() const
+TimeWindow SelectionDialog::GetSelection() const
 {
 	auto t1 = ParseNumber(from_ctrl);
 	auto t2 = ParseNumber(to_ctrl);
 
-	return TimeSpan{t1, t2};
+	return TimeWindow{t1, t2};
 }
 
 double SelectionDialog::ParseNumber(wxTextCtrl *ctrl) const

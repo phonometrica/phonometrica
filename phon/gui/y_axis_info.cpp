@@ -34,6 +34,7 @@ YAxisInfo::YAxisInfo(wxWindow *parent) : wxWindow(parent, wxID_ANY)
 	SetMinSize(wxSize(width, -1));
 	SetMaxSize(wxSize(width, -1));
 	Bind(wxEVT_PAINT, &YAxisInfo::OnPaint, this);
+	Bind(wxEVT_LEFT_DOWN, &YAxisInfo::OnClick, this);
 }
 
 void YAxisInfo::AddWindow(TimeAlignedWindow *win)
@@ -67,6 +68,11 @@ void YAxisInfo::OnPaint(wxPaintEvent &)
             win->DrawYAxis(dc, rect);
         }
     }
+}
+
+void YAxisInfo::OnClick(wxMouseEvent &)
+{
+	invalidate_selection();
 }
 
 } // namespace phonometrica

@@ -31,9 +31,10 @@ XAxisInfo::XAxisInfo(wxWindow *parent) :
 	wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 20))
 {
 	Bind(wxEVT_PAINT, &XAxisInfo::OnPaint, this);
+	Bind(wxEVT_LEFT_DOWN, &XAxisInfo::OnClick, this);
 }
 
-void XAxisInfo::SetTimeWindow(TimeSpan win)
+void XAxisInfo::SetTimeWindow(TimeWindow win)
 {
 	m_win = win;
 	Refresh();
@@ -47,44 +48,44 @@ void XAxisInfo::OnPaint(wxPaintEvent &)
 	wxPaintDC dc(this);
 	wxCoord width, height, x, y;
 	auto size = GetSize();
-
-
+	auto x1 = TimeToXPos(m_sel.t1);
+	auto x2 = TimeToXPos(m_sel.t2);
 	wxRect used_area1, used_area2;
 
-	if (HasTimeAnchor())
+	if (HasSelection())
 	{
 		auto colour = dc.GetTextForeground();
 		dc.SetTextForeground(ANCHOR_COLOUR);
-		auto time = wxString::Format("%.4f", m_anchor.second);
-		dc.GetTextExtent(time, &width, &height);
-		x = m_anchor.first + 3;
-		y = size.y - height - 1;
-		if (x + width > size.x) {
-			x = size.x - width;
+
+		if (HasPointSelection())
+		{
+			auto time = wxString::Format("%.4f", m_sel.t1);
+			dc.GetTextExtent(time, &width, &height);
+			x = x1 + 3;
+			y = size.y - height - 1;
+			if (x + width > size.x) {
+				x = size.x - width;
+			}
+			dc.DrawText(time, x, y);
+			used_area1 = wxRect(x, y, width, height);
 		}
-		dc.DrawText(time, x, y);
-		used_area1 = wxRect(x, y, width, height);
-		dc.SetTextForeground(colour);
-	}
-	else if (HasSelection())
-	{
-		auto colour = dc.GetTextForeground();
-		dc.SetTextForeground(PLOT_SEL_TEXT_COLOUR);
-		auto time = wxString::Format("%.4f", m_time_sel.first);
-		dc.GetTextExtent(time, &width, &height);
-		x = (std::max)(0, int(m_sel.first) - width);
-		y = size.y - height - 1;
-		dc.DrawText(time, x, y);
-		used_area1 = wxRect(x, y, width, height);
+		else
+		{
+			auto time = wxString::Format("%.4f", m_sel.t1);
+			dc.GetTextExtent(time, &width, &height);
+			x = (std::max)(0, int(x1) - width);
+			y = size.y - height - 1;
+			dc.DrawText(time, x, y);
+			used_area1 = wxRect(x, y, width, height);
 
-		time = wxString::Format("%.4f", m_time_sel.second);
-		dc.GetTextExtent(time, &width, &height);
-		int xlimit = used_area1.x + used_area1.width + 5; // 5 pixels for spacing
-		x = (std::max)(xlimit, int(m_sel.second + 3));
-		y = size.y - height - 1;
-		dc.DrawText(time, x, y);
-		used_area2 = wxRect(x, y, width, height);
-
+			time = wxString::Format("%.4f", m_sel.t2);
+			dc.GetTextExtent(time, &width, &height);
+			int xlimit = used_area1.x + used_area1.width + 5; // 5 pixels for spacing
+			x = (std::max)(xlimit, int(x2 + 3));
+			y = size.y - height - 1;
+			dc.DrawText(time, x, y);
+			used_area2 = wxRect(x, y, width, height);
+		}
 		dc.SetTextForeground(colour);
 	}
 
@@ -109,17 +110,20 @@ void XAxisInfo::OnPaint(wxPaintEvent &)
 	}
 }
 
-void XAxisInfo::SetAnchor(TimeAnchor anchor)
+void XAxisInfo::SetSelection(const TimeSelection &sel)
 {
-	m_anchor = anchor;
+	m_sel = sel;
 	Refresh();
 }
 
-void XAxisInfo::SetSelection(PixelSelection sel, TimeSpan tsel)
+double XAxisInfo::TimeToXPos(double t) const
 {
-	m_sel = sel;
-	m_time_sel = tsel;
-	Refresh();
+	return (t - m_win.first) * GetSize().GetWidth() / (m_win.second - m_win.first);
+}
+
+void XAxisInfo::OnClick(wxMouseEvent &)
+{
+	invalidate_selection();
 }
 
 } // namespace phonometrica

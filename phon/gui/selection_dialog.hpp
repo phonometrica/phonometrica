@@ -34,7 +34,7 @@ public:
 
 	SelectionDialog(wxWindow *parent);
 
-	TimeSpan GetSelection() const;
+	TimeWindow GetSelection() const;
 
 private:
 

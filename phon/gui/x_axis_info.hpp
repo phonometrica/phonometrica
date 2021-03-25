@@ -25,6 +25,7 @@
 #include <wx/dcclient.h>
 #include <wx/window.h>
 #include <phon/gui/helpers.hpp>
+#include <phon/utils/signal.hpp>
 
 namespace phonometrica {
 
@@ -34,29 +35,31 @@ public:
 
 	XAxisInfo(wxWindow *parent);
 
-	void SetTimeWindow(TimeSpan win);
+	void SetTimeWindow(TimeWindow win);
 
-	void SetAnchor(TimeAnchor anchor);
+	void SetSelection(const TimeSelection &sel);
 
-	void SetSelection(PixelSelection sel, TimeSpan tsel);
+	void InvalidateSelection() { m_sel.invalidate(); Refresh(); }
+
+	Signal<> invalidate_selection;
 
 private:
 
 	bool HasTimeWindow() const { return m_win.first >= 0; }
 
-	bool HasSelection() const { return m_sel.first >= 0; }
+	bool HasSelection() const { return m_sel.t1 >= m_win.first && m_sel.t2 <= m_win.second; }
 
-	bool HasTimeAnchor() const { return m_anchor.first >= 0; }
+	bool HasPointSelection() const { return m_sel.is_point(); }
 
 	void OnPaint(wxPaintEvent &e);
 
-	TimeSpan m_win = {-1., -1.};
+	double TimeToXPos(double t) const;
 
-	PixelSelection m_sel = {-1, -1};
+	void OnClick(wxMouseEvent &);
 
-	TimeSpan  m_time_sel = {-1., -1.};
+	TimeWindow m_win = {-1., -1.};
 
-	TimeAnchor m_anchor = {-1., -1.};
+	TimeSelection m_sel = {-1, -1};
 };
 
 } // namespace phonometrica

@@ -33,15 +33,22 @@ class SoundPlot : public TimeAlignedWindow
 {
 public:
 
+	enum class SelectionState : char
+	{
+		Inactive,
+		Started,
+		Active
+	};
+
 	SoundPlot(wxWindow *parent, const Handle<Sound> &snd);
 
-	PixelSelection GetSelection() const;
+	const TimeSelection & GetSelection() const;
 
-	void SetSelection(PixelSelection sel);
+	void SetSelection(const TimeSelection &sel);
+
+	void InvalidateSelection();
 
 	void SetCursorPosition(double pos);
-
-	void SetAnchor(TimeAnchor anchor);
 
 	void ZoomToSelection();
 
@@ -61,34 +68,37 @@ public:
 
 	void MakeTop(bool value);
 
-	void SetTimeWindow(TimeSpan win) override;
+	void SetSelectionState(SelectionState value);
 
-	Signal<PixelSelection> update_selection;
+	void SetSelectionStart(double value);
+
+	Signal<const TimeSelection&> update_selection;
+
+	Signal<> invalidate_selection;
 
 	Signal<double> update_cursor;
 
-	Signal<TimeAnchor> update_anchor;
-
 	Signal<> zoom_to_selection;
+
+	Signal<SelectionState> change_selection_state;
+
+	Signal<double> change_selection_start;
 
 protected:
 
-	enum class SelectionState : char
-	{
-		Inactive,
-		Started,
-		Active
-	};
+	bool HasSelection() const { return m_sel.t1 >= 0; }
 
-	bool HasSelection() const { return m_sel.first >= 0; }
+	bool HasVisibleSelection() const;
 
-	bool HasTimeAnchor() const { return m_anchor.first >= 0; }
+	bool HasPointSelection() const { return m_sel.is_point(); }
 
 	bool HasCursor() const { return m_cursor_pos >= 0; }
 
 	void DrawSelection(wxPaintDC &dc);
 
-	void DrawTimeAnchor(wxPaintDC &dc);
+	void DrawSpanSelection(wxPaintDC &dc);
+
+	void DrawPointSelection(wxPaintDC &dc);
 
 	void DrawCursor(wxPaintDC &dc);
 
@@ -102,21 +112,19 @@ protected:
 
 	void OnMouseWheel(wxMouseEvent &e);
 
-	TimeSpan ComputeZoomIn() const;
+	TimeWindow ComputeZoomIn() const;
 
-	TimeSpan ComputeZoomOut() const;
+	TimeWindow ComputeZoomOut() const;
 
     double ClipTime(double t) const;
 
 	Handle<Sound> m_sound;
 
 	// Current selection on screen
-	PixelSelection m_sel = {-1.0, -1.0};
+	TimeSelection m_sel = {-1.0, -1.0 };
 
 	// Start of the selection when the user clicks on the wavebar.
 	double m_sel_start = -1;
-
-	TimeAnchor m_anchor = {-1, -1.0};
 
 	double m_cursor_pos = -1;
 

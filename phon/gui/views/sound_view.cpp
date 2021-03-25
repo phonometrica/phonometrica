@@ -75,10 +75,18 @@ void SoundView::Initialize()
 		m_wavebar->change_window.connect(&SoundPlot::SetTimeWindow, plot);
 		plot->update_window.connect(&SoundView::OnUpdateTimeWindow, this);
 		plot->update_selection.connect(&SoundView::OnUpdateSelection, this);
+		plot->invalidate_selection.connect(&SoundView::OnInvalidateSelection, this);
 		plot->update_cursor.connect(&SoundView::OnUpdateCursor, this);
-		plot->update_anchor.connect(&SoundView::OnUpdateAnchor, this);
 		plot->zoom_to_selection.connect(&SoundView::ZoomToSelection, this);
+
+		for (auto plot2 : m_plots)
+		{
+			plot->change_selection_state.connect(&SoundPlot::SetSelectionState, plot2);
+			plot->change_selection_start.connect(&SoundPlot::SetSelectionStart, plot2);
+		}
 	}
+	m_x_axis->invalidate_selection.connect(&SoundView::OnInvalidateSelection, this);
+	m_y_axis->invalidate_selection.connect(&SoundView::OnInvalidateSelection, this);
 	m_wavebar->change_window.connect(&XAxisInfo::SetTimeWindow, m_x_axis);
 	SetTopPlot();
 }
@@ -163,7 +171,7 @@ void SoundView::SetTimeSelection(double from, double to)
 	for (auto plot : m_plots) {
 		plot->SetTimeWindow({from, to});
 	}
-	UpdateTimeWindow(TimeSpan{from, to});
+	UpdateTimeWindow(TimeWindow{from, to});
 }
 
 void SoundView::OnPlay(wxCommandEvent &)
@@ -270,7 +278,7 @@ void SoundView::OnSelectWindow(wxCommandEvent &)
 	}
 }
 
-void SoundView::OnUpdateTimeWindow(TimeSpan win)
+void SoundView::OnUpdateTimeWindow(TimeWindow win)
 {
 	for (auto plot : m_plots) {
 		plot->SetTimeWindow(win);
@@ -278,7 +286,7 @@ void SoundView::OnUpdateTimeWindow(TimeSpan win)
 	UpdateTimeWindow(win);
 }
 
-void SoundView::OnUpdateSelection(PixelSelection sel)
+void SoundView::OnUpdateSelection(const TimeSelection &sel)
 {
 	for (auto plot : m_plots) {
 		plot->SetSelection(sel);
@@ -286,16 +294,20 @@ void SoundView::OnUpdateSelection(PixelSelection sel)
 	UpdateXAxisSelection(sel);
 }
 
-void SoundView::UpdateXAxisSelection(PixelSelection sel)
+void SoundView::OnInvalidateSelection()
 {
-	// The x axis needs to know both position and time, but is not able to convert screen positions to times,
-	// so we do it here.
-	auto t1 = GetFirstPlot()->XPosToTime(sel.first);
-	auto t2 = GetFirstPlot()->XPosToTime(sel.second);
-	m_x_axis->SetSelection(sel, std::make_pair(t1, t2));
+	for (auto plot : m_plots) {
+		plot->InvalidateSelection();
+	}
+	m_x_axis->InvalidateSelection();
 }
 
-void SoundView::UpdateTimeWindow(TimeSpan win)
+void SoundView::UpdateXAxisSelection(const TimeSelection &sel)
+{
+	m_x_axis->SetSelection(sel);
+}
+
+void SoundView::UpdateTimeWindow(TimeWindow win)
 {
 	m_wavebar->SetTimeSelection(win);
 	m_x_axis->SetTimeWindow(win);
@@ -307,7 +319,7 @@ SoundPlot *SoundView::GetFirstPlot() const
 	return m_plots.first();
 }
 
-TimeSpan SoundView::GetTimeWindow() const
+TimeWindow SoundView::GetTimeWindow() const
 {
 	return GetFirstPlot()->GetTimeWindow();
 }
@@ -355,7 +367,6 @@ void SoundView::OnEnableMouseTracking(wxCommandEvent &)
 	for (auto plot : m_plots) {
 		plot->EnableMouseTracking(value);
 	}
-	m_x_axis->SetAnchor({-1., -1.});
 }
 
 void SoundView::OnUpdateCursor(double pos)
@@ -363,14 +374,6 @@ void SoundView::OnUpdateCursor(double pos)
 	for (auto plot : m_plots) {
 		plot->SetCursorPosition(pos);
 	}
-}
-
-void SoundView::OnUpdateAnchor(TimeAnchor anchor)
-{
-	for (auto plot : m_plots) {
-		plot->SetAnchor(anchor);
-	}
-	m_x_axis->SetAnchor(anchor);
 }
 
 void SoundView::SetTopPlot()

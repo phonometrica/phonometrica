@@ -93,7 +93,6 @@ void Waveform::Render(wxPaintDC &dc)
 {
 	dc.DrawBitmap(m_cached_bmp, 0.0, 0.0, true);
 	DrawSelection(dc);
-	DrawTimeAnchor(dc);
 	DrawCursor(dc);
 }
 
@@ -296,7 +295,7 @@ void Waveform::DrawYAxis(wxPaintDC &dc, const wxRect &rect)
 {
 	auto top = wxString::Format("+%.4f", extrema.second);
 	wxString center("0");
-	auto bottom = wxString::Format("-%.4f", extrema.first);
+	auto bottom = wxString::Format("%.4f", extrema.first);
 	wxCoord w, h;
 	int padding = 2;
 	dc.GetTextExtent(top, &w, &h);

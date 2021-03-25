@@ -38,13 +38,13 @@ public:
 
 	~TimeAlignedWindow() override = default;
 
-	TimeSpan GetTimeWindow() const;
+	TimeWindow GetTimeWindow() const;
 
-	virtual void SetTimeWindow(TimeSpan win);
+	void SetTimeWindow(TimeWindow win);
 
 	virtual void DrawYAxis(wxPaintDC &dc, const wxRect &rect) = 0;
 
-	Signal<TimeSpan> update_window;
+	Signal<TimeWindow> update_window;
 
 protected:
 
@@ -63,7 +63,7 @@ protected:
 	virtual void InvalidateCache() = 0;
 
 	// The current window
-	TimeSpan m_window = {-1.0, -1.0};
+	TimeWindow m_window = {-1.0, -1.0};
 };
 
 } // namespace phonometrica

@@ -37,11 +37,11 @@ public:
 
 	WaveBar(wxWindow *parent, const Handle <Sound> &snd);
 
-	void SetTimeSelection(TimeSpan win);
+	void SetTimeSelection(TimeWindow win);
 
 	Signal<PixelSelection> selection_changed;
 
-	Signal<TimeSpan> change_window;
+	Signal<TimeWindow> change_window;
 
 private:
 

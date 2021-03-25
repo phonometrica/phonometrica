@@ -58,11 +58,11 @@ protected:
 
 	void SetToolBar();
 
-	void UpdateTimeWindow(TimeSpan win);
+	void UpdateTimeWindow(TimeWindow win);
 
 	SoundPlot *GetFirstPlot() const;
 
-	TimeSpan GetTimeWindow() const;
+	TimeWindow GetTimeWindow() const;
 
 	void OnPlay(wxCommandEvent &);
 
@@ -98,15 +98,15 @@ protected:
 
 	void OnEnableMouseTracking(wxCommandEvent &);
 
-	void OnUpdateTimeWindow(TimeSpan win);
+	void OnUpdateTimeWindow(TimeWindow win);
 
-	void OnUpdateSelection(PixelSelection sel);
+	void OnUpdateSelection(const TimeSelection &sel);
 
-	void UpdateXAxisSelection(PixelSelection sel);
+	void OnInvalidateSelection();
+
+	void UpdateXAxisSelection(const TimeSelection &sel);
 
 	void OnUpdateCursor(double pos);
-
-	void OnUpdateAnchor(TimeAnchor pos);
 
 	void SetTopPlot();
 

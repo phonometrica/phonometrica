@@ -17,13 +17,26 @@ namespace phonometrica {
 // Structures to represent time or screen selections and locations.
 
 // <start time, end time>
-using TimeSpan = std::pair<double, double>;
+using TimeWindow = std::pair<double, double>;
 
-// <start position, end position>
+// <start position, end position> (selection in the wavebar and zoom)
 using PixelSelection = std::pair<double, double>;
 
-// <position, time>
-using TimeAnchor = std::pair<int, double>;
+// Selection in a sound plot
+struct TimeSelection
+{
+	double t1, t2;	// times in seconds
+
+	bool is_valid() const { return t1 >= 0.0; }
+
+	bool is_point() const { return t1 == t2; }
+
+	bool is_span() const { return !is_point(); }
+
+	double duration() const { return t2 - t1; }
+
+	void invalidate() { t1 = t2 = -1.0; }
+};
 
 }
 

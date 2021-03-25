@@ -29,11 +29,11 @@ TimeAlignedWindow::TimeAlignedWindow(wxWindow *parent) :
 	SetBackgroundColour(*wxWHITE);
 }
 
-void TimeAlignedWindow::SetTimeWindow(TimeSpan win)
+void TimeAlignedWindow::SetTimeWindow(TimeWindow win)
 {
 	m_window = win;
 	InvalidateCache();
-	// Don't refresh here: this is done in overrides
+	Refresh();
 }
 
 double TimeAlignedWindow::XPosToTime(double x) const
@@ -46,7 +46,7 @@ double TimeAlignedWindow::TimeToXPos(double t) const
     return (t - m_window.first) * GetWidth() / GetWindowDuration();
 }
 
-TimeSpan TimeAlignedWindow::GetTimeWindow() const
+TimeWindow TimeAlignedWindow::GetTimeWindow() const
 {
 	return m_window;
 }

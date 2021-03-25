@@ -180,7 +180,7 @@ void WaveBar::OnEndSelection(wxMouseEvent &e)
 	m_sel_start = -1;
 	auto t1 = XPosToTime(m_sel.first);
 	auto t2 = XPosToTime(m_sel.second);
-	change_window(TimeSpan{t1, t2});
+	change_window(TimeWindow{t1, t2});
 	e.Skip();
 }
 
@@ -202,7 +202,7 @@ void WaveBar::OnMotion(wxMouseEvent &e)
 	}
 }
 
-void WaveBar::SetTimeSelection(TimeSpan win)
+void WaveBar::SetTimeSelection(TimeWindow win)
 {
 	auto from = TimeToXPos(win.first);
 	auto to = TimeToXPos(win.second);
@@ -239,7 +239,7 @@ void WaveBar::MoveForward()
 	auto t2 = XPosToTime(x2);
 	SetSelection({x1, x2});
 	Refresh();
-	change_window(TimeSpan{t1, t2});
+	change_window(TimeWindow{t1, t2});
 }
 
 void WaveBar::MoveBackward()
@@ -254,7 +254,7 @@ void WaveBar::MoveBackward()
 	auto t2 = XPosToTime(x2);
 	SetSelection({x1, x2});
 	Refresh();
-	change_window(TimeSpan{t1, t2});
+	change_window(TimeWindow{t1, t2});
 }
 
 } // namespace phonometrica

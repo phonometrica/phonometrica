@@ -43,50 +43,51 @@ SoundPlot::SoundPlot(wxWindow *parent, const Handle<Sound> &snd) :
 void SoundPlot::OnStartSelection(wxMouseEvent &e)
 {
 	// Erase the anchor and the previous selection (if any) and start a (new) selection.
-	m_sel_state = SelectionState::Started;
+	change_selection_state(SelectionState::Started);
 	auto pos = e.GetPosition();
-	m_sel_start = pos.x;
-	update_selection(std::make_pair(-1.0, -1.0));
-	update_anchor(std::make_pair(-1, -1.0));
+	change_selection_start(pos.x);
+	// Ensure that the cursor is shown when the user clicks on a plot.
+	auto t = XPosToTime(pos.x);
+	update_selection(TimeSelection{t, t});
+
 	e.Skip();
 }
 
 void SoundPlot::OnEndSelection(wxMouseEvent &e)
 {
-	m_sel_state = SelectionState::Inactive;
+	change_selection_state(SelectionState::Inactive);
+
 	auto pos = e.GetPosition();
 	if (pos.x == m_sel_start)
 	{
-		// Set an anchor if the mouse button was released in the same location that it was clicked.
-		if (m_track_mouse) {
-			update_anchor(std::make_pair(pos.x, XPosToTime(pos.x)));
-		}
-		update_selection(PixelSelection{-1, -1});
+		auto t = XPosToTime(m_sel_start);
+		update_selection(TimeSelection{t, t});
 		Refresh();
 	}
-	m_sel_start = -1;
+	change_selection_start(-1);
 	e.Skip();
 }
 
 void SoundPlot::OnMotion(wxMouseEvent &e)
 {
 	if (m_sel_state == SelectionState::Started) {
-		m_sel_state = SelectionState::Active;
+		change_selection_state(SelectionState::Active);
 	}
 
 	if (m_sel_start >= 0)
 	{
 		auto pos = e.GetPosition();
-		double x = pos.x;
+		double x1 = pos.x;
+		double x2 = m_sel_start;
+		if (x1 > x2) {
+			std::swap(x1, x2);
+		}
+		double t1 = XPosToTime(x1);
+		double t2 = XPosToTime(x2);
 
 		// We don't need to refresh the plot because the signal will be sent back to us by the view
 		// to which this plot is connected.
-		if (x < m_sel_start) {
-			update_selection(PixelSelection{x, m_sel_start});
-		}
-		else {
-			update_selection(PixelSelection{m_sel_start, x});
-		}
+		update_selection(TimeSelection{t1, t2});
 	}
 	else if (m_track_mouse)
 	{
@@ -97,18 +98,16 @@ void SoundPlot::OnMotion(wxMouseEvent &e)
 
 void SoundPlot::OnLeaveWindow(wxMouseEvent &e)
 {
-	m_sel_state = SelectionState::Inactive;
-	m_sel_start = -1;
 	update_cursor(-1);
 	e.Skip();
 }
 
-PixelSelection SoundPlot::GetSelection() const
+const TimeSelection & SoundPlot::GetSelection() const
 {
 	return m_sel;
 }
 
-void SoundPlot::SetSelection(PixelSelection sel)
+void SoundPlot::SetSelection(const TimeSelection &sel)
 {
 	m_sel = sel;
 	Refresh();
@@ -130,9 +129,9 @@ void SoundPlot::ZoomToSelection()
 {
     if (HasSelection())
     {
-	    auto t1 = ClipTime(XPosToTime(m_sel.first));
-	    auto t2 = ClipTime(XPosToTime(m_sel.second));
-	    SetTimeWindow(TimeSpan{t1, t2});
+	    auto t1 = ClipTime(m_sel.t1);
+	    auto t2 = ClipTime(m_sel.t2);
+	    SetTimeWindow(TimeWindow{t1, t2});
     }
 }
 
@@ -148,7 +147,7 @@ void SoundPlot::ZoomOut()
 
 void SoundPlot::ViewAll()
 {
-	TimeSpan win{0, m_sound->duration()};
+	TimeWindow win{0, m_sound->duration()};
 	SetTimeWindow(win);
 }
 
@@ -160,7 +159,7 @@ void SoundPlot::MoveForward()
         auto delta = std::max<double>(GetWindowDuration() / 10, 0.001);
         auto t1 = ClipTime(m_window.first + delta);
         auto t2 = ClipTime(m_window.second + delta);
-        SetTimeWindow(TimeSpan{t1, t2});
+        SetTimeWindow(TimeWindow{t1, t2});
     }
 }
 
@@ -172,19 +171,13 @@ void SoundPlot::MoveBackward()
         auto delta = std::max<double>(GetWindowDuration() / 10, 0.001);
         auto t1 = ClipTime(m_window.first - delta);
         auto t2 = ClipTime(m_window.second - delta);
-        SetTimeWindow(TimeSpan{t1, t2});
+        SetTimeWindow(TimeWindow{t1, t2});
     }
 }
 
 void SoundPlot::EnableMouseTracking(bool value)
 {
 	m_track_mouse = value;
-
-	if (!value)
-	{
-		m_anchor = {-1, -1.0};
-		Refresh(); // erase anchor if there's one.
-	}
 }
 
 void SoundPlot::OnMouseWheel(wxMouseEvent &e)
@@ -203,55 +196,73 @@ void SoundPlot::OnMouseWheel(wxMouseEvent &e)
 	}
 }
 
-TimeSpan SoundPlot::ComputeZoomIn() const
+TimeWindow SoundPlot::ComputeZoomIn() const
 {
 	// Zoom in by 25% on each side
 	auto zoom = GetWindowDuration() / 4;
 	auto t1 = ClipTime(m_window.first + zoom);
 	auto t2 = ClipTime(m_window.second - zoom);
 
-	return TimeSpan{t1, t2};
+	return TimeWindow{t1, t2};
 }
 
-TimeSpan SoundPlot::ComputeZoomOut() const
+TimeWindow SoundPlot::ComputeZoomOut() const
 {
 	// Zoom out by 50%
 	auto zoom = GetWindowDuration() / 2;
 	auto t1 = ClipTime(m_window.first - zoom);
 	auto t2 = ClipTime(m_window.second + zoom);
 
-	return TimeSpan{t1, t2};
+	return TimeWindow{t1, t2};
 }
 
 void SoundPlot::DrawSelection(wxPaintDC &dc)
 {
-	if (!HasSelection()) {
-		return;
+	if (HasVisibleSelection())
+	{
+		if (HasPointSelection()) {
+			DrawPointSelection(dc);
+		}
+		else {
+			DrawSpanSelection(dc);
+		}
 	}
+}
+
+void SoundPlot::DrawSpanSelection(wxPaintDC &dc)
+{
 	auto gc = dc.GetGraphicsContext();
 	if (!gc) return;
 	auto height = GetHeight();
 	auto path = gc->CreatePath();
 
+	auto x1 = (std::max)(TimeToXPos(m_sel.t1), TimeToXPos(m_window.first));
+	auto x2 = (std::min)(TimeToXPos(m_sel.t2), TimeToXPos(m_window.second));
 
-	path.MoveToPoint(m_sel.first, 0.0);
-	path.AddLineToPoint(m_sel.second, 0.0);
-	path.AddLineToPoint(m_sel.second, height);
-	path.AddLineToPoint(m_sel.first, height);
-	path.AddLineToPoint(m_sel.first, 0.0);
+	path.MoveToPoint(x1, 0.0);
+	path.AddLineToPoint(x2, 0.0);
+	path.AddLineToPoint(x2, height);
+	path.AddLineToPoint(x1, height);
+	path.AddLineToPoint(x1, 0.0);
 	wxBrush brush;
 	brush.SetColour(PLOT_SEL_COLOUR);
 	gc->SetBrush(brush);
 	gc->FillPath(path);
+
+	// Draw lines
+	dc.SetPen(wxPen(ANCHOR_COLOUR, 1, wxPENSTYLE_DOT));
+	dc.DrawLine(x1, 0, x1, height);
+	dc.DrawLine(x2, 0, x2, height);
 }
 
-void SoundPlot::DrawTimeAnchor(wxPaintDC &dc)
+void SoundPlot::DrawPointSelection(wxPaintDC &dc)
 {
-	if (!HasTimeAnchor()) {
+	if (!HasPointSelection()) {
 		return;
 	}
-	dc.SetPen(wxPen(ANCHOR_COLOUR));
-	dc.DrawLine(m_anchor.first, 0, m_anchor.first, GetHeight());
+	dc.SetPen(wxPen(ANCHOR_COLOUR, 1, wxPENSTYLE_DOT));
+	auto x = TimeToXPos(m_sel.t1);
+	dc.DrawLine(x, 0, x, GetHeight());
 }
 
 void SoundPlot::DrawCursor(wxPaintDC &dc)
@@ -278,12 +289,6 @@ void SoundPlot::SetCursorPosition(double pos)
 	Refresh();
 }
 
-void SoundPlot::SetAnchor(TimeAnchor anchor)
-{
-	m_anchor = anchor;
-	Refresh();
-}
-
 void SoundPlot::MakeTop(bool value)
 {
 	m_is_top = value;
@@ -294,23 +299,25 @@ bool SoundPlot::IsTop() const
 	return m_is_top;
 }
 
-void SoundPlot::SetTimeWindow(TimeSpan win)
+void SoundPlot::InvalidateSelection()
 {
-	if (HasSelection())
-	{
-		auto t1 = XPosToTime(m_sel.first);
-		auto t2 = XPosToTime(m_sel.second);
-		t1 = (std::max)(win.first, t1);
-		t2 = (std::min)(win.second, t2);
-		TimeAlignedWindow::SetTimeWindow(win);
-		m_sel = { TimeToXPos(t1), TimeToXPos(t2) };
-		Refresh();
-	}
-	else
-	{
-		TimeAlignedWindow::SetTimeWindow(win);
-	}
+	m_sel.invalidate();
 	Refresh();
+}
+
+bool SoundPlot::HasVisibleSelection() const
+{
+	return (m_sel.t1 >= m_window.first && m_sel.t1 <= m_window.second) || (m_sel.t2 >= m_window.first && m_sel.t2 <= m_window.second);
+}
+
+void SoundPlot::SetSelectionState(SoundPlot::SelectionState value)
+{
+	m_sel_state = value;
+}
+
+void SoundPlot::SetSelectionStart(double value)
+{
+	m_sel_start = value;
 }
 
 } // namespace phonometrica
