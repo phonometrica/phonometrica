@@ -257,4 +257,9 @@ void WaveBar::MoveBackward()
 	change_window(TimeWindow{t1, t2});
 }
 
+double WaveBar::GetMagnitude() const
+{
+	return raw_magnitude;
+}
+
 } // namespace phonometrica

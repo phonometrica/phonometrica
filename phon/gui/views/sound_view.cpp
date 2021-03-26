@@ -23,6 +23,7 @@
 #include <phon/gui/views/sound_view.hpp>
 #include <phon/gui/lines.hpp>
 #include <phon/gui/selection_dialog.hpp>
+#include <phon/gui/pref/waveform_settings.hpp>
 #include <phon/application/macros.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
@@ -51,6 +52,7 @@ void SoundView::Initialize()
 	for (int i = 1; i <= m_sound->nchannel(); i++)
 	{
 		auto waveform = new Waveform(this, m_sound, i);
+		waveform->SetGlobalMagnitude(m_wavebar->GetMagnitude());
 		m_inner_sizer->Add(waveform, 1, wxEXPAND|wxRIGHT, 10);
 		m_inner_sizer->Add(new HLine(this));
 		m_plots.append(waveform);
@@ -80,6 +82,7 @@ void SoundView::Initialize()
 		plot->invalidate_selection.connect(&SoundView::OnInvalidateSelection, this);
 		plot->update_cursor.connect(&SoundView::OnUpdateCursor, this);
 		plot->zoom_to_selection.connect(&SoundView::ZoomToSelection, this);
+		plot->y_axis_modified.connect(&YAxisInfo::OnUpdate, m_y_axis);
 
 		for (auto plot2 : m_plots)
 		{
@@ -364,11 +367,10 @@ void SoundView::OnWaveMenu(wxCommandEvent &)
 	auto menu = new wxMenu;
 	auto show_msg = m_sound->is_mono() ? _("Show waveform") : _("Show waveforms");
 	auto show_tool = menu->AppendCheckItem(wxID_ANY, show_msg);
-	auto meta_tool = menu->AppendCheckItem(wxID_ANY, _("Waveform settings"));
+	auto settings_tool = menu->Append(wxID_ANY, _("Waveform settings"));
 	show_tool->Check(true);
 	show_tool->Enable(false);
-//	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent &) { m_show_file_info = !m_show_file_info; ShowFileInfo(); }, info_tool->GetId());
-//	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent &) { m_show_metadata = !m_show_metadata; ShowMetadata(); }, meta_tool->GetId());
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnWaveformSettings, this, settings_tool->GetId());
 
 	m_toolbar->ShowMenu(m_wave_tool, menu);
 }
@@ -459,6 +461,23 @@ void SoundView::SetTick(double t)
 	for (auto plot : m_plots)
 	{
 		plot->SetTick(t);
+	}
+}
+
+void SoundView::OnWaveformSettings(wxCommandEvent &)
+{
+	WaveformSettings ed(this);
+
+	if (ed.ShowModal() != wxID_CANCEL)
+	{
+		for (auto plot : m_plots)
+		{
+			auto wav = dynamic_cast<Waveform*>(plot);
+
+			if (wav) {
+				wav->UpdateSettings();
+			}
+		}
 	}
 }
 

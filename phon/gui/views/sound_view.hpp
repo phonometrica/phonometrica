@@ -121,6 +121,8 @@ protected:
 
 	void SetTick(double t);
 
+	void OnWaveformSettings(wxCommandEvent &);
+
 	wxButton *m_wave_tool, *m_spectrum_tool, *m_formant_tool, *m_pitch_tool, *m_intensity_tool;
 
 	wxButton *m_play_tool;

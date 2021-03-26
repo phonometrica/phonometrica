@@ -48,7 +48,6 @@ void PreferencesDialog::CreateButtons()
 	ok_btn->SetMaxSize(btn_size);
 	cancel_btn->SetMaxSize(btn_size);
 	reset_btn->SetMaxSize(btn_size);
-	reset_btn->Enable(false);
 	auto hsizer = new wxBoxSizer(wxHORIZONTAL);
 	hsizer->Add(reset_btn, 1, 0, 0);
 	hsizer->AddStretchSpacer(1);
@@ -70,8 +69,9 @@ void PreferencesDialog::CreateButtons()
 
 void PreferencesDialog::OnCancel(wxCommandEvent &)
 {
-	DoCancel();
-	EndModal(wxID_CANCEL);
+	if (DoCancel()) {
+		EndModal(wxID_CANCEL);
+	}
 }
 
 void PreferencesDialog::OnReset(wxCommandEvent &)
@@ -82,8 +82,9 @@ void PreferencesDialog::OnReset(wxCommandEvent &)
 
 void PreferencesDialog::OnOk(wxCommandEvent &)
 {
-	DoOk();
-	EndModal(wxID_OK);
+	if (DoOk()) {
+		EndModal(wxID_OK);
+	}
 }
 
 } // namespace phonometrica

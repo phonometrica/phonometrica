@@ -38,6 +38,8 @@ public:
 
 	void RemoveWindow(TimeAlignedWindow *win);
 
+	void OnUpdate();
+
 	Signal<> invalidate_selection;
 
 private:

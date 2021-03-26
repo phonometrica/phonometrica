@@ -39,6 +39,8 @@ public:
 
 	void SetTimeSelection(TimeWindow win);
 
+	double GetMagnitude() const;
+
 	Signal<PixelSelection> selection_changed;
 
 	Signal<TimeWindow> change_window;

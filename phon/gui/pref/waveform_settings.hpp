@@ -36,6 +36,14 @@ public:
 
 private:
 
+	void DoReset() override;
+
+	bool DoOk() override;
+
+	void DisplayValues();
+
+	void OnSelectionChanged(wxCommandEvent &);
+
 	wxChoice *scaling_choice;
 
 	wxTextCtrl *scaling_ctrl;

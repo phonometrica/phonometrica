@@ -39,7 +39,7 @@ public:
 
 private:
 
-	void DoOk() override;
+	bool DoOk() override;
 
 	void DoReset() override;
 

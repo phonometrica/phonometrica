@@ -345,4 +345,12 @@ void SoundPlot::DrawTimeTick(wxPaintDC &dc)
 	}
 }
 
+void SoundPlot::UpdateSettings()
+{
+	ReadSettings();
+	InvalidateCache();
+	Refresh();
+	y_axis_modified();
+}
+
 } // namespace phonometrica

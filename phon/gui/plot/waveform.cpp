@@ -95,6 +95,9 @@ void Waveform::Render(wxPaintDC &dc)
 	DrawSelection(dc);
 	DrawCursor(dc);
 	DrawTimeTick(dc);
+	// The Y axis is repainted before the plots, so we need to explicitly update it on repaint events,
+	// otherwise the magnitude values might be incorrect.
+	y_axis_modified();
 }
 
 void Waveform::UpdateCache()

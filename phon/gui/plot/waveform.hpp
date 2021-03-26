@@ -39,6 +39,8 @@ public:
 
 	Waveform(wxWindow *parent, const Handle<Sound> &snd, int channel);
 
+	void SetGlobalMagnitude(double value);
+
 private:
 
 	void InvalidateCache() override;
@@ -49,7 +51,7 @@ private:
 
 	std::vector<std::pair<double,double>> DownsampleWaveform();
 
-	void ReadSettings();
+	void ReadSettings() override;
 
 	// Map sample to plot y coordinate.
     double SampleToHeight(double s) const;
@@ -57,8 +59,6 @@ private:
     void SetMagnitude(double value);
 
     void SetLocalMagnitude(std::span<const double> data);
-
-    void SetGlobalMagnitude(double value);
 
 	void OnPaint(wxPaintEvent &);
 

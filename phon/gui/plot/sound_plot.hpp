@@ -76,6 +76,8 @@ public:
 
 	void SetTick(double time);
 
+	void UpdateSettings();
+
 	Signal<const TimeSelection&> update_selection;
 
 	Signal<> invalidate_selection;
@@ -87,6 +89,8 @@ public:
 	Signal<SelectionState> change_selection_state;
 
 	Signal<double> change_selection_start;
+
+	Signal<> y_axis_modified;
 
 protected:
 
@@ -123,6 +127,8 @@ protected:
 	TimeWindow ComputeZoomOut() const;
 
     double ClipTime(double t) const;
+
+    virtual void ReadSettings() = 0;
 
 	Handle<Sound> m_sound;
 

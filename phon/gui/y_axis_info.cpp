@@ -75,4 +75,9 @@ void YAxisInfo::OnClick(wxMouseEvent &)
 	invalidate_selection();
 }
 
+void YAxisInfo::OnUpdate()
+{
+	Refresh();
+}
+
 } // namespace phonometrica

@@ -51,9 +51,9 @@ protected:
 	// automatically when the buttons are clicked.
 	virtual void DoReset() = 0;
 
-	virtual void DoOk() = 0;
+	virtual bool DoOk() = 0;
 
-	virtual void DoCancel() { }
+	virtual bool DoCancel() { return true; }
 
 	wxNotebook *m_book;
 

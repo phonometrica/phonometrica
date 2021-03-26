@@ -85,7 +85,7 @@ wxPanel *PreferencesEditor::MakeAppearancePanel()
 	return panel;
 }
 
-void PreferencesEditor::DoOk()
+bool PreferencesEditor::DoOk()
 {
 	// General panel
 	Settings::set_value("autoload", m_autoload_checkbox->GetValue());
@@ -103,6 +103,8 @@ void PreferencesEditor::DoOk()
 		wxMessageBox(_("The font change will take effect when script views and the project are reloaded."),
 			   _("Font information"), wxICON_INFORMATION);
 	}
+
+	return true;
 }
 
 void PreferencesEditor::DoReset()
