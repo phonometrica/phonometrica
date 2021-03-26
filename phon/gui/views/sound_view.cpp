@@ -24,6 +24,7 @@
 #include <phon/gui/lines.hpp>
 #include <phon/gui/selection_dialog.hpp>
 #include <phon/gui/pref/waveform_settings.hpp>
+#include <phon/gui/plot/spectrogram.hpp>
 #include <phon/application/macros.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
@@ -57,6 +58,12 @@ void SoundView::Initialize()
 		m_inner_sizer->Add(new HLine(this));
 		m_plots.append(waveform);
 	}
+
+	auto spectrogram = new Spectrogram(this, m_sound);
+	m_inner_sizer->Add(spectrogram, 1, wxEXPAND|wxRIGHT, 10);
+	m_inner_sizer->Add(new HLine(this));
+	m_plots.append(spectrogram);
+
 	m_inner_sizer->Add(m_zoom, 0, wxEXPAND|wxRIGHT, 10);
 	m_inner_sizer->Add(m_wavebar, 0, wxEXPAND|wxRIGHT|wxBOTTOM, 10);
 

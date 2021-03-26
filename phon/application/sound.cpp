@@ -754,5 +754,28 @@ bool Sound::is_mono() const
 	return nchannel() == 1;
 }
 
+std::vector<double> Sound::average_channels(intptr_t first_frame, intptr_t last_frame)
+{
+	if (last_frame < 0) last_frame = (intptr_t) m_handle.frames() - 1;
+	assert(first_frame >= 0);
+	std::vector<double> result;
+	result.resize(last_frame - first_frame + 1);
+	auto nchannel = this->nchannel();
+	auto ptr = result.data();
+
+	for (intptr_t i = first_frame+1; i <= last_frame; i++)
+	{
+		double value = 0.0;
+		for (intptr_t j = 1; j <= nchannel; j++) {
+			value += m_data(i, j);
+		}
+		*ptr++ = value / nchannel;
+	}
+	auto from = m_data.data() + first_frame;
+	auto to = m_data.data() + last_frame;
+
+	return std::vector<double>(from, to);
+}
+
 
 } // namespace phonometrica

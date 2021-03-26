@@ -119,6 +119,8 @@ public:
 
 	intptr_t time_to_frame(double time) const;
 
+	std::vector<double> average_channels(intptr_t first_frame = 0, intptr_t last_frame = -1);
+
 	static Signal<const String&, const String&, int> start_loading;
 
 	static Signal<int> update_loading;
