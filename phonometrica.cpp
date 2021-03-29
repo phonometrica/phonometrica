@@ -10,6 +10,7 @@
 #ifdef PHON_EMBED_SCRIPTS
 #include <phon/include/initialize_phon.hpp>
 #include <phon/include/signal_phon.hpp>
+#include <phon/include/speech_analysis_phon.hpp>
 #endif
 
 #if PHON_MACOS
@@ -70,6 +71,7 @@ static void initialize(Runtime &rt)
 	Project::initialize(rt);
 
 	Sound::set_sound_formats();
+	run_script(rt, speech_analysis);
 #endif // PHON_GUI
 }
 

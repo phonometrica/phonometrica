@@ -337,6 +337,7 @@ void MainWindow::SetBindings()
 	project_manager->request_save.connect(&MainWindow::SaveProject, this);
 	View::modified.connect(&ProjectManager::OnProjectUpdated, project_manager);
 	View::request_console.connect(&MainWindow::OnRequestConsole, this);
+	View::send_code.connect(&Console::RunCode, console);
 	View::file_created.connect(&Viewer::ViewFile, viewer);
 	Element::request_progress.connect(&MainWindow::OnRequestProgress, this);
 	Element::update_progress.connect(&MainWindow::OnUpdateProgress, this);
@@ -1545,6 +1546,14 @@ void MainWindow::SetShellFunctions()
 		return Variant();
 	};
 
+	auto get_current_sound = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto sound = viewer->GetCurrentSound();
+		if (sound) {
+			return sound;
+		}
+		return Variant();
+	};
+
 #if 0
 	auto view_annotation1 = [this](Runtime &, std::span<Variant> args) -> Variant {
 		auto &annot = cast<Annotation>(args[0]);
@@ -1617,31 +1626,19 @@ void MainWindow::SetShellFunctions()
 		return Variant();
 	};
 
-	auto get_current_sound = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto viewer = viewer;
-		auto sound = viewer->getCurrentSound();
-		if (sound) {
-			return make_handle<AutoSound>(std::move(sound));
-		}
-		return Variant();
-	};
-
 	auto get_current_annot = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto viewer = viewer;
-		auto annot = viewer->getCurrentAnnotation();
+		auto annot = viewer->GetCurrentAnnotation();
 		if (annot) {
-			return make_handle<Handle<Annotation>>(std::move(annot));
+			return annot;
 		}
 		return Variant();
 	};
 
 	auto get_window_duration = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto viewer = viewer;
 		return viewer->getWindowDuration();
 	};
 
 	auto get_selection_duration = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto viewer = viewer;
 		return viewer->getSelectionDuration();
 	};
 #endif
@@ -1668,7 +1665,7 @@ void MainWindow::SetShellFunctions()
 	runtime.add_global("create_progress_dialog", create_progress_dialog, {CLS(String), CLS(String), CLS(intptr_t) });
 	runtime.add_global("update_progress_dialog", update_progress_dialog, {CLS(intptr_t) });
 	runtime.add_global("launch_browser", launch_browser, {CLS(String) });
-//	runtime.add_global("get_current_sound", get_current_sound, { });
+	runtime.add_global("get_current_sound", get_current_sound, { });
 //	runtime.add_global("get_current_annotation", get_current_annot, { });
 //	runtime.add_global("get_window_duration", get_window_duration,  { });
 //	runtime.add_global("get_selection_duration", get_selection_duration, { });

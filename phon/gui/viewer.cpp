@@ -94,7 +94,7 @@ void Viewer::SetStartView()
 	}
 }
 
-View *Viewer::GetCurrentView()
+View *Viewer::GetCurrentView() const
 {
 	return GetView(GetSelection());
 }
@@ -235,6 +235,23 @@ void Viewer::UpdateLabels()
 void Viewer::OnMainCloseButtonClicked(wxAuiNotebookEvent &)
 {
 	CloseViews();
+}
+
+Handle<Sound> Viewer::GetCurrentSound() const
+{
+	auto view = dynamic_cast<const SoundView*>(GetCurrentView());
+
+	if (view) {
+		return view->GetSound();
+	}
+
+	return Handle<Sound>();
+}
+
+Handle<Annotation> Viewer::GetCurrentAnnotation() const
+{
+	//TODO: get current annotaiton
+	return Handle<Annotation>();
 }
 
 } // namespace phonometrica

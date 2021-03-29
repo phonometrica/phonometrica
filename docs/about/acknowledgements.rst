@@ -10,6 +10,7 @@ Phonometrica uses (parts of) the following open source libraries, sometimes with
 * FLAC, by Josh Coalson and contributors (BSD), see `flac.sourceforge.net <http://flac.sourceforge.net>`_
 * IT++, by Bogdan Cristea, Tony Ottosson, Adam Piatyszek and contributors (GPL), see `itpp.sourceforge.net <http://itpp.sourceforge.net>`_
 * LBFGS++, by Yixuan Qiu, based on work by Naoaki Okazaki (MIT), see `lbfgspp.statr.me <https://lbfgspp.statr.me/>`_
+* librosa, by the librosa development team (ISC license), see `librosa.org <https://librosa.org/>`_
 * libsndfile, by Erik de Castro Lopo (LGPL), see `www.mega-nerd.com <http://www.mega-nerd.com>`_
 * MuJS, by Artifex Software (ISC), see `mujs.com <https://mujs.com/>`_
 * PCRE, by Philip Hazel (BSD), see `www.pcre.org <https://www.pcre.org/>`_

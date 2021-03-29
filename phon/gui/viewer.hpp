@@ -49,7 +49,7 @@ public:
 
 	void CloseCurrentView();
 
-	View *GetCurrentView();
+	View *GetCurrentView() const;
 
 	void ViewFile(const Handle<Document> &file);
 
@@ -59,11 +59,15 @@ public:
 
 	void CloseViews();
 
-	View *GetView(size_t i) { return dynamic_cast<View*>(GetPage(i)); }
+	View *GetView(size_t i) const { return dynamic_cast<View*>(GetPage(i)); }
 
 	void UpdateCurrentView();
 
 	void UpdateLabels();
+
+	Handle<Sound> GetCurrentSound() const;
+
+	Handle<Annotation> GetCurrentAnnotation() const;
 
 	Signal<> request_console;
 

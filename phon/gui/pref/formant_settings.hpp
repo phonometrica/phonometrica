@@ -13,99 +13,40 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 26/03/2021                                                                                                 *
+ * Created: 28/03/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Display a spectrogram in a sound or annotation view.                                                       *
+ * Purpose: Preference dialog for formant tracking.                                                                    *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SPECTROGRAM_HPP
-#define PHONOMETRICA_SPECTROGRAM_HPP
+#ifndef PHONOMETRICA_FORMANT_SETTINGS_HPP
+#define PHONOMETRICA_FORMANT_SETTINGS_HPP
 
-#include <phon/gui/plot/sound_plot.hpp>
-#include <phon/analysis/signal_processing.hpp>
+#include <wx/panel.h>
+#include <wx/textctrl.h>
+#include <phon/gui/pref/preferences_dialog.hpp>
 
 namespace phonometrica {
 
-class Spectrogram final : public SoundPlot
+class FormantSettings final : public PreferencesDialog
 {
 public:
 
-	Spectrogram(wxWindow *parent, const Handle<Sound> &snd);
-
-	bool HasFormants() const;
-
-	void ShowFormants(bool value);
+	FormantSettings(wxWindow *parent);
 
 private:
 
-	void InvalidateCache() override;
+	void DoReset() override;
 
-	void DrawYAxis(wxPaintDC &dc, const wxRect &rect) override;
+	bool DoOk() override;
 
-	void ReadSettings() override;
+	wxPanel *MakeGeneralPanel();
 
-	void ReadSpectrogramSettings();
+	void DisplayValues();
 
-	void ReadFormantSettings();
-
-	void OnPaint(wxPaintEvent &);
-
-	void UpdateCache();
-
-	void Render(wxPaintDC &dc);
-
-	void DrawFormants();
-
-	Matrix<double> ComputeSpectrogram();
-
-	void EstimateFormants();
-
-	int FormantToYPos(double hz);
-
-	// A matrix containing i time measurements across j formants.
-	Matrix<double> formants;
-
-	// Cached spectrogram.
-    wxBitmap m_cached_bmp;
-
-	// Duration of the analysis window for spectrograms.
-	double spectrum_window_length;
-
-	// Highest frequency.
-	double max_freq;
-
-	// Pre-emphasis factor.
-	double preemph_threshold;
-
-	// Dynamic range (in dB). Values below the threshold [max_dB - dynamic_range] are treated as 0.
-	int dynamic_range;
-
-	// Duration of the analysis window for formants.
-	double formant_window_length;
-
-	// Nyquist frequency range for formant analysis.
-	double max_formant_frequency;
-
-	// Number of prediction coefficients for LPC analysis.
-	int lpc_order;
-
-	// Number of formants to display.
-	int nformant;
-
-	// Cached size.
-	wxSize m_cached_size;
-
-	// Window type for the spectrogram.
-	speech::WindowType window_type;
-
-	// Enable formant tracking.
-	bool show_formants = true;
-
+	wxTextCtrl *nformant_ctrl, *window_ctrl, *npole_ctrl, *max_freq_ctrl;
 };
 
 } // namespace phonometrica
 
-
-
-#endif // PHONOMETRICA_SPECTROGRAM_HPP
+#endif // PHONOMETRICA_FORMANT_SETTINGS_HPP

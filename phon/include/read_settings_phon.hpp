@@ -37,6 +37,7 @@ phon.settings = {
 },
 
 "sound_plots": {
+"waveform": true,
 "spectrogram": true,
 "formants": false,
 "pitch": true,

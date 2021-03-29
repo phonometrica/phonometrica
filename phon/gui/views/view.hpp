@@ -75,6 +75,8 @@ public:
 
 	static Signal<> request_console;
 
+	static Signal<const String&> send_code;
+
 	static Signal<const Handle<Document>&> file_created;
 
 protected:

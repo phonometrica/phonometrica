@@ -187,8 +187,8 @@ double WeeninkModel::score(double t) const
 	return pow(s2, t) * (x2 / d);
 }
 
-std::pair<double,double> find_lpc_parameters(Sound *sound, int nformant, double max_bandwidth, double win_size,
-		double t1, double t2, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2)
+std::pair<double, double>
+find_lpc_parameters(Sound *sound, int nformant, double win_size, double t1, double t2, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2)
 {
 	// Take at least 8 points, or about one measurement every 5 ms.
 	int npoint = 1000 * (t2 - t1) / 5;
@@ -212,7 +212,7 @@ std::pair<double,double> find_lpc_parameters(Sound *sound, int nformant, double 
 
 			for (auto t : time_points)
 			{
-				auto formants = sound->get_formants(t, nformant, nyquist, max_bandwidth, win_size, order);
+				auto formants = sound->get_formants(t, nformant, nyquist, win_size, order);
 
 				for (intptr_t j = 0; j < nformant; j++)
 				{

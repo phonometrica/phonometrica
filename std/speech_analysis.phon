@@ -2,7 +2,7 @@
 # Copyright (C) 2019 Julien Eychenne <jeychenne@gmail.com>                                                             #
 #                                                                                                                      #
 # This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public    #
-# License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any       #
+# License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any       #
 # later version.                                                                                                       #
 #                                                                                                                      #
 # This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied   #
@@ -12,88 +12,60 @@
 # You should have received a copy of the GNU General Public License along with this program. If not, see               #
 # <http://www.gnu.org/licenses/>.                                                                                      #
 #                                                                                                                      #
-# Created: 23/02/2019                                                                                                  #
+# Created: 28/11/2019                                                                                                  #
 #                                                                                                                      #
-# purpose: Default user settings.                                                                                      #
+# Purpose: reporting routines for acoustic analysis.                                                                   #
 #                                                                                                                      #
 ########################################################################################################################
 
-phon.settings = {
-	"recent_projects": [],
+function report_intensity(time)
+    local sound = get_current_sound()
+    if sound then
+        local dB = get_intensity(sound, time)
+        print "Intensity at time ", time, " s = ", dB, " dB"
+    else
+        alert("No sound or annotation view is currently selected!")
+    end
+end
 
-	"last_directory": "",
+function report_pitch(time)
+    local sound = get_current_sound()
+    if sound then
+        local f0 = get_pitch(sound, time)
+        if f0 then
+            print "Pitch at time ", time, " s = ", f0, " Hz"
+        else
+            print "Pitch at time ", time, " s = undefined"
+        end
+    else
+        alert("No sound or annotation view is currently selected!")
+    end
+end
 
-	"project_ratio": 0.17,
+function report_formants(time as Number)
+    print "Formants at time ", time, " s:"
+    local sound = get_current_sound()
+    if sound then
+        local result = get_formants(sound, time)
+        local nformant = result.nrow
 
-	"console_ratio": 0.8,
+        for i = 1 to nformant do
+            local label = "F" & i
+            local fmt = result[i, 1]
+            local bw = result[i, 2]
 
-	"info_ratio": 0.8,
+            if fmt then
+                print label, " = ", fmt, " Hz\t bandwidth = ", bw, " Hz"
+            else
+                print label, " = undefined"
+            end
+        end
+    else
+        alert("No sound or annotation view is currently selected!")
+    end
+end
 
-	"geometry": [0, 0, 0, 0],
-
-	"full_screen": true,
-
-	"hide_project": false,
-
-	"hide_console": false,
-
-	"hide_info": false,
-
-	"autosave": false,
-
-	"autoload": false,
-
-	"autohints": true,
-
-	"enable_mouse_tracking": true,
-
-	"concordance": {
-	    "discard_empty": true,
-	    "context_length": 40
-	},
-
-	"sound_plots": {
-		"waveform": true,
-		"spectrogram": true,
-		"formants": false,
-		"pitch": true,
-		"intensity": true
-	},
-
-	"waveform": {
-		"magnitude": 1.0,
-		"scaling": "local"
-	},
-
-	"pitch_tracking": {
-        "minimum_pitch": 70,
-        "maximum_pitch": 500,
-		"time_step": 0.01,
-        "voicing_threshold": 0.25
-    },
-
-	"intensity": {
-		"minimum_intensity": 50,
-		"maximum_intensity": 100,
-		"time_step": 0.01
-	},
-
-	"spectrogram": {
-		"window_size": 0.005,
-		"frequency_range": 5500,
-		"window_type": "Gaussian",
-		"dynamic_range": 70,
-		"preemphasis_threshold": 1000
-	},
-
-	"formants": {
-		"number_of_formants": 4,
-		"window_size": 0.025,
-		"lpc_order": 10,
-		"max_frequency": 5500,
-		"max_bandwidth": 400
-	}
-}
-
-
-
+function report_formants(t1 as Number, t2 as Number)
+    local t = t1 + (t2 - t1) / 2
+    report_formants(t)
+end

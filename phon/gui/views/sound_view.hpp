@@ -30,6 +30,8 @@
 #include <phon/gui/x_axis_info.hpp>
 #include <phon/gui/y_axis_info.hpp>
 #include <phon/gui/sizer.hpp>
+#include <phon/gui/lines.hpp>
+#include <phon/gui/plot/spectrogram.hpp>
 #include <phon/application/audio_player.hpp>
 #include <phon/application/sound.hpp>
 
@@ -52,6 +54,8 @@ public:
 	String GetPath() const override;
 
 	void SetTimeSelection(double from, double to);
+
+	Handle<Sound> GetSound() const;
 
 protected:
 
@@ -123,6 +127,30 @@ protected:
 
 	void OnWaveformSettings(wxCommandEvent &);
 
+	void OnSpectrogramSettings(wxCommandEvent &);
+
+	void OnFormantSettings(wxCommandEvent &);
+
+	void OnPitchSettings(wxCommandEvent &);
+
+	void OnIntensitySettings(wxCommandEvent &);
+
+	void OnShowSpectrogram(wxCommandEvent &e);
+
+	void OnShowFormants(wxCommandEvent &e);
+
+	void ShowSpectrogram(bool value);
+
+	void ShowFormants(bool value);
+
+	void OnShowWaveforms(wxCommandEvent &e);
+
+	void ShowWaveforms(bool value);
+
+	void OnGetFormants(wxCommandEvent &);
+
+	void SendCommand(const String &code);
+
 	wxButton *m_wave_tool, *m_spectrum_tool, *m_formant_tool, *m_pitch_tool, *m_intensity_tool;
 
 	wxButton *m_play_tool;
@@ -149,6 +177,14 @@ protected:
 	WaveBar *m_wavebar;
 
 	AudioPlayer player;
+
+	std::vector<Waveform*> waveforms;
+
+	Spectrogram *spectrogram;
+
+	std::vector<HLine*> wave_lines;
+
+	HLine *spectrogram_line, *pitch_line, *intensity_line;
 };
 
 } // namespace phonometrica

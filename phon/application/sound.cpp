@@ -296,7 +296,7 @@ Sound::get_formants(const Array<double> &times, int nformant, double nyquist_fre
 
 	for (auto t : times)
 	{
-		auto tmp = get_formants(t, nformant, nyquist_frequency, max_bandwidth, window_size, lpc_order);
+		auto tmp = get_formants(t, nformant, nyquist_frequency, window_size, lpc_order);
 		for (intptr_t i = 1; i <= nformant; i++)
 		{
 			for (intptr_t j = 1; j <= 2; j++)
@@ -317,11 +317,12 @@ Sound::get_formants(const Array<double> &times, int nformant, double nyquist_fre
 	return result;
 }
 
-Array<double> Sound::get_formants(double time, int nformant, double nyquist_frequency, double max_bandwidth, double window_size, int lpc_order)
+Array<double>
+Sound::get_formants(double time, int nformant, double nyquist_frequency, double window_size, int lpc_order)
 {
 	load();
 	Array<double> result(nformant, 2, 0.0);
-#if 0
+
 	using namespace speech;
 	PHON_LOG("Calculating formants");
 	//std::cerr << "get_formants at time " << time << std::endl;
@@ -339,19 +340,22 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 		throw error("File '%': time point % is too close to the end of the file", path(), time);
 	}
 
-	auto input = m_data->copy(first_sample, last_sample);
+	auto sample_rate = this->sample_rate();
+	auto input = average_channels(first_sample, last_sample);
 	std::vector<double> tmp; // not needed if sampling rates are equal
 	std::span<double> output;
-	// Apply pre-emphasis from 50 Hz.
-	pre_emphasis(input, m_data->sample_rate(), 50);
 
-	if (Fs == m_data->sample_rate())
+	if (Fs == sample_rate)
 	{
+		// Apply pre-emphasis from 50 Hz.
+		pre_emphasis(input, this->sample_rate(), 50);
 		output = input;
 	}
 	else
 	{
-		tmp = resample(input, m_data->sample_rate(), Fs);
+		tmp = resample(input, sample_rate, Fs);
+		// Apply pre-emphasis from 50 Hz.
+		pre_emphasis(tmp, Fs, 50);
 		output = std::span<double>(tmp);
 	}
 	int nframe = output.size();
@@ -381,11 +385,12 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 	}
 
 	int count = 0;
-	const double max_freq = Fs / 2 - 50;
+	const double lowest_freq = 50.0;
+	const double highest_freq = Fs / 2 - lowest_freq;
 	for (size_t k = 0; k < freqs.size(); k++)
 	{
 		auto freq = freqs[k];
-		if (freq > 50 && freq < max_freq && bw[k] < max_bandwidth)
+		if (freq > 50 && freq < highest_freq)
 		{
 			result(++count, 1) = freq;
 			result(count, 2) = bw[k];
@@ -397,7 +402,7 @@ Array<double> Sound::get_formants(double time, int nformant, double nyquist_freq
 		result(k, 1) = std::nan("");
 		result(k, 2) = std::nan("");
 	}
-#endif
+
 	return result;
 }
 
@@ -539,11 +544,10 @@ void Sound::initialize(Runtime &rt)
 		String category("formants");
 		intptr_t nformant = Settings::get_number(category, "number_of_formants");
 		double nyquist = Settings::get_number(category, "max_frequency");
-		double max_bw = Settings::get_number(category, "max_bandwidth");
 		double win_size = Settings::get_number(category, "window_size");
 		intptr_t lpc_order = Settings::get_number(category, "lpc_order");
 		sound.open();
-		return sound.get_formants(time, nformant, nyquist, max_bw, win_size, lpc_order);
+		return sound.get_formants(time, nformant, nyquist, win_size, lpc_order);
 	};
 
 	auto get_formants2 = [](Runtime &, std::span<Variant> args) -> Variant {
@@ -551,11 +555,10 @@ void Sound::initialize(Runtime &rt)
 		auto time = args[1].resolve().get_number();
 		intptr_t nformant = cast<intptr_t>(args[2]);
 		double nyquist = args[3].resolve().get_number();
-		double max_bw = args[4].resolve().get_number();
-		double win_size = args[5].resolve().get_number();
-		intptr_t lpc_order = cast<intptr_t>(args[6]);
+		double win_size = args[4].resolve().get_number();
+		intptr_t lpc_order = cast<intptr_t>(args[5]);
 		sound.open();
-		return sound.get_formants(time, nformant, nyquist, max_bw, win_size, lpc_order);
+		return sound.get_formants(time, nformant, nyquist, win_size, lpc_order);
 	};
 
 	auto hz2bark1 = [](Runtime &, std::span<Variant> args) -> Variant {
@@ -668,7 +671,7 @@ void Sound::initialize(Runtime &rt)
 	rt.add_global("get_pitch", get_pitch2, {CLS(Sound), CLS(Number), CLS(Number), CLS(Number) });
 	rt.add_global("get_pitch", get_pitch3, {CLS(Sound), CLS(Number), CLS(Number), CLS(Number), CLS(Number) });
 	rt.add_global("get_formants", get_formants1, {CLS(Sound), CLS(Number) });
-	rt.add_global("get_formants", get_formants2, {CLS(Sound), CLS(Number), CLS(intptr_t), CLS(Number), CLS(Number), CLS(Number), CLS(intptr_t) });
+	rt.add_global("get_formants", get_formants2, {CLS(Sound), CLS(Number), CLS(intptr_t), CLS(Number), CLS(Number), CLS(intptr_t) });
 	rt.add_global("get_intensity", get_intensity, {CLS(Sound), CLS(Number) });
 	rt.add_global("hertz_to_bark", hz2bark1, {CLS(Number) });
 	rt.add_global("hertz_to_bark", hz2bark2, {CLS(Array<double>) });

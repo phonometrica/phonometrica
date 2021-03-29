@@ -46,6 +46,8 @@ public:
 
 	void RunScript(const String &path);
 
+	void RunCode(const String &code);
+
 	void ShowLastPosition();
 
 private:
@@ -63,8 +65,6 @@ private:
 	void GoToEnd() { text_ctrl->SetInsertionPointEnd(); }
 
 	void Append(const wxString &text) { text_ctrl->WriteText(text); }
-
-	void RunCode(const String &code);
 
 	wxRichTextCtrl *text_ctrl;
 

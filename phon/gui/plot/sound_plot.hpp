@@ -42,6 +42,8 @@ public:
 
 	SoundPlot(wxWindow *parent, const Handle<Sound> &snd);
 
+	bool HasSelection() const { return m_sel.t1 >= 0; }
+
 	const TimeSelection & GetSelection() const;
 
 	void SetSelection(const TimeSelection &sel);
@@ -93,8 +95,6 @@ public:
 	Signal<> y_axis_modified;
 
 protected:
-
-	bool HasSelection() const { return m_sel.t1 >= 0; }
 
 	bool HasVisibleSelection() const;
 

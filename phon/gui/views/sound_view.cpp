@@ -21,10 +21,10 @@
 
 #include <wx/msgdlg.h>
 #include <phon/gui/views/sound_view.hpp>
-#include <phon/gui/lines.hpp>
 #include <phon/gui/selection_dialog.hpp>
 #include <phon/gui/pref/waveform_settings.hpp>
-#include <phon/gui/plot/spectrogram.hpp>
+#include <phon/gui/pref/spectrogram_settings.hpp>
+#include <phon/gui/pref/formant_settings.hpp>
 #include <phon/application/macros.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
@@ -53,15 +53,19 @@ void SoundView::Initialize()
 	for (int i = 1; i <= m_sound->nchannel(); i++)
 	{
 		auto waveform = new Waveform(this, m_sound, i);
+		waveforms.push_back(waveform);
 		waveform->SetGlobalMagnitude(m_wavebar->GetMagnitude());
 		m_inner_sizer->Add(waveform, 1, wxEXPAND|wxRIGHT, 10);
-		m_inner_sizer->Add(new HLine(this));
+		auto hline = new HLine(this);
+		m_inner_sizer->Add(hline);
+		wave_lines.push_back(hline);
 		m_plots.append(waveform);
 	}
 
-	auto spectrogram = new Spectrogram(this, m_sound);
+	spectrogram = new Spectrogram(this, m_sound);
 	m_inner_sizer->Add(spectrogram, 1, wxEXPAND|wxRIGHT, 10);
-	m_inner_sizer->Add(new HLine(this));
+	spectrogram_line = new HLine(this);
+	m_inner_sizer->Add(spectrogram_line);
 	m_plots.append(spectrogram);
 
 	m_inner_sizer->Add(m_zoom, 0, wxEXPAND|wxRIGHT, 10);
@@ -101,6 +105,17 @@ void SoundView::Initialize()
 	m_y_axis->invalidate_selection.connect(&SoundView::OnInvalidateSelection, this);
 	m_wavebar->change_window.connect(&XAxisInfo::SetTimeWindow, m_x_axis);
 	SetTopPlot();
+
+	String category("sound_plots");
+	bool show_wave = Settings::get_boolean(category, "waveform");
+	bool show_spectrogram = Settings::get_boolean(category, "spectrogram");
+	bool show_formants = Settings::get_boolean(category, "formants");
+//	bool show_pitch = Settings::get_boolean(category, "pitch");
+//	bool show_intensity = Settings::get_boolean(category, "intensity");
+	ShowWaveforms(show_wave);
+	ShowSpectrogram(show_spectrogram);
+	ShowFormants(show_formants);
+	Layout();
 }
 
 bool SoundView::IsModified() const
@@ -374,9 +389,11 @@ void SoundView::OnWaveMenu(wxCommandEvent &)
 	auto menu = new wxMenu;
 	auto show_msg = m_sound->is_mono() ? _("Show waveform") : _("Show waveforms");
 	auto show_tool = menu->AppendCheckItem(wxID_ANY, show_msg);
-	auto settings_tool = menu->Append(wxID_ANY, _("Waveform settings"));
+	menu->AppendSeparator();
+	auto settings_tool = menu->Append(wxID_ANY, _("Waveform settings..."));
 	show_tool->Check(true);
 	show_tool->Enable(false);
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnShowWaveforms, this, show_tool->GetId());
 	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnWaveformSettings, this, settings_tool->GetId());
 
 	m_toolbar->ShowMenu(m_wave_tool, menu);
@@ -384,12 +401,34 @@ void SoundView::OnWaveMenu(wxCommandEvent &)
 
 void SoundView::OnSpectrogramMenu(wxCommandEvent &)
 {
+	auto menu = new wxMenu;
+	auto show_tool = menu->AppendCheckItem(wxID_ANY, _("Show spectrogram"));
+	menu->AppendSeparator();
+	auto settings_tool = menu->Append(wxID_ANY, _("Spectrogram settings..."));
+	bool show = Settings::get_boolean("sound_plots", "spectrogram");
+	show_tool->Check(show);
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnShowSpectrogram, this, show_tool->GetId());
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnSpectrogramSettings, this, settings_tool->GetId());
 
+	m_toolbar->ShowMenu(m_spectrum_tool, menu);
 }
 
 void SoundView::OnFormantsMenu(wxCommandEvent &)
 {
+	String category("sound_plots");
+	auto menu = new wxMenu;
+	auto show_tool = menu->AppendCheckItem(wxID_ANY, _("Show formants"));
+	auto get_tool = menu->Append(wxID_ANY, _("Get formants"));
+	menu->AppendSeparator();
+	auto settings_tool = menu->Append(wxID_ANY, _("Formant settings..."));
+	bool show = Settings::get_boolean(category, "formants");
+	show_tool->Check(show);
+	show_tool->Enable(Settings::get_boolean(category, "spectrogram"));
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnShowFormants, this, show_tool->GetId());
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnGetFormants, this, get_tool->GetId());
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnFormantSettings, this, settings_tool->GetId());
 
+	m_toolbar->ShowMenu(m_formant_tool, menu);
 }
 
 void SoundView::OnPitchMenu(wxCommandEvent &)
@@ -477,15 +516,106 @@ void SoundView::OnWaveformSettings(wxCommandEvent &)
 
 	if (ed.ShowModal() != wxID_CANCEL)
 	{
-		for (auto plot : m_plots)
-		{
-			auto wav = dynamic_cast<Waveform*>(plot);
-
-			if (wav) {
-				wav->UpdateSettings();
-			}
+		for (auto wav : waveforms) {
+			wav->UpdateSettings();
 		}
 	}
 }
+
+void SoundView::OnSpectrogramSettings(wxCommandEvent &)
+{
+	SpectrogramSettings ed(this);
+
+	if (ed.ShowModal() != wxID_CANCEL) {
+		spectrogram->UpdateSettings();
+	}
+}
+
+void SoundView::OnFormantSettings(wxCommandEvent &)
+{
+	FormantSettings ed(this);
+
+	if (ed.ShowModal() != wxID_CANCEL) {
+		spectrogram->UpdateSettings();
+	}
+}
+
+void SoundView::OnPitchSettings(wxCommandEvent &)
+{
+
+}
+
+void SoundView::OnIntensitySettings(wxCommandEvent &)
+{
+
+}
+
+void SoundView::OnShowSpectrogram(wxCommandEvent &e)
+{
+	ShowSpectrogram(e.IsChecked());
+	Layout();
+}
+
+void SoundView::ShowSpectrogram(bool value)
+{
+	Settings::set_value("sound_plots", "spectrogram", value);
+	spectrogram->Show(value);
+	spectrogram_line->Show(value);
+}
+
+void SoundView::OnShowFormants(wxCommandEvent &e)
+{
+	ShowFormants(e.IsChecked());
+	Layout();
+}
+
+void SoundView::ShowFormants(bool value)
+{
+	if (value) {
+		ShowSpectrogram(true);
+	}
+	spectrogram->ShowFormants(value);
+	Settings::set_value("sound_plots", "formants", value);
+}
+
+void SoundView::OnShowWaveforms(wxCommandEvent &e)
+{
+	ShowWaveforms(e.IsChecked());
+	Layout();
+}
+
+void SoundView::ShowWaveforms(bool value)
+{
+	Settings::set_value("sound_plots", "spectrogram", value);
+	for (auto wave : waveforms) {
+		wave->Show(value);
+	}
+	for (auto line : wave_lines) {
+		line->Show(value);
+	}
+}
+
+void SoundView::OnGetFormants(wxCommandEvent &)
+{
+	if (!spectrogram->HasSelection()) {
+		wxMessageBox(_("First select a point or a portion of the signal"), _("Cannot measure formants"), wxICON_ERROR);
+		return;
+	}
+	auto sel = spectrogram->GetSelection();
+	String cmd = (sel.t1 == sel.t2) ? String::format("report_formants(%.10f)", sel.t1) : String::format("report_formants(%.10f, %.10f)", sel.t1, sel.t2);
+	SendCommand(cmd);
+}
+
+void SoundView::SendCommand(const String &code)
+{
+	request_console();
+	send_code(code);
+}
+
+Handle<Sound> SoundView::GetSound() const
+{
+	return m_sound;
+}
+
 
 } // namespace phonometrica

@@ -93,8 +93,8 @@ double legendre(double x, unsigned int n);
 WeeninkModel model_segment(const Matrix<double> &F, const Matrix<double> &B, unsigned int p = 4);
 
 // Find the best <Nyquist frequency, LPC order> pair for a vocoid given a set of parameter to search for.
-std::pair<double,double> find_lpc_parameters(Sound *sound, int nformant, double max_bandwidth, double win_size,
-		double t1, double t2, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2);
+std::pair<double, double>
+find_lpc_parameters(Sound *sound, int nformant, double win_size, double t1, double t2, double max_freq1, double max_freq2, double step, int lpc_order1, int lpc_order2);
 
 
 } // namespace phonometrica::speech

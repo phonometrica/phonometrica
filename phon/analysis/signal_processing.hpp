@@ -56,6 +56,9 @@ double get_intensity(std::span<double> frame, std::span<double> window);
 std::vector<double> get_intensity(std::span<double> input, int samplerate, intptr_t window_size, double time_step, WindowType type = WindowType::Hamming);
 
 
+// Adapted from Praat's pre-emphasis routine in Sound_to_Formant.cpp
+// Copyright (C) 1992-2008,2010-2012,2014-2020 Paul Boersma
+// License: GPL 2 or later
 template<typename Container>
 void pre_emphasis(Container &data, double Fs, double threshold)
 {
@@ -63,19 +66,16 @@ void pre_emphasis(Container &data, double Fs, double threshold)
 	T *x = data.data();
 	double alpha = exp(-2 * M_PI * threshold * (1.0 / Fs));
 
-	x[0] = x[0] * (1.0 - alpha);
-
-	for (intptr_t k = 1; k < (intptr_t)data.size(); k++)
-	{
-		x[k] = x[k] - alpha * x[k-1];
+	for (auto i = data.size(); i-- > 0; ) {
+		x[i] -= alpha * x[i-1];
 	}
 }
 
 // Calculate LPC coefficients from a speech frame.
-Array<double> get_lpc_coefficients(const Array<double> &frame, int npole);
+std::vector<double> get_lpc_coefficients(const Array<double> &frame, int npole);
 
 // Get formant frequencies and bandwidths from a set of LPC coefficients.
-bool get_formants(const Array<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw);
+bool get_formants(const std::vector<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw);
 
 }} // namespace phonometrica::speech
 

@@ -25,6 +25,8 @@
 #include <wx/msgdlg.h>
 #include <phon/gui/plot/spectrogram.hpp>
 #include <phon/application/settings.hpp>
+#include <phon/application/resampler.hpp>
+#include <phon/analysis/speech_utils.hpp>
 
 namespace phonometrica {
 
@@ -109,6 +111,7 @@ void Spectrogram::UpdateCache()
 	if (show_formants)
 	{
 		EstimateFormants();
+		DrawFormants();
 	}
 }
 
@@ -175,7 +178,6 @@ void Spectrogram::ReadFormantSettings()
 	formant_window_length = Settings::get_number(category, "window_size");
 	lpc_order = (int) Settings::get_number(category, "lpc_order");
 	max_formant_frequency = Settings::get_number(category, "max_frequency");
-	max_formant_bandwidth = Settings::get_number(category, "max_bandwidth");
 }
 
 void Spectrogram::OnPaint(wxPaintEvent &)
@@ -341,7 +343,134 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 
 void Spectrogram::EstimateFormants()
 {
+	using namespace speech;
+	auto width = GetSize().GetWidth();
+	auto xpoints = linspace(0, GetWindowDuration(), width, true);
+	auto npoint = xpoints.size();
+	formants = Matrix<double>(npoint, nformant);
+	Matrix<double> bandwidths(npoint, nformant);
+	formants.setZero(npoint, nformant);
+	bandwidths.setZero(npoint, nformant);
 
+	auto from = m_sound->time_to_frame(m_window.first);
+	auto to = m_sound->time_to_frame(m_window.second);
+	auto input = m_sound->average_channels(from, to);
+	std::vector<double> tmp; // not needed if sampling rates are equal
+	std::span<double> output;
+	double Fs = max_formant_frequency * 2;
+
+	if (Fs == m_sound->sample_rate())
+	{
+		// Apply pre-emphasis from 50 Hz.
+		pre_emphasis(input, m_sound->sample_rate(), 50);
+		output = input;
+	}
+	else
+	{
+		tmp = resample(input, m_sound->sample_rate(), Fs);
+		pre_emphasis(tmp, Fs, 50);
+		output = std::span<double>(tmp);
+	}
+
+	int nframe = int(ceil(formant_window_length * Fs)) * 2; // x 2 for Gaussian window
+	if (nframe % 2 == 1) nframe++;
+	auto win = create_window(nframe, nframe, WindowType::Gaussian);
+	Array<double> buffer(nframe, 0.0);
+
+	// Calculate LPC at each time point.
+	for (int i = 0; i < xpoints.size(); i++)
+	{
+		double f = time_to_frame(xpoints[i], Fs);
+		intptr_t start_frame = f - (nframe / 2);
+		intptr_t end_frame = start_frame + nframe;
+
+		// Don't estimate formants at the edge if we can't fill a window.
+		if (start_frame < 0 || end_frame >= output.size())
+		{
+			for (int j = 0; j < nformant; j++) {
+				formants(i,j) = std::nan("");
+			}
+			continue;
+		}
+
+		// Apply window.
+		auto it = output.begin() + start_frame;
+		for (int j = 1; j <= nframe; j++)
+		{
+			buffer[j] = *it++ * win[j];
+		}
+
+		auto coeffs = get_lpc_coefficients(buffer, lpc_order);
+		std::vector<double> freqs, bw;
+		bool ok = get_formants(coeffs, Fs, freqs, bw);
+
+		if (!ok)
+		{
+			for (int j = 0; j < formants.cols(); j++) {
+				formants(i, j) = std::nan("");
+			}
+			continue;
+		}
+
+		int count = 0;
+		const double lowest_freq = 50.0;
+		const double highest_frequency = Fs / 2 - lowest_freq;
+		for (int k = 0; k < freqs.size(); k++)
+		{
+			auto freq = freqs[k];
+			if (freq > lowest_freq && freq < highest_frequency)
+			{
+				formants(i, count) = freq;
+				bandwidths(i, count++) = bw[k];
+			}
+			if (count == nformant) break;
+		}
+		for (int k = count; k < nformant; k++)
+		{
+			formants(i, k) = std::nan("");
+			bandwidths(i, k) = std::nan("");
+		}
+	}
+}
+
+bool Spectrogram::HasFormants() const
+{
+	return show_formants;
+}
+
+void Spectrogram::ShowFormants(bool value)
+{
+	show_formants = value;
+	InvalidateCache();
+	Refresh();
+}
+
+void Spectrogram::DrawFormants()
+{
+	wxMemoryDC dc;
+	dc.SelectObject(m_cached_bmp);
+	dc.SetPen(wxPen(*wxRED, 1));
+	dc.SetBrush(wxBrush(*wxRED));
+	assert(formants.rows() == GetSize().GetWidth());
+
+	for (int i = 0; i < formants.rows(); i++)
+	{
+		for (int j = 0; j < formants.cols(); j++)
+		{
+			auto f = formants(i, j);
+			if (std::isnan(f)) continue;
+			auto y = FormantToYPos(f);
+			dc.DrawEllipse(i-1, y-1, 3, 3);
+//			dc.DrawPoint(i, y);
+		}
+	}
+	dc.SelectObject(wxNullBitmap);
+}
+
+int Spectrogram::FormantToYPos(double hz)
+{
+	auto h = GetSize().GetHeight();
+	return h - int(round((hz * h / max_freq)));
 }
 
 } // namespace phonometrica

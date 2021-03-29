@@ -152,11 +152,11 @@ voicing threshold used by the pitch detection algorithm. If these optional param
 
 ------------
 
-.. function:: get_formants(sound as Sound, time [, nformant [, maximum_frequency [, maximum_bandwidth [, window_length [, lpc_order]]]]])
+.. function:: get_formants(sound as Sound, time [, nformant [, maximum_frequency, [, window_length [, lpc_order]]]]])
 
 Returns an ``Array`` containing ``nformant`` rows and 2 columns. The first column contains formant values (in Hertz), such that F1 is at index (1, 1), F2 is at index (2, 1), etc.
 The second column contains the formants' bandwidths: F1's bandwidth is at index (1, 2), F2's bandwidth is at (2, 2), etc. Optionally, you can specify the number of formants to extract,
-the maximum possible frequency of the last formant, the maximum bandwidth for candidate formants, the analysis window length and the LPC order. If these optional parameters are not provided, your current settings
+the maximum possible frequency of the last formant, the analysis window length and the LPC order. If these optional parameters are not provided, your current settings
 will be used instead.
 
 

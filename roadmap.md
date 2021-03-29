@@ -20,6 +20,7 @@ Done:
 - "Search annotations" is now "Find in annotations"
 - Edit menu (find/replace, undo/redo)
 - syntax completion and call tips in script views
+- improved LPC analysis based on Burg's algorithm
 - improved bookmarks
 - ability to use modules in plugins
 - signal/slot mechanism for plugins (``create_signal()``, ``connect()``, ``disconnect()``, ``emit()``)
