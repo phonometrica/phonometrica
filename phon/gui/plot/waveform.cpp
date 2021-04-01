@@ -28,7 +28,7 @@
 namespace phonometrica {
 
 Waveform::Waveform(wxWindow *parent, const Handle<Sound> &snd, int channel) :
-	SoundPlot(parent, snd), m_cached_size(wxDefaultSize), m_channel(channel)
+	SoundPlot(parent, snd), m_channel(channel)
 {
 	try
 	{
@@ -39,8 +39,6 @@ Waveform::Waveform(wxWindow *parent, const Handle<Sound> &snd, int channel) :
 		Settings::reset_waveform();
 		ReadSettings();
 	}
-
-	Bind(wxEVT_PAINT, &Waveform::OnPaint, this);
 }
 
 void Waveform::ReadSettings()
@@ -76,35 +74,8 @@ void Waveform::ReadSettings()
 	}
 }
 
-void Waveform::InvalidateCache()
-{
-	// Don't clear the cache here, it will be done in UpdateCache() once the invalid size is detected.
-	m_cached_size = wxDefaultSize;
-}
-
-void Waveform::OnPaint(wxPaintEvent &)
-{
-	UpdateCache();
-	wxPaintDC dc(this);
-	Render(dc);
-}
-
-void Waveform::Render(wxPaintDC &dc)
-{
-	dc.DrawBitmap(m_cached_bmp, 0.0, 0.0, true);
-	DrawSelection(dc);
-	DrawCursor(dc);
-	DrawTimeTick(dc);
-	// The Y axis is repainted before the plots, so we need to explicitly update it on repaint events,
-	// otherwise the magnitude values might be incorrect.
-	y_axis_modified();
-}
-
 void Waveform::UpdateCache()
 {
-	if (GetSize() == m_cached_size) {
-		return;
-	}
 	DrawBitmap();
 	m_cached_size = GetSize();
 }
@@ -221,6 +192,8 @@ void Waveform::DrawBitmap()
 
 std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 {
+	// We compute a downsampled representation of the signal. Each point corresponds to a pixed and stores
+	// the amplitude extrema found in the range represented by the pixel.
 	std::vector<std::pair<double, double>> wave;
 	wave.reserve(GetWidth());
 

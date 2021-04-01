@@ -41,21 +41,10 @@ Spectrogram::Spectrogram(wxWindow *parent, const Handle<Sound> &snd) : SoundPlot
 		Settings::reset_spectrogram();
 		ReadSettings();
 	}
-
-	Bind(wxEVT_PAINT, &Spectrogram::OnPaint, this);
-}
-
-void Spectrogram::InvalidateCache()
-{
-	m_cached_size = wxDefaultSize;
 }
 
 void Spectrogram::UpdateCache()
 {
-	if (GetSize() == m_cached_size) {
-		return;
-	}
-
 	auto raster = ComputeSpectrogram();
 
 	wxBitmap bmp(GetSize());
@@ -178,24 +167,6 @@ void Spectrogram::ReadFormantSettings()
 	formant_window_length = Settings::get_number(category, "window_size");
 	lpc_order = (int) Settings::get_number(category, "lpc_order");
 	max_formant_frequency = Settings::get_number(category, "max_frequency");
-}
-
-void Spectrogram::OnPaint(wxPaintEvent &)
-{
-	UpdateCache();
-	wxPaintDC dc(this);
-	Render(dc);
-}
-
-void Spectrogram::Render(wxPaintDC &dc)
-{
-	dc.DrawBitmap(m_cached_bmp, 0.0, 0.0, true);
-	DrawSelection(dc);
-	DrawCursor(dc);
-	DrawTimeTick(dc);
-	// The Y axis is repainted before the plots, so we need to explicitly update it on repaint events,
-	// otherwise the magnitude values might be incorrect.
-	y_axis_modified();
 }
 
 Matrix<double> Spectrogram::ComputeSpectrogram()

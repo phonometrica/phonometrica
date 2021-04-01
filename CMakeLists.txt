@@ -266,7 +266,8 @@ if (WITH_GUI)
             phon/third_party/zip/zip.cpp
             phon/third_party/sptk/*.c
             phon/third_party/sptk/*.cpp
-            #phon/third_party/snack/*.c
+            phon/third_party/sptk/snack/*.c
+#            phon/third_party/sptk/snack/*.cpp
             phon/third_party/swipe/*.c phon/third_party/swipe/*.cpp phon/third_party/swipe/*.h
     )
 

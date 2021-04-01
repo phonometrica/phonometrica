@@ -43,11 +43,9 @@ public:
 
 private:
 
-	void InvalidateCache() override;
-
 	void DrawYAxis(wxPaintDC &dc, const wxRect &rect) override;
 
-	void UpdateCache();
+	void UpdateCache() override;
 
 	std::vector<std::pair<double,double>> DownsampleWaveform();
 
@@ -60,18 +58,7 @@ private:
 
     void SetLocalMagnitude(std::span<const double> data);
 
-	void OnPaint(wxPaintEvent &);
-
-	void Render(wxPaintDC &dc);
-
 	void DrawBitmap();
-
-	// We precompute and cache a downsampled representation of the signal. Each point corresponds to a pixed and stores
-	// the amplitude extrema found in the range represented by the pixel.
-    wxBitmap m_cached_bmp;
-
-    // Cache the size of the plot when we compute the data
-    wxSize m_cached_size;
 
     Scaling scaling = Scaling::Fixed;
 

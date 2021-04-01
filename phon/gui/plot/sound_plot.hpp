@@ -96,6 +96,12 @@ public:
 
 protected:
 
+	void OnPaint(wxPaintEvent &);
+
+	void Render(wxPaintDC &dc);
+
+	virtual void UpdateCache() = 0;
+
 	bool HasVisibleSelection() const;
 
 	bool HasPointSelection() const { return m_sel.is_point(); }
@@ -128,9 +134,19 @@ protected:
 
     double ClipTime(double t) const;
 
+    void InvalidateCache();
+
+    bool HasValidCache() const;
+
     virtual void ReadSettings() = 0;
 
 	Handle<Sound> m_sound;
+
+	// Cached plot. The selection (if any) will be overlaid over this image.
+	wxBitmap m_cached_bmp;
+
+	// Cache the size of the plot when we compute the data
+	wxSize m_cached_size;
 
 	// Current selection on screen
 	TimeSelection m_sel = {-1.0, -1.0 };

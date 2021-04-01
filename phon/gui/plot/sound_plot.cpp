@@ -29,7 +29,7 @@
 namespace phonometrica {
 
 SoundPlot::SoundPlot(wxWindow *parent, const Handle<Sound> &snd) :
-	TimeAlignedWindow(parent), m_sound(snd)
+	TimeAlignedWindow(parent), m_sound(snd), m_cached_size(wxDefaultSize)
 {
 	m_track_mouse = Settings::get_boolean("enable_mouse_tracking");
 	Bind(wxEVT_LEFT_DOWN, &SoundPlot::OnStartSelection, this);
@@ -38,6 +38,27 @@ SoundPlot::SoundPlot(wxWindow *parent, const Handle<Sound> &snd) :
 	Bind(wxEVT_LEAVE_WINDOW, &SoundPlot::OnLeaveWindow, this);
 	Bind(wxEVT_MOUSEWHEEL, &SoundPlot::OnMouseWheel, this);
 	Bind(wxEVT_MIDDLE_DOWN, [this](wxMouseEvent &) { zoom_to_selection(); });
+	Bind(wxEVT_PAINT, &SoundPlot::OnPaint, this);
+}
+
+void SoundPlot::OnPaint(wxPaintEvent &)
+{
+	if (!HasValidCache()) {
+		UpdateCache();
+	}
+	wxPaintDC dc(this);
+	Render(dc);
+}
+
+void SoundPlot::Render(wxPaintDC &dc)
+{
+	dc.DrawBitmap(m_cached_bmp, 0.0, 0.0, true);
+	DrawSelection(dc);
+	DrawCursor(dc);
+	DrawTimeTick(dc);
+	// The Y axis is repainted before the plots, so we need to explicitly update it on repaint events,
+	// otherwise the magnitude values might be incorrect.
+	y_axis_modified();
 }
 
 void SoundPlot::OnStartSelection(wxMouseEvent &e)
@@ -100,6 +121,12 @@ void SoundPlot::OnLeaveWindow(wxMouseEvent &e)
 {
 	update_cursor(-1);
 	e.Skip();
+}
+
+void SoundPlot::InvalidateCache()
+{
+	// Don't clear the cache here, it will be done in UpdateCache() once the invalid size is detected.
+	m_cached_size = wxDefaultSize;
 }
 
 const TimeSelection & SoundPlot::GetSelection() const
@@ -351,6 +378,11 @@ void SoundPlot::UpdateSettings()
 	InvalidateCache();
 	Refresh();
 	y_axis_modified();
+}
+
+bool SoundPlot::HasValidCache() const
+{
+	return m_cached_size == GetSize();
 }
 
 } // namespace phonometrica
