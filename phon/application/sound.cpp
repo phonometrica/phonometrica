@@ -774,10 +774,8 @@ std::vector<double> Sound::average_channels(intptr_t first_frame, intptr_t last_
 		}
 		*ptr++ = value / nchannel;
 	}
-	auto from = m_data.data() + first_frame;
-	auto to = m_data.data() + last_frame;
 
-	return std::vector<double>(from, to);
+	return result;
 }
 
 

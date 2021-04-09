@@ -45,11 +45,8 @@ namespace phonometrica {
 
 AudioPlayer::AudioPlayer(const Handle<Sound> &snd) : m_stream(SOUND_API), data(snd)
 {
-	PHON_LOG("constructing audio player");
     prepare();
-	PHON_LOG("initializing resampling");
     initialize_resampling(output_rate);
-	PHON_LOG("resampling initialized");
 }
 
 AudioPlayer::~AudioPlayer()

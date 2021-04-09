@@ -164,6 +164,17 @@ public:
 		copy_construct_n(begin(), std::size_t(count), value);
 	}
 
+	Array(const_iterator from, size_type size) :
+		Array(size)
+	{
+		m_size = size;
+		std::copy(from, from + size, m_data);
+	}
+
+	Array(const_iterator start, const_iterator end) :
+		Array(start, intptr_t(end - start))
+	{ }
+
 	// 1 dimension array constructed from a list of values.
 	Array(std::initializer_list<value_type> items) :
 		Array(size_type(items.size()))
@@ -844,7 +855,7 @@ public:
 	}
 
 	// Convert index for 1-dimension arrays.
-	intptr_t to_base0(intptr_t i) const
+	size_type to_base0(size_type i) const
 	{
 		auto len = this->size();
 
@@ -925,7 +936,7 @@ private:
 		throw error("Index % out of range in array with size %", i, len);
 	}
 
-	intptr_t to_base0(intptr_t i, intptr_t len) const
+	size_type to_base0(size_type i, size_type len) const
 	{
 		if (i > 0 && i <= len) {
 			return i - 1;
