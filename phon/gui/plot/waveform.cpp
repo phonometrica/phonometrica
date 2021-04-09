@@ -82,7 +82,7 @@ void Waveform::UpdateCache()
 
 double Waveform::SampleToHeight(double s) const
 {
-	const double H = (double)GetSize().GetHeight() / 2;
+	const double H = (double)GetHeight() / 2;
     return H - s * H / magnitude;
 }
 
@@ -115,8 +115,8 @@ void Waveform::DrawBitmap()
 	dc.Clear();
 	auto gc = dc.GetGraphicsContext();
 	if (!gc) return;
-	auto height = GetSize().GetHeight();
-	auto width = GetSize().GetWidth();
+	auto height = GetHeight();
+	auto width = GetWidth();
 
 
 	// Draw zero-crossing line.
@@ -214,7 +214,7 @@ std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 	{
 		SetLocalMagnitude(data);
 	}
-	auto width = GetSize().GetWidth();
+	auto width = GetWidth();
 	auto raw_data = data.data();
 
 	if (sample_count >= width)
@@ -288,6 +288,11 @@ void Waveform::DrawYAxis(wxPaintDC &dc, const wxRect &rect)
     int x3 = rect.width - w - padding;
     int y3 = rect.y + rect.height - h;
     dc.DrawText(bottom, x3, y3);
+}
+
+wxString Waveform::GetStatus()
+{
+	return wxString();
 }
 
 } // namespace phonometrica

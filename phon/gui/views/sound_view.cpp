@@ -70,6 +70,8 @@ void SoundView::Initialize()
 
 	m_inner_sizer->Add(m_zoom, 0, wxEXPAND|wxRIGHT, 10);
 	m_inner_sizer->Add(m_wavebar, 0, wxEXPAND|wxRIGHT|wxBOTTOM, 10);
+	msg_ctrl = new MessageCtrl(this);
+	m_inner_sizer->Add(msg_ctrl, 0, wxEXPAND|wxRIGHT|wxLEFT|wxBOTTOM, 10);
 
 	// Packs the y axis and the plots
 	auto mid_sizer = new HBoxSizer;
@@ -94,6 +96,7 @@ void SoundView::Initialize()
 		plot->update_cursor.connect(&SoundView::OnUpdateCursor, this);
 		plot->zoom_to_selection.connect(&SoundView::ZoomToSelection, this);
 		plot->y_axis_modified.connect(&YAxisInfo::OnUpdate, m_y_axis);
+		plot->update_status.connect(&MessageCtrl::Print, msg_ctrl);
 
 		for (auto plot2 : m_plots)
 		{

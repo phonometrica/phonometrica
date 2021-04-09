@@ -94,13 +94,17 @@ public:
 
 	Signal<> y_axis_modified;
 
+	Signal<const wxString&> update_status;
+
 protected:
+
+	virtual void UpdateCache() = 0;
+
+	virtual wxString GetStatus() = 0;
 
 	void OnPaint(wxPaintEvent &);
 
 	void Render(wxPaintDC &dc);
-
-	virtual void UpdateCache() = 0;
 
 	bool HasVisibleSelection() const;
 

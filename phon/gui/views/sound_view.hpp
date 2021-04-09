@@ -31,6 +31,7 @@
 #include <phon/gui/y_axis_info.hpp>
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/lines.hpp>
+#include <phon/gui/message_ctrl.hpp>
 #include <phon/gui/plot/spectrogram.hpp>
 #include <phon/application/audio_player.hpp>
 #include <phon/application/sound.hpp>
@@ -185,6 +186,8 @@ protected:
 	std::vector<HLine*> wave_lines;
 
 	HLine *spectrogram_line, *pitch_line, *intensity_line;
+
+	MessageCtrl *msg_ctrl;
 };
 
 } // namespace phonometrica

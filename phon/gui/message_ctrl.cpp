@@ -13,68 +13,32 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 20/02/2021                                                                                                 *
+ * Created: 07/04/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Represents the waveform for a single channel in a sound file.                                              *
+ * Purpose: see header.                                                                                                *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_WAVEFORM_HPP
-#define PHONOMETRICA_WAVEFORM_HPP
-
-#include <phon/gui/plot/sound_plot.hpp>
+#include <phon/gui/message_ctrl.hpp>
+#include <phon/gui/sizer.hpp>
 
 namespace phonometrica {
 
-class Waveform final : public SoundPlot
+MessageCtrl::MessageCtrl(wxWindow *parent) : wxWindow(parent, wxID_ANY)
 {
-	enum class Scaling
-    {
-    	Global,
-    	Local,
-    	Fixed
-    };
+	auto sizer = new HBoxSizer;
+	text_ctrl = new wxStaticText(this, wxID_ANY, wxString());
+	sizer->Add(text_ctrl, 0, wxEXPAND|wxALL, 0);
+	SetSizer(sizer);
+}
 
-public:
+void MessageCtrl::Print(const wxString &text)
+{
+	text_ctrl->SetLabel(text);
+}
 
-	Waveform(wxWindow *parent, const Handle<Sound> &snd, int channel);
-
-	void SetGlobalMagnitude(double value);
-
-private:
-
-	void DrawYAxis(wxPaintDC &dc, const wxRect &rect) override;
-
-	void UpdateCache() override;
-
-	wxString GetStatus() override;
-
-	std::vector<std::pair<double,double>> DownsampleWaveform();
-
-	void ReadSettings() override;
-
-	// Map sample to plot y coordinate.
-    double SampleToHeight(double s) const;
-
-    void SetMagnitude(double value);
-
-    void SetLocalMagnitude(std::span<const double> data);
-
-	void DrawBitmap();
-
-    Scaling scaling = Scaling::Fixed;
-
-    double magnitude = 1.0;
-
-    double global_magnitude = 1.0;
-
-    std::pair<double,double> extrema = {-1, 1};
-
-    int m_channel;
-};
-
+void MessageCtrl::Clear()
+{
+	Print(wxString());
+}
 } // namespace phonometrica
-
-
-
-#endif // PHONOMETRICA_WAVEFORM_HPP

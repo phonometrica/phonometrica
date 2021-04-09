@@ -115,11 +115,14 @@ void SoundPlot::OnMotion(wxMouseEvent &e)
 		auto pos = ScreenToClient(wxGetMousePosition());
 		update_cursor(pos.x);
 	}
+
+	update_status(GetStatus());
 }
 
 void SoundPlot::OnLeaveWindow(wxMouseEvent &e)
 {
 	update_cursor(-1);
+	update_status(wxString());
 	e.Skip();
 }
 

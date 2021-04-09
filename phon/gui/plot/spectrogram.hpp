@@ -43,6 +43,8 @@ private:
 
 	void ReadSettings() override;
 
+	wxString GetStatus() override;
+
 	void ReadSpectrogramSettings();
 
 	void ReadFormantSettings();

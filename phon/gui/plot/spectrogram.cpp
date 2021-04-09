@@ -187,8 +187,8 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 	auto half_nfft = nfft / 2;
 
 	std::vector<double>amplitude(half_nfft, 0.0);
-	intptr_t w = GetSize().GetWidth();
-	intptr_t h = GetSize().GetHeight();
+	intptr_t w = GetWidth();
+	intptr_t h = GetHeight();
 
 	// An m x n matrix, where m represents the number of horizontal pixels and n represents the number of vertical pixels.
 	// Each horizontal pixel/point represents the center of an analysis window.
@@ -315,7 +315,7 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 void Spectrogram::EstimateFormants()
 {
 	using namespace speech;
-	auto width = GetSize().GetWidth();
+	auto width = GetWidth();
 	auto xpoints = linspace(0, GetWindowDuration(), width, true);
 	auto npoint = xpoints.size();
 	formants = Matrix<double>(npoint, nformant);
@@ -422,7 +422,7 @@ void Spectrogram::DrawFormants()
 	dc.SelectObject(m_cached_bmp);
 	dc.SetPen(wxPen(*wxRED, 1));
 	dc.SetBrush(wxBrush(*wxRED));
-	assert(formants.rows() == GetSize().GetWidth());
+	assert(formants.rows() == GetWidth());
 
 	for (int i = 0; i < formants.rows(); i++)
 	{
@@ -440,8 +440,13 @@ void Spectrogram::DrawFormants()
 
 int Spectrogram::FormantToYPos(double hz)
 {
-	auto h = GetSize().GetHeight();
+	auto h = GetHeight();
 	return h - int(round((hz * h / max_freq)));
+}
+
+wxString Spectrogram::GetStatus()
+{
+	return wxString();
 }
 
 } // namespace phonometrica
