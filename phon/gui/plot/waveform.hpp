@@ -69,8 +69,6 @@ private:
     double global_magnitude = 1.0;
 
     std::pair<double,double> extrema = {-1, 1};
-
-    int m_channel;
 };
 
 } // namespace phonometrica

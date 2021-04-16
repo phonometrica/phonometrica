@@ -28,7 +28,7 @@
 namespace phonometrica {
 
 Waveform::Waveform(wxWindow *parent, const Handle<Sound> &snd, int channel) :
-	SoundPlot(parent, snd), m_channel(channel)
+		SoundPlot(parent, snd, channel)
 {
 	try
 	{

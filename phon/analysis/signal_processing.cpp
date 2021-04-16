@@ -21,7 +21,7 @@
  *                                                                                                                     *
  * Note: This file contains code derived from the Snack Sound Toolkit. See file BSD.txt. The latest version can be     *
  * found at http://www.speech.kth.se/snack/.                                                                           *
- * The code for the Gaussian window is derived from Praat, see http://www.praat.org.                                   *
+ * The code for the Gaussian window and pre-emphasis is derived from Praat, see http://www.praat.org.                  *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -299,6 +299,21 @@ bool get_formants(const std::vector<double> &lpc_coeffs, double Fs, std::vector<
 	}
 
 	return true;
+}
+
+// Adapted from Praat's pre-emphasis routine in Sound_to_Formant.cpp
+// Copyright (C) 1992-2008,2010-2012,2014-2020 Paul Boersma
+// License: GPL 2 or later
+
+void pre_emphasis(Array<double> &data, double Fs, double threshold)
+{
+	auto x = data.data();
+	double alpha = exp(-2 * M_PI * threshold * (1.0 / Fs));
+	auto len = data.size();
+
+	for (auto i = len; i > 1; i--) {
+		x[i] -= alpha * x[i-1];
+	}
 }
 
 }} // namespace phonometrica::speech

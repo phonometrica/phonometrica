@@ -40,7 +40,7 @@ public:
 		Active
 	};
 
-	SoundPlot(wxWindow *parent, const Handle<Sound> &snd);
+	SoundPlot(wxWindow *parent, const Handle <Sound> &snd, int channel);
 
 	bool HasSelection() const { return m_sel.t1 >= 0; }
 
@@ -79,6 +79,16 @@ public:
 	void SetTick(double time);
 
 	void UpdateSettings();
+
+	bool IsChannelVisible() const;
+
+	void SetChannelVisible(bool value);
+
+	bool IsPlotVisible() const;
+
+	void SetPlotVisible(bool value);
+
+	bool IsVisible() const;
 
 	Signal<const TimeSelection&> update_selection;
 
@@ -167,7 +177,16 @@ protected:
 
 	bool m_is_top = false;
 
+	// Is this channel selected by the user?
+	bool m_channel_visible = true;
+
+	// Is this type of plot (waveform, spectrogram, etc.) selected by the user?
+	bool m_plot_visible = true;
+
 	SelectionState m_sel_state = SelectionState::Inactive;
+
+	// Channel associated with this plot (0 is the the average of all channels)
+	int m_channel;
 };
 
 } // namespace phonometrica

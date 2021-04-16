@@ -92,6 +92,8 @@ protected:
 
 	void OnSelectWindow(wxCommandEvent &);
 
+	void OnSelectChannels(wxCommandEvent &);
+
 	void OnWaveMenu(wxCommandEvent &);
 
 	void OnSpectrogramMenu(wxCommandEvent &);
@@ -152,6 +154,12 @@ protected:
 
 	void SendCommand(const String &code);
 
+	void ShowAverage(bool show);
+
+	void ShowChannel(int channel, bool show);
+
+	void UpdatePlotLayout();
+
 	wxButton *m_wave_tool, *m_spectrum_tool, *m_formant_tool, *m_pitch_tool, *m_intensity_tool;
 
 	wxButton *m_play_tool;
@@ -181,11 +189,11 @@ protected:
 
 	std::vector<Waveform*> waveforms;
 
-	Spectrogram *spectrogram;
+	std::vector<Spectrogram*> spectrograms;
 
-	std::vector<HLine*> wave_lines;
+	std::vector<HLine*> wave_lines, spectrogram_lines, pitch_lines, intensity_lines;
 
-	HLine *spectrogram_line, *pitch_line, *intensity_line;
+	std::vector<int> visible_channels;
 
 	MessageCtrl *msg_ctrl;
 };

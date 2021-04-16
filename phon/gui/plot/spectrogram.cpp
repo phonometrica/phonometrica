@@ -30,7 +30,7 @@
 
 namespace phonometrica {
 
-Spectrogram::Spectrogram(wxWindow *parent, const Handle<Sound> &snd) : SoundPlot(parent, snd)
+Spectrogram::Spectrogram(wxWindow *parent, const Handle <Sound> &snd, int channel) : SoundPlot(parent, snd, channel)
 {
 	try
 	{
@@ -235,8 +235,8 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 	std::vector<std::complex<double>> output(nfft, std::complex<double>(0, 0));
 	fftw_plan plan = fftw_plan_dft_r2c_1d(nfft, input.data(), (fftw_complex*)output.data(), FFTW_ESTIMATE);
 
-	auto buffer = m_sound->average_channels(first_sample, last_sample);
-	pre_emphasis(buffer, sample_rate, preemph_threshold);
+	auto data = m_sound->get_channel(m_channel, first_sample, last_sample);
+	pre_emphasis(data, sample_rate, preemph_threshold);
 
 	intptr_t left_offset = samples_per_pixel / 2 - nframe / 2;
 
@@ -244,7 +244,7 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 	{
 		auto from_sample = x * samples_per_pixel + left_offset;
 		auto to_sample = from_sample + nframe;
-		auto it = buffer.begin() + from_sample;
+		auto it = data.begin() + from_sample;
 
 		if (from_sample < 0 || to_sample > last_sample)
 		{
@@ -325,23 +325,14 @@ void Spectrogram::EstimateFormants()
 
 	auto from = m_sound->time_to_frame(m_window.first);
 	auto to = m_sound->time_to_frame(m_window.second);
-	auto input = m_sound->average_channels(from, to);
-	std::vector<double> tmp; // not needed if sampling rates are equal
-	std::span<double> output;
+	auto data = m_sound->get_channel(m_channel, from, to);
 	double Fs = max_formant_frequency * 2;
 
-	if (Fs == m_sound->sample_rate())
-	{
-		// Apply pre-emphasis from 50 Hz.
-		pre_emphasis(input, m_sound->sample_rate(), 50);
-		output = input;
+	if (Fs != m_sound->sample_rate()) {
+		data = resample(data, m_sound->sample_rate(), Fs);
 	}
-	else
-	{
-		tmp = resample(input, m_sound->sample_rate(), Fs);
-		pre_emphasis(tmp, Fs, 50);
-		output = std::span<double>(tmp);
-	}
+	// Apply pre-emphasis from 50 Hz.
+	pre_emphasis(data, m_sound->sample_rate(), 50);
 
 	int nframe = int(ceil(formant_window_length * Fs)) * 2; // x 2 for Gaussian window
 	if (nframe % 2 == 1) nframe++;
@@ -349,14 +340,15 @@ void Spectrogram::EstimateFormants()
 	Array<double> buffer(nframe, 0.0);
 
 	// Calculate LPC at each time point.
-	for (int i = 0; i < xpoints.size(); i++)
+	auto len = data.size();
+	for (int i = 0; i < (int)npoint; i++)
 	{
-		double f = time_to_frame(xpoints[i], Fs);
+		intptr_t f = time_to_frame(xpoints[i], Fs);
 		intptr_t start_frame = f - (nframe / 2);
 		intptr_t end_frame = start_frame + nframe;
 
 		// Don't estimate formants at the edge if we can't fill a window.
-		if (start_frame < 0 || end_frame >= output.size())
+		if (start_frame < 0 || end_frame >= len)
 		{
 			for (int j = 0; j < nformant; j++) {
 				formants(i,j) = std::nan("");
@@ -365,7 +357,7 @@ void Spectrogram::EstimateFormants()
 		}
 
 		// Apply window.
-		auto it = output.begin() + start_frame;
+		auto it = data.begin() + start_frame;
 		for (int j = 1; j <= nframe; j++)
 		{
 			buffer[j] = *it++ * win[j];

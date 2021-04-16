@@ -21,7 +21,7 @@
  *                                                                                                                     *
  * Note: This file contains code derived from the Snack Sound Toolkit. See file BSD.txt. The latest version can be     *
  * found at http://www.speech.kth.se/snack/.                                                                           *
- * The code for the Gaussian window is derived from Praat, see http://www.praat.org.                                   *
+ * The code for the Gaussian window and pre-emphasis is derived from Praat, see http://www.praat.org.                  *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
@@ -55,21 +55,8 @@ double get_intensity(std::span<double> frame, std::span<double> window);
 
 std::vector<double> get_intensity(std::span<double> input, int samplerate, intptr_t window_size, double time_step, WindowType type = WindowType::Hamming);
 
-
-// Adapted from Praat's pre-emphasis routine in Sound_to_Formant.cpp
-// Copyright (C) 1992-2008,2010-2012,2014-2020 Paul Boersma
-// License: GPL 2 or later
-template<typename Container>
-void pre_emphasis(Container &data, double Fs, double threshold)
-{
-	using T = typename Container::value_type;
-	T *x = data.data();
-	double alpha = exp(-2 * M_PI * threshold * (1.0 / Fs));
-
-	for (auto i = data.size(); i-- > 0; ) {
-		x[i] -= alpha * x[i-1];
-	}
-}
+// Apply pre-emphasis for formant analysis.
+void pre_emphasis(Array<double> &data, double Fs, double threshold);
 
 // Calculate LPC coefficients from a speech frame.
 std::vector<double> get_lpc_coefficients(const Array<double> &frame, int npole);

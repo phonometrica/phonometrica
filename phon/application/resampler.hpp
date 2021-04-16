@@ -23,18 +23,16 @@
 #define PHONOMETRICA_RESAMPLER_HPP
 
 #include <cstdint>
-#include <vector>
-#include <phon/utils/span.hpp>
+#include <phon/array.hpp>
 
-#include <vector>
-#include <phon/utils/span.hpp>
+
 #include <phon/third_party/r8brain/CDSPResampler.h>
 
 namespace phonometrica {
 
 using Resampler = r8b::CDSPResampler24;
 
-std::vector<double> resample(std::span<double> input, double input_rate, double output_rate);
+Array<double> resample(std::span<double> input, double input_rate, double output_rate);
 
 } // namespace phonometrica
 

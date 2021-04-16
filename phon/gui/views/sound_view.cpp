@@ -25,6 +25,7 @@
 #include <phon/gui/pref/waveform_settings.hpp>
 #include <phon/gui/pref/spectrogram_settings.hpp>
 #include <phon/gui/pref/formant_settings.hpp>
+#include <phon/gui/channel_dialog.hpp>
 #include <phon/application/macros.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/include/icons.hpp>
@@ -50,7 +51,9 @@ void SoundView::Initialize()
 	// Packs the plots and wavebar
 	m_inner_sizer = new VBoxSizer;
 	m_inner_sizer->Add(m_x_axis, 0, wxEXPAND|wxRIGHT, 10);
-	for (int i = 1; i <= m_sound->nchannel(); i++)
+
+	// Channel "0" represents the average of all the channels
+	for (int i = 0; i <= m_sound->nchannel(); i++)
 	{
 		auto waveform = new Waveform(this, m_sound, i);
 		waveforms.push_back(waveform);
@@ -61,13 +64,23 @@ void SoundView::Initialize()
 		wave_lines.push_back(hline);
 		m_plots.append(waveform);
 	}
+	for (int i = 0; i <= m_sound->nchannel(); i++)
+	{
+		auto spectrogram = new Spectrogram(this, m_sound, 0);
+		m_inner_sizer->Add(spectrogram, 1, wxEXPAND|wxRIGHT, 10);
+		auto hline = new HLine(this);
+		m_inner_sizer->Add(hline);
+		spectrograms.push_back(spectrogram);
+		spectrogram_lines.push_back(hline);
+		m_plots.append(spectrogram);
+	}
 
-	spectrogram = new Spectrogram(this, m_sound);
-	m_inner_sizer->Add(spectrogram, 1, wxEXPAND|wxRIGHT, 10);
-	spectrogram_line = new HLine(this);
-	m_inner_sizer->Add(spectrogram_line);
-	m_plots.append(spectrogram);
-
+	// Make all channels visible
+	for (int i = 1; i <= m_sound->nchannel(); i++) {
+		visible_channels.push_back(i);
+	}
+	ShowAverage(false);
+	UpdatePlotLayout();
 	m_inner_sizer->Add(m_zoom, 0, wxEXPAND|wxRIGHT, 10);
 	m_inner_sizer->Add(m_wavebar, 0, wxEXPAND|wxRIGHT|wxBOTTOM, 10);
 	msg_ctrl = new MessageCtrl(this);
@@ -165,6 +178,8 @@ void SoundView::SetToolBar()
 	m_intensity_tool = m_toolbar->AddMenuButton(ICN(intensity), _("Intensity settings"));
 	m_toolbar->AddSeparator();
 
+	auto channel_tool = m_toolbar->AddButton(ICN(layout), _("Select visible channels..."));
+
 	m_mouse_tool = m_toolbar->AddToggleButton(ICN(mouse), _("Enable mouse tracking"));
 	m_mouse_tool->Check(Settings::get_boolean("enable_mouse_tracking"));
 
@@ -182,6 +197,7 @@ void SoundView::SetToolBar()
 	zoom_sel_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnZoomToSelection, this);
 	zoom_all_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnViewAll, this);
 	sel_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnSelectWindow, this);
+	channel_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnSelectChannels, this);
 	m_wave_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnWaveMenu, this);
 	m_spectrum_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnSpectrogramMenu, this);
 	m_formant_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnFormantsMenu, this);
@@ -529,8 +545,11 @@ void SoundView::OnSpectrogramSettings(wxCommandEvent &)
 {
 	SpectrogramSettings ed(this);
 
-	if (ed.ShowModal() != wxID_CANCEL) {
-		spectrogram->UpdateSettings();
+	if (ed.ShowModal() != wxID_CANCEL)
+	{
+		for (auto spectrogram : spectrograms) {
+			spectrogram->UpdateSettings();
+		}
 	}
 }
 
@@ -539,7 +558,9 @@ void SoundView::OnFormantSettings(wxCommandEvent &)
 	FormantSettings ed(this);
 
 	if (ed.ShowModal() != wxID_CANCEL) {
-		spectrogram->UpdateSettings();
+		for (auto spectrogram : spectrograms) {
+			spectrogram->UpdateSettings();
+		}
 	}
 }
 
@@ -556,20 +577,22 @@ void SoundView::OnIntensitySettings(wxCommandEvent &)
 void SoundView::OnShowSpectrogram(wxCommandEvent &e)
 {
 	ShowSpectrogram(e.IsChecked());
-	Layout();
 }
 
 void SoundView::ShowSpectrogram(bool value)
 {
 	Settings::set_value("sound_plots", "spectrogram", value);
-	spectrogram->Show(value);
-	spectrogram_line->Show(value);
+
+	for (size_t i = 0; i < spectrograms.size(); i++) {
+		spectrograms[i]->SetPlotVisible(value);
+	}
+	UpdatePlotLayout();
 }
 
 void SoundView::OnShowFormants(wxCommandEvent &e)
 {
 	ShowFormants(e.IsChecked());
-	Layout();
+	UpdatePlotLayout();
 }
 
 void SoundView::ShowFormants(bool value)
@@ -577,29 +600,29 @@ void SoundView::ShowFormants(bool value)
 	if (value) {
 		ShowSpectrogram(true);
 	}
-	spectrogram->ShowFormants(value);
+	for (auto spectrogram: spectrograms) {
+		spectrogram->ShowFormants(value);
+	}
 	Settings::set_value("sound_plots", "formants", value);
 }
 
 void SoundView::OnShowWaveforms(wxCommandEvent &e)
 {
 	ShowWaveforms(e.IsChecked());
-	Layout();
 }
 
 void SoundView::ShowWaveforms(bool value)
 {
 	Settings::set_value("sound_plots", "spectrogram", value);
 	for (auto wave : waveforms) {
-		wave->Show(value);
+		wave->SetPlotVisible(value);
 	}
-	for (auto line : wave_lines) {
-		line->Show(value);
-	}
+	UpdatePlotLayout();
 }
 
 void SoundView::OnGetFormants(wxCommandEvent &)
 {
+#if 0
 	if (!spectrogram->HasSelection()) {
 		wxMessageBox(_("First select a point or a portion of the signal"), _("Cannot measure formants"), wxICON_ERROR);
 		return;
@@ -607,6 +630,7 @@ void SoundView::OnGetFormants(wxCommandEvent &)
 	auto sel = spectrogram->GetSelection();
 	String cmd = (sel.t1 == sel.t2) ? String::format("report_formants(%.10f)", sel.t1) : String::format("report_formants(%.10f, %.10f)", sel.t1, sel.t2);
 	SendCommand(cmd);
+#endif
 }
 
 void SoundView::SendCommand(const String &code)
@@ -618,6 +642,59 @@ void SoundView::SendCommand(const String &code)
 Handle<Sound> SoundView::GetSound() const
 {
 	return m_sound;
+}
+
+void SoundView::OnSelectChannels(wxCommandEvent &)
+{
+	ChannelDialog ed(this, m_sound->nchannel(), visible_channels);
+
+	if (ed.ShowModal() == wxID_OK)
+	{
+		visible_channels = ed.GetSelectedChannels();
+
+		if (visible_channels.empty())
+		{
+			ShowAverage(true);
+			for (int i = 1; i < (int)waveforms.size(); i++) {
+				ShowChannel(i, false);
+			}
+		}
+		else
+		{
+			ShowAverage(false);
+			for (int i = 1; i < (int)waveforms.size(); i++)
+			{
+				bool show = (std::find(visible_channels.begin(), visible_channels.end(), i) != visible_channels.end());
+				ShowChannel(i, show);
+			}
+		}
+		UpdatePlotLayout();
+	}
+}
+
+void SoundView::ShowAverage(bool show)
+{
+	ShowChannel(0, show);
+}
+
+void SoundView::ShowChannel(int channel, bool show)
+{
+	waveforms[channel]->SetChannelVisible(show);
+	spectrograms[channel]->SetChannelVisible(show);
+}
+
+void SoundView::UpdatePlotLayout()
+{
+	for (int i = 0; i <= m_sound->nchannel(); i++)
+	{
+		bool show = waveforms[i]->IsVisible();
+		waveforms[i]->Show(show);
+		wave_lines[i]->Show(show);
+		show = spectrograms[i]->IsVisible();
+		spectrograms[i]->Show(show);
+		spectrogram_lines[i]->Show(show);
+	}
+	Layout();
 }
 
 

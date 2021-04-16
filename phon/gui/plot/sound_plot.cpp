@@ -28,8 +28,8 @@
 
 namespace phonometrica {
 
-SoundPlot::SoundPlot(wxWindow *parent, const Handle<Sound> &snd) :
-	TimeAlignedWindow(parent), m_sound(snd), m_cached_size(wxDefaultSize)
+SoundPlot::SoundPlot(wxWindow *parent, const Handle <Sound> &snd, int channel) :
+	TimeAlignedWindow(parent), m_sound(snd), m_cached_size(wxDefaultSize), m_channel(channel)
 {
 	m_track_mouse = Settings::get_boolean("enable_mouse_tracking");
 	Bind(wxEVT_LEFT_DOWN, &SoundPlot::OnStartSelection, this);
@@ -386,6 +386,31 @@ void SoundPlot::UpdateSettings()
 bool SoundPlot::HasValidCache() const
 {
 	return m_cached_size == GetSize();
+}
+
+bool SoundPlot::IsChannelVisible() const
+{
+	return m_channel_visible;
+}
+
+void SoundPlot::SetChannelVisible(bool value)
+{
+	m_channel_visible = value;
+}
+
+bool SoundPlot::IsPlotVisible() const
+{
+	return m_plot_visible;
+}
+
+void SoundPlot::SetPlotVisible(bool value)
+{
+	m_plot_visible = value;
+}
+
+bool SoundPlot::IsVisible() const
+{
+	return IsPlotVisible() && IsChannelVisible();
 }
 
 } // namespace phonometrica

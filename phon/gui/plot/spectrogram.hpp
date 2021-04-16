@@ -31,7 +31,7 @@ class Spectrogram final : public SoundPlot
 {
 public:
 
-	Spectrogram(wxWindow *parent, const Handle<Sound> &snd);
+	Spectrogram(wxWindow *parent, const Handle <Sound> &snd, int channel);
 
 	bool HasFormants() const;
 

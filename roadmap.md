@@ -34,6 +34,7 @@ TODO:
 
 - coding protocols (coding protocol: champ libre texte (ex: mot précédent un codage) ????)
 - annotation views
+- bug: on Windows, the slash after the project variable $PHON_PROJECT in a project file is sometimes ommitted
 - formant queries: mesures acoustiques sur une sélection et pas seulement sur un point.
 - npoint en plus de npoint average (diphtongues, pitch)
 - priorité : refactoriser les vues spreadsheet (finir CSV)

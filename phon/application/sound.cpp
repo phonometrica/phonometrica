@@ -342,7 +342,7 @@ Sound::get_formants(double time, int nformant, double nyquist_frequency, double 
 
 	auto sample_rate = this->sample_rate();
 	auto input = average_channels(first_sample, last_sample);
-	std::vector<double> tmp; // not needed if sampling rates are equal
+	Array<double> tmp; // not needed if sampling rates are equal
 	std::span<double> output;
 
 	if (Fs == sample_rate)
@@ -737,7 +737,12 @@ intptr_t Sound::time_to_frame(double time) const
 	return std::min<intptr_t>(s, m_handle.frames());
 }
 
-std::span<const double> Sound::get_channel(int n) const
+bool Sound::is_mono() const
+{
+	return nchannel() == 1;
+}
+
+std::span<const double> Sound::get_channel_view(int n) const
 {
 	assert(n <= nchannel());
 	auto start = m_data.data() + (n-1) * channel_size();
@@ -745,24 +750,28 @@ std::span<const double> Sound::get_channel(int n) const
 	return { start, start + channel_size() };
 }
 
-std::span<const double> Sound::get_channel(int n, intptr_t first_sample, intptr_t last_sample) const
+Array<double> Sound::get_channel(int n, intptr_t first_sample, intptr_t last_sample) const
 {
-	auto data = get_channel(n);
-	// We shift first sample to base 1 but we leave last_sample untouched because we want to include it.
-	return { data.data() + first_sample - 1, data.data() + last_sample };
+	if (n == 0)
+	{
+		return average_channels(first_sample, last_sample);
+	}
+	else
+	{
+		auto data = get_channel_view(n);
+		auto start = data.data() + first_sample - 1;
+		auto end = data.data() + last_sample;
+
+		return Array<double>(start, end);
+	}
 }
 
-bool Sound::is_mono() const
-{
-	return nchannel() == 1;
-}
-
-std::vector<double> Sound::average_channels(intptr_t first_frame, intptr_t last_frame)
+Array<double> Sound::average_channels(intptr_t first_frame, intptr_t last_frame) const
 {
 	if (last_frame < 0) last_frame = (intptr_t) m_handle.frames() - 1;
 	assert(first_frame >= 0);
-	std::vector<double> result;
-	result.resize(last_frame - first_frame + 1);
+	auto len = intptr_t(last_frame - first_frame + 1);
+	Array<double> result(len, 0.0);
 	auto nchannel = this->nchannel();
 	auto ptr = result.data();
 
@@ -777,6 +786,5 @@ std::vector<double> Sound::average_channels(intptr_t first_frame, intptr_t last_
 
 	return result;
 }
-
 
 } // namespace phonometrica

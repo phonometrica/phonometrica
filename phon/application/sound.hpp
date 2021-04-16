@@ -35,7 +35,7 @@
 #include <phon/utils/matrix.hpp>
 #include <sndfile.hh>
 #include <phon/array.hpp>
-#include <phon/utils/span.hpp>
+#include <phon/utils/slice.hpp>
 #include <phon/utils/signal.hpp>
 
 
@@ -109,17 +109,14 @@ public:
 
 	intptr_t size() const;
 
-	std::span<const double> get_channel(int n) const;
-
-	std::span<const double> get_channel(int n, intptr_t first_sample, intptr_t last_sample) const;
+	// The buffer is used when averaging channels (n == 0) or if force_buffering is true. Otherwise, we get a direct view of the underlying array.
+	Array<double> get_channel(int n, intptr_t first_sample, intptr_t last_sample) const;
 
 	bool is_mono() const;
 
 	double frame_to_time(intptr_t index) const;
 
 	intptr_t time_to_frame(double time) const;
-
-	std::vector<double> average_channels(intptr_t first_frame = 0, intptr_t last_frame = -1);
 
 	static Signal<const String&, const String&, int> start_loading;
 
@@ -130,6 +127,10 @@ private:
 	void load() override;
 
 	void write() override;
+
+	Array<double> average_channels(intptr_t first_frame = 0, intptr_t last_frame = -1) const;
+
+	std::span<const double> get_channel_view(int n) const;
 
 	int get_intensity_window_size() const;
 
