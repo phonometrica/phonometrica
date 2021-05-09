@@ -622,12 +622,12 @@ void SoundView::ShowWaveforms(bool value)
 
 void SoundView::OnGetFormants(wxCommandEvent &)
 {
-#if 0
-	if (!spectrogram->HasSelection()) {
+#if 1
+	if (!spectrograms[0]->HasSelection()) {
 		wxMessageBox(_("First select a point or a portion of the signal"), _("Cannot measure formants"), wxICON_ERROR);
 		return;
 	}
-	auto sel = spectrogram->GetSelection();
+	auto sel = spectrograms[0]->GetSelection();
 	String cmd = (sel.t1 == sel.t2) ? String::format("report_formants(%.10f)", sel.t1) : String::format("report_formants(%.10f, %.10f)", sel.t1, sel.t2);
 	SendCommand(cmd);
 #endif

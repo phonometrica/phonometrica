@@ -277,6 +277,7 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 			double k = (y == 0 || y == half_nfft - 1) ? k1 : k2;
 			a = k * a / nfft;
 			constexpr double Iref = 4.0e-10;
+			// Intensity is undefined if the raw amplitude is equal to 0.
 			double dB = 10 * log10(a / Iref);
 			amplitude[y] = dB;
 		}
@@ -300,7 +301,7 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 				double delta = a2 - a1;
 				double remainder = freq - bin;
 				double amp = a1 + (delta * remainder);
-				assert(!std::isnan(amp));
+				// amp might be nan if the raw amplitude is 0
 				raster(x, y - 1) = amp;
 			}
 		}

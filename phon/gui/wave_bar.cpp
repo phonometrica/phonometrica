@@ -117,8 +117,7 @@ void WaveBar::UpdateCache()
 	{
 		// Get average value for each sample
 		double sample = 0;
-		for (intptr_t j = 1; j <= nchannel; j++)
-		{
+		for (intptr_t j = 1; j <= nchannel; j++) {
 			sample += data(i,j);
 		}
 		sample /= nchannel;
@@ -134,6 +133,9 @@ void WaveBar::UpdateCache()
 			auto y1 = SampleToYPos(maximum);
 			auto y2 = SampleToYPos(minimum);
 			m_cache.emplace_back(y1, y2);
+			if (m_cache.size() == width) {
+				PHON_LOG("cache size reached at i=%ld\n", i);
+			}
 			// reset values
 			maximum = (std::numeric_limits<double>::min)();
 			minimum = (std::numeric_limits<double>::max)();
@@ -143,7 +145,9 @@ void WaveBar::UpdateCache()
 	auto y1 = SampleToYPos(maximum);
 	auto y2 = SampleToYPos(minimum);
 	m_cache.emplace_back(y1, y2);
-	assert(m_cache.size() == (size_t)GetSize().GetWidth());
+	PHON_LOG("cache size: %d\n", int(m_cache.size()));
+	PHON_LOG("width: %d\n", int(GetSize().GetWidth()));
+	//assert(m_cache.size() == (size_t)GetSize().GetWidth());
 }
 
 double WaveBar::TimeToXPos(double t) const

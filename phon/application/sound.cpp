@@ -144,10 +144,10 @@ void Sound::load()
 			}
 			ioffset += count;
 			accumulator += count;
-			if (accumulator >= slice)
+			while (accumulator >= slice)
 			{
 				update_loading(counter++);
-				accumulator = accumulator - slice;
+				accumulator -=  slice;
 			}
 		}
 	}
