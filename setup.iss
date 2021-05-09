@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Phonometrica"
-#define MyAppVersion "0.7.5"
+#define MyAppVersion "0.8.0-preview2"
 #define MyAppPublisher "Julien Eychenne & Léa Courdès-Murphy"
 #define MyAppURL "http://www.phonometrica-ling.org"
 #define MyAppExeName "phonometrica.exe"
@@ -23,7 +23,7 @@ DefaultDirName={pf64}\{#MyAppName}
 DisableDirPage=no
 UsePreviousAppDir=yes
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\Julien\Devel\phonometrica\LICENSE
+LicenseFile="C:\Users\Julien Eychenne\source\repos\phonometrica\LICENSE"
 OutputBaseFilename=setup_phonometrica
 Compression=lzma
 SolidCompression=yes
@@ -38,11 +38,11 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "C:\Devel\build\release\phonometrica.exe"; DestDir: "{app}"; Flags: ignoreversion
 ;Source: "C:\Devel\build\release\phonometrica.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\Julien\Devel\phonometrica\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Julien Eychenne\source\repos\phonometrica\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Devel\Deploy\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ;Source: "C:\Users\Julien\Documents\Devel\phonometrica\std\*"; DestDir: "{app}\std"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Users\Julien\Devel\phonometrica\html\*"; DestDir: "{app}\html"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Users\Julien\Devel\phonometrica\licenses\*"; DestDir: "{app}\other_licenses"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Julien Eychenne\source\repos\phonometrica\html\*"; DestDir: "{app}\html"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\Julien Eychenne\source\repos\phonometrica\licenses\*"; DestDir: "{app}\other_licenses"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
