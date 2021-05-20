@@ -64,6 +64,12 @@ make
 make install
 ```
 
+### Compiling on Windows with MSVC
+
+- Edit build/cmake/options.cmake et change option `wxBUILD_SHARED` to `off`
+- Compile debug and release builds into directories named `debug` and `release`, respectively
+- Move the `.lib` files to `release/lib/vc_x64_lib`
+
 
 ## Notes on installing Boost
 

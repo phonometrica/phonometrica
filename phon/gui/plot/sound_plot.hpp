@@ -114,6 +114,8 @@ protected:
 
 	void OnPaint(wxPaintEvent &);
 
+	void OnEraseBackground(wxEraseEvent &);
+
 	void Render(wxPaintDC &dc);
 
 	bool HasVisibleSelection() const;

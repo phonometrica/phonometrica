@@ -60,7 +60,7 @@ endif()
 if(WIN32)
     # FIXME: find_package() doesn't work well with wxWidgets on Windows. On this platform, we hard-code include
     #  and link paths. This is less portable, but it works reliably.
-    set(WX_ROOT C:/Devel/Lib/wxWidgets-3.1.4)
+    set(WX_ROOT C:/Devel/Lib/wxWidgets-3.1.5)
     include_directories(${WX_ROOT}/include ${WX_ROOT}/release/lib/vc_x64_lib/mswu${SUFFIX})
     link_directories(${WX_ROOT}/release/lib/vc_x64_lib)
 endif(WIN32)

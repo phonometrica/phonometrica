@@ -235,7 +235,7 @@ static std::vector<double> lpc_burg(const Array<double> &x, int order)
 		//
 
 		auto q = 1.0 - reflect_coeff * reflect_coeff;
-		den = q * den - bwd_pred_error[-1] * bwd_pred_error[-1] - fwd_pred_error[0] * fwd_pred_error[0];
+		den = q * den - bwd_pred_error.back() * bwd_pred_error.back() - fwd_pred_error.front() * fwd_pred_error.front();
 
 		// Shift up forward error.
 		//

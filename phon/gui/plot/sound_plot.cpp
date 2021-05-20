@@ -38,7 +38,13 @@ SoundPlot::SoundPlot(wxWindow *parent, const Handle <Sound> &snd, int channel) :
 	Bind(wxEVT_LEAVE_WINDOW, &SoundPlot::OnLeaveWindow, this);
 	Bind(wxEVT_MOUSEWHEEL, &SoundPlot::OnMouseWheel, this);
 	Bind(wxEVT_MIDDLE_DOWN, [this](wxMouseEvent &) { zoom_to_selection(); });
+	Bind(wxEVT_ERASE_BACKGROUND, &SoundPlot::OnEraseBackground, this);
 	Bind(wxEVT_PAINT, &SoundPlot::OnPaint, this);
+}
+
+void SoundPlot::OnEraseBackground(wxEraseEvent &)
+{
+
 }
 
 void SoundPlot::OnPaint(wxPaintEvent &)
@@ -46,12 +52,14 @@ void SoundPlot::OnPaint(wxPaintEvent &)
 	if (!HasValidCache()) {
 		UpdateCache();
 	}
+
 	wxPaintDC dc(this);
 	Render(dc);
 }
 
 void SoundPlot::Render(wxPaintDC &dc)
 {
+    assert(m_cached_bmp.IsOk());
 	dc.DrawBitmap(m_cached_bmp, 0.0, 0.0, true);
 	DrawSelection(dc);
 	DrawCursor(dc);
@@ -261,7 +269,8 @@ void SoundPlot::DrawSelection(wxPaintDC &dc)
 
 void SoundPlot::DrawSpanSelection(wxPaintDC &dc)
 {
-	auto gc = dc.GetGraphicsContext();
+	//auto gc = dc.GetGraphicsContext();
+	auto gc = wxGraphicsContext::Create(dc);
 	if (!gc) return;
 	auto height = GetHeight();
 	auto path = gc->CreatePath();

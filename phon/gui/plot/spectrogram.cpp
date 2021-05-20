@@ -47,60 +47,61 @@ void Spectrogram::UpdateCache()
 {
 	auto raster = ComputeSpectrogram();
 
-	wxBitmap bmp(GetSize());
-	wxNativePixelData data(bmp);
+    // FIXME: On Windows, we open a new scope to make sure that the cached bitmap is not shared; otherwise we will
+    //  get an assertion failure "can't copy bitmap locked for raw access!" in wxMemoryDC::SelectObject().
+    {
+        wxBitmap bmp(GetSize());
+        wxNativePixelData data(bmp);
 
 
-	// We can't use Eigen's maxCoeff()/minCoeff() because we have nan's in the matrix.
-	double max_dB = -100000;
-	double min_dB = 100000;
+        // We can't use Eigen's maxCoeff()/minCoeff() because we have nan's in the matrix.
+        double max_dB = -100000;
+        double min_dB = 100000;
 
-	for (int i = 0; i < raster.rows(); i++)
-	{
-		for (int j = 0; j < raster.cols(); j++)
-		{
-			double val = raster(i,j);
+        for (int i = 0; i < raster.rows(); i++) {
+            for (int j = 0; j < raster.cols(); j++) {
+                double val = raster(i, j);
 
-			if (std::isfinite(val))
-			{
-				if (val > max_dB) max_dB = val;
-				if (val < min_dB) min_dB = val;
-			}
-		}
-	}
+                if (std::isfinite(val)) {
+                    if (val > max_dB) max_dB = val;
+                    if (val < min_dB) min_dB = val;
+                }
+            }
+        }
 
-	// Min and max can only be equal if we have zeros, in which case we don't fill the image.
-	if (min_dB != max_dB)
-	{
-		// Adjust minimum to fit the dynamic range. All values lower than max - dynamic_range will be white.
-		min_dB = (std::max)(min_dB, max_dB - dynamic_range);
-		auto px = data.GetPixels();
+        // Min and max can only be equal if we have zeros, in which case we don't fill the image.
+        if (min_dB != max_dB) {
+            // Adjust minimum to fit the dynamic range. All values lower than max - dynamic_range will be white.
+            min_dB = (std::max)(min_dB, max_dB - dynamic_range);
+            auto px = data.GetPixels();
 
-		// The image needs to be reversed
-		for (int j = raster.cols(); j-- > 0; )
-		{
-			auto row_start = px;
-			for (int i = 0; i < raster.rows(); i++)
-			{
+            // The image needs to be reversed
+            for (int j = raster.cols(); j-- > 0;) {
+                auto row_start = px;
+                for (int i = 0; i < raster.rows(); i++) {
 
-				// shade of gray
-				double value = (std::max)(raster(i, j), min_dB);
-				if (std::isnan(value)) value = min_dB; // handle data that could not be calculated.
-				int g = 255 - round((value - min_dB) * 255 / (max_dB - min_dB));
-				assert(g >= 0);
-				px.Red() = px.Green() = px.Blue() = g;
-				++px;
-			}
-			px = row_start;
-			px.OffsetY(data, 1);
-		}
-	}
-	m_cached_bmp = bmp;
+                    // shade of gray
+                    double value = (std::max)(raster(i, j), min_dB);
+                    if (std::isnan(value)) value = min_dB; // handle data that could not be calculated.
+                    int g = 255 - round((value - min_dB) * 255 / (max_dB - min_dB));
+                    assert(g >= 0);
+                    px.Red() = px.Green() = px.Blue() = g;
+                    ++px;
+                }
+                px = row_start;
+                px.OffsetY(data, 1);
+            }
+        }
+        m_cached_bmp = bmp;
+        assert(m_cached_bmp.IsOk());
+    }
 
 	if (show_formants)
 	{
 		EstimateFormants();
+        assert(m_cached_bmp.IsOk());
 		DrawFormants();
+        assert(m_cached_bmp.IsOk());
 	}
 }
 

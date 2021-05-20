@@ -113,7 +113,8 @@ void Waveform::DrawBitmap()
 	dc.SelectObject(bmp);
 	dc.SetBackground(*wxWHITE);
 	dc.Clear();
-	auto gc = dc.GetGraphicsContext();
+//	auto gc = dc.GetGraphicsContext();
+    auto gc = wxGraphicsContext::Create(dc);
 	if (!gc) return;
 	auto height = GetHeight();
 	auto width = GetWidth();
@@ -188,6 +189,7 @@ void Waveform::DrawBitmap()
 	}
 	dc.SelectObject(wxNullBitmap);
 	m_cached_bmp = bmp;
+	assert(m_cached_bmp.IsOk());
 }
 
 std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
