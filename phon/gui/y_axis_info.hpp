@@ -23,6 +23,7 @@
 #define PHONOMETRICA_Y_AXIS_INFO_HPP
 
 #include <wx/window.h>
+#include <wx/dcbuffer.h>
 #include <phon/gui/plot/time_window.hpp>
 #include <phon/array.hpp>
 
@@ -45,6 +46,8 @@ public:
 private:
 
 	void OnPaint(wxPaintEvent &);
+
+	void OnEraseBackground(wxEraseEvent &);
 
 	void OnClick(wxMouseEvent &);
 

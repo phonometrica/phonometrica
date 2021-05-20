@@ -30,6 +30,7 @@ namespace phonometrica {
 XAxisInfo::XAxisInfo(wxWindow *parent) :
 	wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 20))
 {
+    //Bind(wxEVT_ERASE_BACKGROUND, &XAxisInfo::OnEraseBackground, this);
 	Bind(wxEVT_PAINT, &XAxisInfo::OnPaint, this);
 	Bind(wxEVT_LEFT_DOWN, &XAxisInfo::OnClick, this);
 }
@@ -39,13 +40,19 @@ void XAxisInfo::SetTimeWindow(TimeWindow win)
 	m_win = win;
 	Refresh();
 }
+void XAxisInfo::OnEraseBackground(wxEraseEvent &)
+{
+
+}
 
 void XAxisInfo::OnPaint(wxPaintEvent &)
 {
 	if (!HasTimeWindow()) {
 		return;
 	}
-	wxPaintDC dc(this);
+    wxBufferedPaintDC dc(this);
+    dc.SetBackground(GetBackgroundColour());
+    dc.Clear();
 	wxCoord width, height, x, y;
 	auto size = GetSize();
 	auto x1 = TimeToXPos(m_sel.t1);

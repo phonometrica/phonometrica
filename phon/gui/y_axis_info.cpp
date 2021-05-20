@@ -33,6 +33,7 @@ YAxisInfo::YAxisInfo(wxWindow *parent) : wxWindow(parent, wxID_ANY)
 	const int width = 80;
 	SetMinSize(wxSize(width, -1));
 	SetMaxSize(wxSize(width, -1));
+    Bind(wxEVT_ERASE_BACKGROUND, &YAxisInfo::OnEraseBackground, this);
 	Bind(wxEVT_PAINT, &YAxisInfo::OnPaint, this);
 	Bind(wxEVT_LEFT_DOWN, &YAxisInfo::OnClick, this);
 }
@@ -47,9 +48,16 @@ void YAxisInfo::RemoveWindow(TimeAlignedWindow *win)
 	m_windows.remove(win);
 }
 
+void YAxisInfo::OnEraseBackground(wxEraseEvent &)
+{
+
+}
+
 void YAxisInfo::OnPaint(wxPaintEvent &)
 {
-	wxPaintDC dc(this);
+	wxBufferedPaintDC dc(this);
+    dc.SetBackground(GetBackgroundColour());
+    dc.Clear();
 
     for (auto win : m_windows)
     {

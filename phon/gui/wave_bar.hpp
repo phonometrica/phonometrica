@@ -22,7 +22,7 @@
 #ifndef PHONOMETRICA_WAVE_BAR_HPP
 #define PHONOMETRICA_WAVE_BAR_HPP
 
-#include <wx/dcclient.h>
+#include <wx/dcbuffer.h>
 #include <wx/window.h>
 #include <wx/graphics.h>
 #include <phon/gui/helpers.hpp>
@@ -49,7 +49,9 @@ private:
 
 	void OnPaint(wxPaintEvent &);
 
-	void Render(wxPaintDC &dc);
+    void OnEraseBackground(wxEraseEvent &);
+
+	void Render(wxBufferedPaintDC &dc);
 
 	void UpdateCache();
 

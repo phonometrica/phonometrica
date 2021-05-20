@@ -53,11 +53,11 @@ void SoundPlot::OnPaint(wxPaintEvent &)
 		UpdateCache();
 	}
 
-	wxPaintDC dc(this);
+	wxBufferedPaintDC dc(this);
 	Render(dc);
 }
 
-void SoundPlot::Render(wxPaintDC &dc)
+void SoundPlot::Render(wxBufferedPaintDC &dc)
 {
     assert(m_cached_bmp.IsOk());
 	dc.DrawBitmap(m_cached_bmp, 0.0, 0.0, true);
@@ -254,7 +254,7 @@ TimeWindow SoundPlot::ComputeZoomOut() const
 	return TimeWindow{t1, t2};
 }
 
-void SoundPlot::DrawSelection(wxPaintDC &dc)
+void SoundPlot::DrawSelection(wxBufferedPaintDC &dc)
 {
 	if (HasVisibleSelection())
 	{
@@ -267,10 +267,10 @@ void SoundPlot::DrawSelection(wxPaintDC &dc)
 	}
 }
 
-void SoundPlot::DrawSpanSelection(wxPaintDC &dc)
+void SoundPlot::DrawSpanSelection(wxBufferedPaintDC &dc)
 {
 	//auto gc = dc.GetGraphicsContext();
-	auto gc = wxGraphicsContext::Create(dc);
+    auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
 	if (!gc) return;
 	auto height = GetHeight();
 	auto path = gc->CreatePath();
@@ -294,7 +294,7 @@ void SoundPlot::DrawSpanSelection(wxPaintDC &dc)
 	dc.DrawLine(x2, 0, x2, height);
 }
 
-void SoundPlot::DrawPointSelection(wxPaintDC &dc)
+void SoundPlot::DrawPointSelection(wxBufferedPaintDC &dc)
 {
 	if (!HasPointSelection()) {
 		return;
@@ -304,7 +304,7 @@ void SoundPlot::DrawPointSelection(wxPaintDC &dc)
 	dc.DrawLine(x, 0, x, GetHeight());
 }
 
-void SoundPlot::DrawCursor(wxPaintDC &dc)
+void SoundPlot::DrawCursor(wxBufferedPaintDC &dc)
 {
 	if (m_track_mouse && HasCursor() && m_sel_state != SelectionState::Active)
 	{
@@ -374,7 +374,7 @@ void SoundPlot::SetTick(double time)
 	Refresh();
 }
 
-void SoundPlot::DrawTimeTick(wxPaintDC &dc)
+void SoundPlot::DrawTimeTick(wxBufferedPaintDC &dc)
 {
 	if (m_tick_time >= 0)
 	{

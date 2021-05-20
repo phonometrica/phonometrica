@@ -23,6 +23,7 @@
 #define PHONOMETRICA_X_AXIS_INFO_HPP
 
 #include <wx/dcclient.h>
+#include <wx/dcbuffer.h>
 #include <wx/window.h>
 #include <phon/gui/helpers.hpp>
 #include <phon/utils/signal.hpp>
@@ -52,6 +53,8 @@ private:
 	bool HasPointSelection() const { return m_sel.is_point(); }
 
 	void OnPaint(wxPaintEvent &e);
+
+    void OnEraseBackground(wxEraseEvent &);
 
 	double TimeToXPos(double t) const;
 

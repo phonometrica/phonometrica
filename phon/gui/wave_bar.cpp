@@ -26,7 +26,6 @@ namespace phonometrica {
 WaveBar::WaveBar(wxWindow *parent, const Handle <Sound> &snd) : wxWindow(parent, wxID_ANY),
 	m_sound(snd), m_sel({-1, -1})
 {
-	SetBackgroundColour(*wxWHITE);
 	SetMinSize(wxSize(-1, 50));
 	SetMaxSize(wxSize(-1, 50));
 
@@ -42,6 +41,7 @@ WaveBar::WaveBar(wxWindow *parent, const Handle <Sound> &snd) : wxWindow(parent,
         }
     }
 
+    Bind(wxEVT_ERASE_BACKGROUND, &WaveBar::OnEraseBackground, this);
 	Bind(wxEVT_PAINT, &WaveBar::OnPaint, this);
     Bind(wxEVT_LEFT_DOWN, &WaveBar::OnStartSelection, this);
     Bind(wxEVT_LEFT_UP, &WaveBar::OnEndSelection, this);
@@ -49,13 +49,20 @@ WaveBar::WaveBar(wxWindow *parent, const Handle <Sound> &snd) : wxWindow(parent,
    	Bind(wxEVT_MOUSEWHEEL, &WaveBar::OnMouseWheel, this);
 }
 
+void WaveBar::OnEraseBackground(wxEraseEvent &)
+{
+
+}
+
 void WaveBar::OnPaint(wxPaintEvent &)
 {
-	wxPaintDC dc(this);
+	wxBufferedPaintDC dc(this);
+	dc.SetBackground(*wxWHITE);
+	dc.Clear();
 	Render(dc);
 }
 
-void WaveBar::Render(wxPaintDC &dc)
+void WaveBar::Render(wxBufferedPaintDC &dc)
 {
 	UpdateCache();
 

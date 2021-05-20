@@ -24,6 +24,7 @@
 #define PHONOMETRICA_TIME_WINDOW_HPP
 
 #include <wx/dcclient.h>
+#include <wx/dcbuffer.h>
 #include <wx/window.h>
 #include <phon/gui/helpers.hpp>
 #include <phon/utils/signal.hpp>
@@ -42,7 +43,7 @@ public:
 
 	void SetTimeWindow(TimeWindow win);
 
-	virtual void DrawYAxis(wxPaintDC &dc, const wxRect &rect) = 0;
+	virtual void DrawYAxis(wxBufferedPaintDC &dc, const wxRect &rect) = 0;
 
 	Signal<TimeWindow> update_window;
 

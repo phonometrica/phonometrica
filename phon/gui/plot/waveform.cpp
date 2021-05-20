@@ -114,7 +114,7 @@ void Waveform::DrawBitmap()
 	dc.SetBackground(*wxWHITE);
 	dc.Clear();
 //	auto gc = dc.GetGraphicsContext();
-    auto gc = wxGraphicsContext::Create(dc);
+    auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
 	if (!gc) return;
 	auto height = GetHeight();
 	auto width = GetWidth();
@@ -270,7 +270,7 @@ std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 	return wave;
 }
 
-void Waveform::DrawYAxis(wxPaintDC &dc, const wxRect &rect)
+void Waveform::DrawYAxis(wxBufferedPaintDC &dc, const wxRect &rect)
 {
 	auto top = wxString::Format("+%.4f", extrema.second);
 	wxString center("0");

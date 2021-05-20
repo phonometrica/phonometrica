@@ -23,6 +23,7 @@
 #define PHONOMETRICA_SOUND_PLOT_HPP
 
 #include <wx/dcclient.h>
+#include <wx/dcbuffer.h>
 #include <wx/graphics.h>
 #include <phon/gui/plot/time_window.hpp>
 #include <phon/application/sound.hpp>
@@ -116,7 +117,7 @@ protected:
 
 	void OnEraseBackground(wxEraseEvent &);
 
-	void Render(wxPaintDC &dc);
+	void Render(wxBufferedPaintDC &dc);
 
 	bool HasVisibleSelection() const;
 
@@ -124,19 +125,19 @@ protected:
 
 	bool HasCursor() const { return m_cursor_pos >= 0; }
 
-	void DrawSelection(wxPaintDC &dc);
+	void DrawSelection(wxBufferedPaintDC &dc);
 
-	void DrawSpanSelection(wxPaintDC &dc);
+	void DrawSpanSelection(wxBufferedPaintDC &dc);
 
-	void DrawPointSelection(wxPaintDC &dc);
+	void DrawPointSelection(wxBufferedPaintDC &dc);
 
-	void DrawCursor(wxPaintDC &dc);
+	void DrawCursor(wxBufferedPaintDC &dc);
 
 	void OnStartSelection(wxMouseEvent &e);
 
 	void OnEndSelection(wxMouseEvent &e);
 
-	void DrawTimeTick(wxPaintDC &dc);
+	void DrawTimeTick(wxBufferedPaintDC &dc);
 
 	void OnMotion(wxMouseEvent &e);
 
