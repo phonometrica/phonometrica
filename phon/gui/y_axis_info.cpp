@@ -55,9 +55,11 @@ void YAxisInfo::OnEraseBackground(wxEraseEvent &)
 
 void YAxisInfo::OnPaint(wxPaintEvent &)
 {
-	wxBufferedPaintDC dc(this);
+	PaintDC dc(this);
+#ifdef __WXMSW__
     dc.SetBackground(GetBackgroundColour());
     dc.Clear();
+#endif
 
     for (auto win : m_windows)
     {

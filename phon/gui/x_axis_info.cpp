@@ -20,6 +20,7 @@
  ***********************************************************************************************************************/
 
 #include <phon/gui/x_axis_info.hpp>
+#include <phon/gui/plot/time_window.hpp> // for PaintDC
 
 #ifdef __WXMSW__
 #undef DrawText
@@ -50,9 +51,11 @@ void XAxisInfo::OnPaint(wxPaintEvent &)
 	if (!HasTimeWindow()) {
 		return;
 	}
-    wxBufferedPaintDC dc(this);
+    PaintDC dc(this);
+#ifdef __WXMSW__
     dc.SetBackground(GetBackgroundColour());
     dc.Clear();
+#endif
 	wxCoord width, height, x, y;
 	auto size = GetSize();
 	auto x1 = TimeToXPos(m_sel.t1);

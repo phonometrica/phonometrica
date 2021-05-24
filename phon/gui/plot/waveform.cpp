@@ -270,7 +270,7 @@ std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 	return wave;
 }
 
-void Waveform::DrawYAxis(wxBufferedPaintDC &dc, const wxRect &rect)
+void Waveform::DrawYAxis(PaintDC &dc, const wxRect &rect)
 {
 	auto top = wxString::Format("+%.4f", extrema.second);
 	wxString center("0");

@@ -23,13 +23,27 @@
 #ifndef PHONOMETRICA_TIME_WINDOW_HPP
 #define PHONOMETRICA_TIME_WINDOW_HPP
 
-#include <wx/dcclient.h>
+#ifdef __WXMSW__
 #include <wx/dcbuffer.h>
+#else
+#include <wx/dcclient.h>
+#endif
+
 #include <wx/window.h>
 #include <phon/gui/helpers.hpp>
 #include <phon/utils/signal.hpp>
 
+
+
 namespace phonometrica {
+
+// We need this on Windows to avoid flickering on the axes
+#ifdef __WXMSW__
+typedef wxBufferedPaintDC PaintDC;
+#else
+typedef wxPaintDC PaintDC;
+#endif
+
 
 class TimeAlignedWindow : public wxWindow
 {
@@ -43,7 +57,7 @@ public:
 
 	void SetTimeWindow(TimeWindow win);
 
-	virtual void DrawYAxis(wxBufferedPaintDC &dc, const wxRect &rect) = 0;
+	virtual void DrawYAxis(PaintDC &dc, const wxRect &rect) = 0;
 
 	Signal<TimeWindow> update_window;
 

@@ -39,7 +39,7 @@ public:
 
 private:
 
-	void DrawYAxis(wxBufferedPaintDC &dc, const wxRect &rect) override;
+	void DrawYAxis(wxPaintDC &dc, const wxRect &rect) override;
 
 	void ReadSettings() override;
 

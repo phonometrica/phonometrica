@@ -105,7 +105,7 @@ void Spectrogram::UpdateCache()
 	}
 }
 
-void Spectrogram::DrawYAxis(wxBufferedPaintDC &dc, const wxRect &rect)
+void Spectrogram::DrawYAxis(wxPaintDC &dc, const wxRect &rect)
 {
 	auto top = wxString::Format("%d Hz", int(max_freq));
 	wxString center("0");
