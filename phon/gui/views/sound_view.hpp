@@ -70,7 +70,9 @@ protected:
 
 	TimeWindow GetTimeWindow() const;
 
-	void OnPlay(wxCommandEvent &);
+	void OnPlayWindow(wxCommandEvent &);
+
+	void OnPlaySelection(wxCommandEvent &);
 
 	void OnStop(wxCommandEvent &);
 
@@ -118,9 +120,13 @@ protected:
 
 	void SetTopPlot();
 
-	void SetPauseIcon();
+	void SetPlayWindowIcon();
 
-	void SetPlayIcon();
+	void SetPauseWindowIcon();
+
+	void SetPlaySelectionIcon();
+
+	void SetPauseSelectionIcon();
 
 	void HideTick();
 
@@ -160,11 +166,13 @@ protected:
 
 	void UpdatePlotLayout();
 
+	void OnContextMenu(wxPoint pos);
+
 	wxButton *m_wave_tool, *m_spectrum_tool, *m_formant_tool, *m_pitch_tool, *m_intensity_tool;
 
-	wxButton *m_play_tool;
+	wxButton *m_play_tool, *m_play_sel_tool;
 
-	wxBitmap m_play_icon, m_pause_icon;
+	wxBitmap m_play_icon, m_play_sel_icon, m_pause_icon, m_pause_sel_icon;
 
 	ToggleButton *m_mouse_tool;
 

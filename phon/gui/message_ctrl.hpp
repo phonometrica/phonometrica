@@ -33,13 +33,17 @@ public:
 
 	MessageCtrl(wxWindow *parent);
 
-	void Print(const wxString &text);
+	void SetStatus(const wxString &text);
 
-	void Clear();
+	void SetSelection(const wxString &text);
+
+	void ClearStatus();
+
+	void ClearSelection();
 
 protected:
 
-	wxStaticText *text_ctrl;
+	wxStaticText *status_ctrl, *sel_ctrl;
 };
 
 } // namespace phonometrica

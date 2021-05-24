@@ -109,7 +109,9 @@ void SoundView::Initialize()
 		plot->update_cursor.connect(&SoundView::OnUpdateCursor, this);
 		plot->zoom_to_selection.connect(&SoundView::ZoomToSelection, this);
 		plot->y_axis_modified.connect(&YAxisInfo::OnUpdate, m_y_axis);
-		plot->update_status.connect(&MessageCtrl::Print, msg_ctrl);
+		plot->update_status.connect(&MessageCtrl::SetStatus, msg_ctrl);
+		plot->update_selection_status.connect(&MessageCtrl::SetSelection, msg_ctrl);
+		plot->request_context_menu.connect(&SoundView::OnContextMenu, this);
 
 		for (auto plot2 : m_plots)
 		{
@@ -157,8 +159,12 @@ void SoundView::SetToolBar()
 	save_tool->Disable();
 	m_toolbar->AddSeparator();
 	m_play_icon = ICN(play);
+	m_play_sel_icon = ICN(play_selection);
 	m_pause_icon = ICN(pause);
-	m_play_tool = m_toolbar->AddButton(m_play_icon, _("Play window or selection"));
+	m_pause_sel_icon = ICN(pause_selection);
+	m_play_tool = m_toolbar->AddButton(m_play_icon, _("Play current window"));
+	m_play_sel_tool = m_toolbar->AddButton(m_play_sel_icon, _("Play selection"));
+	m_play_sel_tool->Enable(false);
 	auto stop_tool = m_toolbar->AddButton(ICN(stop), _("Stop playing"));
 	m_toolbar->AddSeparator();
 
@@ -187,7 +193,8 @@ void SoundView::SetToolBar()
 	auto help_tool = m_toolbar->AddHelpButton();
 #undef ICN
 
-	m_play_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnPlay, this);
+	m_play_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnPlayWindow, this);
+	m_play_sel_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnPlaySelection, this);
 	stop_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnStop, this);
 	help_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnHelp, this);
 	forward_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SoundView::OnMoveForward, this);
@@ -222,25 +229,25 @@ void SoundView::SetTimeSelection(double from, double to)
 	UpdateTimeWindow(TimeWindow{from, to});
 }
 
-void SoundView::OnPlay(wxCommandEvent &)
+void SoundView::OnPlayWindow(wxCommandEvent &)
 {
     if (player.running())
     {
         if (player.paused())
         {
-            SetPauseIcon();
+			SetPauseWindowIcon();
             player.resume();
         }
         else
         {
-            SetPlayIcon();
+			SetPlayWindowIcon();
             player.pause();
         }
     }
     else
     {
-        auto times = GetFirstPlot()->GetPlayWindow();
-        SetPauseIcon();
+        auto times = GetFirstPlot()->GetTimeWindow();
+		SetPauseWindowIcon();
 		try {
 			player.play(times.first, times.second);
 			if (player.has_error())
@@ -250,16 +257,51 @@ void SoundView::OnPlay(wxCommandEvent &)
 		}
 		catch (std::exception &e)
 		{
-			auto msg = wxString::Format(_("Cannot play sound: %s"), e.what());
+			auto msg = wxString::Format(_("Cannot play sound window: %s"), e.what());
 			wxMessageBox(msg, _("Sound error"), wxICON_ERROR);
 		}
     }
 }
 
+void SoundView::OnPlaySelection(wxCommandEvent &)
+{
+	if (player.running())
+	{
+		if (player.paused())
+		{
+			SetPauseSelectionIcon();
+			player.resume();
+		}
+		else
+		{
+			SetPlaySelectionIcon();
+			player.pause();
+		}
+	}
+	else
+	{
+		auto times = GetFirstPlot()->GetSelection();
+		SetPauseSelectionIcon();
+		try {
+			player.play(times.t1, times.t2);
+			if (player.has_error())
+			{
+				player.raise_error();
+			}
+		}
+		catch (std::exception &e)
+		{
+			auto msg = wxString::Format(_("Cannot play sound selection: %s"), e.what());
+			wxMessageBox(msg, _("Sound error"), wxICON_ERROR);
+		}
+	}
+}
+
 void SoundView::OnStop(wxCommandEvent &)
 {
     player.interrupt();
-    SetPlayIcon();
+	SetPlayWindowIcon();
+	SetPlaySelectionIcon();
     HideTick();
 }
 
@@ -371,6 +413,10 @@ void SoundView::OnUpdateSelection(const TimeSelection &sel)
 		plot->SetSelection(sel);
 	}
 	UpdateXAxisSelection(sel);
+
+	if (!m_play_sel_tool->IsEnabled()) {
+		m_play_sel_tool->Enable();
+	}
 }
 
 void SoundView::OnInvalidateSelection()
@@ -379,6 +425,8 @@ void SoundView::OnInvalidateSelection()
 		plot->InvalidateSelection();
 	}
 	m_x_axis->InvalidateSelection();
+	msg_ctrl->ClearSelection();
+	m_play_sel_tool->Enable(false);
 }
 
 void SoundView::UpdateXAxisSelection(const TimeSelection &sel)
@@ -500,14 +548,24 @@ void SoundView::SetTopPlot()
 	}
 }
 
-void SoundView::SetPauseIcon()
+void SoundView::SetPauseWindowIcon()
 {
 	m_play_tool->SetBitmap(m_pause_icon);
 }
 
-void SoundView::SetPlayIcon()
+void SoundView::SetPlayWindowIcon()
 {
 	m_play_tool->SetBitmap(m_play_icon);
+}
+
+void SoundView::SetPlaySelectionIcon()
+{
+	m_play_sel_tool->SetBitmap(m_play_sel_icon);
+}
+
+void SoundView::SetPauseSelectionIcon()
+{
+	m_play_sel_tool->SetBitmap(m_pause_sel_icon);
 }
 
 void SoundView::HideTick()
@@ -517,7 +575,8 @@ void SoundView::HideTick()
 
 void SoundView::OnPlayingDone()
 {
-	SetPlayIcon();
+	SetPlayWindowIcon();
+	SetPlaySelectionIcon();
 	HideTick();
 }
 
@@ -697,5 +756,29 @@ void SoundView::UpdatePlotLayout()
 	Layout();
 }
 
+void SoundView::OnContextMenu(wxPoint pos)
+{
+	auto menu = new wxMenu;
+	auto play_entry = menu->Append(wxNewId(), _("Play current window"));
+	auto play_sel_entry = menu->Append(wxNewId(), _("Play selection"));
+	auto zoom_sel_entry = menu->Append(wxNewId(), _("Zoom to selection"));
+	menu->AppendSeparator();
+	auto clear_sel_entry = menu->Append(wxNewId(), _("Clear selection"));
+
+	if (!GetFirstPlot()->HasSelection())
+	{
+		play_sel_entry->Enable(false);
+		zoom_sel_entry->Enable(false);
+		clear_sel_entry->Enable(false);
+	}
+
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnPlayWindow, this, play_entry->GetId());
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnPlaySelection, this, play_sel_entry->GetId());
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnZoomToSelection, this, zoom_sel_entry->GetId());
+	Bind(wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent &) { OnInvalidateSelection(); }, clear_sel_entry->GetId());
+
+
+	PopupMenu(menu, ScreenToClient(pos));
+}
 
 } // namespace phonometrica

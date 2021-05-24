@@ -297,4 +297,21 @@ wxString Waveform::GetStatus()
 	return wxString();
 }
 
+void Waveform::OnMotion(wxMouseEvent &e)
+{
+	SoundPlot::OnMotion(e);
+	if (m_track_mouse)
+	{
+		double amp = YPosToAmplitude(e.GetPosition().y);
+		auto msg = wxString::Format("Amplitude at cursor = %.6f Hz", amp);
+		update_status(msg);
+	}
+}
+
+double Waveform::YPosToAmplitude(int y) const
+{
+	const double H = double(GetSize().GetHeight()) / 2;
+	return (H - y) * magnitude / H;
+}
+
 } // namespace phonometrica

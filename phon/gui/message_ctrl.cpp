@@ -27,18 +27,30 @@ namespace phonometrica {
 MessageCtrl::MessageCtrl(wxWindow *parent) : wxWindow(parent, wxID_ANY)
 {
 	auto sizer = new HBoxSizer;
-	text_ctrl = new wxStaticText(this, wxID_ANY, wxString());
-	sizer->Add(text_ctrl, 0, wxEXPAND|wxALL, 0);
+	status_ctrl = new wxStaticText(this, wxID_ANY, wxString());
+	sel_ctrl = new wxStaticText(this, wxID_ANY, wxString(), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE);
+	sizer->Add(status_ctrl, 1, wxEXPAND | wxALL, 0);
+	sizer->Add(sel_ctrl, 1, wxEXPAND | wxALL, 0);
 	SetSizer(sizer);
 }
 
-void MessageCtrl::Print(const wxString &text)
+void MessageCtrl::SetStatus(const wxString &text)
 {
-	text_ctrl->SetLabel(text);
+	status_ctrl->SetLabel(text);
 }
 
-void MessageCtrl::Clear()
+void MessageCtrl::ClearStatus()
 {
-	Print(wxString());
+	SetStatus(wxString());
+}
+
+void MessageCtrl::SetSelection(const wxString &text)
+{
+	sel_ctrl->SetLabel(text);
+}
+
+void MessageCtrl::ClearSelection()
+{
+	sel_ctrl->SetLabel(wxString());
 }
 } // namespace phonometrica

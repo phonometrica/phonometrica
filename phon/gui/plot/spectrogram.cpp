@@ -443,4 +443,21 @@ wxString Spectrogram::GetStatus()
 	return wxString();
 }
 
+void Spectrogram::OnMotion(wxMouseEvent &e)
+{
+	SoundPlot::OnMotion(e);
+	if (m_track_mouse)
+	{
+		auto f = round(YPosToHertz(e.GetPosition().y));
+		auto msg = wxString::Format("Frequency at cursor = %d Hz", (int) f);
+		update_status(msg);
+	}
+}
+
+double Spectrogram::YPosToHertz(int y) const
+{
+	auto height = GetSize().GetHeight();
+	return (max_freq * (height - y)) / height;
+}
+
 } // namespace phonometrica

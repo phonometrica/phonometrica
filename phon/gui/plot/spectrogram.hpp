@@ -59,6 +59,10 @@ private:
 
 	int FormantToYPos(double hz);
 
+	void OnMotion(wxMouseEvent &e) override;
+
+	double YPosToHertz(int y) const;
+
 	// A matrix containing i time measurements across j formants.
 	Matrix<double> formants;
 

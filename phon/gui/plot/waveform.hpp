@@ -53,6 +53,10 @@ private:
 
 	void ReadSettings() override;
 
+	void OnMotion(wxMouseEvent &e) override;
+
+	double YPosToAmplitude(int y) const;
+
 	// Map sample to plot y coordinate.
     double SampleToHeight(double s) const;
 

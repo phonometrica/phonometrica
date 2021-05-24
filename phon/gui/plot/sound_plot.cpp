@@ -32,6 +32,7 @@ SoundPlot::SoundPlot(wxWindow *parent, const Handle <Sound> &snd, int channel) :
 	TimeAlignedWindow(parent), m_sound(snd), m_cached_size(wxDefaultSize), m_channel(channel)
 {
 	m_track_mouse = Settings::get_boolean("enable_mouse_tracking");
+	Bind(wxEVT_RIGHT_DOWN, &SoundPlot::OnContextMenu, this);
 	Bind(wxEVT_LEFT_DOWN, &SoundPlot::OnStartSelection, this);
 	Bind(wxEVT_LEFT_UP, &SoundPlot::OnEndSelection, this);
 	Bind(wxEVT_MOTION, &SoundPlot::OnMotion, this);
@@ -117,14 +118,15 @@ void SoundPlot::OnMotion(wxMouseEvent &e)
 		// We don't need to refresh the plot because the signal will be sent back to us by the view
 		// to which this plot is connected.
 		update_selection(TimeSelection{t1, t2});
+
+		auto msg = wxString::Format("Selection duration: %f s", t2-t1);
+		update_selection_status(msg);
 	}
 	else if (m_track_mouse)
 	{
 		auto pos = ScreenToClient(wxGetMousePosition());
 		update_cursor(pos.x);
 	}
-
-	update_status(GetStatus());
 }
 
 void SoundPlot::OnLeaveWindow(wxMouseEvent &e)
@@ -420,6 +422,12 @@ void SoundPlot::SetPlotVisible(bool value)
 bool SoundPlot::IsVisible() const
 {
 	return IsPlotVisible() && IsChannelVisible();
+}
+
+void SoundPlot::OnContextMenu(wxMouseEvent &e)
+{
+	auto pos = ClientToScreen(e.GetPosition());
+	request_context_menu(pos);
 }
 
 } // namespace phonometrica

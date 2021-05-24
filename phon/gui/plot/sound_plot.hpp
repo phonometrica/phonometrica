@@ -47,6 +47,8 @@ public:
 
 	const TimeSelection & GetSelection() const;
 
+
+
 	void SetSelection(const TimeSelection &sel);
 
 	void InvalidateSelection();
@@ -107,6 +109,10 @@ public:
 
 	Signal<const wxString&> update_status;
 
+	Signal<const wxString&> update_selection_status;
+
+	Signal<wxPoint> request_context_menu;
+
 protected:
 
 	virtual void UpdateCache() = 0;
@@ -133,13 +139,15 @@ protected:
 
 	void DrawCursor(wxBufferedPaintDC &dc);
 
+	void OnContextMenu(wxMouseEvent &e);
+
 	void OnStartSelection(wxMouseEvent &e);
 
 	void OnEndSelection(wxMouseEvent &e);
 
 	void DrawTimeTick(wxBufferedPaintDC &dc);
 
-	void OnMotion(wxMouseEvent &e);
+	virtual void OnMotion(wxMouseEvent &e);
 
 	void OnLeaveWindow(wxMouseEvent &e);
 
