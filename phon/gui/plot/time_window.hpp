@@ -23,13 +23,13 @@
 #ifndef PHONOMETRICA_TIME_WINDOW_HPP
 #define PHONOMETRICA_TIME_WINDOW_HPP
 
+#include <wx/window.h>
 #ifdef __WXMSW__
 #include <wx/dcbuffer.h>
 #else
 #include <wx/dcclient.h>
 #endif
 
-#include <wx/window.h>
 #include <phon/gui/helpers.hpp>
 #include <phon/utils/signal.hpp>
 
