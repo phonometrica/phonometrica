@@ -124,7 +124,7 @@ void Waveform::DrawBitmap()
 	dc.SetPen(wxPen(*wxBLUE, 1, wxPENSTYLE_DOT));
 	dc.DrawLine(0, height / 2, width, height / 2);
 
-	if (wave.size() >= width)
+	if (wave.size() >= (size_t) width)
 	{
 		gc->SetPen(wxPen(*wxBLACK, 1));
 		wxGraphicsPath path = gc->CreatePath();
@@ -218,20 +218,21 @@ std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 	}
 	auto width = GetWidth();
 	auto raw_data = data.data();
+	size_t available_pixels = width - 1;
 
 	if (sample_count >= width)
 	{
 		assert(m_window.second <= m_sound->duration());
 
 		// Subtract 1 to width so that the last pixel is assigned the left-over frames.
-		auto frames_per_pixel = sample_count / (width - 1);
+		auto frames_per_pixel = sample_count / available_pixels;
 
 		auto maximum = -(std::numeric_limits<double>::max)();
 		auto minimum = (std::numeric_limits<double>::max)();
 		intptr_t min_index = (std::numeric_limits<intptr_t>::min)();
 		intptr_t max_index = (std::numeric_limits<intptr_t>::min)();
 
-		for (size_t i = 0; i < sample_count; i++)
+		for (intptr_t i = 0; i < sample_count; i++)
 		{
 			auto sample = *raw_data++;
 
@@ -246,7 +247,7 @@ std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 				max_index = i;
 			}
 
-			if (i % frames_per_pixel == 0)
+			if (i % frames_per_pixel == 0 && wave.size() < available_pixels)
 			{
 				double y1 = SampleToHeight(maximum);
 				double y2 = SampleToHeight(minimum);

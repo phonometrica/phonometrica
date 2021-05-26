@@ -82,7 +82,7 @@ add_definitions(-DPHON_VERSION_DEVEL=17)
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2021)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=5)
-add_definitions(-DPHON_RELEASE_DATE_DAY=20)
+add_definitions(-DPHON_RELEASE_DATE_DAY=26)
 
 
 ########################
@@ -177,6 +177,7 @@ if (EMBED_SCRIPTS)
     add_definitions(-DPHON_EMBED_SCRIPTS=1)
 endif()
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DPHON_DEBUG")
 
 if (WITH_GUI)
     add_definitions(-DPHON_GUI=1)

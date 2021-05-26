@@ -190,7 +190,9 @@ static std::vector<double> lpc_burg(const Array<double> &x, int order)
 	{
 		if (den <= 0)
 		{
-			//throw error("[Numerical error] LPC analysis: input ill-conditioned?");
+#ifdef PHON_DEBUG
+			PHON_LOG("Potential numerical error in LPC analysis: input ill-conditioned?\n");
+#endif
 			for (size_t k = 0; k < ar_coeffs.size(); k++) {
 				ar_coeffs[k] = 0;
 			}

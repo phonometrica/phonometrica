@@ -114,10 +114,10 @@ void WaveBar::UpdateCache()
 	auto &data = m_sound->data();
 	int nchannel = m_sound->nchannel();
 	auto width = GetSize().GetWidth();
+	auto available_pixels = size_t(width) - 1;
 
 	// Subtract 1 to width so that the last pixel is assigned the left-over frames.
-	auto frames_per_pixel = sample_count / (width-1);
-
+	auto frames_per_pixel = intptr_t(floor(double(sample_count) / available_pixels));
 	auto maximum = (std::numeric_limits<double>::min)();
 	auto minimum = (std::numeric_limits<double>::max)();
 
@@ -136,14 +136,11 @@ void WaveBar::UpdateCache()
 		if (sample > maximum)
 			maximum = sample;
 
-		if (i % frames_per_pixel == 0)
+		if (i % frames_per_pixel == 0 && m_cache.size() < available_pixels)
 		{
 			auto y1 = SampleToYPos(maximum);
 			auto y2 = SampleToYPos(minimum);
 			m_cache.emplace_back(y1, y2);
-			if (m_cache.size() == width) {
-				PHON_LOG("cache size reached at i=%ld\n", i);
-			}
 			// reset values
 			maximum = (std::numeric_limits<double>::min)();
 			minimum = (std::numeric_limits<double>::max)();
@@ -153,9 +150,7 @@ void WaveBar::UpdateCache()
 	auto y1 = SampleToYPos(maximum);
 	auto y2 = SampleToYPos(minimum);
 	m_cache.emplace_back(y1, y2);
-	PHON_LOG("cache size: %d\n", int(m_cache.size()));
-	PHON_LOG("width: %d\n", int(GetSize().GetWidth()));
-	//assert(m_cache.size() == (size_t)GetSize().GetWidth());
+	assert(m_cache.size() == (size_t)GetSize().GetWidth());
 }
 
 double WaveBar::TimeToXPos(double t) const

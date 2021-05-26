@@ -84,7 +84,14 @@ void Spectrogram::UpdateCache()
                     double value = (std::max)(raster(i, j), min_dB);
                     if (std::isnan(value)) value = min_dB; // handle data that could not be calculated.
                     int g = 255 - round((value - min_dB) * 255 / (max_dB - min_dB));
-                    assert(g >= 0);
+                    if (unlikely(g < 0))
+                    {
+#ifdef PHON_DEBUG
+                    	PHON_LOG("Invalid gray value in spectrogram: %d\n", g);
+#endif
+						g = 0;
+                    }
+
                     px.Red() = px.Green() = px.Blue() = g;
                     ++px;
                 }
