@@ -292,18 +292,13 @@ void Waveform::DrawYAxis(PaintDC &dc, const wxRect &rect)
     dc.DrawText(bottom, x3, y3);
 }
 
-wxString Waveform::GetStatus()
-{
-	return wxString();
-}
-
 void Waveform::OnMotion(wxMouseEvent &e)
 {
 	SoundPlot::OnMotion(e);
 	if (m_track_mouse)
 	{
 		double amp = YPosToAmplitude(e.GetPosition().y);
-		auto msg = wxString::Format("Amplitude at cursor = %.6f Hz", amp);
+		auto msg = wxString::Format("Amplitude at cursor: %.6f Hz", amp);
 		update_status(msg);
 	}
 }

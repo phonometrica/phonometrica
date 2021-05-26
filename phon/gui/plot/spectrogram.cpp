@@ -108,7 +108,6 @@ void Spectrogram::UpdateCache()
 void Spectrogram::DrawYAxis(PaintDC &dc, const wxRect &rect)
 {
 	auto top = wxString::Format("%d Hz", int(max_freq));
-	wxString center("0");
 	wxString bottom("0 Hz");
 	wxCoord w, h;
 	int padding = 2;
@@ -438,18 +437,13 @@ int Spectrogram::FormantToYPos(double hz)
 	return h - int(round((hz * h / max_freq)));
 }
 
-wxString Spectrogram::GetStatus()
-{
-	return wxString();
-}
-
 void Spectrogram::OnMotion(wxMouseEvent &e)
 {
 	SoundPlot::OnMotion(e);
 	if (m_track_mouse)
 	{
 		auto f = round(YPosToHertz(e.GetPosition().y));
-		auto msg = wxString::Format("Frequency at cursor = %d Hz", (int) f);
+		auto msg = wxString::Format("Frequency at cursor: %d Hz", (int) f);
 		update_status(msg);
 	}
 }

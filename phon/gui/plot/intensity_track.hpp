@@ -13,91 +13,53 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 26/03/2021                                                                                                 *
+ * Created: 25/05/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Display a spectrogram in a sound or annotation view.                                                       *
+ * Purpose: Intensity track in sound and annotation views.                                                             *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_SPECTROGRAM_HPP
-#define PHONOMETRICA_SPECTROGRAM_HPP
+#ifndef PHONOMETRICA_INTENSITY_TRACK_HPP
+#define PHONOMETRICA_INTENSITY_TRACK_HPP
 
 #include <phon/gui/plot/sound_plot.hpp>
-#include <phon/analysis/signal_processing.hpp>
 
 namespace phonometrica {
 
-class Spectrogram final : public SoundPlot
+class IntensityTrack final : public SoundPlot
 {
 public:
 
-	Spectrogram(wxWindow *parent, const Handle <Sound> &snd, int channel);
-
-	bool HasFormants() const;
-
-	void ShowFormants(bool value);
+	IntensityTrack(wxWindow *parent, const Handle <Sound> &snd, int channel);
 
 private:
 
 	void DrawYAxis(PaintDC &dc, const wxRect &rect) override;
 
-	void ReadSettings() override;
-
-	void ReadSpectrogramSettings();
-
-	void ReadFormantSettings();
-
 	void UpdateCache() override;
 
-	void DrawFormants();
-
-	Matrix<double> ComputeSpectrogram();
-
-	void EstimateFormants();
-
-	int FormantToYPos(double hz);
+	void ReadSettings() override;
 
 	void OnMotion(wxMouseEvent &e) override;
 
-	double YPosToHertz(int y) const;
+	void DrawBitmap();
 
-	// A matrix containing i time measurements across j formants.
-	Matrix<double> formants;
+	Array<double> CalculateIntensity();
 
-	// Duration of the analysis window for spectrograms.
-	double spectrum_window_length;
+    double IntensityToYPos(double dB) const;
 
-	// Highest frequency.
-	double max_freq;
+    double YPosToIntensity(int y) const;
 
-	// Pre-emphasis factor.
-	double preemph_threshold;
 
-	// Dynamic range (in dB). Values below the threshold [max_dB - dynamic_range] are treated as 0.
-	int dynamic_range;
+    double min_dB = 50;
 
-	// Duration of the analysis window for formants.
-	double formant_window_length;
+    double max_dB = 100;
 
-	// Nyquist frequency range for formant analysis.
-	double max_formant_frequency;
-
-	// Number of prediction coefficients for LPC analysis.
-	int lpc_order;
-
-	// Number of formants to display.
-	int nformant;
-
-	// Window type for the spectrogram.
-	speech::WindowType window_type;
-
-	// Enable formant tracking.
-	bool show_formants = true;
-
+    double time_step = 0.01;
 };
 
 } // namespace phonometrica
 
 
 
-#endif // PHONOMETRICA_SPECTROGRAM_HPP
+#endif // PHONOMETRICA_INTENSITY_TRACK_HPP

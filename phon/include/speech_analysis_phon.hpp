@@ -4,9 +4,20 @@
 static const char *speech_analysis_script = R"_(
 function report_intensity(time)
 local sound = get_current_sound()
+
 if sound then
-local dB = get_intensity(sound, time)
-print "Intensity at time ", time, " s = ", dB, " dB"
+print "Intensity at time ", time, " s:"
+local channels = get_visible_channels()
+
+foreach channel in channels do
+local dB = get_intensity(sound, channel, time)
+
+if channel == 0 then
+print "Average over all channels:", dB, " dB"
+else
+print "Channel ", channel, ":", dB, " dB"
+end
+end
 else
 alert("No sound or annotation view is currently selected!")
 end
@@ -14,12 +25,25 @@ end
 
 function report_pitch(time)
 local sound = get_current_sound()
+
 if sound then
+print "Pitch at time ", time, " s:"
+local channels = get_visible_channels()
+
+foreach channel in channels do
 local f0 = get_pitch(sound, time)
+
 if f0 then
-print "Pitch at time ", time, " s = ", f0, " Hz"
+f0 = f0 & "Hz"
 else
-print "Pitch at time ", time, " s = undefined"
+f0 = "undefined"
+end
+
+if channel then
+print "Average over all channels:", f0
+else
+print "Channel ", channel, ":", f0
+end
 end
 else
 alert("No sound or annotation view is currently selected!")
@@ -27,10 +51,19 @@ end
 end
 
 function report_formants(time as Number)
-print "Formants at time ", time, " s:"
 local sound = get_current_sound()
+
 if sound then
-local result = get_formants(sound, time)
+print "Formants at time ", time, " s:"
+local channels = get_visible_channels()
+
+foreach channel in channels do
+if channel == 0 then
+print "Average over all channels:"
+else
+print "Channel ", channel, ":"
+end
+local result = get_formants(sound, channel, time)
 local nformant = result.nrow
 
 for i = 1 to nformant do
@@ -42,6 +75,7 @@ if fmt then
 print label, " = ", fmt, " Hz\t bandwidth = ", bw, " Hz"
 else
 print label, " = undefined"
+end
 end
 end
 else

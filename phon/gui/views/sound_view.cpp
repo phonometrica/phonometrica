@@ -24,6 +24,7 @@
 #include <phon/gui/selection_dialog.hpp>
 #include <phon/gui/pref/waveform_settings.hpp>
 #include <phon/gui/pref/spectrogram_settings.hpp>
+#include <phon/gui/pref/intensity_settings.hpp>
 #include <phon/gui/pref/formant_settings.hpp>
 #include <phon/gui/channel_dialog.hpp>
 #include <phon/application/macros.hpp>
@@ -42,6 +43,8 @@ SoundView::SoundView(wxWindow *parent, const Handle<Sound> &snd) :
 
 void SoundView::Initialize()
 {
+	// Proportion for waveforms and spectrograms.
+	const int large_prop = 3;
 	SetToolBar();
 	m_zoom = new SoundZoom(this);
 	m_wavebar = new WaveBar(this, m_sound);
@@ -58,7 +61,7 @@ void SoundView::Initialize()
 		auto waveform = new Waveform(this, m_sound, i);
 		waveforms.push_back(waveform);
 		waveform->SetGlobalMagnitude(m_wavebar->GetMagnitude());
-		m_inner_sizer->Add(waveform, 1, wxEXPAND|wxRIGHT, 10);
+		m_inner_sizer->Add(waveform, large_prop, wxEXPAND|wxRIGHT, 10);
 		auto hline = new HLine(this);
 		m_inner_sizer->Add(hline);
 		wave_lines.push_back(hline);
@@ -66,25 +69,36 @@ void SoundView::Initialize()
 	}
 	for (int i = 0; i <= m_sound->nchannel(); i++)
 	{
-		auto spectrogram = new Spectrogram(this, m_sound, 0);
-		m_inner_sizer->Add(spectrogram, 1, wxEXPAND|wxRIGHT, 10);
+		auto spectrogram = new Spectrogram(this, m_sound, i);
+		m_inner_sizer->Add(spectrogram, large_prop, wxEXPAND|wxRIGHT, 10);
 		auto hline = new HLine(this);
 		m_inner_sizer->Add(hline);
 		spectrograms.push_back(spectrogram);
 		spectrogram_lines.push_back(hline);
 		m_plots.append(spectrogram);
 	}
+	for (int i = 0; i <= m_sound->nchannel(); i++)
+	{
+		auto track = new IntensityTrack(this, m_sound, i);
+		m_inner_sizer->Add(track, 1, wxEXPAND|wxRIGHT, 10);
+		auto hline = new HLine(this);
+		m_inner_sizer->Add(hline);
+		intensity_tracks.push_back(track);
+		intensity_lines.push_back(hline);
+		m_plots.append(track);
+	}
 
 	// Make all channels visible
 	for (int i = 1; i <= m_sound->nchannel(); i++) {
 		visible_channels.push_back(i);
 	}
+
 	ShowAverage(false);
 	UpdatePlotLayout();
 	m_inner_sizer->Add(m_zoom, 0, wxEXPAND|wxRIGHT, 10);
 	m_inner_sizer->Add(m_wavebar, 0, wxEXPAND|wxRIGHT|wxBOTTOM, 10);
-	msg_ctrl = new MessageCtrl(this);
-	m_inner_sizer->Add(msg_ctrl, 0, wxEXPAND|wxRIGHT|wxLEFT|wxBOTTOM, 10);
+	m_msg_ctrl = new MessageCtrl(this);
+	m_inner_sizer->Add(m_msg_ctrl, 0, wxEXPAND | wxRIGHT | wxLEFT | wxBOTTOM, 10);
 
 	// Packs the y axis and the plots
 	auto mid_sizer = new HBoxSizer;
@@ -109,8 +123,8 @@ void SoundView::Initialize()
 		plot->update_cursor.connect(&SoundView::OnUpdateCursor, this);
 		plot->zoom_to_selection.connect(&SoundView::ZoomToSelection, this);
 		plot->y_axis_modified.connect(&YAxisInfo::OnUpdate, m_y_axis);
-		plot->update_status.connect(&MessageCtrl::SetStatus, msg_ctrl);
-		plot->update_selection_status.connect(&MessageCtrl::SetSelection, msg_ctrl);
+		plot->update_status.connect(&MessageCtrl::SetStatus, m_msg_ctrl);
+		plot->update_selection_status.connect(&MessageCtrl::SetSelection, m_msg_ctrl);
 		plot->request_context_menu.connect(&SoundView::OnContextMenu, this);
 
 		for (auto plot2 : m_plots)
@@ -122,6 +136,7 @@ void SoundView::Initialize()
 	m_x_axis->invalidate_selection.connect(&SoundView::OnInvalidateSelection, this);
 	m_y_axis->invalidate_selection.connect(&SoundView::OnInvalidateSelection, this);
 	m_wavebar->change_window.connect(&XAxisInfo::SetTimeWindow, m_x_axis);
+	m_wavebar->update_status.connect(&MessageCtrl::SetStatus, m_msg_ctrl);
 	SetTopPlot();
 
 	String category("sound_plots");
@@ -129,10 +144,11 @@ void SoundView::Initialize()
 	bool show_spectrogram = Settings::get_boolean(category, "spectrogram");
 	bool show_formants = Settings::get_boolean(category, "formants");
 //	bool show_pitch = Settings::get_boolean(category, "pitch");
-//	bool show_intensity = Settings::get_boolean(category, "intensity");
+	bool show_intensity = Settings::get_boolean(category, "intensity");
 	ShowWaveforms(show_wave);
 	ShowSpectrogram(show_spectrogram);
 	ShowFormants(show_formants);
+	ShowIntensity(show_intensity);
 	Layout();
 }
 
@@ -425,7 +441,7 @@ void SoundView::OnInvalidateSelection()
 		plot->InvalidateSelection();
 	}
 	m_x_axis->InvalidateSelection();
-	msg_ctrl->ClearSelection();
+	m_msg_ctrl->ClearSelection();
 	m_play_sel_tool->Enable(false);
 }
 
@@ -505,7 +521,19 @@ void SoundView::OnPitchMenu(wxCommandEvent &)
 
 void SoundView::OnIntensityMenu(wxCommandEvent &)
 {
+	String category("sound_plots");
+	auto menu = new wxMenu;
+	auto show_tool = menu->AppendCheckItem(wxID_ANY, _("Show intensity"));
+	auto get_tool = menu->Append(wxID_ANY, _("Get intensity"));
+	menu->AppendSeparator();
+	auto settings_tool = menu->Append(wxID_ANY, _("Intensity settings..."));
+	bool show = Settings::get_boolean(category, "intensity");
+	show_tool->Check(show);
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnShowIntensity, this, show_tool->GetId());
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnGetIntensity, this, get_tool->GetId());
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SoundView::OnIntensitySettings, this, settings_tool->GetId());
 
+	m_toolbar->ShowMenu(m_intensity_tool, menu);
 }
 
 void SoundView::OnEnableMouseTracking(wxCommandEvent &)
@@ -616,7 +644,8 @@ void SoundView::OnFormantSettings(wxCommandEvent &)
 {
 	FormantSettings ed(this);
 
-	if (ed.ShowModal() != wxID_CANCEL) {
+	if (ed.ShowModal() != wxID_CANCEL)
+	{
 		for (auto spectrogram : spectrograms) {
 			spectrogram->UpdateSettings();
 		}
@@ -630,7 +659,14 @@ void SoundView::OnPitchSettings(wxCommandEvent &)
 
 void SoundView::OnIntensitySettings(wxCommandEvent &)
 {
+	IntensitySettings ed(this);
 
+	if (ed.ShowModal() != wxID_CANCEL)
+	{
+		for (auto track : intensity_tracks) {
+			track->UpdateSettings();
+		}
+	}
 }
 
 void SoundView::OnShowSpectrogram(wxCommandEvent &e)
@@ -654,6 +690,12 @@ void SoundView::OnShowFormants(wxCommandEvent &e)
 	UpdatePlotLayout();
 }
 
+void SoundView::OnShowIntensity(wxCommandEvent &e)
+{
+	ShowIntensity(e.IsChecked());
+	UpdatePlotLayout();
+}
+
 void SoundView::ShowFormants(bool value)
 {
 	if (value) {
@@ -663,6 +705,14 @@ void SoundView::ShowFormants(bool value)
 		spectrogram->ShowFormants(value);
 	}
 	Settings::set_value("sound_plots", "formants", value);
+}
+
+void SoundView::ShowIntensity(bool value)
+{
+	for (auto track : intensity_tracks) {
+		track->SetPlotVisible(value);
+	}
+	Settings::set_value("sound_plots", "intensity", value);
 }
 
 void SoundView::OnShowWaveforms(wxCommandEvent &e)
@@ -681,7 +731,6 @@ void SoundView::ShowWaveforms(bool value)
 
 void SoundView::OnGetFormants(wxCommandEvent &)
 {
-#if 1
 	if (!spectrograms[0]->HasSelection()) {
 		wxMessageBox(_("First select a point or a portion of the signal"), _("Cannot measure formants"), wxICON_ERROR);
 		return;
@@ -689,7 +738,23 @@ void SoundView::OnGetFormants(wxCommandEvent &)
 	auto sel = spectrograms[0]->GetSelection();
 	String cmd = (sel.t1 == sel.t2) ? String::format("report_formants(%.10f)", sel.t1) : String::format("report_formants(%.10f, %.10f)", sel.t1, sel.t2);
 	SendCommand(cmd);
-#endif
+}
+
+void SoundView::OnGetIntensity(wxCommandEvent &)
+{
+	if (!intensity_tracks[0]->HasSelection()) {
+		wxMessageBox(_("First select a point"), _("Cannot measure intensity"), wxICON_ERROR);
+		return;
+	}
+
+	auto sel = intensity_tracks[0]->GetSelection();
+
+	if (sel.t1 != sel.t2) {
+		wxMessageBox(_("First select a point"), _("Cannot measure intensity"), wxICON_ERROR);
+		return;
+	}
+	String cmd = String::format("report_intensity(%.10f)", sel.t1);
+	SendCommand(cmd);
 }
 
 void SoundView::SendCommand(const String &code)
@@ -740,6 +805,7 @@ void SoundView::ShowChannel(int channel, bool show)
 {
 	waveforms[channel]->SetChannelVisible(show);
 	spectrograms[channel]->SetChannelVisible(show);
+	intensity_tracks[channel]->SetChannelVisible(show);
 }
 
 void SoundView::UpdatePlotLayout()
@@ -752,6 +818,9 @@ void SoundView::UpdatePlotLayout()
 		show = spectrograms[i]->IsVisible();
 		spectrograms[i]->Show(show);
 		spectrogram_lines[i]->Show(show);
+		show = intensity_tracks[i]->IsVisible();
+		intensity_tracks[i]->Show(show);
+		intensity_lines[i]->Show(show);
 	}
 	Layout();
 }
@@ -779,6 +848,20 @@ void SoundView::OnContextMenu(wxPoint pos)
 
 
 	PopupMenu(menu, ScreenToClient(pos));
+}
+
+Array<int> SoundView::GetVisibleChannels() const
+{
+	Array<int> result;
+
+	for (size_t i = 0; i < waveforms.size(); i++)
+	{
+		if (waveforms[i]->IsChannelVisible()) {
+			result.append((int)i);
+		}
+	}
+
+	return result;
 }
 
 } // namespace phonometrica

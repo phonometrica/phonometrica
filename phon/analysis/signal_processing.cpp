@@ -110,7 +110,7 @@ double get_intensity(std::span<double> frame, std::span<double> window)
 	return 10 * log10(avg_power / Iref);
 }
 
-std::vector<double>
+Array<double>
 get_intensity(std::span<double> input, int samplerate, intptr_t window_size, double time_step, WindowType type)
 {
     auto window = create_window(window_size, window_size, type);
@@ -120,7 +120,7 @@ get_intensity(std::span<double> input, int samplerate, intptr_t window_size, dou
     auto data = input.begin();
     auto limit = input.end();
     assert(frame_shift < window_size);
-    std::vector<double> output;
+    Array<double> output;
     output.reserve(n);
 
     while (data < limit)
@@ -188,8 +188,13 @@ static std::vector<double> lpc_burg(const Array<double> &x, int order)
 
     for (int i = 0; i < order; i++)
 	{
-		if (den <= 0) {
-			throw error("[Numerical error] LPC analysis: input ill-conditioned?");
+		if (den <= 0)
+		{
+			//throw error("[Numerical error] LPC analysis: input ill-conditioned?");
+			for (size_t k = 0; k < ar_coeffs.size(); k++) {
+				ar_coeffs[k] = 0;
+			}
+			return ar_coeffs;
 		}
 
 		// Eqn 15 of Marple, with fwd_pred_error and bwd_pred_error

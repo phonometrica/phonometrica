@@ -62,7 +62,7 @@ private:
 
 	void ResetLastLine(wxString text);
 
-	void GoToEnd() { text_ctrl->SetInsertionPointEnd(); }
+	void GoToEnd() { text_ctrl->SetInsertionPointEnd(); text_ctrl->ScrollIntoView(text_ctrl->GetLastPosition(), WXK_END); }
 
 	void Append(const wxString &text) { text_ctrl->WriteText(text); }
 

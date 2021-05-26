@@ -33,6 +33,7 @@
 #include <phon/gui/lines.hpp>
 #include <phon/gui/message_ctrl.hpp>
 #include <phon/gui/plot/spectrogram.hpp>
+#include <phon/gui/plot/intensity_track.hpp>
 #include <phon/application/audio_player.hpp>
 #include <phon/application/sound.hpp>
 
@@ -57,6 +58,8 @@ public:
 	void SetTimeSelection(double from, double to);
 
 	Handle<Sound> GetSound() const;
+
+	Array<int> GetVisibleChannels() const;
 
 protected:
 
@@ -152,11 +155,17 @@ protected:
 
 	void ShowFormants(bool value);
 
+	void OnShowIntensity(wxCommandEvent &e);
+
+	void ShowIntensity(bool value);
+
 	void OnShowWaveforms(wxCommandEvent &e);
 
 	void ShowWaveforms(bool value);
 
 	void OnGetFormants(wxCommandEvent &);
+
+	void OnGetIntensity(wxCommandEvent &);
 
 	void SendCommand(const String &code);
 
@@ -199,11 +208,13 @@ protected:
 
 	std::vector<Spectrogram*> spectrograms;
 
+	std::vector<IntensityTrack*> intensity_tracks;
+
 	std::vector<HLine*> wave_lines, spectrogram_lines, pitch_lines, intensity_lines;
 
 	std::vector<int> visible_channels;
 
-	MessageCtrl *msg_ctrl;
+	MessageCtrl *m_msg_ctrl;
 };
 
 } // namespace phonometrica

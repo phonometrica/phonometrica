@@ -30,6 +30,7 @@
 #include <phon/gui/dialog.hpp>
 #include <phon/gui/user_dialog.hpp>
 #include <phon/gui/text_viewer.hpp>
+#include <phon/gui/views/sound_view.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>
@@ -1546,12 +1547,25 @@ void MainWindow::SetShellFunctions()
 		return Variant();
 	};
 
-	auto get_current_sound = [this](Runtime &, std::span<Variant> args) -> Variant {
+	auto get_current_sound = [this](Runtime &, std::span<Variant>) -> Variant {
 		auto sound = viewer->GetCurrentSound();
 		if (sound) {
 			return sound;
 		}
 		return Variant();
+	};
+
+	auto get_visible_channels = [this](Runtime &rt, std::span<Variant>) -> Variant {
+		auto view = dynamic_cast<SoundView*>(viewer->GetCurrentView());
+		Array<Variant> result;
+		if (view)
+		{
+			for (int channel : view->GetVisibleChannels()) {
+				result.append((intptr_t) channel);
+			}
+		}
+
+		return make_handle<List>(&rt, std::move(result));
 	};
 
 #if 0
@@ -1666,6 +1680,7 @@ void MainWindow::SetShellFunctions()
 	runtime.add_global("update_progress_dialog", update_progress_dialog, {CLS(intptr_t) });
 	runtime.add_global("launch_browser", launch_browser, {CLS(String) });
 	runtime.add_global("get_current_sound", get_current_sound, { });
+	runtime.add_global("get_visible_channels", get_visible_channels, { });
 //	runtime.add_global("get_current_annotation", get_current_annot, { });
 //	runtime.add_global("get_window_duration", get_window_duration,  { });
 //	runtime.add_global("get_selection_duration", get_selection_duration, { });

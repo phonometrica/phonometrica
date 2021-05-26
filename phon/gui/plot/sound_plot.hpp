@@ -117,8 +117,6 @@ protected:
 
 	virtual void UpdateCache() = 0;
 
-	virtual wxString GetStatus() = 0;
-
 	void OnPaint(wxPaintEvent &);
 
 	void OnEraseBackground(wxEraseEvent &);

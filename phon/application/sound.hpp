@@ -95,13 +95,13 @@ public:
 
     double get_pitch(double time, double min_pitch, double max_pitch, double threshold);
 
-	double get_intensity(double time);
+	double get_intensity(int channel, double time);
 
-	std::vector<double> get_intensity(intptr_t start_pos, intptr_t end_pos, double time_step);
+	Array<double> get_intensity(int channel, intptr_t start_pos, intptr_t end_pos, double time_step);
 
-	Array<double> get_formants(double time, int nformant, double nyquist_frequency, double window_size, int lpc_order);
+	Array<double> get_formants(int channel, double time, int nformant, double nyquist_frequency, double window_size, int lpc_order);
 
-	Array<double> get_formants(const Array<double> &times, int nformant, double nyquist_frequency, double max_bandwidth, double window_size, int lpc_order);
+	Array<double> get_formants(int channel, const Array<double> &times, int nformant, double nyquist_frequency, double window_size, int lpc_order);
 
 	static void initialize(Runtime &rt);
 
@@ -109,7 +109,6 @@ public:
 
 	intptr_t size() const;
 
-	// The buffer is used when averaging channels (n == 0) or if force_buffering is true. Otherwise, we get a direct view of the underlying array.
 	Array<double> get_channel(int n, intptr_t first_sample, intptr_t last_sample) const;
 
 	bool is_mono() const;

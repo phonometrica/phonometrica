@@ -47,8 +47,6 @@ private:
 
 	void UpdateCache() override;
 
-	wxString GetStatus() override;
-
 	std::vector<std::pair<double,double>> DownsampleWaveform();
 
 	void ReadSettings() override;

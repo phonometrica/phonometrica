@@ -45,6 +45,8 @@ public:
 
 	Signal<TimeWindow> change_window;
 
+	Signal<const wxString&> update_status;
+
 private:
 
 	void OnPaint(wxPaintEvent &);
@@ -72,6 +74,8 @@ private:
 	void OnMotion(wxMouseEvent &e);
 
 	void OnMouseWheel(wxMouseEvent &e);
+
+	void OnLeaveWindow(wxMouseEvent &e);
 
 	void MoveForward();
 

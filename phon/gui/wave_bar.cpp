@@ -47,6 +47,7 @@ WaveBar::WaveBar(wxWindow *parent, const Handle <Sound> &snd) : wxWindow(parent,
     Bind(wxEVT_LEFT_UP, &WaveBar::OnEndSelection, this);
     Bind(wxEVT_MOTION, &WaveBar::OnMotion, this);
    	Bind(wxEVT_MOUSEWHEEL, &WaveBar::OnMouseWheel, this);
+	Bind(wxEVT_LEAVE_WINDOW, &WaveBar::OnLeaveWindow, this);
 }
 
 void WaveBar::OnEraseBackground(wxEraseEvent &)
@@ -197,9 +198,10 @@ void WaveBar::OnEndSelection(wxMouseEvent &e)
 
 void WaveBar::OnMotion(wxMouseEvent &e)
 {
+	auto pos = e.GetPosition();
+
 	if (m_sel_start >= 0)
 	{
-		auto pos = e.GetPosition();
 		double x = (std::max)(pos.x, 0);
 		x = (std::min)(x, (double)GetSize().GetWidth());
 
@@ -211,6 +213,10 @@ void WaveBar::OnMotion(wxMouseEvent &e)
 		}
 		Refresh();
 	}
+
+	auto t = XPosToTime(pos.x);
+	auto msg = wxString::Format(_("Time at cursor: %f s"), t);
+	update_status(msg);
 }
 
 void WaveBar::SetTimeSelection(TimeWindow win)
@@ -271,6 +277,11 @@ void WaveBar::MoveBackward()
 double WaveBar::GetMagnitude() const
 {
 	return raw_magnitude;
+}
+
+void WaveBar::OnLeaveWindow(wxMouseEvent &e)
+{
+	update_status(wxString());
 }
 
 } // namespace phonometrica

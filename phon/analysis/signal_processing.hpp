@@ -53,7 +53,7 @@ Array<double> create_window(intptr_t N, intptr_t fftlen, WindowType type);
 // Get intensity for a frame.
 double get_intensity(std::span<double> frame, std::span<double> window);
 
-std::vector<double> get_intensity(std::span<double> input, int samplerate, intptr_t window_size, double time_step, WindowType type = WindowType::Hamming);
+Array<double> get_intensity(std::span<double> input, int samplerate, intptr_t window_size, double time_step, WindowType type = WindowType::Hamming);
 
 // Apply pre-emphasis for formant analysis.
 void pre_emphasis(Array<double> &data, double Fs, double threshold);
