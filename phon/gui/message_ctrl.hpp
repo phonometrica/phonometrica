@@ -37,13 +37,17 @@ public:
 
 	void SetSelection(const wxString &text);
 
+	void SetLayerInfo(const wxString &text);
+
 	void ClearStatus();
 
 	void ClearSelection();
 
+	void ClearLayerInfo();
+
 protected:
 
-	wxStaticText *status_ctrl, *sel_ctrl;
+	wxStaticText *status_ctrl, *sel_ctrl, *layer_ctrl;
 };
 
 } // namespace phonometrica

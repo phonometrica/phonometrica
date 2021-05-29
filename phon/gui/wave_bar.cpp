@@ -210,8 +210,13 @@ void WaveBar::OnMotion(wxMouseEvent &e)
 	}
 
 	auto t = XPosToTime(pos.x);
-	auto msg = wxString::Format(_("Time at cursor: %f s"), t);
-	update_status(msg);
+
+	// Make sure we don't show an absurd time when the user drags the cursor outside of the widget.
+	if (t >= 0 && t <= m_sound->duration())
+	{
+		auto msg = wxString::Format(_("Time at cursor: %f s"), t);
+		update_status(msg);
+	}
 }
 
 void WaveBar::SetTimeSelection(TimeWindow win)

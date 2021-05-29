@@ -25,12 +25,12 @@
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
-#include <phon/gui/plot/time_window.hpp>
+#include <phon/gui/plot/speech_widget.hpp>
 #include <phon/application/sound.hpp>
 
 namespace phonometrica {
 
-class SoundPlot : public TimeAlignedWindow
+class SoundPlot : public SpeechWidget
 {
 public:
 
@@ -47,8 +47,6 @@ public:
 
 	const TimeSelection & GetSelection() const;
 
-
-
 	void SetSelection(const TimeSelection &sel);
 
 	void InvalidateSelection();
@@ -56,16 +54,6 @@ public:
 	void SetCursorPosition(double pos);
 
 	void ZoomToSelection();
-
-	void ZoomIn();
-
-	void ZoomOut();
-
-	void ViewAll();
-
-	void MoveForward();
-
-	void MoveBackward();
 
 	void EnableMouseTracking(bool value);
 
@@ -107,15 +95,11 @@ public:
 
 	Signal<> y_axis_modified;
 
-	Signal<const wxString&> update_status;
-
-	Signal<const wxString&> update_selection_status;
-
 	Signal<wxPoint> request_context_menu;
 
 protected:
 
-	virtual void UpdateCache() = 0;
+	double GetSoundDuration() const override { return m_sound->duration(); }
 
 	void OnPaint(wxPaintEvent &);
 
@@ -151,25 +135,12 @@ protected:
 
 	void OnMouseWheel(wxMouseEvent &e);
 
-	TimeWindow ComputeZoomIn() const;
-
-	TimeWindow ComputeZoomOut() const;
-
-    double ClipTime(double t) const;
-
-    void InvalidateCache();
-
-    bool HasValidCache() const;
-
     virtual void ReadSettings() = 0;
 
 	Handle<Sound> m_sound;
 
 	// Cached plot. The selection (if any) will be overlaid over this image.
 	wxBitmap m_cached_bmp;
-
-	// Cache the size of the plot when we compute the data
-	wxSize m_cached_size;
 
 	// Current selection on screen
 	TimeSelection m_sel = {-1.0, -1.0 };

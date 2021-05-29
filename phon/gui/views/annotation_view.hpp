@@ -13,56 +13,67 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 07/04/2021                                                                                                 *
+ * Created: 27/05/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: see header.                                                                                                *
+ * Purpose: View for annotation files.                                                                                 *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/gui/message_ctrl.hpp>
-#include <phon/gui/sizer.hpp>
+#ifndef PHONOMETRICA_ANNOTATION_VIEW_HPP
+#define PHONOMETRICA_ANNOTATION_VIEW_HPP
+
+#include <phon/gui/views/speech_view.hpp>
+#include <phon/gui/plot/layer_track.hpp>
+#include <phon/application/annotation.hpp>
 
 namespace phonometrica {
 
-MessageCtrl::MessageCtrl(wxWindow *parent) : wxWindow(parent, wxID_ANY)
+class AnnotationView final : public SpeechView
 {
-	auto sizer = new HBoxSizer;
-	status_ctrl = new wxStaticText(this, wxID_ANY, wxString());
-	sel_ctrl = new wxStaticText(this, wxID_ANY, wxString());
-	layer_ctrl = new wxStaticText(this, wxID_ANY, wxString(), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT|wxST_NO_AUTORESIZE);
-	sizer->Add(status_ctrl, 1, wxEXPAND | wxALL, 0);
-	sizer->Add(sel_ctrl, 1, wxEXPAND | wxALL, 0);
-	sizer->Add(layer_ctrl, 1, wxEXPAND | wxALL, 0);
-	SetSizer(sizer);
-}
+public:
 
-void MessageCtrl::SetStatus(const wxString &text)
-{
-	status_ctrl->SetLabel(text);
-}
+	AnnotationView(wxWindow *parent, const Handle<Annotation> &annot);
 
-void MessageCtrl::ClearStatus()
-{
-	SetStatus(wxString());
-}
+	wxString GetLabel() const override;
 
-void MessageCtrl::SetSelection(const wxString &text)
-{
-	sel_ctrl->SetLabel(text);
-}
+	String GetPath() const override;
 
-void MessageCtrl::ClearSelection()
-{
-	SetSelection(wxString());
-}
+private:
 
-void MessageCtrl::SetLayerInfo(const wxString &text)
-{
-	layer_ctrl->SetLabel(text);
-}
+	void AddAnnotationMenu(ToolBar *toolbar) override;
 
-void MessageCtrl::ClearLayerInfo()
-{
-	SetLayerInfo(wxString());
-}
+	void AddAnnotationLayers(wxSizer *sizer) override;
+
+	LayerTrack * AddAnnotationLayer(intptr_t i);
+
+	void OnLayerMenu(wxCommandEvent &e);
+
+	void OnAnchorSharing(wxCommandEvent &e);
+
+	void OnAddAnchor(wxCommandEvent &e);
+
+	void OnRemoveAnchor(wxCommandEvent &e);
+
+	void OnSelectEvent(int nlayer, const AutoEvent &event);
+
+	void UpdateLayersWindow(TimeWindow win) override;
+
+	// Annotation managed by this view.
+	Handle<Annotation> m_annot;
+
+	// Layer tracks, in the order they are stored and displayed
+    std::vector<LayerTrack*> m_layers;
+
+    // Separators for layers
+    std::vector<HLine*> m_layer_lines;
+
+    wxButton *m_layer_tool;
+
+    ToggleButton *m_sharing_tool, *m_add_tool, *m_remove_tool;
+};
+
 } // namespace phonometrica
+
+
+
+#endif // PHONOMETRICA_ANNOTATION_VIEW_HPP

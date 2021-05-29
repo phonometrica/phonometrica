@@ -20,8 +20,8 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_TIME_WINDOW_HPP
-#define PHONOMETRICA_TIME_WINDOW_HPP
+#ifndef PHONOMETRICA_SPEECH_WIDGET_HPP
+#define PHONOMETRICA_SPEECH_WIDGET_HPP
 
 #include <wx/window.h>
 #ifdef __WXMSW__
@@ -45,13 +45,13 @@ typedef wxPaintDC PaintDC;
 #endif
 
 
-class TimeAlignedWindow : public wxWindow
+class SpeechWidget : public wxWindow
 {
 public:
 
-	TimeAlignedWindow(wxWindow *parent);
+	SpeechWidget(wxWindow *parent);
 
-	~TimeAlignedWindow() override = default;
+	~SpeechWidget() override = default;
 
 	TimeWindow GetTimeWindow() const;
 
@@ -59,13 +59,35 @@ public:
 
 	virtual void DrawYAxis(PaintDC &dc, const wxRect &rect) = 0;
 
+	void ZoomIn();
+
+	void ZoomOut();
+
+	void ViewAll();
+
+	void MoveForward();
+
+	void MoveBackward();
+
+	Signal<const wxString&> update_status;
+
+	Signal<const wxString&> update_selection_status;
+
 	Signal<TimeWindow> update_window;
 
 protected:
 
 	friend class SoundView;
 
+	virtual void UpdateCache() = 0;
+
+	void InvalidateCache();
+
+	bool HasValidCache() const;
+
 	double GetWindowDuration() const { return m_window.second - m_window.first; }
+
+	virtual double GetSoundDuration() const = 0;
 
 	int GetWidth() const { return GetSize().GetWidth(); }
 
@@ -75,14 +97,21 @@ protected:
 
 	double TimeToXPos(double t) const;
 
-	virtual void InvalidateCache() = 0;
+	double ClipTime(double t) const;
+
+	TimeWindow ComputeZoomIn() const;
+
+	TimeWindow ComputeZoomOut() const;
 
 	// The current window
 	TimeWindow m_window = {-1.0, -1.0};
+
+	// Cache the size of the plot when we compute the data
+	wxSize m_cached_size;
 };
 
 } // namespace phonometrica
 
 
 
-#endif // PHONOMETRICA_TIME_WINDOW_HPP
+#endif // PHONOMETRICA_SPEECH_WIDGET_HPP

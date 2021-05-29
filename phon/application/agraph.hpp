@@ -284,6 +284,10 @@ public:
 
 	intptr_t get_event_index(intptr_t layer_index, double time) const;
 
+	intptr_t time_to_event_index(intptr_t layer_index, double time) const;
+
+	AutoEvent time_to_event(intptr_t layer_index, double time) const;
+
 private:
 
 	void append_event(intptr_t layer_index, Anchor *start, Anchor *end, const String &text);

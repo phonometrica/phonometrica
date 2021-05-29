@@ -1008,4 +1008,30 @@ intptr_t AGraph::get_event_index(intptr_t layer_index, double time) const
 	return intptr_t(it - layer->events.begin()) + 1;
 }
 
+intptr_t AGraph::time_to_event_index(intptr_t layer_index, double time) const
+{
+	// Find event that contains 'time'.
+	auto &layer = m_layers.at(layer_index);
+	auto it = std::lower_bound(layer->events.begin(), layer->events.end(), time, EventLessEqual());
+
+	if (it == layer->events.end() || (layer->has_instants && (*it)->start_time() != time)) {
+		return 0;
+	}
+
+	return intptr_t(it - layer->events.begin()) + 1;
+}
+
+AutoEvent AGraph::time_to_event(intptr_t layer_index, double time) const
+{
+	// Find event that contains 'time'.
+	auto &layer = m_layers.at(layer_index);
+	auto it = std::lower_bound(layer->events.begin(), layer->events.end(), time, EventLessEqual());
+
+	if (it == layer->events.end() || (layer->has_instants && (*it)->start_time() != time)) {
+		return nullptr;
+	}
+
+	return *it;
+}
+
 } // namespace phonometrica

@@ -44,7 +44,6 @@ TODO:
 - mac : bug aléatoire quand on clique play
 - recherches formantiques, mettre les unités dans la view plutôt que dans le query editor
 - bug selecting_tier
-- mettre à jour la concordance en cours quand on édite un item. 
 - finalize settings dialog (add search operator selector)
 - update documentation
 

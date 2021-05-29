@@ -29,7 +29,7 @@
 namespace phonometrica {
 
 SoundPlot::SoundPlot(wxWindow *parent, const Handle <Sound> &snd, int channel) :
-	TimeAlignedWindow(parent), m_sound(snd), m_cached_size(wxDefaultSize), m_channel(channel)
+		SpeechWidget(parent), m_sound(snd), m_channel(channel)
 {
 	m_track_mouse = Settings::get_boolean("enable_mouse_tracking");
 	Bind(wxEVT_RIGHT_DOWN, &SoundPlot::OnContextMenu, this);
@@ -136,12 +136,6 @@ void SoundPlot::OnLeaveWindow(wxMouseEvent &e)
 	e.Skip();
 }
 
-void SoundPlot::InvalidateCache()
-{
-	// Don't clear the cache here, it will be done in UpdateCache() once the invalid size is detected.
-	m_cached_size = wxDefaultSize;
-}
-
 const TimeSelection & SoundPlot::GetSelection() const
 {
 	return m_sel;
@@ -153,66 +147,14 @@ void SoundPlot::SetSelection(const TimeSelection &sel)
 	Refresh();
 }
 
-double SoundPlot::ClipTime(double t) const
-{
-    if (t < 0) {
-	    t = 0;
-    }
-    else if (t > m_sound->duration()) {
-	    t = m_sound->duration();
-    }
-
-    return t;
-}
-
 void SoundPlot::ZoomToSelection()
 {
-    if (HasSelection())
-    {
-	    auto t1 = ClipTime(m_sel.t1);
-	    auto t2 = ClipTime(m_sel.t2);
-	    SetTimeWindow(TimeWindow{t1, t2});
-    }
-}
-
-void SoundPlot::ZoomIn()
-{
-	SetTimeWindow(ComputeZoomIn());
-}
-
-void SoundPlot::ZoomOut()
-{
-	SetTimeWindow(ComputeZoomOut());
-}
-
-void SoundPlot::ViewAll()
-{
-	TimeWindow win{0, m_sound->duration()};
-	SetTimeWindow(win);
-}
-
-void SoundPlot::MoveForward()
-{
-    // Slide by 10%
-    if (m_window.second < m_sound->duration())
-    {
-        auto delta = std::max<double>(GetWindowDuration() / 10, 0.001);
-        auto t1 = ClipTime(m_window.first + delta);
-        auto t2 = ClipTime(m_window.second + delta);
-        SetTimeWindow(TimeWindow{t1, t2});
-    }
-}
-
-void SoundPlot::MoveBackward()
-{
-    // Slide by 10%
-    if (m_window.first >= 0)
-    {
-        auto delta = std::max<double>(GetWindowDuration() / 10, 0.001);
-        auto t1 = ClipTime(m_window.first - delta);
-        auto t2 = ClipTime(m_window.second - delta);
-        SetTimeWindow(TimeWindow{t1, t2});
-    }
+	if (HasSelection())
+	{
+		auto t1 = ClipTime(m_sel.t1);
+		auto t2 = ClipTime(m_sel.t2);
+		SetTimeWindow(TimeWindow{t1, t2});
+	}
 }
 
 void SoundPlot::EnableMouseTracking(bool value)
@@ -234,26 +176,6 @@ void SoundPlot::OnMouseWheel(wxMouseEvent &e)
 			update_window(ComputeZoomOut());
 		}
 	}
-}
-
-TimeWindow SoundPlot::ComputeZoomIn() const
-{
-	// Zoom in by 25% on each side
-	auto zoom = GetWindowDuration() / 4;
-	auto t1 = ClipTime(m_window.first + zoom);
-	auto t2 = ClipTime(m_window.second - zoom);
-
-	return TimeWindow{t1, t2};
-}
-
-TimeWindow SoundPlot::ComputeZoomOut() const
-{
-	// Zoom out by 50%
-	auto zoom = GetWindowDuration() / 2;
-	auto t1 = ClipTime(m_window.first - zoom);
-	auto t2 = ClipTime(m_window.second + zoom);
-
-	return TimeWindow{t1, t2};
 }
 
 void SoundPlot::DrawSelection(wxBufferedPaintDC &dc)
@@ -392,11 +314,6 @@ void SoundPlot::UpdateSettings()
 	InvalidateCache();
 	Refresh();
 	y_axis_modified();
-}
-
-bool SoundPlot::HasValidCache() const
-{
-	return m_cached_size == GetSize();
 }
 
 bool SoundPlot::IsChannelVisible() const

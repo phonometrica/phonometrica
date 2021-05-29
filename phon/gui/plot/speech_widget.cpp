@@ -19,36 +19,120 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <phon/gui/plot/time_window.hpp>
+#include <phon/gui/plot/speech_widget.hpp>
 
 namespace phonometrica {
 
-TimeAlignedWindow::TimeAlignedWindow(wxWindow *parent) :
-	wxWindow(parent, wxID_ANY)
+SpeechWidget::SpeechWidget(wxWindow *parent) :
+	wxWindow(parent, wxID_ANY),  m_cached_size(wxDefaultSize)
 {
 	SetBackgroundColour(*wxWHITE);
 }
 
-void TimeAlignedWindow::SetTimeWindow(TimeWindow win)
+void SpeechWidget::SetTimeWindow(TimeWindow win)
 {
 	m_window = win;
 	InvalidateCache();
 	Refresh();
 }
 
-double TimeAlignedWindow::XPosToTime(double x) const
+double SpeechWidget::XPosToTime(double x) const
 {
     return m_window.first + (x * GetWindowDuration() / GetWidth());
 }
 
-double TimeAlignedWindow::TimeToXPos(double t) const
+double SpeechWidget::TimeToXPos(double t) const
 {
     return (t - m_window.first) * GetWidth() / GetWindowDuration();
 }
 
-TimeWindow TimeAlignedWindow::GetTimeWindow() const
+TimeWindow SpeechWidget::GetTimeWindow() const
 {
 	return m_window;
 }
+
+double SpeechWidget::ClipTime(double t) const
+{
+	if (t < 0) {
+		t = 0;
+	}
+	else if (t > GetSoundDuration()) {
+		t = GetSoundDuration();
+	}
+
+	return t;
+}
+
+void SpeechWidget::ZoomIn()
+{
+	SetTimeWindow(ComputeZoomIn());
+}
+
+void SpeechWidget::ZoomOut()
+{
+	SetTimeWindow(ComputeZoomOut());
+}
+
+void SpeechWidget::ViewAll()
+{
+	TimeWindow win{0, GetSoundDuration()};
+	SetTimeWindow(win);
+}
+
+void SpeechWidget::MoveForward()
+{
+	// Slide by 10%
+	if (m_window.second < GetSoundDuration())
+	{
+		auto delta = std::max<double>(GetWindowDuration() / 10, 0.001);
+		auto t1 = ClipTime(m_window.first + delta);
+		auto t2 = ClipTime(m_window.second + delta);
+		SetTimeWindow(TimeWindow{t1, t2});
+	}
+}
+
+void SpeechWidget::MoveBackward()
+{
+	// Slide by 10%
+	if (m_window.first >= 0)
+	{
+		auto delta = std::max<double>(GetWindowDuration() / 10, 0.001);
+		auto t1 = ClipTime(m_window.first - delta);
+		auto t2 = ClipTime(m_window.second - delta);
+		SetTimeWindow(TimeWindow{t1, t2});
+	}
+}
+
+TimeWindow SpeechWidget::ComputeZoomIn() const
+{
+	// Zoom in by 25% on each side
+	auto zoom = GetWindowDuration() / 4;
+	auto t1 = ClipTime(m_window.first + zoom);
+	auto t2 = ClipTime(m_window.second - zoom);
+
+	return TimeWindow{t1, t2};
+}
+
+TimeWindow SpeechWidget::ComputeZoomOut() const
+{
+	// Zoom out by 50%
+	auto zoom = GetWindowDuration() / 2;
+	auto t1 = ClipTime(m_window.first - zoom);
+	auto t2 = ClipTime(m_window.second + zoom);
+
+	return TimeWindow{t1, t2};
+}
+
+bool SpeechWidget::HasValidCache() const
+{
+	return m_cached_size == GetSize();
+}
+
+void SpeechWidget::InvalidateCache()
+{
+	// Don't clear the cache here, it will be done in UpdateCache() once the invalid size is detected.
+	m_cached_size = wxDefaultSize;
+}
+
 
 } // namespace phonometrica

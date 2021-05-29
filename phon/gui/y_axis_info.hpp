@@ -22,7 +22,7 @@
 #ifndef PHONOMETRICA_Y_AXIS_INFO_HPP
 #define PHONOMETRICA_Y_AXIS_INFO_HPP
 
-#include <phon/gui/plot/time_window.hpp>
+#include <phon/gui/plot/speech_widget.hpp>
 #include <phon/array.hpp>
 
 namespace phonometrica {
@@ -33,9 +33,9 @@ public:
 
 	YAxisInfo(wxWindow *parent);
 
-	void AddWindow(TimeAlignedWindow *win);
+	void AddWindow(SpeechWidget *win);
 
-	void RemoveWindow(TimeAlignedWindow *win);
+	void RemoveWindow(SpeechWidget *win);
 
 	void OnUpdate();
 
@@ -49,7 +49,7 @@ private:
 
 	void OnClick(wxMouseEvent &);
 
-	Array<TimeAlignedWindow*> m_windows;
+	Array<SpeechWidget*> m_windows;
 
 };
 

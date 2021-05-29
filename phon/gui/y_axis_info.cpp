@@ -38,12 +38,12 @@ YAxisInfo::YAxisInfo(wxWindow *parent) : wxWindow(parent, wxID_ANY)
 	Bind(wxEVT_LEFT_DOWN, &YAxisInfo::OnClick, this);
 }
 
-void YAxisInfo::AddWindow(TimeAlignedWindow *win)
+void YAxisInfo::AddWindow(SpeechWidget *win)
 {
 	m_windows.append(win);
 }
 
-void YAxisInfo::RemoveWindow(TimeAlignedWindow *win)
+void YAxisInfo::RemoveWindow(SpeechWidget *win)
 {
 	m_windows.remove(win);
 }

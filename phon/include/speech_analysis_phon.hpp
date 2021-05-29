@@ -13,9 +13,9 @@ foreach channel in channels do
 local dB = get_intensity(sound, channel, time)
 
 if channel == 0 then
-print "Average over all channels:", dB, " dB"
+print "Average over all channels: ", dB, " dB"
 else
-print "Channel ", channel, ":", dB, " dB"
+print "Channel ", channel, ": ", dB, " dB"
 end
 end
 else
@@ -40,9 +40,9 @@ f0 = "undefined"
 end
 
 if channel then
-print "Average over all channels:", f0
+print "Average over all channels: ", f0
 else
-print "Channel ", channel, ":", f0
+print "Channel ", channel, ": ", f0
 end
 end
 else

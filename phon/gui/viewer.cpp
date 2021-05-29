@@ -21,6 +21,7 @@
 
 #include <wx/msgdlg.h>
 #include <phon/gui/views/sound_view.hpp>
+#include <phon/gui/views/annotation_view.hpp>
 #include <phon/gui/viewer.hpp>
 #include <phon/gui/views/concordance_view.hpp>
 #include <phon/gui/tab_art_provider.hpp>
@@ -105,17 +106,34 @@ void Viewer::ViewFile(const Handle<Document> &file)
 	{
 		file->open();
 
-		for (size_t i = 0; i < GetPageCount(); i++)
+		auto path = file->path();
+
+		if (!path.empty())
 		{
-			auto path = file->path();
-			if (!path.empty() && GetView(i)->GetPath() == path)
+			for (size_t i = 0; i < GetPageCount(); i++)
 			{
-				SetSelection(i);
-				return;
+				if (GetView(i)->GetPath() == path) {
+					SetSelection(i);
+					return;
+				}
 			}
 		}
 
-		if (file->is<Sound>())
+		if (file->is<Annotation>())
+		{
+			auto annot = recast<Annotation>(file);
+
+			if (!annot->has_sound()) {
+				wxMessageBox(_("You must first bind this annotation to a sound file!"), _("Cannot display annotation"), wxICON_ERROR);
+				return;
+			}
+
+			auto view = new AnnotationView(this, annot);
+			view->Initialize();
+			AddView(view, annot->label());
+			view->SetTimeSelection(0, 10);
+		}
+		else if (file->is<Sound>())
 		{
 			auto snd = recast<Sound>(file);
 			auto view = new SoundView(this, snd);

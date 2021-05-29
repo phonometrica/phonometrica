@@ -20,7 +20,7 @@
  ***********************************************************************************************************************/
 
 #include <phon/gui/x_axis_info.hpp>
-#include <phon/gui/plot/time_window.hpp> // for PaintDC
+#include <phon/gui/plot/speech_widget.hpp> // for PaintDC
 
 #ifdef __WXMSW__
 #undef DrawText
