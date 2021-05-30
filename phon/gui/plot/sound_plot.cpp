@@ -199,8 +199,9 @@ void SoundPlot::DrawSpanSelection(wxBufferedPaintDC &dc)
 	auto height = GetHeight();
 	auto path = gc->CreatePath();
 
-	auto x1 = (std::max)(TimeToXPos(m_sel.t1), TimeToXPos(m_window.first));
-	auto x2 = (std::min)(TimeToXPos(m_sel.t2), TimeToXPos(m_window.second));
+	// We need to round the position because layers use int precision for drawing.
+	auto x1 = int(round((std::max)(TimeToXPos(m_sel.t1), TimeToXPos(m_window.first))));
+	auto x2 = int(round((std::min)(TimeToXPos(m_sel.t2), TimeToXPos(m_window.second))));
 
 	path.MoveToPoint(x1, 0.0);
 	path.AddLineToPoint(x2, 0.0);
@@ -224,7 +225,7 @@ void SoundPlot::DrawPointSelection(wxBufferedPaintDC &dc)
 		return;
 	}
 	dc.SetPen(wxPen(ANCHOR_COLOUR, 1, wxPENSTYLE_DOT));
-	auto x = TimeToXPos(m_sel.t1);
+	auto x = int(round(TimeToXPos(m_sel.t1)));
 	dc.DrawLine(x, 0, x, GetHeight());
 }
 

@@ -19,6 +19,7 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <wx/textwrapper.h>
 #include <phon/gui/plot/layer_track.hpp>
 
 #ifdef __WXMSW__
@@ -26,6 +27,41 @@
 #endif
 
 namespace phonometrica {
+
+// Text wrapper for labels
+class TextWrapper : public wxTextWrapper
+{
+public:
+	TextWrapper(wxWindow *win, const wxString &text, int widthMax)
+	{
+		Wrap(win, text, widthMax);
+	}
+
+	wxString const& GetWrappedText() const { return m_wrapped; }
+
+	int GetLineCount() const { return m_lines; }
+
+protected:
+
+	virtual void OnOutputLine(const wxString &line)
+	{
+		m_wrapped += line;
+	}
+	virtual void OnNewLine()
+	{
+		m_wrapped += '\n';
+		++m_lines;
+	}
+
+private:
+
+	wxString m_wrapped;
+
+	int m_lines;
+};
+
+
+//---------------------------------------------------------------------------------------------------------------------
 
 LayerTrack::LayerTrack(wxWindow *parent, const Handle<Annotation> &annot, double duration, intptr_t layer_index) :
 		SpeechWidget(parent), unused(annot), m_graph(annot->graph()), m_layer(m_graph.get(layer_index)), m_duration(duration)
@@ -51,14 +87,12 @@ void LayerTrack::DrawYAxis(PaintDC &dc, const wxRect &rect)
 
 void LayerTrack::OnPaint(wxPaintEvent &)
 {
-	bool create_controls = false;
 	auto height = GetHeight();
 	auto width = GetWidth();
 
 	if (!HasValidCache())
 	{
 		UpdateCache();
-		create_controls = true;
 	}
 
 	wxPaintDC dc(this);
@@ -76,13 +110,14 @@ void LayerTrack::OnPaint(wxPaintEvent &)
 		dc.SetBackground(*wxWHITE);
 	}
 	dc.Clear();
+
+	// Draw anchors
 	wxPen anchor_pen(*wxBLUE, 3);
 	wxPen text_pen(*wxBLACK, 1);
 	double last_time = -1.0;
 
-	for (intptr_t i = 1; i <= m_cached_events.size(); i++)
+	for (auto &event : m_cached_events)
 	{
-		auto &event = m_cached_events[i];
 		dc.SetPen(anchor_pen);
 		auto start_time = event->start_time();
 		auto end_time = event->end_time();
@@ -107,69 +142,8 @@ void LayerTrack::OnPaint(wxPaintEvent &)
 			DrawAnchor(dc, end_time, false);
 			last_time = end_time;
 		}
-
-		wxString label = event->text();
-		wxStaticText *st;
-		const int padding = 2;
-
-		if (create_controls)
-		{
-			if (is_instant)
-			{
-				auto x = int(round((std::max)(0.0, TimeToXPos(start_time))));
-				st = new wxStaticText(this, wxID_ANY, label, wxPoint(x-20, 0), wxSize(40, height), wxALIGN_CENTRE_HORIZONTAL);
-			}
-			else
-			{
-				auto x1 = int(round((std::max)(0.0, TimeToXPos(start_time))));
-				auto x2 = int(round((std::min)(TimeToXPos(end_time), double(width))));
-				st = new wxStaticText(this, wxID_ANY, label, wxPoint(x1+padding, 0), wxSize(x2-x1-padding, height), wxALIGN_CENTRE_HORIZONTAL);
-				st->Bind(wxEVT_MOTION, &LayerTrack::OnCursorOverEvent, this);
-				st->Bind(wxEVT_LEFT_UP, &LayerTrack::OnLeftClick, this);
-			}
-			m_label_ctrls.push_back(st);
-		}
-		else
-		{
-			st = m_label_ctrls[i];
-			st->SetLabel(label);
-		}
-
-		// On Windows, we need to explicitly set the background color of the static texts.
-		if (selected && m_selected_event->valid())
-        {
-
-            const wxColour ORANGE(247, 205, 116);
-
-            if (m_selected_event == event)
-            {
-                if (m_selected_event->is_instant())
-                {
-                    auto old_pen = dc.GetPen();
-                    dc.SetPen(wxPen(ORANGE, 3));
-                    auto x = int(round(TimeToXPos(m_selected_event->start_time())));
-                    int third = height / 3;
-                    dc.DrawLine(wxPoint(x, 0), wxPoint(x, third));
-                    dc.DrawLine(wxPoint(x, third*2), wxPoint(x, height));
-                    dc.SetPen(old_pen);
-                }
-                else
-                {
-                    st->SetBackgroundColour(ORANGE);
-                }
-            }
-            else if (event->is_interval())
-            {
-                st->SetBackgroundColour(LIGHT_YELLOW);
-            }
-        }
-		else
-        {
-		    st->SetBackgroundColour(*wxWHITE);
-        }
 	}
 
-#if 0
 	// Paint selected event
 	if (IsSelected() && m_selected_event->valid())
 	{
@@ -197,7 +171,38 @@ void LayerTrack::OnPaint(wxPaintEvent &)
 		}
 		dc.SetPen(old_pen);
 	}
-#endif
+
+	// Draw labels
+	for (auto &event : m_cached_events)
+	{
+		wxString label = event->text();
+		wxRect boundaries;
+
+		auto start_time = event->start_time();
+		auto end_time = event->end_time();
+		bool is_instant = event->is_instant();
+
+		if (is_instant)
+		{
+			auto x = int(round((std::max)(0.0, TimeToXPos(start_time))));
+			boundaries = wxRect(x-20, 0, 40, height);
+		}
+		else
+		{
+			const int padding = 3;
+			auto x1 = int(round((std::max)(0.0, TimeToXPos(start_time))));
+			auto x2 = int(round((std::min)(TimeToXPos(end_time), double(width))));
+			boundaries = wxRect(x1+padding, 0, x2-x1-padding, height);
+		}
+
+		TextWrapper wrapper(this, label, boundaries.width);
+		dc.SetPen(text_pen);
+		dc.SetClippingRegion(boundaries);
+		dc.DrawText(wrapper.GetWrappedText(), boundaries.x, boundaries.y);
+		dc.DestroyClippingRegion();
+	}
+
+
 
 
 #if 0
@@ -336,22 +341,6 @@ void LayerTrack::OnMotion(wxMouseEvent &e)
 	update_status(msg);
 }
 
-void LayerTrack::OnCursorOverEvent(wxMouseEvent &e)
-{
-	auto st = dynamic_cast<wxStaticText*>(e.GetEventObject());
-
-	if (likely(st != nullptr))
-	{
-		// Convert position from wxStaticText coordinates to LayerTrack coordinates.
-		auto pos = st->ClientToScreen(e.GetPosition());
-		pos = this->ScreenToClient(pos);
-		// Forward the event to the layer track.
-		e.Skip(false);
-		e.SetPosition(pos);
-		OnMotion(e);
-	}
-}
-
 void LayerTrack::OnLeaveWindow(wxMouseEvent &e)
 {
 	update_status(wxString());
@@ -359,13 +348,6 @@ void LayerTrack::OnLeaveWindow(wxMouseEvent &e)
 
 void LayerTrack::UpdateCache()
 {
-	for (auto st : m_label_ctrls)
-	{
-		st->Unbind(wxEVT_MOTION, &LayerTrack::OnCursorOverEvent, this);
-		st->Unbind(wxEVT_LEFT_UP, &LayerTrack::OnLeftClick, this);
-		st->Destroy();
-	}
-	m_label_ctrls.clear();
 	m_cached_events = FilterEvents(m_window.first, m_window.second);
 	m_cached_size = GetSize();
 }
@@ -377,7 +359,7 @@ void LayerTrack::SetSelectedEvent(const AutoEvent &e)
 
 void LayerTrack::OnLeftClick(wxMouseEvent &e)
 {
-	auto pos = this->ScreenToClient(wxGetMousePosition());
+	auto pos = e.GetPosition();
 	m_selected_event = XPosToEvent(pos.x);
 	update_selected_event(m_layer->index, m_selected_event);
 }

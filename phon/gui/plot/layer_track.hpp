@@ -56,8 +56,6 @@ private:
 
 	void OnMotion(wxMouseEvent &e);
 
-	void OnCursorOverEvent(wxMouseEvent &e);
-
 	void OnLeaveWindow(wxMouseEvent &e);
 
 	void OnLeftClick(wxMouseEvent &e);
@@ -79,10 +77,7 @@ private:
 	// Cached events in the current window.
 	EventList m_cached_events;
 
-	// Each event label is displayed in a wxStaticCtrl, positioned using absolute positioning. We keep track of the
-	// controls in this array.
-	Array<wxStaticText*> m_label_ctrls;
-
+	// Selected event on this layer, if any. There can be only one selected event across all the layers of an annotation.
 	AutoEvent m_selected_event;
 
 	AGraph &m_graph;
