@@ -22,6 +22,10 @@
 #include <phon/gui/plot/intensity_track.hpp>
 #include <phon/application/settings.hpp>
 
+#ifdef __WXMSW__
+#undef DrawText
+#endif
+
 namespace phonometrica {
 
 IntensityTrack::IntensityTrack(wxWindow *parent, const Handle<Sound> &snd, int channel)
