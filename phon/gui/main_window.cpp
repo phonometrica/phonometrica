@@ -31,6 +31,7 @@
 #include <phon/gui/user_dialog.hpp>
 #include <phon/gui/text_viewer.hpp>
 #include <phon/gui/views/sound_view.hpp>
+#include <phon/gui/views/concordance_view.hpp>
 #include <phon/application/settings.hpp>
 #include <phon/application/project.hpp>
 #include <phon/utils/file_system.hpp>
@@ -340,6 +341,7 @@ void MainWindow::SetBindings()
 	View::request_console.connect(&MainWindow::OnRequestConsole, this);
 	View::send_code.connect(&Console::RunCode, console);
 	View::file_created.connect(&Viewer::ViewFile, viewer);
+	ConcordanceView::open_annotation.connect(&Viewer::OpenAnnotation, viewer);
 	Element::request_progress.connect(&MainWindow::OnRequestProgress, this);
 	Element::update_progress.connect(&MainWindow::OnUpdateProgress, this);
 	Document::file_modified.connect(&Viewer::UpdateCurrentView, viewer);
@@ -1555,6 +1557,22 @@ void MainWindow::SetShellFunctions()
 		return Variant();
 	};
 
+	auto get_current_annot = [this](Runtime &, std::span<Variant> args) -> Variant {
+		auto annot = viewer->GetCurrentAnnotation();
+		if (annot) {
+			return annot;
+		}
+		return Variant();
+	};
+
+	auto get_window_duration = [this](Runtime &, std::span<Variant> args) -> Variant {
+		return viewer->GetWindowDuration();
+	};
+
+	auto get_selection_duration = [this](Runtime &, std::span<Variant> args) -> Variant {
+		return viewer->GetSelectionDuration();
+	};
+
 	auto get_visible_channels = [this](Runtime &rt, std::span<Variant>) -> Variant {
 		auto view = dynamic_cast<SoundView*>(viewer->GetCurrentView());
 		Array<Variant> result;
@@ -1640,21 +1658,6 @@ void MainWindow::SetShellFunctions()
 		return Variant();
 	};
 
-	auto get_current_annot = [this](Runtime &, std::span<Variant> args) -> Variant {
-		auto annot = viewer->GetCurrentAnnotation();
-		if (annot) {
-			return annot;
-		}
-		return Variant();
-	};
-
-	auto get_window_duration = [this](Runtime &, std::span<Variant> args) -> Variant {
-		return viewer->getWindowDuration();
-	};
-
-	auto get_selection_duration = [this](Runtime &, std::span<Variant> args) -> Variant {
-		return viewer->getSelectionDuration();
-	};
 #endif
 
 #define CLS(T) get_class<T>()
@@ -1681,9 +1684,9 @@ void MainWindow::SetShellFunctions()
 	runtime.add_global("launch_browser", launch_browser, {CLS(String) });
 	runtime.add_global("get_current_sound", get_current_sound, { });
 	runtime.add_global("get_visible_channels", get_visible_channels, { });
-//	runtime.add_global("get_current_annotation", get_current_annot, { });
-//	runtime.add_global("get_window_duration", get_window_duration,  { });
-//	runtime.add_global("get_selection_duration", get_selection_duration, { });
+	runtime.add_global("get_current_annotation", get_current_annot, { });
+	runtime.add_global("get_window_duration", get_window_duration,  { });
+	runtime.add_global("get_selection_duration", get_selection_duration, { });
 
 	auto rt = &runtime;
 	auto &phon = cast<Module>(runtime["phon"]);

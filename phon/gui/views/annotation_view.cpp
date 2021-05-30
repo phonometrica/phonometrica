@@ -19,6 +19,7 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
+#include <wx/msgdlg.h>
 #include <phon/gui/views/annotation_view.hpp>
 #include <phon/include/icons.hpp>
 
@@ -177,6 +178,51 @@ void AnnotationView::UpdateLayersWindow(TimeWindow win)
 	for (auto layer : m_layers) {
 		layer->SetTimeWindow(win);
 	}
+}
+
+Handle<Annotation> AnnotationView::GetAnnotation() const
+{
+	return m_annot;
+}
+
+void AnnotationView::OpenEvent(intptr_t nlayer, const AutoEvent &event)
+{
+	if (!event)
+	{
+		wxString msg;
+		if (event->is_instant()) {
+			msg = wxString::Format(_("Cannot open event at %f on layer %d"), event->start_time(), (int)nlayer);
+		}
+		else {
+			msg = wxString::Format(_("Cannot open event from %f to %f on layer %d"), event->start_time(), event->end_time(), (int)nlayer);
+		}
+		wxMessageBox(msg, _("Invalid event"), wxICON_ERROR);
+		return;
+	}
+
+	for (auto layer : m_layers)
+	{
+		if (layer->GetIndex() == nlayer)
+		{
+			layer->SetSelectedEvent(event);
+		}
+		else
+		{
+			layer->ClearSelectedEvent();
+		}
+	}
+
+	double start = event->start_time();
+	double end = event->end_time();
+
+	if (event->is_instant())
+	{
+		// View two seconds
+		start -= 1.0;
+		end += 1.0;
+	}
+
+	SetTimeWindow(start, end);
 }
 
 } // namespace phonometrica

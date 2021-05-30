@@ -169,7 +169,7 @@ void SoundPlot::OnMouseWheel(wxMouseEvent &e)
 
 	for (int i = 1; i <= count; i++)
 	{
-		if (steps > 0) {
+		if (steps < 0) {
 			update_window(ComputeZoomIn());
 		}
 		else {
@@ -345,6 +345,11 @@ void SoundPlot::OnContextMenu(wxMouseEvent &e)
 {
 	auto pos = ClientToScreen(e.GetPosition());
 	request_context_menu(pos);
+}
+
+double SoundPlot::GetSelectionDuration() const
+{
+	return m_sel.t2 - m_sel.t1;
 }
 
 } // namespace phonometrica

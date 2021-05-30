@@ -69,6 +69,12 @@ public:
 
 	Handle<Annotation> GetCurrentAnnotation() const;
 
+	void OpenAnnotation(const Handle<Annotation> &annot, intptr_t layer, const AutoEvent &event);
+
+	double GetWindowDuration() const;
+
+	double GetSelectionDuration() const;
+
 	Signal<> request_console;
 
 	// Work around a bug on Windows, whereby the application goes to the background when a concordance is displayed.
@@ -89,6 +95,8 @@ private:
 	void OnPageChanged(wxAuiNotebookEvent &);
 
 	void OnMainCloseButtonClicked(wxAuiNotebookEvent &);
+
+	bool OpenFile(const Handle<Document> &file);
 
 	void OnEditEvent(const Handle<Annotation> &annot, const AutoEvent &event, const String &new_value);
 

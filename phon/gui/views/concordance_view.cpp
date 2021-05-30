@@ -37,6 +37,9 @@
 
 namespace phonometrica {
 
+Signal<const Handle<Annotation>&, intptr_t, const AutoEvent&> ConcordanceView::open_annotation;
+
+
 ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	View(parent), m_conc(std::move(conc))
 {
@@ -103,16 +106,18 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	m_grid->SetCellHighlightROPenWidth(0);
 	m_grid->SetDefaultCellAlignment(wxALIGN_LEFT, wxALIGN_CENTRE);
 
-	// Disable active target for now, it will be added in 0.9
-//	m_active_target = new wxSpinCtrl(this, wxID_ANY);
-//	m_active_target->SetRange(1, m_conc->target_count());
+
+	m_active_target = new wxSpinCtrl(this, wxID_ANY);
+	m_active_target->SetRange(1, m_conc->target_count());
 
 
 	auto label_sizer = new HBoxSizer;
 	label_sizer->Add(count_label, 0, wxALIGN_CENTER);
 	label_sizer->AddStretchSpacer();
-//	label_sizer->Add(new wxStaticText(this, wxID_ANY, _("Active target:")), 0, wxALIGN_CENTER);
-//	label_sizer->Add(m_active_target, 0, wxLEFT|wxRIGHT, 5);
+	label_sizer->Add(new wxStaticText(this, wxID_ANY, _("Active target:")), 0, wxALIGN_CENTER);
+	label_sizer->Add(m_active_target, 0, wxLEFT|wxRIGHT, 5);
+	// For now, we disable the target until we have implemented complex queries.
+	m_active_target->Enable(false);
 
 	sizer->Add(m_toolbar, 0, wxEXPAND|wxALL, 10);
 	sizer->Add(label_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 10);
@@ -202,7 +207,6 @@ void ConcordanceView::OnOpenInPraat(wxCommandEvent &)
 	{
 		OpenInPraat(row);
 	}
-
 }
 
 void ConcordanceView::OpenInPraat(int row)
@@ -312,7 +316,27 @@ void ConcordanceView::PlayMatch(int row)
 
 void ConcordanceView::OnViewMatch(wxCommandEvent &)
 {
-	wxMessageBox(_("Not implemented yet!"), _(""), wxICON_INFORMATION);
+	auto rows = m_grid->GetSelectedRows();
+	for (auto row : rows)
+	{
+		ViewMatch(row);
+	}
+}
+
+void ConcordanceView::ViewMatch(int row)
+{
+	auto &match = m_conc->get_match(row+1);
+	auto &annot = match.annotation();
+
+	if (!annot->has_sound())
+	{
+		wxMessageBox(_("You must first bind this annotation to a sound to be able to open it!"), _("Unbound annotation"), wxICON_ERROR);
+		return;
+	}
+
+	auto target = match.get(GetActiveTarget());
+	assert(target);
+	open_annotation(annot, target->layer, target->event);
 }
 
 void ConcordanceView::OnBookmarkMatch(wxCommandEvent &)
@@ -795,6 +819,5 @@ void ConcordanceView::ClearSelection()
 {
 	m_grid->ClearSelection();
 }
-
 
 } // namespace phonometrica

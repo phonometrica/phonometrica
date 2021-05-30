@@ -86,10 +86,8 @@ void Spectrogram::UpdateCache()
                     int g = 255 - round((value - min_dB) * 255 / (max_dB - min_dB));
                     if (unlikely(g < 0))
                     {
-#ifdef PHON_DEBUG
                     	PHON_LOG("Invalid gray value in spectrogram: %d\n", g);
-#endif
-						g = 0;
+						g = min_dB;
                     }
 
                     px.Red() = px.Green() = px.Blue() = g;

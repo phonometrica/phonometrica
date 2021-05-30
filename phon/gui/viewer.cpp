@@ -102,6 +102,17 @@ View *Viewer::GetCurrentView() const
 
 void Viewer::ViewFile(const Handle<Document> &file)
 {
+	if (OpenFile(file))
+	{
+		auto view = dynamic_cast<SpeechView*>(GetCurrentView());
+		if (view) {
+			view->SetTimeWindow(0, 10);
+		}
+	}
+}
+
+bool Viewer::OpenFile(const Handle<Document> &file)
+{
 	try
 	{
 		file->open();
@@ -114,7 +125,7 @@ void Viewer::ViewFile(const Handle<Document> &file)
 			{
 				if (GetView(i)->GetPath() == path) {
 					SetSelection(i);
-					return;
+					return true;
 				}
 			}
 		}
@@ -125,13 +136,12 @@ void Viewer::ViewFile(const Handle<Document> &file)
 
 			if (!annot->has_sound()) {
 				wxMessageBox(_("You must first bind this annotation to a sound file!"), _("Cannot display annotation"), wxICON_ERROR);
-				return;
+				return false;
 			}
 
 			auto view = new AnnotationView(this, annot);
 			view->Initialize();
 			AddView(view, annot->label());
-			view->SetTimeSelection(0, 10);
 		}
 		else if (file->is<Sound>())
 		{
@@ -139,7 +149,6 @@ void Viewer::ViewFile(const Handle<Document> &file)
 			auto view = new SoundView(this, snd);
 			view->Initialize();
 			AddView(view, snd->label());
-			view->SetTimeSelection(0, 10);
 		}
 		else if (file->is<Script>())
 		{
@@ -152,6 +161,7 @@ void Viewer::ViewFile(const Handle<Document> &file)
 			if (conc->empty() && Settings::get_boolean("concordance", "discard_empty"))
 			{
 				wxMessageBox(_("No match found!"), _("Empty concordance"), wxICON_INFORMATION);
+				return false;
 			}
 			else
 			{
@@ -163,11 +173,26 @@ void Viewer::ViewFile(const Handle<Document> &file)
 		else
 		{
 			wxMessageBox(_("Not implemented yet!"), _("Information"), wxICON_INFORMATION);
+			return false;
 		}
 	}
 	catch (std::exception &e)
 	{
 		wxMessageBox(e.what(), _("Cannot open view"), wxICON_ERROR);
+		return false;
+	}
+
+	return true;
+}
+
+void Viewer::OpenAnnotation(const Handle<Annotation> &annot, intptr_t layer, const AutoEvent &event)
+{
+	if (OpenFile(recast<Document>(annot)))
+	{
+		auto view = dynamic_cast<AnnotationView*>(GetCurrentView());
+		if (view) {
+			view->OpenEvent(layer, event);
+		}
 	}
 }
 
@@ -268,8 +293,26 @@ Handle<Sound> Viewer::GetCurrentSound() const
 
 Handle<Annotation> Viewer::GetCurrentAnnotation() const
 {
-	//TODO: get current annotaiton
+	auto view = dynamic_cast<const AnnotationView*>(GetCurrentView());
+
+	if (view) {
+		return view->GetAnnotation();
+	}
+
 	return Handle<Annotation>();
 }
+
+double Viewer::GetWindowDuration() const
+{
+	auto view = dynamic_cast<SpeechView*>(GetCurrentView());
+	return view ? view->GetWindowDuration() : std::nan("");
+}
+
+double Viewer::GetSelectionDuration() const
+{
+	auto view = dynamic_cast<SpeechView*>(GetCurrentView());
+	return view ? view->GetSelectionDuration() : std::nan("");
+}
+
 
 } // namespace phonometrica

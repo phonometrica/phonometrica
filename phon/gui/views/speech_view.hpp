@@ -51,11 +51,15 @@ public:
 
 	void DiscardChanges() override;
 
-	void SetTimeSelection(double from, double to);
+	void SetTimeWindow(double from, double to);
 
 	Handle<Sound> GetSound() const;
 
 	Array<int> GetVisibleChannels() const;
+
+	double GetWindowDuration() const;
+
+	double GetSelectionDuration() const;
 
 protected:
 
@@ -67,7 +71,7 @@ protected:
 
 	void SetToolBar();
 
-	void UpdateTimeWindow(TimeWindow win);
+	void UpdateAuxiliaryTimes(TimeWindow win);
 
 	virtual void UpdateLayersWindow(TimeWindow win) { }
 

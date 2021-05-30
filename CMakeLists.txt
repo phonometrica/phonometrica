@@ -19,8 +19,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Embed scripts as strings or read the from files
 set(EMBED_SCRIPTS ON)
-# Logging (for debugging)
-set(ENABLE_LOGGING ON)
+# Logging (always on in debug mode)
+set(ENABLE_LOGGING OFF)
 # Compile the whole application or the scripting engine only
 set(WITH_GUI ON)
 # Run unit tests for core types
@@ -82,7 +82,7 @@ add_definitions(-DPHON_VERSION_DEVEL=17)
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2021)
 add_definitions(-DPHON_RELEASE_DATE_MONTH=5)
-add_definitions(-DPHON_RELEASE_DATE_DAY=26)
+add_definitions(-DPHON_RELEASE_DATE_DAY=30)
 
 
 ########################

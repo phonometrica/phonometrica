@@ -81,7 +81,7 @@ using GCCallback = std::function<void(Collectable*)>;
 
 // If logging is enabled, messages are logged to a file named "phonometrica.log" in the user's home directory.
 // Add "#include <wx/log.h>" to files that make use of this macro.
-#ifdef PHON_ENABLE_LOGGING
+#if defined(PHON_ENABLE_LOGGING) || defined(PHON_DEBUG)
 //#define PHON_LOG(...) wxLogDebug(__VA_ARGS__);
 #define PHON_LOG(...) fprintf(stderr, __VA_ARGS__);
 #else

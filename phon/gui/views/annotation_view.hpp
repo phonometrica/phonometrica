@@ -38,6 +38,10 @@ public:
 
 	String GetPath() const override;
 
+	Handle<Annotation> GetAnnotation() const;
+
+	void OpenEvent(intptr_t nlayer, const AutoEvent &event);
+
 private:
 
 	void AddAnnotationMenu(ToolBar *toolbar) override;

@@ -237,15 +237,36 @@ void SpeechView::SetToolBar()
 	m_mouse_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SpeechView::OnEnableMouseTracking, this);
 }
 
-void SpeechView::SetTimeSelection(double from, double to)
+void SpeechView::SetTimeWindow(double from, double to)
 {
-	if (to > from + m_sound->duration()) {
-		to = from + m_sound->duration();
+	if (from < 0.0) {
+		from = 0.0;
 	}
+	if (to > m_sound->duration()) {
+		to = m_sound->duration();
+	}
+	OnUpdateTimeWindow(TimeWindow{from, to});
+}
+
+void SpeechView::OnUpdateTimeWindow(TimeWindow win)
+{
 	for (auto widget : m_speech_widgets) {
-		widget->SetTimeWindow({from, to});
+		widget->SetTimeWindow(win);
 	}
-	UpdateTimeWindow(TimeWindow{from, to});
+	UpdateAuxiliaryTimes(win);
+}
+
+void SpeechView::OnUpdateSelection(const TimeSelection &sel)
+{
+	// No need to update layers here
+	for (auto plot : m_plots) {
+		plot->SetSelection(sel);
+	}
+	UpdateXAxisSelection(sel);
+
+	if (!m_play_sel_tool->IsEnabled()) {
+		m_play_sel_tool->Enable();
+	}
 }
 
 void SpeechView::OnPlayWindow(wxCommandEvent &)
@@ -341,7 +362,7 @@ void SpeechView::OnMoveForward(wxCommandEvent &)
 		widget->MoveForward();
 	}
 	auto win = GetTimeWindow();
-	UpdateTimeWindow(win);
+	UpdateAuxiliaryTimes(win);
 }
 
 void SpeechView::OnMoveBackward(wxCommandEvent &)
@@ -350,7 +371,7 @@ void SpeechView::OnMoveBackward(wxCommandEvent &)
 		widget->MoveBackward();
 	}
 	auto win = GetTimeWindow();
-	UpdateTimeWindow(win);
+	UpdateAuxiliaryTimes(win);
 }
 
 void SpeechView::OnZoomIn(wxCommandEvent &)
@@ -359,7 +380,7 @@ void SpeechView::OnZoomIn(wxCommandEvent &)
 		widget->ZoomIn();
 	}
 	auto win = GetTimeWindow();
-	UpdateTimeWindow(win);
+	UpdateAuxiliaryTimes(win);
 }
 
 void SpeechView::OnZoomOut(wxCommandEvent &)
@@ -368,7 +389,7 @@ void SpeechView::OnZoomOut(wxCommandEvent &)
 		widget->ZoomOut();
 	}
 	auto win = GetTimeWindow();
-	UpdateTimeWindow(win);
+	UpdateAuxiliaryTimes(win);
 }
 
 void SpeechView::OnZoomToSelection(wxCommandEvent &)
@@ -384,7 +405,7 @@ void SpeechView::ZoomToSelection()
 	}
 	auto win = GetTimeWindow();
 	UpdateLayersWindow(win);
-	UpdateTimeWindow(win);
+	UpdateAuxiliaryTimes(win);
 }
 
 void SpeechView::OnViewAll(wxCommandEvent &)
@@ -393,7 +414,7 @@ void SpeechView::OnViewAll(wxCommandEvent &)
 		widget->ViewAll();
 	}
 	auto win = GetTimeWindow();
-	UpdateTimeWindow(win);
+	UpdateAuxiliaryTimes(win);
 }
 
 void SpeechView::OnSelectWindow(wxCommandEvent &)
@@ -410,33 +431,12 @@ void SpeechView::OnSelectWindow(wxCommandEvent &)
 			for (auto widget : m_speech_widgets) {
 				widget->SetTimeWindow(win);
 			}
-			UpdateTimeWindow(win);
+			UpdateAuxiliaryTimes(win);
 		}
 	}
 	catch (std::exception &e)
 	{
 		wxMessageBox(e.what(), _("Selection error"), wxICON_ERROR);
-	}
-}
-
-void SpeechView::OnUpdateTimeWindow(TimeWindow win)
-{
-	for (auto widget : m_speech_widgets) {
-		widget->SetTimeWindow(win);
-	}
-	UpdateTimeWindow(win);
-}
-
-void SpeechView::OnUpdateSelection(const TimeSelection &sel)
-{
-	// No need to update layers here
-	for (auto plot : m_plots) {
-		plot->SetSelection(sel);
-	}
-	UpdateXAxisSelection(sel);
-
-	if (!m_play_sel_tool->IsEnabled()) {
-		m_play_sel_tool->Enable();
 	}
 }
 
@@ -456,7 +456,7 @@ void SpeechView::UpdateXAxisSelection(const TimeSelection &sel)
 	m_x_axis->SetSelection(sel);
 }
 
-void SpeechView::UpdateTimeWindow(TimeWindow win)
+void SpeechView::UpdateAuxiliaryTimes(TimeWindow win)
 {
 	m_wavebar->SetTimeSelection(win);
 	m_x_axis->SetTimeWindow(win);
@@ -868,6 +868,16 @@ Array<int> SpeechView::GetVisibleChannels() const
 	}
 
 	return result;
+}
+
+double SpeechView::GetWindowDuration() const
+{
+	return GetFirstPlot()->GetWindowDuration();
+}
+
+double SpeechView::GetSelectionDuration() const
+{
+	return GetFirstPlot()->GetSelectionDuration();
 }
 
 } // namespace phonometrica

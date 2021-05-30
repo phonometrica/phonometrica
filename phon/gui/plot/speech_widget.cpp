@@ -134,5 +134,4 @@ void SpeechWidget::InvalidateCache()
 	m_cached_size = wxDefaultSize;
 }
 
-
 } // namespace phonometrica

@@ -81,6 +81,10 @@ public:
 
 	bool IsVisible() const;
 
+	double GetSelectionDuration() const;
+
+	double GetSoundDuration() const override { return m_sound->duration(); }
+
 	Signal<const TimeSelection&> update_selection;
 
 	Signal<> invalidate_selection;
@@ -98,8 +102,6 @@ public:
 	Signal<wxPoint> request_context_menu;
 
 protected:
-
-	double GetSoundDuration() const override { return m_sound->duration(); }
 
 	void OnPaint(wxPaintEvent &);
 

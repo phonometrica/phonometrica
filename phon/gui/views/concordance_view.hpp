@@ -65,6 +65,8 @@ public:
 
 	void ClearSelection();
 
+	static Signal<const Handle<Annotation>&, intptr_t, const AutoEvent&> open_annotation;
+
 protected:
 
 	void Undo() override;
@@ -84,6 +86,8 @@ protected:
 	void OnExportToCsv(wxCommandEvent &);
 
 	void OnViewMatch(wxCommandEvent &);
+
+	void ViewMatch(int row);
 
 	void OnBookmarkMatch(wxCommandEvent &);
 

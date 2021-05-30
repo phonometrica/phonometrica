@@ -69,6 +69,8 @@ public:
 
 	void MoveBackward();
 
+	double GetWindowDuration() const { return m_window.second - m_window.first; }
+
 	Signal<const wxString&> update_status;
 
 	Signal<const wxString&> update_selection_status;
@@ -84,8 +86,6 @@ protected:
 	void InvalidateCache();
 
 	bool HasValidCache() const;
-
-	double GetWindowDuration() const { return m_window.second - m_window.first; }
 
 	virtual double GetSoundDuration() const = 0;
 
