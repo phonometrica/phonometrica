@@ -21,6 +21,10 @@
 
 #include <phon/gui/plot/layer_track.hpp>
 
+#ifdef __WXMSW__
+#undef DrawText
+#endif
+
 namespace phonometrica {
 
 LayerTrack::LayerTrack(wxWindow *parent, const Handle<Annotation> &annot, double duration, intptr_t layer_index) :
@@ -60,9 +64,10 @@ void LayerTrack::OnPaint(wxPaintEvent &)
 	wxPaintDC dc(this);
 	const wxColour LIGHT_YELLOW(245, 245, 215);
 	const wxColour DARK_YELLOW(255, 255, 50);
+    bool selected = IsSelected();
 
 	// Set background color
-	if (IsSelected())
+	if (selected)
 	{
 		dc.SetBackground(LIGHT_YELLOW);
 	}
@@ -105,20 +110,20 @@ void LayerTrack::OnPaint(wxPaintEvent &)
 
 		wxString label = event->text();
 		wxStaticText *st;
-		const int padding = 3;
+		const int padding = 2;
 
 		if (create_controls)
 		{
 			if (is_instant)
 			{
 				auto x = int(round((std::max)(0.0, TimeToXPos(start_time))));
-				st = new wxStaticText(this, wxID_ANY, label, wxPoint(x-20, 0), wxSize(40, height));
+				st = new wxStaticText(this, wxID_ANY, label, wxPoint(x-20, 0), wxSize(40, height), wxALIGN_CENTRE_HORIZONTAL);
 			}
 			else
 			{
 				auto x1 = int(round((std::max)(0.0, TimeToXPos(start_time))));
 				auto x2 = int(round((std::min)(TimeToXPos(end_time), double(width))));
-				st = new wxStaticText(this, wxID_ANY, label, wxPoint(x1+padding, 0), wxSize(x2-x1-padding, height));
+				st = new wxStaticText(this, wxID_ANY, label, wxPoint(x1+padding, 0), wxSize(x2-x1-padding, height), wxALIGN_CENTRE_HORIZONTAL);
 				st->Bind(wxEVT_MOTION, &LayerTrack::OnCursorOverEvent, this);
 				st->Bind(wxEVT_LEFT_UP, &LayerTrack::OnLeftClick, this);
 			}
@@ -129,8 +134,42 @@ void LayerTrack::OnPaint(wxPaintEvent &)
 			st = m_label_ctrls[i];
 			st->SetLabel(label);
 		}
+
+		// On Windows, we need to explicitly set the background color of the static texts.
+		if (selected && m_selected_event->valid())
+        {
+
+            const wxColour ORANGE(247, 205, 116);
+
+            if (m_selected_event == event)
+            {
+                if (m_selected_event->is_instant())
+                {
+                    auto old_pen = dc.GetPen();
+                    dc.SetPen(wxPen(ORANGE, 3));
+                    auto x = int(round(TimeToXPos(m_selected_event->start_time())));
+                    int third = height / 3;
+                    dc.DrawLine(wxPoint(x, 0), wxPoint(x, third));
+                    dc.DrawLine(wxPoint(x, third*2), wxPoint(x, height));
+                    dc.SetPen(old_pen);
+                }
+                else
+                {
+                    st->SetBackgroundColour(ORANGE);
+                }
+            }
+            else if (event->is_interval())
+            {
+                st->SetBackgroundColour(LIGHT_YELLOW);
+            }
+        }
+		else
+        {
+		    st->SetBackgroundColour(*wxWHITE);
+        }
 	}
 
+#if 0
 	// Paint selected event
 	if (IsSelected() && m_selected_event->valid())
 	{
@@ -158,7 +197,7 @@ void LayerTrack::OnPaint(wxPaintEvent &)
 		}
 		dc.SetPen(old_pen);
 	}
-
+#endif
 
 
 #if 0
