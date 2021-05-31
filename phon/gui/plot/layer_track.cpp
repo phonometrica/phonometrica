@@ -184,8 +184,12 @@ void LayerTrack::OnPaint(wxPaintEvent &)
 
 		if (is_instant)
 		{
-			auto x = int(round((std::max)(0.0, TimeToXPos(start_time))));
-			boundaries = wxRect(x-20, 0, 40, height);
+			auto extent = dc.GetTextExtent(label);
+			auto x = int(round(TimeToXPos(start_time))) - extent.x / 2;
+			x = (std::max)(0, x);
+			int y = height / 2 - extent.GetHeight() / 2;
+			int w = (std::max)(extent.GetWidth(), 100);
+			boundaries = wxRect(x, y, w, extent.GetHeight());
 		}
 		else
 		{
@@ -361,7 +365,9 @@ void LayerTrack::OnLeftClick(wxMouseEvent &e)
 {
 	auto pos = e.GetPosition();
 	m_selected_event = XPosToEvent(pos.x);
-	update_selected_event(m_layer->index, m_selected_event);
+	if (m_selected_event) {
+		update_selected_event(m_layer->index, m_selected_event);
+	}
 }
 
 AutoEvent LayerTrack::XPosToEvent(int x) const

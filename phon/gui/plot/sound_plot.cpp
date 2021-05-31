@@ -118,9 +118,6 @@ void SoundPlot::OnMotion(wxMouseEvent &e)
 		// We don't need to refresh the plot because the signal will be sent back to us by the view
 		// to which this plot is connected.
 		update_selection(TimeSelection{t1, t2});
-
-		auto msg = wxString::Format("Selection duration: %f s", t2-t1);
-		update_selection_status(msg);
 	}
 	else if (m_track_mouse)
 	{

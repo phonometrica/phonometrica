@@ -129,7 +129,6 @@ void SpeechView::Initialize()
 		plot->zoom_to_selection.connect(&SpeechView::ZoomToSelection, this);
 		plot->y_axis_modified.connect(&YAxisInfo::OnUpdate, m_y_axis);
 		plot->update_status.connect(&MessageCtrl::SetStatus, m_msg_ctrl);
-		plot->update_selection_status.connect(&MessageCtrl::SetSelection, m_msg_ctrl);
 		plot->request_context_menu.connect(&SpeechView::OnContextMenu, this);
 
 		for (auto plot2 : m_plots)
@@ -266,6 +265,13 @@ void SpeechView::OnUpdateSelection(const TimeSelection &sel)
 
 	if (!m_play_sel_tool->IsEnabled()) {
 		m_play_sel_tool->Enable();
+	}
+
+	auto duration = sel.t2 - sel.t1;
+	if (duration > 0)
+	{
+		auto msg = wxString::Format("Duration of selection: %f s", duration);
+		m_msg_ctrl->SetSelection(msg);
 	}
 }
 

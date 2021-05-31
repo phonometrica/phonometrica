@@ -133,11 +133,17 @@ void AnnotationView::OnAnchorSharing(wxCommandEvent &e)
 void AnnotationView::OnAddAnchor(wxCommandEvent &e)
 {
 	m_add_tool->Toggle();
+	if (m_add_tool->IsChecked() && m_remove_tool->IsChecked()) {
+		m_remove_tool->Toggle();
+	}
 }
 
 void AnnotationView::OnRemoveAnchor(wxCommandEvent &e)
 {
 	m_remove_tool->Toggle();
+	if (m_remove_tool->IsChecked() && m_add_tool->IsChecked()) {
+		m_add_tool->Toggle();
+	}
 }
 
 void AnnotationView::OnLayerMenu(wxCommandEvent &e)

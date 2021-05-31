@@ -73,8 +73,6 @@ public:
 
 	Signal<const wxString&> update_status;
 
-	Signal<const wxString&> update_selection_status;
-
 	Signal<TimeWindow> update_window;
 
 protected:
