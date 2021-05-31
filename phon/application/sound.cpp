@@ -117,7 +117,7 @@ void Sound::load()
 			auto count = m_handle.readf(ptr, BUFFER_SIZE);
 			ptr += count * m_handle.channels();
 			accumulator += count;
-			if (accumulator >= slice)
+			while (accumulator >= slice)
 			{
 				update_loading(counter++);
 				accumulator = accumulator - slice;
