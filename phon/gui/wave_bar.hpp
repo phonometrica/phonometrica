@@ -84,8 +84,8 @@ private:
 	Handle<Sound> m_sound;
 
 	// To avoid recomputing the data on every paint event, we cache it here. We only
-	// recompute if if the size of the window has changed.
-	std::vector<std::pair<double,double>> m_cache;
+	// recompute it if the size of the window has changed.
+	std::vector<double> m_cache;
 
 	// Current selection
 	PixelSelection m_sel;
@@ -95,6 +95,9 @@ private:
 
 	// Start of the selection when the user clicks on the wavebar.
 	double m_sel_start = -1;
+
+	// Cache width to avoid recomputing the waveform.
+	int m_cached_width = -1;
 };
 
 } // namespace phonometrica

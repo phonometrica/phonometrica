@@ -135,11 +135,11 @@ void Sound::load()
 		while (count != 0)
 		{
 			count = (intptr_t) h.readf(ptr, BUFFER_SIZE);
-			for (intptr_t i = 1; i <= count; i += nchannel)
+			auto p = ptr;
+			for (intptr_t i = 1; i <= count; ++i)
 			{
-				for (intptr_t j = 1; j <= nchannel; j++)
-				{
-					m_data(ioffset+i, j) = ptr[nchannel * (i - 1) + (j - 1)];
+				for (intptr_t j = 1; j <= nchannel; j++) {
+					m_data(ioffset+i, j) = *p++;
 				}
 			}
 			ioffset += count;
@@ -754,7 +754,7 @@ Array<double> Sound::get_channel(int n, intptr_t first_sample, intptr_t last_sam
 	{
 		auto data = get_channel_view(n);
 		auto start = data.data() + first_sample - 1;
-		auto end = data.data() + last_sample;
+		auto end = data.data() + last_sample - 1;
 
 		return Array<double>(start, end);
 	}

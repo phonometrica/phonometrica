@@ -47,7 +47,7 @@ private:
 
 	void UpdateCache() override;
 
-	std::vector<std::pair<double,double>> DownsampleWaveform();
+	std::vector<double> ComputeWaveform();
 
 	void ReadSettings() override;
 

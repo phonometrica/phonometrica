@@ -79,14 +79,31 @@ void WaveBar::Render(wxBufferedPaintDC &dc)
 	// Draw wave
 	gc->SetPen(wxPen(*wxBLACK, 1));
 	wxGraphicsPath path = gc->CreatePath();
-	path.MoveToPoint(0.0, m_cache[0].first);
-	path.AddLineToPoint(0.0, m_cache[0].second);
 
-	for (size_t x = 1; x < m_cache.size(); x++)
+	if (m_cache.size() == size_t(width * 2))
 	{
-		path.AddLineToPoint(x-1, m_cache[x].first);
-		path.AddLineToPoint(x-1, m_cache[x].second);
+		path.MoveToPoint(0.0, m_cache[0]);
+		path.AddLineToPoint(0.0, m_cache[1]);
+
+		for (size_t i = 2; i < m_cache.size(); i += 2)
+		{
+			auto x = double(i) / 2;
+			path.AddLineToPoint(x, m_cache[i]);
+			path.AddLineToPoint(x, m_cache[i + 1]);
+		}
 	}
+	else
+	{
+		auto offset = double(width) / m_cache.size();
+		path.MoveToPoint(0.0, m_cache[0]);
+
+		for (size_t i = 1; i < m_cache.size(); ++i)
+		{
+			auto x = double(i) * offset;
+			path.AddLineToPoint(x, m_cache[i]);
+		}
+	}
+
 	gc->DrawPath(path);
 
 	if (!HasSelection()) {
@@ -105,52 +122,81 @@ void WaveBar::Render(wxBufferedPaintDC &dc)
 
 void WaveBar::UpdateCache()
 {
-	if (m_cache.size() == (size_t)GetSize().GetWidth()) {
+	auto width = GetSize().GetWidth();
+
+	if (m_cached_width == width) {
 		return;
 	}
-	m_cache.clear();
 
 	auto sample_count = m_sound->channel_size();
 	auto &data = m_sound->data();
 	int nchannel = m_sound->nchannel();
-	auto width = GetSize().GetWidth();
-	auto available_pixels = size_t(width) - 1;
 
-	// Subtract 1 to width so that the last pixel is assigned the left-over frames.
-	auto frames_per_pixel = intptr_t(floor(double(sample_count) / available_pixels));
-	auto maximum = (std::numeric_limits<double>::min)();
-	auto minimum = (std::numeric_limits<double>::max)();
-
-	for (intptr_t i = 1; i <= sample_count; i++)
+	// Same algorithm as for Waveform.
+	if (sample_count >= width * 2)
 	{
-		// Get average value for each sample
-		double sample = 0;
-		for (intptr_t j = 1; j <= nchannel; j++) {
-			sample += data(i,j);
-		}
-		sample /= nchannel;
+		std::vector<double> wave(width * 2, 0.0);
+		auto current_point = wave.begin();
+		// Frames per pixel
+		auto offset = double(sample_count) / width;
 
-		// Find extrema
-		if (sample < minimum)
-			minimum = sample;
-		if (sample > maximum)
-			maximum = sample;
-
-		if (i % frames_per_pixel == 0 && m_cache.size() < available_pixels)
+		for (int i = 0; i < width; i++)
 		{
-			auto y1 = SampleToYPos(maximum);
-			auto y2 = SampleToYPos(minimum);
-			m_cache.emplace_back(y1, y2);
-			// reset values
-			maximum = (std::numeric_limits<double>::min)();
-			minimum = (std::numeric_limits<double>::max)();
-		}
-	}
+			auto x1 = intptr_t(floor(i * offset)) + 1;
+			auto x2 = intptr_t(ceil((i+1) * offset)) + 1;
+			if (x2 > sample_count) {
+				x2 = sample_count;
+			}
 
-	auto y1 = SampleToYPos(maximum);
-	auto y2 = SampleToYPos(minimum);
-	m_cache.emplace_back(y1, y2);
-	assert(m_cache.size() == (size_t)GetSize().GetWidth());
+			// Get average value for each sample
+			double sample = 0;
+			for (intptr_t j = 1; j <= nchannel; j++) {
+				sample += data(x1,j);
+			}
+			sample /= nchannel;
+
+			// Read first sample.
+			auto maximum = sample;
+			auto minimum = maximum;
+
+			for (intptr_t x = x1+1; x <= x2; x++)
+			{
+				// Get average value for each sample
+				double sample = 0;
+				for (intptr_t j = 1; j <= nchannel; j++) {
+					sample += data(x,j);
+				}
+				sample /= nchannel;
+
+				if (sample < minimum) {
+					minimum = sample;
+				}
+				else if (sample > maximum) {
+					maximum = sample;
+				}
+			}
+
+			double y1 = SampleToYPos(maximum);
+			double y2 = SampleToYPos(minimum);
+			*current_point++ = y1;
+			*current_point++ = y2;
+		}
+		assert(current_point == wave.end());
+		m_cache = std::move(wave);
+	}
+	else
+	{
+		// Draw all the points
+		std::vector<double> wave(data.size(), 0.0);
+		auto it = wave.begin();
+
+		for (auto sample : data) {
+			*it++ = SampleToYPos(sample);
+		}
+
+		m_cache = std::move(wave);
+	}
+	m_cached_width = width;
 }
 
 double WaveBar::TimeToXPos(double t) const

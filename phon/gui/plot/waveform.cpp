@@ -107,102 +107,54 @@ void Waveform::SetGlobalMagnitude(double value)
 
 void Waveform::DrawBitmap()
 {
-	auto wave = DownsampleWaveform();
+	auto wave = ComputeWaveform();
 	wxMemoryDC dc;
 	wxBitmap bmp(GetSize());
 	dc.SelectObject(bmp);
 	dc.SetBackground(*wxWHITE);
 	dc.Clear();
-//	auto gc = dc.GetGraphicsContext();
     auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
 	if (!gc) return;
 	auto height = GetHeight();
 	auto width = GetWidth();
 
-
 	// Draw zero-crossing line.
 	dc.SetPen(wxPen(*wxBLUE, 1, wxPENSTYLE_DOT));
 	dc.DrawLine(0, height / 2, width, height / 2);
+	gc->SetPen(wxPen(*wxBLACK, 1));
+	wxGraphicsPath path = gc->CreatePath();
 
-	if (wave.size() >= (size_t) width)
+	if (wave.size() == (size_t) width * 2)
 	{
-		gc->SetPen(wxPen(*wxBLACK, 1));
-		wxGraphicsPath path = gc->CreatePath();
-		path.MoveToPoint(0.0, wave[0].first);
-		path.AddLineToPoint(0.0, wave[0].second);
+		path.MoveToPoint(0.0, wave[0]);
+		path.AddLineToPoint(0.0, wave[1]);
 
-		for (size_t x = 1; x < wave.size(); x++)
+		for (size_t i = 2; i < wave.size(); i += 2)
 		{
-			path.AddLineToPoint(x-1, wave[x].first);
-			path.AddLineToPoint(x-1, wave[x].second);
+			auto x = double(i) / 2;
+			path.AddLineToPoint(x, wave[i]);
+			path.AddLineToPoint(x, wave[i + 1]);
 		}
-		gc->StrokePath(path);
 	}
 	else
 	{
-#if 0
-		// If we have fewer samples than pixels, we spread the samples over the screen
-        auto line_pen = painter.pen();
-        QPen point_pen;
-        point_pen.setWidth(line_pen.width() * 3);
-        auto pixels_per_frame = (double)this->width() / sample_count;
-        double previous_x = 0;
-        double previous_y = 0;
-        double x = 0;
+		auto offset = double(width) / wave.size();
+		path.MoveToPoint(0.0, wave[0]);
 
-        // Add one more pixel if possible to reach the right edge of the screen
-        intptr_t last;
-        if (last_sample < m_data->size())
-        {
-            last = last_sample + 1;
-        }
-        else
-        {
-            last = last_sample;
-            pixels_per_frame = (double)this->width() / (this->windowDuration() - 1);
-        }
-
-        bool display_points = (pixels_per_frame >= 10);
-
-        for (intptr_t i = first_sample; i <= last; i++)
-        {
-            auto sample = m_data->sample(i);
-            auto y = sampleToHeight(sample);
-
-            if (x != 0)
-            {
-                QPointF p1(previous_x, previous_y);
-                QPointF p2(x, y);
-                if (display_points)
-                {
-                    painter.setPen(point_pen);
-                    painter.drawPoint(p2);
-                    painter.setPen(line_pen);
-                }
-                painter.drawLine(p1, p2);
-            }
-            previous_x = x;
-            previous_y = y;
-            x += pixels_per_frame;
-        }
-#endif
+		for (size_t i = 1; i < wave.size(); ++i)
+		{
+			auto x = double(i) * offset;
+			path.AddLineToPoint(x, wave[i]);
+		}
 	}
+	gc->StrokePath(path);
 	dc.SelectObject(wxNullBitmap);
 	m_cached_bmp = bmp;
 	assert(m_cached_bmp.IsOk());
 }
 
-std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
+std::vector<double> Waveform::ComputeWaveform()
 {
-	// We compute a downsampled representation of the signal. Each point corresponds to a pixed and stores
-	// the amplitude extrema found in the range represented by the pixel.
-	std::vector<std::pair<double, double>> wave;
-	wave.reserve(GetWidth());
-
-	// If the number of samples to display is greater than the number of pixels,
-	// map several frames to one pixel. We find the maximum and minimum amplitudes
-	// over the range of frames, and we draw a line from the previous minimum to the
-	// current maximum, and from the current maximum to the current mimimum.
 	auto first_sample = m_sound->time_to_frame(m_window.first);
 	auto last_sample = m_sound->time_to_frame(m_window.second);
 	auto data = m_sound->get_channel(m_channel, first_sample, last_sample);
@@ -217,58 +169,76 @@ std::vector<std::pair<double, double>> Waveform::DownsampleWaveform()
 		SetLocalMagnitude(data);
 	}
 	auto width = GetWidth();
-	auto raw_data = data.data();
-	size_t available_pixels = width - 1;
+	assert(m_window.second <= m_sound->duration());
 
-	if (sample_count >= width)
+//	PHON_LOG("-----------------------------------\n");
+//	PHON_LOG("window: %f to %f\n", m_window.first, m_window.second);
+//	PHON_LOG("width: %d\n", width);
+//	PHON_LOG("first sample: %ld\n", first_sample);
+//	PHON_LOG("last sample: %ld\n", last_sample);
+//	PHON_LOG("sample count: %ld\n", sample_count);
+
+	if (sample_count >= width * 2)
 	{
-		assert(m_window.second <= m_sound->duration());
+		// If the number of samples to display is greater than twice the number of pixels,
+		// map several frames to one pixel. We find the maximum and minimum amplitudes and draw
+		// a vertical line for this pixel. We allow one overlapping frame for each pixel to spread
+		// frames uniformly across pixels.
+		std::vector<double> wave(GetWidth() * 2, 0.0);
+		auto current_point = wave.begin();
 
-		// Subtract 1 to width so that the last pixel is assigned the left-over frames.
-		auto frames_per_pixel = sample_count / available_pixels;
+		// Frames per pixel
+		auto offset = double(sample_count) / width;
+//		PHON_LOG("frames per pixel: %f\n", offset);
 
-		auto maximum = -(std::numeric_limits<double>::max)();
-		auto minimum = (std::numeric_limits<double>::max)();
-		intptr_t min_index = (std::numeric_limits<intptr_t>::min)();
-		intptr_t max_index = (std::numeric_limits<intptr_t>::min)();
-
-		for (intptr_t i = 0; i < sample_count; i++)
+		for (int i = 0; i < width; i++)
 		{
-			auto sample = *raw_data++;
-
-			if (sample < minimum)
-			{
-				minimum = sample;
-				min_index = i;
-			}
-			if (sample > maximum)
-			{
-				maximum = sample;
-				max_index = i;
+			auto x1 = intptr_t(floor(i * offset));
+			auto x2 = intptr_t(ceil((i+1) * offset));
+			if (x2 > sample_count) {
+				x2 = sample_count;
 			}
 
-			if (i % frames_per_pixel == 0 && wave.size() < available_pixels)
-			{
-				double y1 = SampleToHeight(maximum);
-				double y2 = SampleToHeight(minimum);
-				wave.emplace_back(y1, y2);
+			auto it = data.begin() + x1;
+			auto limit = data.begin() + x2;
 
-				// reset values
-				maximum = -(std::numeric_limits<double>::max)();
-				minimum = (std::numeric_limits<double>::max)();
-				min_index = max_index = (std::numeric_limits<intptr_t>::min)();
+			// Read first sample.
+			auto maximum = *it++;
+			auto minimum = maximum;
+
+			while (it != limit)
+			{
+				auto sample = *it++;
+
+				if (sample < minimum) {
+					minimum = sample;
+				}
+				else if (sample > maximum) {
+					maximum = sample;
+				}
 			}
+
+			double y1 = SampleToHeight(maximum);
+			double y2 = SampleToHeight(minimum);
+			*current_point++ = y1;
+			*current_point++ = y2;
 		}
+		assert(current_point == wave.end());
 
-		double y1 = SampleToHeight(maximum);
-		double y2 = SampleToHeight(minimum);
-		if (min_index < max_index) {
-			std::swap(y1, y2);
-		}
-		wave.emplace_back(y1, y2);
+		return wave;
 	}
+	else
+	{
+		// Draw all the points
+		std::vector<double> wave(data.size(), 0.0);
+		auto it = wave.begin();
 
-	return wave;
+		for (auto sample : data) {
+			*it++ = SampleToHeight(sample);
+		}
+
+		return wave;
+	}
 }
 
 void Waveform::DrawYAxis(PaintDC &dc, const wxRect &rect)
