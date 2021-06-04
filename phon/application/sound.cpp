@@ -281,11 +281,7 @@ void Sound::convert(const String &path, int sample_rate, Sound::Format fmt)
 
 int Sound::get_intensity_window_size() const
 {
-	// Praat's settings
-	double min_pitch = 100;
-	double effective_duration = 3.2 / min_pitch;
-
-	return int(std::ceil(effective_duration * m_handle.samplerate()));
+	return int(std::ceil(get_intensity_window_duration() * m_handle.samplerate()));
 }
 
 Array<double>
@@ -460,8 +456,28 @@ double Sound::get_intensity(int channel, double time)
 	return speech::get_intensity(frame, win);
 }
 
-Array<double> Sound::get_intensity(int channel, intptr_t start_pos, intptr_t end_pos, double time_step)
+Array<double> Sound::get_intensity(int channel, double from, double to, double time_step, bool &start_at_zero)
 {
+	auto window_duration = get_intensity_window_duration();
+	auto half_window = window_duration / 2;
+
+	// Try to take a measurement point at the start point of the window.
+	start_at_zero = (from - half_window >= 0);
+	if (start_at_zero) {
+		from -= half_window;
+	}
+	// If possible, take enough samples after the end of the time window so that we can make a measurement
+	// at (or past) the last time point. (In the latter case, drawing will be clipped at the end of window.)
+	auto t = from;
+	while (t < to) {
+		t += time_step;
+	}
+	if (t + window_duration <= this->duration()) {
+		to = t + window_duration;
+	}
+
+	auto start_pos = time_to_frame(from);
+	auto end_pos = time_to_frame(to);
 	auto input = get_channel(channel, start_pos, end_pos);
 	int window_size = get_intensity_window_size();
 

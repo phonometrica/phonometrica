@@ -115,13 +115,13 @@ protected:
 
 	bool HasCursor() const { return m_cursor_pos >= 0; }
 
-	void DrawSelection(wxBufferedPaintDC &dc);
+	void DrawSelection(wxGraphicsContext &gc);
 
-	void DrawSpanSelection(wxBufferedPaintDC &dc);
+	void DrawSpanSelection(wxGraphicsContext &gc);
 
-	void DrawPointSelection(wxBufferedPaintDC &dc);
+	void DrawPointSelection(wxGraphicsContext &gc);
 
-	void DrawCursor(wxBufferedPaintDC &dc);
+	void DrawCursor(wxBufferedPaintDC &dc, wxGraphicsContext &gc);
 
 	void OnContextMenu(wxMouseEvent &e);
 
@@ -129,7 +129,7 @@ protected:
 
 	void OnEndSelection(wxMouseEvent &e);
 
-	void DrawTimeTick(wxBufferedPaintDC &dc);
+	void DrawTimeTick(wxGraphicsContext &gc);
 
 	virtual void OnMotion(wxMouseEvent &e);
 

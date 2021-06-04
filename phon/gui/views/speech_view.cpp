@@ -186,7 +186,6 @@ void SpeechView::SetToolBar()
 	m_pause_sel_icon = ICN(pause_selection);
 	m_play_tool = m_toolbar->AddButton(m_play_icon, _("Play current window"));
 	m_play_sel_tool = m_toolbar->AddButton(m_play_sel_icon, _("Play selection"));
-	m_play_sel_tool->Enable(false);
 	auto stop_tool = m_toolbar->AddButton(ICN(stop), _("Stop playing"));
 	m_toolbar->AddSeparator();
 
@@ -194,10 +193,13 @@ void SpeechView::SetToolBar()
 	auto forward_tool = m_toolbar->AddButton(ICN(next), _("Shift window forward"));
 	auto zoom_out_tool = m_toolbar->AddButton(ICN(zoom_minus), _("Zoom out"));
 	auto zoom_in_tool = m_toolbar->AddButton(ICN(zoom_plus), _("Zoom in"));
-	auto zoom_sel_tool = m_toolbar->AddButton(ICN(collapse), _("Zoom to selection"));
+	m_zoom_sel_tool = m_toolbar->AddButton(ICN(collapse), _("Zoom to selection"));
 	auto zoom_all_tool = m_toolbar->AddButton(ICN(expand), _("View whole file"));
 	auto sel_tool = m_toolbar->AddButton(ICN(selection), _("Select window"));
 	m_toolbar->AddSeparator();
+
+	m_play_sel_tool->Enable(false);
+	m_zoom_sel_tool->Enable(false);
 
 	AddAnnotationMenu(m_toolbar);
 	m_wave_tool = m_toolbar->AddMenuButton(ICN(waveform), _("Waveform settings"));
@@ -224,7 +226,7 @@ void SpeechView::SetToolBar()
 	backward_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SpeechView::OnMoveBackward, this);
 	zoom_in_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SpeechView::OnZoomIn, this);
 	zoom_out_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SpeechView::OnZoomOut, this);
-	zoom_sel_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SpeechView::OnZoomToSelection, this);
+	m_zoom_sel_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SpeechView::OnZoomToSelection, this);
 	zoom_all_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SpeechView::OnViewAll, this);
 	sel_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SpeechView::OnSelectWindow, this);
 	channel_tool->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &SpeechView::OnSelectChannels, this);
@@ -265,6 +267,7 @@ void SpeechView::OnUpdateSelection(const TimeSelection &sel)
 
 	if (!m_play_sel_tool->IsEnabled()) {
 		m_play_sel_tool->Enable();
+		m_zoom_sel_tool->Enable();
 	}
 
 	auto duration = sel.t2 - sel.t1;
@@ -455,6 +458,7 @@ void SpeechView::OnInvalidateSelection()
 	m_x_axis->InvalidateSelection();
 	m_msg_ctrl->ClearSelection();
 	m_play_sel_tool->Enable(false);
+	m_zoom_sel_tool->Enable(false);
 }
 
 void SpeechView::UpdateXAxisSelection(const TimeSelection &sel)
@@ -721,10 +725,11 @@ void SpeechView::ShowFormants(bool value)
 
 void SpeechView::ShowIntensity(bool value)
 {
+	Settings::set_value("sound_plots", "intensity", value);
 	for (auto track : intensity_tracks) {
 		track->SetPlotVisible(value);
 	}
-	Settings::set_value("sound_plots", "intensity", value);
+	UpdatePlotLayout();
 }
 
 void SpeechView::OnShowWaveforms(wxCommandEvent &e)

@@ -60,11 +60,14 @@ void SoundPlot::OnPaint(wxPaintEvent &)
 
 void SoundPlot::Render(wxBufferedPaintDC &dc)
 {
-    assert(m_cached_bmp.IsOk());
+	assert(m_cached_bmp.IsOk());
 	dc.DrawBitmap(m_cached_bmp, 0.0, 0.0, true);
-	DrawSelection(dc);
-	DrawCursor(dc);
-	DrawTimeTick(dc);
+	auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
+	if (!gc) return;
+
+	DrawSelection(*gc);
+	DrawCursor(dc, *gc);
+	DrawTimeTick(*gc);
 	// The Y axis is repainted before the plots, so we need to explicitly update it on repaint events,
 	// otherwise the magnitude values might be incorrect.
 	y_axis_modified();
@@ -175,30 +178,26 @@ void SoundPlot::OnMouseWheel(wxMouseEvent &e)
 	}
 }
 
-void SoundPlot::DrawSelection(wxBufferedPaintDC &dc)
+void SoundPlot::DrawSelection(wxGraphicsContext &gc)
 {
 	if (HasVisibleSelection())
 	{
 		if (HasPointSelection()) {
-			DrawPointSelection(dc);
+			DrawPointSelection(gc);
 		}
 		else {
-			DrawSpanSelection(dc);
+			DrawSpanSelection(gc);
 		}
 	}
 }
 
-void SoundPlot::DrawSpanSelection(wxBufferedPaintDC &dc)
+void SoundPlot::DrawSpanSelection(wxGraphicsContext &gc)
 {
-	//auto gc = dc.GetGraphicsContext();
-    auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
-	if (!gc) return;
 	auto height = GetHeight();
-	auto path = gc->CreatePath();
+	auto path = gc.CreatePath();
 
-	// We need to round the position because layers use int precision for drawing.
-	auto x1 = int(round((std::max)(TimeToXPos(m_sel.t1), TimeToXPos(m_window.first))));
-	auto x2 = int(round((std::min)(TimeToXPos(m_sel.t2), TimeToXPos(m_window.second))));
+	auto x1 = (std::max)(TimeToXPos(m_sel.t1), TimeToXPos(m_window.first));
+	auto x2 = (std::min)(TimeToXPos(m_sel.t2), TimeToXPos(m_window.second));
 
 	path.MoveToPoint(x1, 0.0);
 	path.AddLineToPoint(x2, 0.0);
@@ -207,38 +206,42 @@ void SoundPlot::DrawSpanSelection(wxBufferedPaintDC &dc)
 	path.AddLineToPoint(x1, 0.0);
 	wxBrush brush;
 	brush.SetColour(PLOT_SEL_COLOUR);
-	gc->SetBrush(brush);
-	gc->FillPath(path);
-
+	gc.SetBrush(brush);
+	gc.FillPath(path);
 	// Draw lines
-	dc.SetPen(wxPen(ANCHOR_COLOUR, 1, wxPENSTYLE_DOT));
-	dc.DrawLine(x1, 0, x1, height);
-	dc.DrawLine(x2, 0, x2, height);
+	gc.SetPen(wxPen(ANCHOR_COLOUR, 1, wxPENSTYLE_DOT));
+	gc.StrokeLine(x1, 0, x1, height);
+	gc.StrokeLine(x2, 0, x2, height);
 }
 
-void SoundPlot::DrawPointSelection(wxBufferedPaintDC &dc)
+void SoundPlot::DrawPointSelection(wxGraphicsContext &gc)
 {
 	if (!HasPointSelection()) {
 		return;
 	}
-	dc.SetPen(wxPen(ANCHOR_COLOUR, 1, wxPENSTYLE_DOT));
-	auto x = int(round(TimeToXPos(m_sel.t1)));
-	dc.DrawLine(x, 0, x, GetHeight());
+	gc.SetPen(wxPen(ANCHOR_COLOUR, 1, wxPENSTYLE_DOT));
+	auto x = TimeToXPos(m_sel.t1);
+	gc.StrokeLine(x, 0, x, GetHeight());
 }
 
-void SoundPlot::DrawCursor(wxBufferedPaintDC &dc)
+void SoundPlot::DrawCursor(wxBufferedPaintDC &dc, wxGraphicsContext &gc)
 {
 	if (m_track_mouse && HasCursor() && m_sel_state != SelectionState::Active)
 	{
-		dc.SetPen(wxPen(CURSOR_COLOUR));
-		dc.DrawLine(m_cursor_pos, 0, m_cursor_pos, GetHeight());
+		gc.SetPen(wxPen(CURSOR_COLOUR));
+		gc.StrokeLine(m_cursor_pos, 0, m_cursor_pos, GetHeight());
 
 		if (m_is_top)
 		{
 			auto time = wxString::Format("%.4f", XPosToTime(m_cursor_pos));
 			auto col = dc.GetTextForeground();
+			auto sz = dc.GetTextExtent(time);
 			dc.SetTextForeground(CURSOR_COLOUR);
-			dc.DrawText(time, m_cursor_pos + 3, 0);
+			auto x = int(round(m_cursor_pos + 3));
+			if (x + sz.x > GetWidth()) {
+				x = m_cursor_pos - 3 - sz.x;
+			}
+			dc.DrawText(time, x, 0);
 			dc.SetTextForeground(col);
 		}
 	}
@@ -296,13 +299,13 @@ void SoundPlot::SetTick(double time)
 	Refresh();
 }
 
-void SoundPlot::DrawTimeTick(wxBufferedPaintDC &dc)
+void SoundPlot::DrawTimeTick(wxGraphicsContext &gc)
 {
 	if (m_tick_time >= 0)
 	{
-		dc.SetPen(wxPen(wxColor(65, 65, 65)));
+		gc.SetPen(wxPen(wxColor(65, 65, 65)));
 		auto x = TimeToXPos(m_tick_time);
-		dc.DrawLine(x, 0, x, GetHeight());
+		gc.StrokeLine(x, 0, x, GetHeight());
 	}
 }
 

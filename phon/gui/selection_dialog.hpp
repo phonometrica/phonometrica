@@ -40,6 +40,8 @@ private:
 
 	double ParseNumber(wxTextCtrl *ctrl) const;
 
+	void OnEnter(wxCommandEvent &);
+
 	wxTextCtrl *from_ctrl, *to_ctrl;
 };
 

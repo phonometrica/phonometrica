@@ -106,8 +106,9 @@ double get_intensity(std::span<double> frame, std::span<double> window)
 		power += value * value;
 	}
 	auto avg_power = power / window.size();
+	auto dB = 10 * log10(avg_power / Iref);
 
-	return 10 * log10(avg_power / Iref);
+	return std::isfinite(dB) ? dB : 0.0;
 }
 
 Array<double>

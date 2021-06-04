@@ -185,7 +185,7 @@ protected:
 
 	wxButton *m_wave_tool, *m_spectrum_tool, *m_formant_tool, *m_pitch_tool, *m_intensity_tool;
 
-	wxButton *m_play_tool, *m_play_sel_tool;
+	wxButton *m_play_tool, *m_play_sel_tool, *m_zoom_sel_tool;
 
 	wxBitmap m_play_icon, m_play_sel_icon, m_pause_icon, m_pause_sel_icon;
 

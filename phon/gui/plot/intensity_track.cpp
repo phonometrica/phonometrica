@@ -98,7 +98,6 @@ void IntensityTrack::UpdateCache()
 
 void IntensityTrack::DrawBitmap()
 {
-	auto db_data = CalculateIntensity();
 	wxMemoryDC dc;
 	wxBitmap bmp(GetSize());
 	dc.SelectObject(bmp);
@@ -109,43 +108,52 @@ void IntensityTrack::DrawBitmap()
 	gc->SetPen(wxPen(*wxGREEN, 2));
 	wxGraphicsPath path = gc->CreatePath();
 
-	double t = m_window.first + time_step;// / 2;
-	bool previous = false; // no intensity before
-
-	for (auto dB : db_data)
+	try
 	{
-		if (!std::isfinite(dB))
+		auto db_data = CalculateIntensity();
+
+		double t = m_start_at_zero ? m_window.first : (m_window.first + time_step / 2);
+		PHON_LOG("-------------------------------------\n");
+
+		for (auto dB : db_data)
 		{
-			previous = false;
-			continue;
-		}
-		else if (previous)
-		{
+//			PHON_LOG("Intensity at t = %f: %f, drawn at %f\n", t, dB, TimeToXPos(t));
 			auto x = TimeToXPos(t);
 			auto y = IntensityToYPos(dB);
 			path.AddLineToPoint(x, y);
+			t += time_step;
 		}
-		else
-		{
-			auto x = TimeToXPos(t);
-			auto y = IntensityToYPos(dB);
-			path.MoveToPoint(x, y);
-		}
+//		PHON_LOG("window: %f to %f\n", m_window.first, m_window.second);
+//		PHON_LOG("width: %d\n", GetWidth());
+//		PHON_LOG("analysis window duration: %f\n", m_sound->get_intensity_window_duration());
 
-		previous = true;
-		t += time_step;
+		gc->StrokePath(path);
+	}
+	catch (std::exception &e)
+	{
+		wxString msg = e.what();
+		auto sz = dc.GetTextExtent(msg);
+		auto x = double(GetWidth()) / 2 - double(sz.x) / 2;
+		auto y = double(GetHeight()) / 2 - double(sz.y) / 2;
+		gc->SetFont(gc->CreateFont(dc.GetFont()));
+		gc->DrawText(msg, x, y);
 	}
 
-	gc->StrokePath(path);
 	dc.SelectObject(wxNullBitmap);
 	m_cached_bmp = bmp;
 }
 
 Array<double> IntensityTrack::CalculateIntensity()
 {
-    auto start_pos = m_sound->time_to_frame(m_window.first);
-    auto end_pos = m_sound->time_to_frame(m_window.second);
+	// At least 2 measurements per window
+	if (GetWindowDuration() <= 2 * time_step) {
+		throw error("Zoom out to see intensity");
+	}
+	// At most 2 measurements per pixel
+	if (GetWindowDuration() / time_step > GetWidth() * 2) {
+		throw error("Zoom in to see intensity");
+	}
 
-    return m_sound->get_intensity(m_channel, start_pos, end_pos, time_step);
+    return m_sound->get_intensity(m_channel, m_window.first, m_window.second, time_step, m_start_at_zero);
 }
 } // namespace phonometrica

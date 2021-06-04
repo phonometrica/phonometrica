@@ -32,10 +32,10 @@ SelectionDialog::SelectionDialog(wxWindow *parent) :
 {
 	auto sizer = new VBoxSizer;
 	sizer->Add(new wxStaticText(this, wxID_ANY, _("From (seconds):")), 0, wxEXPAND|wxALL, 10);
-	from_ctrl = new wxTextCtrl(this, wxID_ANY);
+	from_ctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 	sizer->Add(from_ctrl, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
 	sizer->Add(new wxStaticText(this, wxID_ANY, _("To (seconds):")), 0, wxEXPAND|wxALL, 10);
-	to_ctrl = new wxTextCtrl(this, wxID_ANY);
+	to_ctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 	sizer->Add(to_ctrl, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
 	sizer->AddStretchSpacer();
 	auto btn_sizer = new HBoxSizer;
@@ -48,6 +48,9 @@ SelectionDialog::SelectionDialog(wxWindow *parent) :
 	sizer->Add(btn_sizer, 0, wxEXPAND|wxALL, 10);
 
 	SetSizer(sizer);
+
+	from_ctrl->Bind(wxEVT_TEXT_ENTER, &SelectionDialog::OnEnter, this);
+	to_ctrl->Bind(wxEVT_TEXT_ENTER, &SelectionDialog::OnEnter, this);
 }
 
 TimeWindow SelectionDialog::GetSelection() const
@@ -69,6 +72,11 @@ double SelectionDialog::ParseNumber(wxTextCtrl *ctrl) const
 	}
 
 	return value;
+}
+
+void SelectionDialog::OnEnter(wxCommandEvent &)
+{
+	EndModal(wxID_OK);
 }
 
 } // namespace phonometrica

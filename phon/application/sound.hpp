@@ -97,7 +97,7 @@ public:
 
 	double get_intensity(int channel, double time);
 
-	Array<double> get_intensity(int channel, intptr_t start_pos, intptr_t end_pos, double time_step);
+	Array<double> get_intensity(int channel, double from, double to, double time_step, bool &start_at_zero);
 
 	Array<double> get_formants(int channel, double time, int nformant, double nyquist_frequency, double window_size, int lpc_order);
 
@@ -117,6 +117,17 @@ public:
 
 	intptr_t time_to_frame(double time) const;
 
+	constexpr double get_intensity_window_duration() const
+	{
+		// Praat's settings: use 3.2 pitch periods
+		constexpr double min_pitch = 100;
+		constexpr double effective_duration = 3.2 / min_pitch;
+
+		return effective_duration;
+	}
+
+	int get_intensity_window_size() const;
+
 	static Signal<const String&, const String&, int> start_loading;
 
 	static Signal<int> update_loading;
@@ -130,8 +141,6 @@ private:
 	Array<double> average_channels(intptr_t first_frame = 0, intptr_t last_frame = -1) const;
 
 	std::span<const double> get_channel_view(int n) const;
-
-	int get_intensity_window_size() const;
 
 	static Array<String> the_supported_sound_formats, the_common_sound_formats;
 

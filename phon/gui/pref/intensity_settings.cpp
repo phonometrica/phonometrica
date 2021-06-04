@@ -71,7 +71,7 @@ bool IntensitySettings::DoOk()
 
 	text = min_ctrl->GetValue();
 	auto min_db = text.to_int(&ok);
-	if (!ok || min_db <= 0) {
+	if (!ok || min_db < 0) {
 		wxMessageBox(_("Invalid minimum intensity"), ("Invalid setting"), wxICON_ERROR);
 		return false;
 	}

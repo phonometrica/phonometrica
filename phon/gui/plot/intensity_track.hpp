@@ -56,6 +56,8 @@ private:
     double max_dB = 100;
 
     double time_step = 0.01;
+
+    bool m_start_at_zero = true;
 };
 
 } // namespace phonometrica
