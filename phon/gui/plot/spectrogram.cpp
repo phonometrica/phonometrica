@@ -45,61 +45,73 @@ Spectrogram::Spectrogram(wxWindow *parent, const Handle <Sound> &snd, int channe
 
 void Spectrogram::UpdateCache()
 {
-	auto raster = ComputeSpectrogram();
+    // FIXME: On Windows, we must open a new scope to make sure that the cached bitmap is not shared; otherwise we will
+    //  get an assertion failure "can't copy bitmap locked for raw access!" in wxMemoryDC::SelectObject(). The try block
+    //  takes care of that.
+	try
+	{
+		auto raster = ComputeSpectrogram();
+		wxBitmap bmp(GetSize());
+		wxNativePixelData data(bmp);
+		// We can't use Eigen's maxCoeff()/minCoeff() because we have nan's in the matrix.
+		double max_dB = -100000;
+		double min_dB = 100000;
 
-    // FIXME: On Windows, we open a new scope to make sure that the cached bitmap is not shared; otherwise we will
-    //  get an assertion failure "can't copy bitmap locked for raw access!" in wxMemoryDC::SelectObject().
-    {
-        wxBitmap bmp(GetSize());
-        wxNativePixelData data(bmp);
+		for (int i = 0; i < raster.rows(); i++) {
+			for (int j = 0; j < raster.cols(); j++) {
+				double val = raster(i, j);
 
+				if (std::isfinite(val)) {
+					if (val > max_dB) max_dB = val;
+					if (val < min_dB) min_dB = val;
+				}
+			}
+		}
 
-        // We can't use Eigen's maxCoeff()/minCoeff() because we have nan's in the matrix.
-        double max_dB = -100000;
-        double min_dB = 100000;
+		// Min and max can only be equal if we have zeros, in which case we don't fill the image.
+		if (min_dB != max_dB) {
+			// Adjust minimum to fit the dynamic range. All values lower than max - dynamic_range will be white.
+			min_dB = (std::max)(min_dB, max_dB - dynamic_range);
+			auto px = data.GetPixels();
 
-        for (int i = 0; i < raster.rows(); i++) {
-            for (int j = 0; j < raster.cols(); j++) {
-                double val = raster(i, j);
+			// The image needs to be reversed
+			for (int j = raster.cols(); j-- > 0;) {
+				auto row_start = px;
+				for (int i = 0; i < raster.rows(); i++) {
 
-                if (std::isfinite(val)) {
-                    if (val > max_dB) max_dB = val;
-                    if (val < min_dB) min_dB = val;
-                }
-            }
-        }
-
-        // Min and max can only be equal if we have zeros, in which case we don't fill the image.
-        if (min_dB != max_dB) {
-            // Adjust minimum to fit the dynamic range. All values lower than max - dynamic_range will be white.
-            min_dB = (std::max)(min_dB, max_dB - dynamic_range);
-            auto px = data.GetPixels();
-
-            // The image needs to be reversed
-            for (int j = raster.cols(); j-- > 0;) {
-                auto row_start = px;
-                for (int i = 0; i < raster.rows(); i++) {
-
-                    // shade of gray
-                    double value = (std::max)(raster(i, j), min_dB);
-                    if (std::isnan(value)) value = min_dB; // handle data that could not be calculated.
-                    int g = 255 - round((value - min_dB) * 255 / (max_dB - min_dB));
-                    if (unlikely(g < 0))
-                    {
-                    	PHON_LOG("Invalid gray value in spectrogram: %d\n", g);
+					// shade of gray
+					double value = (std::max)(raster(i, j), min_dB);
+					if (std::isnan(value)) value = min_dB; // handle data that could not be calculated.
+					int g = 255 - round((value - min_dB) * 255 / (max_dB - min_dB));
+					if (unlikely(g < 0))
+					{
+						PHON_LOG("Invalid gray value in spectrogram: %d\n", g);
 						g = min_dB;
-                    }
+					}
 
-                    px.Red() = px.Green() = px.Blue() = g;
-                    ++px;
-                }
-                px = row_start;
-                px.OffsetY(data, 1);
-            }
-        }
-        m_cached_bmp = bmp;
-        assert(m_cached_bmp.IsOk());
-    }
+					px.Red() = px.Green() = px.Blue() = g;
+					++px;
+				}
+				px = row_start;
+				px.OffsetY(data, 1);
+			}
+		}
+		m_cached_bmp = bmp;
+		assert(m_cached_bmp.IsOk());
+	}
+	catch (std::exception &e)
+	{
+		wxMemoryDC dc;
+		wxBitmap bmp(GetSize());
+		dc.SelectObject(bmp);
+		dc.SetBackground(*wxWHITE);
+		dc.Clear();
+		wxString msg = e.what();
+		auto sz = dc.GetTextExtent(msg);
+		auto x = int(round(double(GetWidth()) / 2 - double(sz.x) / 2));
+		auto y = int(round(double(GetHeight()) / 2 - double(sz.y) / 2));
+		dc.DrawText(msg, x, y);
+	}
 
 	if (show_formants)
 	{
@@ -182,18 +194,43 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 	auto nyquist_frequency = double(sample_rate) / 2;
 	auto nframe = int(sample_rate * spectrum_window_length);
 	if (nframe % 2 == 1) nframe++;
-	// FIXME: Praat uses a Gaussian-like window which is twice as long as a regular window.
+	// Praat uses a Gaussian-like window which is twice as long as a regular window.
 	if (window_type == WindowType::Gaussian) {
 		nframe *= 2;
 	}
 	int nfft = 256;
 	while (nfft < nframe) nfft *= 2;
-
 	auto half_nfft = nfft / 2;
 
 	std::vector<double>amplitude(half_nfft, 0.0);
 	intptr_t w = GetWidth();
 	intptr_t h = GetHeight();
+
+	// Get audio data. We will try to get a bit more data before and after the window so that we can calculate
+	// frames at the edge.
+	auto slice_duration = GetWindowDuration() / w;
+	auto slice_length = slice_duration * sample_rate;
+	auto half_slice_length = int(ceil(slice_duration / 2 * sample_rate));
+	auto slice_offset = half_slice_length - (nframe / 2);
+	auto first_sample = m_sound->time_to_frame(m_window.first) + slice_offset;
+	auto last_sample = m_sound->time_to_frame(m_window.second) - slice_offset;
+	if (first_sample < 1)
+	{
+		first_sample = 1;
+	}
+	auto total_sample_count = m_sound->channel_size();
+	if (last_sample > total_sample_count)
+	{
+		last_sample = total_sample_count;
+	}
+	auto sample_count = last_sample - first_sample + 1;
+
+	if (sample_count < w || sample_count < nframe) {
+		throw error("Zoom out to see spectrogram");
+	}
+	if (sample_count > total_sample_count) {
+		throw error("Cannot display spectrogram: sound too short.\nTry to use a shorter analysis window.");
+	}
 
 	// An m x n matrix, where m represents the number of horizontal pixels and n represents the number of vertical pixels.
 	// Each horizontal pixel/point represents the center of an analysis window.
@@ -201,34 +238,6 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 	raster.setZero(w, h);
 
 	auto win = create_window(nframe, nfft, window_type);
-
-	// Get audio data. If possible, we try to get a bit more data before and after the window so that we can calculate
-	// frames at the edge.
-	auto first_sample = m_sound->time_to_frame(m_window.first);
-	auto last_sample = m_sound->time_to_frame(m_window.second);
-	auto sample_count = last_sample - first_sample + 1;
-
-	// The waveform splits samples equally among all the horizontal pixels except the last one, and assign left over
-	// samples to the last pixel. We follow the same logic here, and for each pixel, we calculate an analysis window
-	// centered on the middle sample of the waveform.
-	if (sample_count < w) return raster; // white image.
-
-	// Subtract 1 to width so that the last pixel is assigned the left-over frames.
-	auto samples_per_pixel = sample_count / (w - 1);
-
-	// Adjust first and last samples.
-	first_sample = first_sample + (samples_per_pixel / 2) - (nframe / 2);
-	last_sample = first_sample + (samples_per_pixel * (w - 1)) + (samples_per_pixel / 2) + (nframe / 2);
-
-	if (first_sample < 0)
-	{
-		first_sample = 0;
-	}
-	auto total_sample_count = m_sound->size();
-	if (last_sample >= total_sample_count)
-	{
-		last_sample = total_sample_count - 1;
-	}
 
 	// Weight power.
 	double weight = 0;
@@ -243,15 +252,20 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 	auto data = m_sound->get_channel(m_channel, first_sample, last_sample);
 	pre_emphasis(data, sample_rate, preemph_threshold);
 
-	intptr_t left_offset = samples_per_pixel / 2 - nframe / 2;
+//	PHON_LOG("-------------------------------\n");
+//	PHON_LOG("first sample: %d\n", (int)first_sample);
+//	PHON_LOG("last sample: %d\n", (int)last_sample);
+//	PHON_LOG("sample count: %d\n", (int)sample_count);
 
 	for (intptr_t x = 0; x < w; x++)
 	{
-		auto from_sample = x * samples_per_pixel + left_offset;
+		auto t = m_window.first + x * slice_duration;
+		auto from_sample = intptr_t(round(t * sample_rate)) + slice_offset - first_sample;
 		auto to_sample = from_sample + nframe;
 		auto it = data.begin() + from_sample;
+//		PHON_LOG("from = %d, to = %d\n", int(from_sample), int(to_sample));
 
-		if (from_sample < 0 || to_sample > last_sample)
+		if (from_sample < 0 || to_sample >= data.size())
 		{
 			// Can't calculate FFT because we would get outside of the bounds.
 			// Display a white vertical column and move to the next time point.
@@ -275,11 +289,11 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 
 		fftw_execute(plan);
 
-		for (size_t y = 0; y < half_nfft; y++)
+		for (size_t y = 0; y < (size_t)half_nfft; y++)
 		{
 			double a = output[y].real() * output[y].real() + output[y].imag() * output[y].imag();
 			assert(std::isfinite(a));
-			double k = (y == 0 || y == half_nfft - 1) ? k1 : k2;
+			double k = (y == 0 || y == (size_t)half_nfft - 1) ? k1 : k2;
 			a = k * a / nfft;
 			constexpr double Iref = 4.0e-10;
 			// Intensity is undefined if the raw amplitude is equal to 0.
@@ -384,7 +398,7 @@ void Spectrogram::EstimateFormants()
 		int count = 0;
 		const double lowest_freq = 50.0;
 		const double highest_frequency = Fs / 2 - lowest_freq;
-		for (int k = 0; k < freqs.size(); k++)
+		for (int k = 0; k < (int)freqs.size(); k++)
 		{
 			auto freq = freqs[k];
 			if (freq > lowest_freq && freq < highest_frequency)

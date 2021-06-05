@@ -113,7 +113,7 @@ void IntensityTrack::DrawBitmap()
 		auto db_data = CalculateIntensity();
 
 		double t = m_start_at_zero ? m_window.first : (m_window.first + time_step / 2);
-		PHON_LOG("-------------------------------------\n");
+//		PHON_LOG("-------------------------------------\n");
 
 		for (auto dB : db_data)
 		{

@@ -762,6 +762,9 @@ std::span<const double> Sound::get_channel_view(int n) const
 
 Array<double> Sound::get_channel(int n, intptr_t first_sample, intptr_t last_sample) const
 {
+	assert(first_sample >= 1 && first_sample <= channel_size());
+	assert(last_sample > first_sample && last_sample <= channel_size());
+
 	if (n == 0)
 	{
 		return average_channels(first_sample, last_sample);
