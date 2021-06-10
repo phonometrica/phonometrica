@@ -43,6 +43,8 @@ private:
 
 	void OnPaint(wxPaintEvent &);
 
+    void OnEraseBackground(wxEraseEvent &);
+
 	PixelSelection m_sel;
 };
 

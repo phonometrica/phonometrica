@@ -273,12 +273,12 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 			{
 				raster(x, j) = std::nan(""); // it will be converted to the minimum intensity when it is displayed.
 			}
-			PHON_LOG("pixel %d, from = %d, to = %d [SKIPPED]\n", int(x), int(from_sample), int(to_sample));
+//			PHON_LOG("pixel %d, from = %d, to = %d [SKIPPED]\n", int(x), int(from_sample), int(to_sample));
 			continue;
 		}
 		else
 		{
-			PHON_LOG("pixel %d, from = %d, to = %d\n", int(x), int(from_sample), int(to_sample));
+//			PHON_LOG("pixel %d, from = %d, to = %d\n", int(x), int(from_sample), int(to_sample));
 		}
 
 		// Calculate fft
@@ -331,15 +331,15 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 		}
 	}
 
-	PHON_LOG("------------------------------- SPECTROGRAM\n");
-	PHON_LOG("window: %f, start: %f, end: %f\n", GetWindowDuration(), m_window.first, m_window.second);
-	PHON_LOG("slice duration: %f\n", slice_duration);
-	PHON_LOG("offset: %f\n", offset);
-	PHON_LOG("first sample: %d\n", (int)first_sample);
-	PHON_LOG("last sample: %d\n", (int)last_sample);
-	PHON_LOG("sample count: %d, data size: %d\n", (int)sample_count, (int)data.size());
-	PHON_LOG("width: %d\n", int(w));
-	PHON_LOG("nframe: %d, nfft: %d\n", nframe, nfft);
+//	PHON_LOG("------------------------------- SPECTROGRAM\n");
+//	PHON_LOG("window: %f, start: %f, end: %f\n", GetWindowDuration(), m_window.first, m_window.second);
+//	PHON_LOG("slice duration: %f\n", slice_duration);
+//	PHON_LOG("offset: %f\n", offset);
+//	PHON_LOG("first sample: %d\n", (int)first_sample);
+//	PHON_LOG("last sample: %d\n", (int)last_sample);
+//	PHON_LOG("sample count: %d, data size: %d\n", (int)sample_count, (int)data.size());
+//	PHON_LOG("width: %d\n", int(w));
+//	PHON_LOG("nframe: %d, nfft: %d\n", nframe, nfft);
 
 	fftw_free(plan);
 	m_cached_size = GetSize();
@@ -564,6 +564,8 @@ void Spectrogram::InvalidateCache()
 {
 	SpeechWidget::InvalidateCache();
 	formant_error = false;
+	// Stop the timer to make sure we don't erase formants during fast scrolling.
+	timer.Stop();
 }
 
 } // namespace phonometrica

@@ -24,6 +24,7 @@
 
 #ifdef __WXMSW__
 #undef DrawText
+#undef CreateFont
 #endif
 
 namespace phonometrica {

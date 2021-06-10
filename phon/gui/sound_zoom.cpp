@@ -29,7 +29,18 @@ SoundZoom::SoundZoom(wxWindow *parent) : wxWindow(parent, wxID_ANY), m_sel({-1, 
 {
 	SetMinSize(wxSize(-1, 40));
 	SetMaxSize(wxSize(-1, 40));
+	// FIXME: on Windows, we need to explicitly connect EVT_ERASE_BACKGROUND to an empty slot and
+	//   clear the background manually in the paint event, otherwise the zoom won't be shown unless
+	//   a repaint event is triggered externally (e.g. by resizing the viewer or changing the view).
+#ifdef __WXMSW__
+    Bind(wxEVT_ERASE_BACKGROUND, &SoundZoom::OnEraseBackground, this);
+#endif
 	Bind(wxEVT_PAINT, &SoundZoom::OnPaint, this);
+}
+
+void SoundZoom::OnEraseBackground(wxEraseEvent &e)
+{
+
 }
 
 void SoundZoom::OnPaint(wxPaintEvent &)
@@ -38,6 +49,11 @@ void SoundZoom::OnPaint(wxPaintEvent &)
 		return;
 	}
 	wxClientDC dc(this);
+	// See comment in the constructor.
+#ifdef __WXMSW__
+    dc.SetBackground(GetBackgroundColour());
+    dc.Clear();
+#endif
 	auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
 	if (!gc) return;
 	auto height = GetSize().GetHeight();
@@ -59,5 +75,7 @@ void SoundZoom::OnSetSelection(PixelSelection sel)
 {
 	m_sel = sel;
 	Refresh();
+    Update();
 }
+
 } // namespace phonometrica
