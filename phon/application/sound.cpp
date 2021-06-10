@@ -773,7 +773,7 @@ Array<double> Sound::get_channel(int n, intptr_t first_sample, intptr_t last_sam
 	{
 		auto data = get_channel_view(n);
 		auto start = data.data() + first_sample - 1;
-		auto end = data.data() + last_sample - 1;
+		auto end = data.data() + last_sample;
 
 		return Array<double>(start, end);
 	}
@@ -798,6 +798,23 @@ Array<double> Sound::average_channels(intptr_t first_frame, intptr_t last_frame)
 	}
 
 	return result;
+}
+
+double Sound::get_sample(int channel, intptr_t index) const
+{
+	assert(index >= 1 && index <= channel_size());
+
+	if (channel == 0)
+	{
+		double value = 0.0;
+		for (intptr_t j = 1; j <= nchannel(); ++j) {
+			value += m_data(index, j);
+		}
+
+		return value / nchannel();
+	}
+
+	return m_data(index, channel);
 }
 
 } // namespace phonometrica

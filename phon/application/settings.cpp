@@ -433,12 +433,19 @@ void Settings::post_initialize()
 		reset_concordance();
 	}
 
+	// Added in 0.8
 	try {
-		// Added in 0.8
+
 		Settings::get_boolean("sound_plots", "waveform");
 	}
 	catch (...) {
 		reset_sound_plots();
+	}
+	try {
+		Settings::get_number("formants", "time_step");
+	}
+	catch (...) {
+		reset_formants();
 	}
 }
 
@@ -573,6 +580,7 @@ void Settings::reset_formants()
 	map["window_size"] = 0.025,
 	map["lpc_order"] = intptr_t(10);
 	map["max_frequency"] = intptr_t(5500);
+	map["time_step"] = 0.01;
 
 	Settings::set_value("formants", std::move(table));
 }

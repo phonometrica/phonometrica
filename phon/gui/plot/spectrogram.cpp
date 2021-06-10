@@ -39,16 +39,17 @@ Spectrogram::Spectrogram(wxWindow *parent, const Handle <Sound> &snd, int channe
 	catch (std::exception &)
 	{
 		Settings::reset_spectrogram();
+		Settings::reset_formants();
 		ReadSettings();
 	}
+
+	timer.Bind(wxEVT_TIMER, &Spectrogram::OnTimer, this);
 }
 
 void Spectrogram::UpdateCache()
 {
     // FIXME: On Windows, we must open a new scope to make sure that the cached bitmap is not shared; otherwise we will
-    //  get an assertion failure "can't copy bitmap locked for raw access!" in wxMemoryDC::SelectObject(). The try block
-    //  takes care of that.
-	try
+    //  get an assertion failure "can't copy bitmap locked for raw access!" in wxMemoryDC::SelectObject().
 	{
 		auto raster = ComputeSpectrogram();
 		wxBitmap bmp(GetSize());
@@ -99,26 +100,35 @@ void Spectrogram::UpdateCache()
 		m_cached_bmp = bmp;
 		assert(m_cached_bmp.IsOk());
 	}
-	catch (std::exception &e)
-	{
-		wxMemoryDC dc;
-		wxBitmap bmp(GetSize());
-		dc.SelectObject(bmp);
-		dc.SetBackground(*wxWHITE);
-		dc.Clear();
-		wxString msg = e.what();
-		auto sz = dc.GetTextExtent(msg);
-		auto x = int(round(double(GetWidth()) / 2 - double(sz.x) / 2));
-		auto y = int(round(double(GetHeight()) / 2 - double(sz.y) / 2));
-		dc.DrawText(msg, x, y);
-	}
 
-	if (show_formants)
+	if (show_formants && !formant_error)
 	{
-		EstimateFormants();
-        assert(m_cached_bmp.IsOk());
-		DrawFormants();
-        assert(m_cached_bmp.IsOk());
+		try
+		{
+			EstimateFormants();
+			assert(m_cached_bmp.IsOk());
+			DrawFormants();
+			assert(m_cached_bmp.IsOk());
+		}
+		catch (std::exception &e)
+		{
+			wxMemoryDC dc;
+			dc.SelectObject(m_cached_bmp);
+			auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
+			if (!gc) return;
+			wxString formant_message = e.what();
+			dc.SetTextForeground(*wxRED);
+			auto font = dc.GetFont();
+			font.MakeLarger();
+			dc.SetFont(font);
+			auto sz = dc.GetTextExtent(formant_message);
+			auto x = (GetWidth() - sz.x) / 2;
+			auto y = (GetHeight() - sz.y) / 2;
+			wxPoint origin(x, y);
+			dc.DrawText(formant_message, origin);
+			timer.StartOnce(2000);
+			dc.SelectObject(wxNullBitmap);
+		}
 	}
 }
 
@@ -184,6 +194,7 @@ void Spectrogram::ReadFormantSettings()
 	formant_window_length = Settings::get_number(category, "window_size");
 	lpc_order = (int) Settings::get_number(category, "lpc_order");
 	max_formant_frequency = Settings::get_number(category, "max_frequency");
+	time_step = Settings::get_number(category, "time_step");
 }
 
 Matrix<double> Spectrogram::ComputeSpectrogram()
@@ -192,11 +203,14 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 
 	auto sample_rate = m_sound->sample_rate();
 	auto nyquist_frequency = double(sample_rate) / 2;
-	auto nframe = int(sample_rate * spectrum_window_length);
-	if (nframe % 2 == 1) nframe++;
+	auto analysis_window_duration = spectrum_window_length;
 	// Praat uses a Gaussian-like window which is twice as long as a regular window.
 	if (window_type == WindowType::Gaussian) {
-		nframe *= 2;
+		analysis_window_duration *= 2;
+	}
+	auto nframe = int(ceil(sample_rate * analysis_window_duration));
+	if (nframe % 2 == 1) {
+		nframe++;
 	}
 	int nfft = 256;
 	while (nfft < nframe) nfft *= 2;
@@ -209,11 +223,9 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 	// Get audio data. We will try to get a bit more data before and after the window so that we can calculate
 	// frames at the edge.
 	auto slice_duration = GetWindowDuration() / w;
-	auto slice_length = slice_duration * sample_rate;
-	auto half_slice_length = int(ceil(slice_duration / 2 * sample_rate));
-	auto slice_offset = half_slice_length - (nframe / 2);
-	auto first_sample = m_sound->time_to_frame(m_window.first) + slice_offset;
-	auto last_sample = m_sound->time_to_frame(m_window.second) - slice_offset;
+	auto offset = (slice_duration - analysis_window_duration) / 2;
+	auto first_sample = m_sound->time_to_frame(m_window.first + offset);
+	auto last_sample = m_sound->time_to_frame(m_window.first + (w-1) * slice_duration + offset) + nframe + 1;
 	if (first_sample < 1)
 	{
 		first_sample = 1;
@@ -224,13 +236,6 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 		last_sample = total_sample_count;
 	}
 	auto sample_count = last_sample - first_sample + 1;
-
-	if (sample_count < w || sample_count < nframe) {
-		throw error("Zoom out to see spectrogram");
-	}
-	if (sample_count > total_sample_count) {
-		throw error("Cannot display spectrogram: sound too short.\nTry to use a shorter analysis window.");
-	}
 
 	// An m x n matrix, where m represents the number of horizontal pixels and n represents the number of vertical pixels.
 	// Each horizontal pixel/point represents the center of an analysis window.
@@ -252,18 +257,13 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 	auto data = m_sound->get_channel(m_channel, first_sample, last_sample);
 	pre_emphasis(data, sample_rate, preemph_threshold);
 
-//	PHON_LOG("-------------------------------\n");
-//	PHON_LOG("first sample: %d\n", (int)first_sample);
-//	PHON_LOG("last sample: %d\n", (int)last_sample);
-//	PHON_LOG("sample count: %d\n", (int)sample_count);
 
 	for (intptr_t x = 0; x < w; x++)
 	{
-		auto t = m_window.first + x * slice_duration;
-		auto from_sample = intptr_t(round(t * sample_rate)) + slice_offset - first_sample;
+		auto t = m_window.first + x * slice_duration + offset;
+		auto from_sample = m_sound->time_to_frame(t) - first_sample;
 		auto to_sample = from_sample + nframe;
 		auto it = data.begin() + from_sample;
-//		PHON_LOG("from = %d, to = %d\n", int(from_sample), int(to_sample));
 
 		if (from_sample < 0 || to_sample >= data.size())
 		{
@@ -273,7 +273,12 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 			{
 				raster(x, j) = std::nan(""); // it will be converted to the minimum intensity when it is displayed.
 			}
+			PHON_LOG("pixel %d, from = %d, to = %d [SKIPPED]\n", int(x), int(from_sample), int(to_sample));
 			continue;
+		}
+		else
+		{
+			PHON_LOG("pixel %d, from = %d, to = %d\n", int(x), int(from_sample), int(to_sample));
 		}
 
 		// Calculate fft
@@ -326,6 +331,16 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 		}
 	}
 
+	PHON_LOG("------------------------------- SPECTROGRAM\n");
+	PHON_LOG("window: %f, start: %f, end: %f\n", GetWindowDuration(), m_window.first, m_window.second);
+	PHON_LOG("slice duration: %f\n", slice_duration);
+	PHON_LOG("offset: %f\n", offset);
+	PHON_LOG("first sample: %d\n", (int)first_sample);
+	PHON_LOG("last sample: %d\n", (int)last_sample);
+	PHON_LOG("sample count: %d, data size: %d\n", (int)sample_count, (int)data.size());
+	PHON_LOG("width: %d\n", int(w));
+	PHON_LOG("nframe: %d, nfft: %d\n", nframe, nfft);
+
 	fftw_free(plan);
 	m_cached_size = GetSize();
 
@@ -335,49 +350,70 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 void Spectrogram::EstimateFormants()
 {
 	using namespace speech;
-	auto width = GetWidth();
-	auto xpoints = linspace(0, GetWindowDuration(), width, true);
-	auto npoint = xpoints.size();
+
+	// At least 2 measurements per window
+	if (GetWindowDuration() <= 2 * time_step) {
+		throw error("Zoom out to see formants");
+	}
+	// At most 2 measurements per pixel
+	if (GetWindowDuration() / time_step > GetWidth() * 2) {
+		throw error("Zoom in to see formants");
+	}
+
+	auto npoint = int(ceil((GetWindowDuration() - time_step) / time_step));
 	formants = Matrix<double>(npoint, nformant);
 	Matrix<double> bandwidths(npoint, nformant);
 	formants.setZero(npoint, nformant);
 	bandwidths.setZero(npoint, nformant);
 
-	auto from = m_sound->time_to_frame(m_window.first);
-	auto to = m_sound->time_to_frame(m_window.second);
-	auto data = m_sound->get_channel(m_channel, from, to);
+	// Window length will be multiplied by 2 because of the Gaussian window,
+	// so 'formant_window_length' is effectively half a window.
+	auto start_time = m_window.first + time_step - formant_window_length;
+	auto end_time = m_window.first + time_step * (npoint + 1) + formant_window_length;
+	if (start_time < 0.0) start_time = 0.0;
+	if (end_time > GetSoundDuration()) end_time = GetSoundDuration();
+	auto start_frame = m_sound->time_to_frame(start_time);
+	auto end_frame = m_sound->time_to_frame(end_time);
+	auto data = m_sound->get_channel(m_channel, start_frame, end_frame);
 	double Fs = max_formant_frequency * 2;
 
 	if (Fs != m_sound->sample_rate()) {
 		data = resample(data, m_sound->sample_rate(), Fs);
 	}
 	// Apply pre-emphasis from 50 Hz.
-	pre_emphasis(data, m_sound->sample_rate(), 50);
+	pre_emphasis(data, Fs, 50);
 
-	int nframe = int(ceil(formant_window_length * Fs)) * 2; // x 2 for Gaussian window
-	if (nframe % 2 == 1) nframe++;
+	auto nframe = int(ceil(formant_window_length * Fs)) * 2; // x 2 for Gaussian window
 	auto win = create_window(nframe, nframe, WindowType::Gaussian);
 	Array<double> buffer(nframe, 0.0);
-
-	// Calculate LPC at each time point.
 	auto len = data.size();
-	for (int i = 0; i < (int)npoint; i++)
+	auto t = m_window.first;
+
+//	PHON_LOG("-------------------------------\n");
+//	PHON_LOG("first sample: %d\n", (int)start_frame);
+//	PHON_LOG("last sample: %d\n", (int)end_frame);
+
+	for (int i = 0; i < npoint; i++)
 	{
-		intptr_t f = time_to_frame(xpoints[i], Fs);
-		intptr_t start_frame = f - (nframe / 2);
-		intptr_t end_frame = start_frame + nframe;
+		t += time_step;
+
+		auto from_sample = intptr_t(round((t - formant_window_length - start_time) * Fs));
+		auto to_sample = from_sample + nframe;
 
 		// Don't estimate formants at the edge if we can't fill a window.
-		if (start_frame < 0 || end_frame >= len)
+		if (from_sample < 0 || to_sample >= len)
 		{
 			for (int j = 0; j < nformant; j++) {
 				formants(i,j) = std::nan("");
 			}
+//			PHON_LOG("formants: pixel = %d, time = %f, start = %d, end = %d [SKIPPED]\n", i, t, int(from_sample), int(to_sample));
 			continue;
 		}
-
+		else {
+//			PHON_LOG("formants: pixel = %d, time = %f, start = %d, end = %d\n", i, t, int(from_sample), int(to_sample));
+		}
 		// Apply window.
-		auto it = data.begin() + start_frame;
+		auto it = data.begin() + from_sample;
 		for (int j = 1; j <= nframe; j++)
 		{
 			buffer[j] = *it++ * win[j];
@@ -414,6 +450,45 @@ void Spectrogram::EstimateFormants()
 			bandwidths(i, k) = std::nan("");
 		}
 	}
+
+#if 0
+	auto slice_duration = GetWindowDuration() / width;
+	auto time_offset = slice_duration / 2 - formant_window_length / 2;
+	auto offset = int(ceil(time_offset * m_sound->sample_rate()));
+
+	auto first_sample = m_sound->time_to_frame(m_window.first) + offset;
+	auto last_sample = m_sound->time_to_frame(m_window.second) - offset;
+	if (first_sample < 1)
+	{
+		first_sample = 1;
+	}
+	auto total_sample_count = m_sound->channel_size();
+	if (last_sample > total_sample_count)
+	{
+		last_sample = total_sample_count;
+	}
+
+	PHON_LOG("----------------------------\n");
+	PHON_LOG("original data: samples = %d, duration = %f\n", int(data.size()), double(data.size())/m_sound->sample_rate());
+
+
+
+	// Calculate LPC at each time point.
+	auto len = data.size();
+
+	PHON_LOG("nframe = %d\n", int(nframe));
+	PHON_LOG("window duration: %f\n", GetWindowDuration());
+	PHON_LOG("time offset: %f\n", time_offset);
+	PHON_LOG("data: samples = %d, duration = %f\n", int(data.size()), double(data.size())/Fs);
+	PHON_LOG("----------------------------\n");
+
+	for (int i = 0; i < width; i++)
+	{
+		auto t = i * slice_duration;
+		auto start_frame = intptr_t(floor(t * Fs));
+		auto end_frame = start_frame + nframe;
+
+#endif
 }
 
 bool Spectrogram::HasFormants() const
@@ -432,19 +507,23 @@ void Spectrogram::DrawFormants()
 {
 	wxMemoryDC dc;
 	dc.SelectObject(m_cached_bmp);
-	dc.SetPen(wxPen(*wxRED, 1));
-	dc.SetBrush(wxBrush(*wxRED));
-	assert(formants.rows() == GetWidth());
+	auto gc = std::unique_ptr<wxGraphicsContext>(wxGraphicsContext::Create(dc));
+	if (!gc) return;
+	gc->SetPen(wxPen(*wxRED, 1));
+	gc->SetBrush(wxBrush(*wxRED));
+	auto t = m_window.first;
 
 	for (int i = 0; i < formants.rows(); i++)
 	{
+		t += time_step;
+		auto x = TimeToXPos(t);
+
 		for (int j = 0; j < formants.cols(); j++)
 		{
 			auto f = formants(i, j);
 			if (std::isnan(f)) continue;
 			auto y = FormantToYPos(f);
-			dc.DrawEllipse(i-1, y-1, 3, 3);
-//			dc.DrawPoint(i, y);
+			gc->DrawEllipse(x-1, y-1, 3, 3); // -1 to center ellipses.
 		}
 	}
 	dc.SelectObject(wxNullBitmap);
@@ -471,6 +550,20 @@ double Spectrogram::YPosToHertz(int y) const
 {
 	auto height = GetSize().GetHeight();
 	return (max_freq * (height - y)) / height;
+}
+
+void Spectrogram::OnTimer(wxTimerEvent &event)
+{
+	// Force a redraw, but without formant tracking
+	InvalidateCache();
+	formant_error = true;
+	Refresh();
+}
+
+void Spectrogram::InvalidateCache()
+{
+	SpeechWidget::InvalidateCache();
+	formant_error = false;
 }
 
 } // namespace phonometrica

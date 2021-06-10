@@ -50,6 +50,8 @@ private:
 
     double YPosToIntensity(int y) const;
 
+    // Cached intensity data
+    Array<double> m_intensity;
 
     double min_dB = 50;
 

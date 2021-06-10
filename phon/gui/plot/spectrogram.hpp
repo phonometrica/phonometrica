@@ -22,6 +22,7 @@
 #ifndef PHONOMETRICA_SPECTROGRAM_HPP
 #define PHONOMETRICA_SPECTROGRAM_HPP
 
+#include <wx/timer.h>
 #include <phon/gui/plot/sound_plot.hpp>
 #include <phon/analysis/signal_processing.hpp>
 
@@ -61,6 +62,10 @@ private:
 
 	double YPosToHertz(int y) const;
 
+	void OnTimer(wxTimerEvent &event);
+
+	void InvalidateCache() override;
+
 	// A matrix containing i time measurements across j formants.
 	Matrix<double> formants;
 
@@ -82,6 +87,12 @@ private:
 	// Nyquist frequency range for formant analysis.
 	double max_formant_frequency;
 
+	// Time step for formant analysis.
+	double time_step;
+
+	// Timer for the error message in formant tracking.
+	wxTimer timer;
+
 	// Number of prediction coefficients for LPC analysis.
 	int lpc_order;
 
@@ -94,6 +105,8 @@ private:
 	// Enable formant tracking.
 	bool show_formants = true;
 
+	// Whether an error message has been shown for the current window in formant tracking.
+	bool formant_error = false;
 };
 
 } // namespace phonometrica

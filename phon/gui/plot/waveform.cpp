@@ -107,7 +107,6 @@ void Waveform::SetGlobalMagnitude(double value)
 
 void Waveform::DrawBitmap()
 {
-	auto wave = ComputeWaveform();
 	wxMemoryDC dc;
 	wxBitmap bmp(GetSize());
 	dc.SelectObject(bmp);
@@ -118,36 +117,75 @@ void Waveform::DrawBitmap()
 	auto height = GetHeight();
 	auto width = GetWidth();
 
-	// Draw zero-crossing line.
-	dc.SetPen(wxPen(*wxBLUE, 1, wxPENSTYLE_DOT));
-	dc.DrawLine(0, height / 2, width, height / 2);
-	gc->SetPen(wxPen(*wxBLACK, 1));
-	wxGraphicsPath path = gc->CreatePath();
-
-	if (wave.size() == (size_t) width * 2)
+	try
 	{
-		path.MoveToPoint(0.0, wave[0]);
-		path.AddLineToPoint(0.0, wave[1]);
+		auto wave = ComputeWaveform();
+		// Draw zero-crossing line.
+		dc.SetPen(wxPen(*wxBLUE, 1, wxPENSTYLE_DOT));
+		dc.DrawLine(0, height / 2, width, height / 2);
+		gc->SetPen(wxPen(*wxBLACK, 1));
+		wxGraphicsPath path = gc->CreatePath();
 
-		for (size_t i = 2; i < wave.size(); i += 2)
+		if (wave.size() == (size_t) width * 2)
 		{
-			auto x = double(i) / 2;
-			path.AddLineToPoint(x, wave[i]);
-			path.AddLineToPoint(x, wave[i + 1]);
+			path.MoveToPoint(0.0, wave[0]);
+			path.AddLineToPoint(0.0, wave[1]);
+
+			for (size_t i = 2; i < wave.size(); i += 2)
+			{
+				auto x = double(i) / 2;
+				path.AddLineToPoint(x, wave[i]);
+				path.AddLineToPoint(x, wave[i + 1]);
+			}
 		}
+		else
+		{
+			auto offset = double(width) / wave.size();
+			gc->SetBrush(wxBrush(*wxBLACK));
+			path.MoveToPoint(0.0, wave.front());
+			for (size_t i = 1; i < wave.size(); ++i)
+			{
+				auto x = double(i) * offset;
+				path.AddLineToPoint(x, wave[i]);
+			}
+
+			if (wave.size() < (size_t)width)
+			{
+				// Try to draw a line to the sample past the end of the window to avoid having a broken line at the right edge.
+				auto extra_frame = m_sound->time_to_frame(m_window.second) + 1;
+				if (extra_frame <= m_sound->channel_size())
+				{
+					auto sample = m_sound->get_sample(m_channel, extra_frame);
+					//if (sample < -magnitude) sample = -magnitude;
+					auto x = double(wave.size()) * offset;
+					auto y = SampleToHeight(sample);
+					path.AddLineToPoint(x, y);
+				}
+			}
+
+			if (wave.size() < (size_t)width/4)
+			{
+				// Draw individual samples.
+				for (size_t i = 0; i < wave.size(); ++i)
+				{
+					auto x = double(i) * offset;
+					gc->DrawEllipse(x-1, wave[i]-1, 3, 3);
+				}
+			}
+		}
+
+		gc->StrokePath(path);
 	}
-	else
+	catch (std::exception &e)
 	{
-		auto offset = double(width) / wave.size();
-		path.MoveToPoint(0.0, wave[0]);
-
-		for (size_t i = 1; i < wave.size(); ++i)
-		{
-			auto x = double(i) * offset;
-			path.AddLineToPoint(x, wave[i]);
-		}
+		wxString msg = e.what();
+		auto sz = dc.GetTextExtent(msg);
+		auto x = double(GetWidth() - sz.x) / 2;
+		auto y = double(GetHeight() - sz.y) / 2;
+		gc->SetFont(gc->CreateFont(dc.GetFont()));
+		gc->DrawText(msg, x, y);
 	}
-	gc->StrokePath(path);
+
 	dc.SelectObject(wxNullBitmap);
 	m_cached_bmp = bmp;
 	assert(m_cached_bmp.IsOk());
@@ -157,6 +195,9 @@ std::vector<double> Waveform::ComputeWaveform()
 {
 	auto first_sample = m_sound->time_to_frame(m_window.first);
 	auto last_sample = m_sound->time_to_frame(m_window.second);
+	if ((last_sample - first_sample) < 1) {
+		throw error("zoom out to see waveform");
+	}
 	auto data = m_sound->get_channel(m_channel, first_sample, last_sample);
 	auto sample_count = data.size();
 

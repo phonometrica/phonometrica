@@ -110,12 +110,13 @@ void IntensityTrack::DrawBitmap()
 
 	try
 	{
-		auto db_data = CalculateIntensity();
+		m_intensity.clear(); // in case CalculateIntensity() throws
+		m_intensity = CalculateIntensity();
 
 		double t = m_start_at_zero ? m_window.first : (m_window.first + time_step / 2);
 //		PHON_LOG("-------------------------------------\n");
 
-		for (auto dB : db_data)
+		for (auto dB : m_intensity)
 		{
 //			PHON_LOG("Intensity at t = %f: %f, drawn at %f\n", t, dB, TimeToXPos(t));
 			auto x = TimeToXPos(t);

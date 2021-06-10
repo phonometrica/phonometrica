@@ -81,7 +81,7 @@ protected:
 
 	virtual void UpdateCache() = 0;
 
-	void InvalidateCache();
+	virtual void InvalidateCache();
 
 	bool HasValidCache() const;
 

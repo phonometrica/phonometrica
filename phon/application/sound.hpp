@@ -117,6 +117,8 @@ public:
 
 	intptr_t time_to_frame(double time) const;
 
+	double get_sample(int channel, intptr_t index) const;
+
 	constexpr double get_intensity_window_duration() const
 	{
 		// Praat's settings: use 3.2 pitch periods
