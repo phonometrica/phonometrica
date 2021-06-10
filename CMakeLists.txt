@@ -81,8 +81,8 @@ add_definitions(-DPHON_VERSION_DEVEL=17)
 
 # Release date
 add_definitions(-DPHON_RELEASE_DATE_YEAR=2021)
-add_definitions(-DPHON_RELEASE_DATE_MONTH=5)
-add_definitions(-DPHON_RELEASE_DATE_DAY=30)
+add_definitions(-DPHON_RELEASE_DATE_MONTH=6)
+add_definitions(-DPHON_RELEASE_DATE_DAY=10)
 
 
 ########################
