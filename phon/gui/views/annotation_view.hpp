@@ -42,15 +42,25 @@ public:
 
 	void OpenEvent(intptr_t nlayer, const AutoEvent &event);
 
+	void AddLayer(intptr_t index, const String &label, bool has_instants);
+
+	void RemoveLayer(intptr_t index);
+
 private:
 
 	void AddAnnotationMenu(ToolBar *toolbar) override;
 
 	void AddAnnotationLayers(wxSizer *sizer) override;
 
-	LayerTrack * AddAnnotationLayer(intptr_t i);
+	void InsertAnnotationLayer(wxSizer *sizer, LayerTrack *layer, size_t pos);
+
+	LayerTrack * CreateLayerTrack(intptr_t i);
 
 	void OnLayerMenu(wxCommandEvent &e);
+
+	void OnAddLayer(wxCommandEvent &);
+
+	void OnRemoveLayer(wxCommandEvent &);
 
 	void OnAnchorSharing(wxCommandEvent &e);
 
@@ -61,6 +71,14 @@ private:
 	void OnSelectEvent(int nlayer, const AutoEvent &event);
 
 	void UpdateLayersWindow(TimeWindow win) override;
+
+	size_t GetLayerTrackPosition(intptr_t i) const;
+
+	String GetLayerLabel(intptr_t index) const;
+
+	bool LayerHasInstants(intptr_t index) const;
+
+	intptr_t GetSelectedLayer() const;
 
 	// Annotation managed by this view.
 	Handle<Annotation> m_annot;

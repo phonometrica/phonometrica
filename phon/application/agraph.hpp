@@ -266,7 +266,7 @@ public:
 
 	bool anchor_exists(intptr_t layer_index, double time);
 
-	String get_layer_label(intptr_t index);
+	String get_layer_label(intptr_t index) const;
 
 	void set_layer_label(intptr_t index, String value);
 

@@ -42,6 +42,8 @@ public:
 
 	int GetIndex() const;
 
+	bool IsSelected() const { return m_selected_event != nullptr; }
+
 	Signal<int, const AutoEvent&> update_selected_event;
 
 private:
@@ -56,13 +58,9 @@ private:
 
 	void OnMotion(wxMouseEvent &e);
 
-	void OnLeaveWindow(wxMouseEvent &e);
-
 	void OnLeftClick(wxMouseEvent &e);
 
 	AutoEvent XPosToEvent(int x) const;
-
-	bool IsSelected() const { return m_selected_event != nullptr; }
 
 	EventList FilterEvents(double t1, double t2) const { return m_graph.get_layer_events(m_layer->index, t1, t2); }
 

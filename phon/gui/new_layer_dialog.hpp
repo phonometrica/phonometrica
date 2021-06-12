@@ -13,40 +13,45 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/03/2021                                                                                                 *
+ * Created: 11/06/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Preference dialog for formant tracking.                                                                    *
+ * Purpose: dialog to add a layer.                                                                                     *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_FORMANT_SETTINGS_HPP
-#define PHONOMETRICA_FORMANT_SETTINGS_HPP
+#ifndef PHONOMETRICA_NEW_LAYER_DIALOG_HPP
+#define PHONOMETRICA_NEW_LAYER_DIALOG_HPP
 
-#include <wx/panel.h>
+#include <wx/dialog.h>
 #include <wx/textctrl.h>
-#include <phon/gui/pref/preferences_dialog.hpp>
+#include <wx/choice.h>
+#include <wx/spinctrl.h>
 
 namespace phonometrica {
 
-class FormantSettings final : public PreferencesDialog
+class NewLayerDialog final : public wxDialog
 {
 public:
 
-	FormantSettings(wxWindow *parent);
+	NewLayerDialog(wxWindow *parent, intptr_t nlayer);
+
+	wxString GetLayerLabel() const;
+
+	bool HasInstants() const;
+
+	int GetIndex() const;
 
 private:
 
-	void DoReset() override;
+	wxTextCtrl *m_label_ctrl;
 
-	bool DoOk() override;
+	wxChoice *m_type_choice;
 
-	wxPanel *MakeGeneralPanel();
-
-	void DisplayValues();
-
-	wxTextCtrl *nformant_ctrl, *window_ctrl, *npole_ctrl, *max_freq_ctrl, *step_ctrl;
+	wxSpinCtrl *m_index_spin;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_FORMANT_SETTINGS_HPP
+
+
+#endif // PHONOMETRICA_NEW_LAYER_DIALOG_HPP

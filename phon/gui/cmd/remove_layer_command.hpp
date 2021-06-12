@@ -13,40 +13,45 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/03/2021                                                                                                 *
+ * Created: 11/06/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Preference dialog for formant tracking.                                                                    *
+ * Purpose: remove layer in annotation view.                                                                           *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_FORMANT_SETTINGS_HPP
-#define PHONOMETRICA_FORMANT_SETTINGS_HPP
+#ifndef PHONOMETRICA_REMOVE_LAYER_COMMAND_HPP
+#define PHONOMETRICA_REMOVE_LAYER_COMMAND_HPP
 
-#include <wx/panel.h>
-#include <wx/textctrl.h>
-#include <phon/gui/pref/preferences_dialog.hpp>
+#include <phon/gui/cmd/command.hpp>
 
 namespace phonometrica {
 
-class FormantSettings final : public PreferencesDialog
+class AnnotationView;
+
+
+class RemoveLayerCommand final : public Command
 {
 public:
 
-	FormantSettings(wxWindow *parent);
+	RemoveLayerCommand(AnnotationView *view, intptr_t index);
+
+	bool execute() override;
+
+	bool restore() override;
 
 private:
 
-	void DoReset() override;
+	AnnotationView *m_view;
 
-	bool DoOk() override;
+	intptr_t m_index;
 
-	wxPanel *MakeGeneralPanel();
+	String m_label;
 
-	void DisplayValues();
-
-	wxTextCtrl *nformant_ctrl, *window_ctrl, *npole_ctrl, *max_freq_ctrl, *step_ctrl;
+	bool m_has_instants;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_FORMANT_SETTINGS_HPP
+
+
+#endif // PHONOMETRICA_REMOVE_LAYER_COMMAND_HPP

@@ -310,7 +310,7 @@ void Waveform::OnMotion(wxMouseEvent &e)
 	if (m_track_mouse)
 	{
 		double amp = YPosToAmplitude(e.GetPosition().y);
-		auto msg = wxString::Format("Amplitude at cursor: %.6f Hz", amp);
+		auto msg = wxString::Format("Amplitude at cursor: %.6f", amp);
 		update_status(msg);
 	}
 }

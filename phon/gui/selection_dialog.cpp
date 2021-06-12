@@ -19,16 +19,16 @@
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#include <wx/button.h>
 #include <wx/stattext.h>
 #include <phon/gui/sizer.hpp>
 #include <phon/gui/selection_dialog.hpp>
+#include <phon/gui/dialog_buttons.hpp>
 #include <phon/string.hpp>
 
 namespace phonometrica {
 
 SelectionDialog::SelectionDialog(wxWindow *parent) :
-	wxDialog(parent, wxID_ANY, _("Set selection window..."), wxDefaultPosition, wxSize(300, -1), wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+	wxDialog(parent, wxID_ANY, _("Set selection window..."), wxDefaultPosition, wxSize(300, 220), wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
 	auto sizer = new VBoxSizer;
 	sizer->Add(new wxStaticText(this, wxID_ANY, _("From (seconds):")), 0, wxEXPAND|wxALL, 10);
@@ -38,15 +38,7 @@ SelectionDialog::SelectionDialog(wxWindow *parent) :
 	to_ctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 	sizer->Add(to_ctrl, 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
 	sizer->AddStretchSpacer();
-	auto btn_sizer = new HBoxSizer;
-	btn_sizer->AddStretchSpacer();
-	auto ok_btn = new wxButton(this, wxID_OK, _("OK"));
-	auto cancel_btn = new wxButton(this, wxID_CANCEL, _("Cancel"));
-	btn_sizer->Add(cancel_btn);
-	btn_sizer->AddSpacer(5);
-	btn_sizer->Add(ok_btn);
-	sizer->Add(btn_sizer, 0, wxEXPAND|wxALL, 10);
-
+	sizer->Add(new DialogButtons(this), 0, wxEXPAND | wxALL, 10);
 	SetSizer(sizer);
 
 	from_ctrl->Bind(wxEVT_TEXT_ENTER, &SelectionDialog::OnEnter, this);

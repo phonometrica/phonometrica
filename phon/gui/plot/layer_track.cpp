@@ -343,11 +343,12 @@ void LayerTrack::OnMotion(wxMouseEvent &e)
 	msg.Append(wxString::Format(" %d/%d", index, (int)m_layer->count()));
 
 	update_status(msg);
-}
 
-void LayerTrack::OnLeaveWindow(wxMouseEvent &e)
-{
-	update_status(wxString());
+	if (m_track_mouse)
+	{
+		auto pos = e.GetPosition();
+		update_cursor(pos.x);
+	}
 }
 
 void LayerTrack::UpdateCache()

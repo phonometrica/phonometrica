@@ -125,7 +125,6 @@ void SpeechView::Initialize()
 		plot->update_window.connect(&SpeechView::OnUpdateTimeWindow, this);
 		plot->update_selection.connect(&SpeechView::OnUpdateSelection, this);
 		plot->invalidate_selection.connect(&SpeechView::OnInvalidateSelection, this);
-		plot->update_cursor.connect(&SpeechView::OnUpdateCursor, this);
 		plot->zoom_to_selection.connect(&SpeechView::ZoomToSelection, this);
 		plot->y_axis_modified.connect(&YAxisInfo::OnUpdate, m_y_axis);
 		plot->update_status.connect(&MessageCtrl::SetStatus, m_msg_ctrl);
@@ -138,10 +137,14 @@ void SpeechView::Initialize()
 		}
 	}
 
+	auto track_mouse = Settings::get_boolean("enable_mouse_tracking");
+
 	for (auto widget : m_speech_widgets)
 	{
+		widget->EnableMouseTracking(track_mouse);
 		m_y_axis->AddWindow(widget);
 		m_wavebar->change_window.connect(&SpeechWidget::SetTimeWindow, widget);
+		widget->update_cursor.connect(&SpeechView::OnUpdateCursor, this);
 	}
 
 	m_x_axis->invalidate_selection.connect(&SpeechView::OnInvalidateSelection, this);
@@ -160,6 +163,7 @@ void SpeechView::Initialize()
 	ShowSpectrogram(show_spectrogram);
 	ShowFormants(show_formants);
 	ShowIntensity(show_intensity);
+
 	Layout();
 }
 
@@ -265,17 +269,16 @@ void SpeechView::OnUpdateSelection(const TimeSelection &sel)
 	}
 	UpdateXAxisSelection(sel);
 
-	if (!m_play_sel_tool->IsEnabled()) {
-		m_play_sel_tool->Enable();
-		m_zoom_sel_tool->Enable();
-	}
+	double duration = (sel.t2 - sel.t1);
+	bool has_duration = (duration > 0);
 
-	auto duration = sel.t2 - sel.t1;
-	if (duration > 0)
+	if (has_duration)
 	{
 		auto msg = wxString::Format("Duration of selection: %f s", duration);
 		m_msg_ctrl->SetSelection(msg);
 	}
+	m_play_sel_tool->Enable(has_duration);
+	m_zoom_sel_tool->Enable(has_duration);
 }
 
 void SpeechView::OnPlayWindow(wxCommandEvent &)
@@ -558,8 +561,8 @@ void SpeechView::OnEnableMouseTracking(wxCommandEvent &)
 	auto value = m_mouse_tool->IsChecked();
 	Settings::set_value("enable_mouse_tracking", value);
 
-	for (auto plot : m_plots) {
-		plot->EnableMouseTracking(value);
+	for (auto widget : m_speech_widgets) {
+		widget->EnableMouseTracking(value);
 	}
 }
 

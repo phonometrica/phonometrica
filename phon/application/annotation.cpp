@@ -523,7 +523,7 @@ void Annotation::duplicate_layer(intptr_t index, intptr_t new_index)
 	m_graph.duplicate_layer(index, new_index);
 }
 
-String Annotation::get_layer_label(intptr_t index)
+String Annotation::get_layer_label(intptr_t index) const
 {
 	return m_graph.get_layer_label(index);
 }
@@ -566,6 +566,11 @@ AutoEvent Annotation::find_next_event(intptr_t layer_index, double time) const
 intptr_t Annotation::get_event_index(intptr_t layer_index, double time) const
 {
 	return m_graph.get_event_index(layer_index, time);
+}
+
+bool Annotation::layer_has_instants(intptr_t index) const
+{
+	return m_graph.get(index)->has_instants;
 }
 
 } // namespace phonometrica

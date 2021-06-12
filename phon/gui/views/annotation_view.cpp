@@ -21,6 +21,9 @@
 
 #include <wx/msgdlg.h>
 #include <phon/gui/views/annotation_view.hpp>
+#include <phon/gui/new_layer_dialog.hpp>
+#include <phon/gui/cmd/add_layer_command.hpp>
+#include <phon/gui/cmd/remove_layer_command.hpp>
 #include <phon/include/icons.hpp>
 
 namespace phonometrica {
@@ -67,28 +70,24 @@ void AnnotationView::AddAnnotationLayers(wxSizer *sizer)
 
 	for (intptr_t i = 1; i <= count; i++)
     {
-		auto layer = AddAnnotationLayer(i);
-	    sizer->Add(layer, 0, wxEXPAND|wxRIGHT, 10);
-	    m_layers.push_back(layer);
-	    m_speech_widgets.push_back(layer);
-	    auto hline = new HLine(this);
-	    sizer->Add(hline);
-	    m_layer_lines.push_back(hline);
-
-	    layer->update_status.connect(&MessageCtrl::SetLayerInfo, m_msg_ctrl);
-	    layer->update_selected_event.connect(&AnnotationView::OnSelectEvent, this);
+		auto layer = CreateLayerTrack(i);
+		InsertAnnotationLayer(sizer, layer, sizer->GetItemCount());
     }
 }
 
-LayerTrack * AnnotationView::AddAnnotationLayer(intptr_t i)
+void AnnotationView::InsertAnnotationLayer(wxSizer *sizer, LayerTrack *layer, size_t pos)
 {
-	auto duration = m_annot->sound()->duration();
-	auto layer = new LayerTrack(this, m_annot, duration, i);
-//	auto win = waveform->currentWindow();
-//	layer->setWindow(win.first, win.second);
-//
-//	layers.insert(i, layer);
-//
+	sizer->Insert(pos, layer, 0, wxEXPAND|wxRIGHT, 10);
+	auto i = layer->GetIndex() - 1;
+	m_layers.insert(m_layers.begin() + i, layer);
+	m_speech_widgets.insert(m_speech_widgets.begin() + i, layer);
+	auto hline = new HLine(this);
+	sizer->Insert(pos+1, hline);
+	m_layer_lines.insert(m_layer_lines.begin() + i, hline);
+
+	layer->update_status.connect(&MessageCtrl::SetLayerInfo, m_msg_ctrl);
+	layer->update_selected_event.connect(&AnnotationView::OnSelectEvent, this);
+	//
 //	for (auto plot : plots)
 //	{
 //		connect(layer, &LayerWidget::current_time, plot, &Waveform::setCurrentTime);
@@ -113,6 +112,14 @@ LayerTrack * AnnotationView::AddAnnotationLayer(intptr_t i)
 //	connect(layer, &LayerWidget::editing_shared_anchor, this, &AnnotationView::setMovingAnchor);
 //	connect(layer, &LayerWidget::temporary_anchor, this, &AnnotationView::setTemporaryAnchor);
 //	connect(layer, &LayerWidget::inform_selection, this, &AnnotationView::informSelectedEvent);
+}
+
+LayerTrack * AnnotationView::CreateLayerTrack(intptr_t i)
+{
+	auto duration = m_annot->sound()->duration();
+	auto layer = new LayerTrack(this, m_annot, duration, i);
+	layer->SetTimeWindow(GetTimeWindow());
+
 	return layer;
 }
 
@@ -159,6 +166,8 @@ void AnnotationView::OnLayerMenu(wxCommandEvent &e)
 	menu->AppendSeparator();
 	auto show_layer_action = menu->Append(wxID_ANY, _("Select visible layers"));
 
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &AnnotationView::OnAddLayer, this, add_layer_action->GetId());
+	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &AnnotationView::OnRemoveLayer, this, remove_layer_action->GetId());
 //	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SpeechView::OnShowWaveforms, this, show_tool->GetId());
 //	menu->Bind(wxEVT_COMMAND_MENU_SELECTED, &SpeechView::OnWaveformSettings, this, settings_tool->GetId());
 
@@ -229,6 +238,98 @@ void AnnotationView::OpenEvent(intptr_t nlayer, const AutoEvent &event)
 	}
 
 	SetTimeWindow(start, end);
+}
+
+void AnnotationView::AddLayer(intptr_t index, const String &label, bool has_instants)
+{
+	m_annot->create_layer(index, label, has_instants);
+	size_t pos = GetLayerTrackPosition(index);
+	auto layer = CreateLayerTrack(index);
+	InsertAnnotationLayer(m_inner_sizer, layer, pos);
+	m_y_axis->AddWindow(layer);
+	Layout();
+	modified();
+}
+
+void AnnotationView::RemoveLayer(intptr_t index)
+{
+	m_annot->remove_layer(index--);
+	auto layer = m_layers[index];
+	auto hline = m_layer_lines[index];
+	m_layers.erase(m_layers.begin() + index);
+	m_layer_lines.erase(m_layer_lines.begin() + index);
+	m_inner_sizer->Detach(layer);
+	m_inner_sizer->Detach(hline);
+	m_y_axis->RemoveWindow(layer);
+	delete layer;
+	delete hline;
+	Layout();
+	modified();
+}
+
+size_t AnnotationView::GetLayerTrackPosition(intptr_t i) const
+{
+	assert(i > 0);
+	// For each plot and layer before this layer, also take into account hlines.
+	return size_t((m_plots.size() + i - 1) * 2) + 1;
+}
+
+void AnnotationView::OnAddLayer(wxCommandEvent &)
+{
+	NewLayerDialog dlg(this, m_annot->size());
+
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		String label = dlg.GetLayerLabel();
+		int index = dlg.GetIndex();
+		bool has_instants = dlg.HasInstants();
+		auto cmd = std::make_unique<AddLayerCommand>(this, index, label, has_instants);
+
+		if (!command_processor.submit(std::move(cmd))) {
+			wxMessageBox(_("Could not create layer"), _("Error"), wxICON_ERROR);
+		}
+	}
+}
+
+void AnnotationView::OnRemoveLayer(wxCommandEvent &)
+{
+	auto index = GetSelectedLayer();
+
+	if (index > 0)
+	{
+		auto cmd = std::make_unique<RemoveLayerCommand>(this, index);
+
+		if (!command_processor.submit(std::move(cmd))) {
+			wxMessageBox(_("Could not remove layer"), _("Error"), wxICON_ERROR);
+		}
+		modified();
+	}
+	else
+	{
+		wxMessageBox(_("No selected layer!"), _("Error"), wxICON_ERROR);
+	}
+}
+
+String AnnotationView::GetLayerLabel(intptr_t index) const
+{
+	return m_annot->get_layer_label(index);
+}
+
+bool AnnotationView::LayerHasInstants(intptr_t index) const
+{
+	return m_annot->layer_has_instants(index);
+}
+
+intptr_t AnnotationView::GetSelectedLayer() const
+{
+	for (size_t i = 0; i < m_layers.size(); i++)
+	{
+		if (m_layers[i]->IsSelected()) {
+			return intptr_t(i + 1);
+		}
+	}
+
+	return -1;
 }
 
 } // namespace phonometrica

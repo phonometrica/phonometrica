@@ -55,8 +55,6 @@ public:
 
 	void ZoomToSelection();
 
-	void EnableMouseTracking(bool value);
-
 	bool IsTop() const;
 
 	void MakeTop(bool value);
@@ -88,8 +86,6 @@ public:
 	Signal<const TimeSelection&> update_selection;
 
 	Signal<> invalidate_selection;
-
-	Signal<double> update_cursor;
 
 	Signal<> zoom_to_selection;
 
@@ -133,8 +129,6 @@ protected:
 
 	virtual void OnMotion(wxMouseEvent &e);
 
-	void OnLeaveWindow(wxMouseEvent &e);
-
 	void OnMouseWheel(wxMouseEvent &e);
 
     virtual void ReadSettings() = 0;
@@ -154,8 +148,6 @@ protected:
 
 	// Time tick when a sound is being played.
 	double m_tick_time = -1.0;
-
-	bool m_track_mouse = false;
 
 	bool m_is_top = false;
 

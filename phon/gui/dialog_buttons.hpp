@@ -13,40 +13,29 @@
  * You should have received a copy of the GNU General Public License along with this program. If not, see              *
  * <http://www.gnu.org/licenses/>.                                                                                     *
  *                                                                                                                     *
- * Created: 28/03/2021                                                                                                 *
+ * Created: 11/06/2021                                                                                                 *
  *                                                                                                                     *
- * Purpose: Preference dialog for formant tracking.                                                                    *
+ * Purpose: OK/Cancel buttons for dialogs.                                                                             *
  *                                                                                                                     *
  ***********************************************************************************************************************/
 
-#ifndef PHONOMETRICA_FORMANT_SETTINGS_HPP
-#define PHONOMETRICA_FORMANT_SETTINGS_HPP
+#ifndef PHONOMETRICA_DIALOG_BUTTONS_HPP
+#define PHONOMETRICA_DIALOG_BUTTONS_HPP
 
-#include <wx/panel.h>
-#include <wx/textctrl.h>
-#include <phon/gui/pref/preferences_dialog.hpp>
+#include <wx/sizer.h>
 
 namespace phonometrica {
 
-class FormantSettings final : public PreferencesDialog
+class DialogButtons : public wxBoxSizer
 {
 public:
 
-	FormantSettings(wxWindow *parent);
+	DialogButtons(wxWindow *parent);
 
-private:
-
-	void DoReset() override;
-
-	bool DoOk() override;
-
-	wxPanel *MakeGeneralPanel();
-
-	void DisplayValues();
-
-	wxTextCtrl *nformant_ctrl, *window_ctrl, *npole_ctrl, *max_freq_ctrl, *step_ctrl;
 };
 
 } // namespace phonometrica
 
-#endif // PHONOMETRICA_FORMANT_SETTINGS_HPP
+
+
+#endif // PHONOMETRICA_DIALOG_BUTTONS_HPP

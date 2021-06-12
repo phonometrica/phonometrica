@@ -31,7 +31,6 @@ namespace phonometrica {
 SoundPlot::SoundPlot(wxWindow *parent, const Handle <Sound> &snd, int channel) :
 		SpeechWidget(parent), m_sound(snd), m_channel(channel)
 {
-	m_track_mouse = Settings::get_boolean("enable_mouse_tracking");
 	Bind(wxEVT_RIGHT_DOWN, &SoundPlot::OnContextMenu, this);
 	Bind(wxEVT_LEFT_DOWN, &SoundPlot::OnStartSelection, this);
 	Bind(wxEVT_LEFT_UP, &SoundPlot::OnEndSelection, this);
@@ -124,16 +123,9 @@ void SoundPlot::OnMotion(wxMouseEvent &e)
 	}
 	else if (m_track_mouse)
 	{
-		auto pos = ScreenToClient(wxGetMousePosition());
+		auto pos = e.GetPosition();
 		update_cursor(pos.x);
 	}
-}
-
-void SoundPlot::OnLeaveWindow(wxMouseEvent &e)
-{
-	update_cursor(-1);
-	update_status(wxString());
-	e.Skip();
 }
 
 const TimeSelection & SoundPlot::GetSelection() const
@@ -155,11 +147,6 @@ void SoundPlot::ZoomToSelection()
 		auto t2 = ClipTime(m_sel.t2);
 		SetTimeWindow(TimeWindow{t1, t2});
 	}
-}
-
-void SoundPlot::EnableMouseTracking(bool value)
-{
-	m_track_mouse = value;
 }
 
 void SoundPlot::OnMouseWheel(wxMouseEvent &e)

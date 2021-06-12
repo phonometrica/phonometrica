@@ -235,7 +235,6 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 	{
 		last_sample = total_sample_count;
 	}
-	auto sample_count = last_sample - first_sample + 1;
 
 	// An m x n matrix, where m represents the number of horizontal pixels and n represents the number of vertical pixels.
 	// Each horizontal pixel/point represents the center of an analysis window.
@@ -337,7 +336,7 @@ Matrix<double> Spectrogram::ComputeSpectrogram()
 //	PHON_LOG("offset: %f\n", offset);
 //	PHON_LOG("first sample: %d\n", (int)first_sample);
 //	PHON_LOG("last sample: %d\n", (int)last_sample);
-//	PHON_LOG("sample count: %d, data size: %d\n", (int)sample_count, (int)data.size());
+//	PHON_LOG("data size: %d\n", (int)data.size());
 //	PHON_LOG("width: %d\n", int(w));
 //	PHON_LOG("nframe: %d, nfft: %d\n", nframe, nfft);
 

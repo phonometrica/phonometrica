@@ -71,9 +71,13 @@ public:
 
 	double GetWindowDuration() const { return m_window.second - m_window.first; }
 
+	void EnableMouseTracking(bool value);
+
 	Signal<const wxString&> update_status;
 
 	Signal<TimeWindow> update_window;
+
+	Signal<double> update_cursor;
 
 protected:
 
@@ -86,6 +90,8 @@ protected:
 	bool HasValidCache() const;
 
 	virtual double GetSoundDuration() const = 0;
+
+	void OnLeaveWindow(wxMouseEvent &e);
 
 	int GetWidth() const { return GetSize().GetWidth(); }
 
@@ -106,6 +112,8 @@ protected:
 
 	// Cache the size of the plot when we compute the data
 	wxSize m_cached_size;
+
+	bool m_track_mouse = false;
 };
 
 } // namespace phonometrica

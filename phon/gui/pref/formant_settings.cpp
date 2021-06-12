@@ -29,7 +29,7 @@ namespace phonometrica {
 
 FormantSettings::FormantSettings(wxWindow *parent) : PreferencesDialog(parent, _("Formant settings..."))
 {
-	SetSize(wxSize(400, 400));
+	SetSize(wxSize(400, 440));
 	auto panel = MakeGeneralPanel();
 	AddPage(panel, _("General"));
 }
@@ -73,10 +73,18 @@ bool FormantSettings::DoOk()
 		return false;
 	}
 
+	text = step_ctrl->GetValue();
+	auto step = text.to_float(&ok);
+	if (!ok || step <= 0.0) {
+		wxMessageBox(_("Invalid time step"), ("Invalid setting"), wxICON_ERROR);
+		return false;
+	}
+
 	Settings::set_value(category, "number_of_formants", nformant);
 	Settings::set_value(category, "window_size", double(len)/1000);
 	Settings::set_value(category, "lpc_order", npole);
 	Settings::set_value(category, "max_frequency", fs);
+	Settings::set_value(category, "time_step", step);
 
 	return true;
 }
@@ -102,6 +110,10 @@ wxPanel *FormantSettings::MakeGeneralPanel()
 	npole_ctrl = new wxTextCtrl(panel, wxID_ANY);
 	sizer->Add(npole_ctrl, 0, wxEXPAND|wxLEFT|wxTOP|wxRIGHT, 10);
 
+	sizer->Add(new wxStaticText(panel, wxID_ANY, _("Time step (s):")), 0, wxLEFT|wxTOP|wxRIGHT, 10);
+	step_ctrl = new wxTextCtrl(panel, wxID_ANY);
+	sizer->Add(step_ctrl, 0, wxEXPAND|wxLEFT|wxTOP|wxRIGHT, 10);
+
 	DisplayValues();
 	panel->SetSizer(sizer);
 
@@ -123,5 +135,8 @@ void FormantSettings::DisplayValues()
 
 	auto fs = (int) Settings::get_number(category, "max_frequency");
 	max_freq_ctrl->SetValue(wxString::Format("%d", fs));
+
+	auto step = Settings::get_number(category, "time_step");
+	step_ctrl->SetValue(wxString::Format("%g", step));
 }
 } // namespace phonometrica

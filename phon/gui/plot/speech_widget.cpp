@@ -29,6 +29,13 @@ SpeechWidget::SpeechWidget(wxWindow *parent) :
 	SetBackgroundColour(*wxWHITE);
 }
 
+void SpeechWidget::OnLeaveWindow(wxMouseEvent &e)
+{
+	update_cursor(-1);
+	update_status(wxString());
+	e.Skip();
+}
+
 void SpeechWidget::SetTimeWindow(TimeWindow win)
 {
 	m_window = win;
@@ -132,6 +139,11 @@ void SpeechWidget::InvalidateCache()
 {
 	// Don't clear the cache here, it will be done in UpdateCache() once the invalid size is detected.
 	m_cached_size = wxDefaultSize;
+}
+
+void SpeechWidget::EnableMouseTracking(bool value)
+{
+	m_track_mouse = value;
 }
 
 } // namespace phonometrica

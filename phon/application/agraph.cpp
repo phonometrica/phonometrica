@@ -893,7 +893,7 @@ bool AGraph::anchor_exists(intptr_t layer_index, double time)
 	return (*it)->exists(layer_index);
 }
 
-String AGraph::get_layer_label(intptr_t index)
+String AGraph::get_layer_label(intptr_t index) const
 {
 	return m_layers.at(index)->label;
 }
