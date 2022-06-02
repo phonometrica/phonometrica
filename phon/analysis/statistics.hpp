@@ -41,6 +41,10 @@ double mean(const Array<double> &x);
 
 Array<double> mean(const Array<double> &x, int dim);
 
+double maximum(const Array<double> &x);
+
+double minimum(const Array<double> &x);
+
 double sample_variance(const Array<double> &x);
 
 double covariance(const Array<double> &x, const Array<double> &y);

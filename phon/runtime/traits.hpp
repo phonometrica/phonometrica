@@ -23,6 +23,7 @@
 #define PHONOMETRICA_TRAITS_HPP
 
 #include <type_traits>
+#include <complex>
 #include <phon/runtime/definitions.hpp>
 
 namespace phonometrica {
@@ -192,6 +193,13 @@ using is_hashable = std::is_default_constructible<std::hash<T>>;
 template<typename T>
 using bare_type = std::remove_cv<typename std::remove_reference<T>::type>;
 
+//----------------------------------------------------------------------------------------------------------------------
+
+template<typename T>
+struct is_complex : public std::false_type {};
+
+template<typename T>
+struct is_complex<std::complex<T>> : public std::true_type {};
 
 }} // phonometrica::traits
 

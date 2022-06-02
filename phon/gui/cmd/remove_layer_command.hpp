@@ -44,10 +44,6 @@ private:
 	AnnotationView *m_view;
 
 	intptr_t m_index;
-
-	String m_label;
-
-	bool m_has_instants;
 };
 
 } // namespace phonometrica

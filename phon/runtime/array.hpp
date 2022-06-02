@@ -275,6 +275,14 @@ public:
 	const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
 	const_reverse_iterator crend() const noexcept { return rend(); }
 
+	iterator iter(intptr_t i) { return begin() + to_base0(i); }
+
+	const_iterator iter(intptr_t i) const { return begin() + to_base0(i); }
+
+	iterator iter(intptr_t i, intptr_t j) { return begin() + d2_to_base0(i, j); }
+
+	const_iterator iter(intptr_t i, intptr_t j) const { return begin() + d2_to_base0(i, j); }
+
 	size_type ndim() const noexcept { return m_ndim; }
 
 	size_type size() const noexcept { return m_size; }
@@ -381,20 +389,12 @@ public:
 
 	reference operator()(size_type row, size_type col)
 	{
-		assert(ndim() <= 2);
-		assert(row > 0 && col > 0);
-		size_type pos = (col - 1) * nrow() + row - 1;
-
-		return m_data[pos];
+		return m_data[d2_to_base0(row, col)];
 	}
 
 	const_reference operator()(size_type row, size_type col) const
 	{
-		assert(ndim() <= 2);
-		assert(row > 0 && col > 0);
-		auto pos = (col - 1) * nrow() + row - 1;
-
-		return m_data[pos];
+		return m_data[d2_to_base0(row, col)];
 	}
 
 	reference operator()(const index_sequence &indexes)
@@ -611,7 +611,7 @@ public:
 	void insert(size_type pos, std::initializer_list<value_type> values)
 	{
 		auto it = begin() + to_base0(pos);
-		insert(pos, values);
+		insert(it, values);
 	}
 
 	iterator insert(const_iterator pos, std::initializer_list<value_type> values)
@@ -897,6 +897,38 @@ public:
 		}
 	}
 
+	Array<T> slice(intptr_t from, intptr_t to, intptr_t step = 1)
+	{
+		Array<T> result(to-from+1, value_type());
+		auto out = result.begin();
+		auto in = this->begin() + from - 1;
+
+		for (intptr_t i = from; i <= to; i += step) {
+			*out++ = *in++;
+		}
+
+		return result;
+	}
+
+	Array<T> slice(intptr_t i1, intptr_t i2, intptr_t j1, intptr_t j2, intptr_t istep = 1, intptr_t jstep=1)
+	{
+		Array<T> result(i2-i1+1, j2-j1+1, value_type());
+		intptr_t ii = 1;
+
+		for (intptr_t i = i1; i <= i2; i += istep)
+		{
+			intptr_t jj = 1;
+			for (intptr_t j = j1; j <= j2; j += jstep)
+			{
+				result(ii,jj) = (*this)(i,j);
+				jj++;
+			}
+			ii++;
+		}
+
+		return result;
+	}
+
 private:
 
 	const size_type *shape() const noexcept { return m_dim.dx.shape; }
@@ -1054,7 +1086,14 @@ private:
 		m_data = utils::allocate<value_type>(count);
 
 		// Scalar types are already 0-initialized by calloc(), so we don't need to do anything for them.
-		if (!has_scalar_type || default_value != 0) {
+		// Complex are handled separately.
+		if constexpr (traits::is_complex<T>::value)
+		{
+			if (default_value != 0.0) {
+				copy_construct_n(begin(), count, default_value);
+			}
+		}
+		else if (!has_scalar_type || default_value) {
 			copy_construct_n(begin(), count, default_value);
 		}
 	}
@@ -1071,6 +1110,14 @@ private:
     {
 	    copy_construct(first, first + count, value);
     }
+
+    intptr_t d2_to_base0(intptr_t row, intptr_t col) const
+	{
+		assert(ndim() <= 2);
+		assert(row > 0 && col > 0);
+
+		return (col - 1) * nrow() + row - 1;
+	}
 
 	// Number of dimensions in the array.
 	size_type m_ndim;

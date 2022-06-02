@@ -24,8 +24,8 @@
 
 namespace phonometrica {
 
-RemoveLayerCommand::RemoveLayerCommand(AnnotationView *view, intptr_t index, const String &label, bool has_instants) :
-	Command("Remove layer"), m_view(view), m_index(index), m_label(label), m_has_instants(has_instants)
+RemoveLayerCommand::RemoveLayerCommand(AnnotationView *view, intptr_t index) :
+	Command("Remove layer"), m_view(view), m_index(index)
 {
 
 }
@@ -33,7 +33,7 @@ RemoveLayerCommand::RemoveLayerCommand(AnnotationView *view, intptr_t index, con
 bool RemoveLayerCommand::execute()
 {
 	try {
-		m_view->RemoveLayer(m_index);
+		//m_view->RemoveLayer(m_index);
 		return true;
 	}
 	catch (...) {
@@ -44,7 +44,7 @@ bool RemoveLayerCommand::execute()
 bool RemoveLayerCommand::restore()
 {
 	try {
-		m_view->AddLayer(m_index, m_label, m_has_instants);
+		//m_view->AddLayer(m_index, m_label, m_has_instants);
 		return true;
 	}
 	catch (...) {

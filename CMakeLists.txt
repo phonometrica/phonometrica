@@ -267,9 +267,9 @@ if (WITH_GUI)
             phon/third_party/zip/zip.cpp
             phon/third_party/sptk/*.c
             phon/third_party/sptk/*.cpp
-            phon/third_party/sptk/snack/*.c
-#            phon/third_party/sptk/snack/*.cpp
+            phon/third_party/sptk/snack/*.cpp
             phon/third_party/swipe/*.c phon/third_party/swipe/*.cpp phon/third_party/swipe/*.h
+            phon/third_party/FIR-filter-class/filt.cpp
     )
 
 else (WITH_GUI)
@@ -295,9 +295,13 @@ elseif (APPLE)
     include_directories(/opt/local/include)
     link_directories(/opt/local/lib)
 
-    # Since we have a version of libiconv in /opt/local/lib, the linker will look for that version first and will
-    # fail. As a workaround, we pass the full path to the correct version we want to link against.
-    set(LIB_ICONV /usr/lib/libiconv.dylib)
+    # Apple no longer provides system libraries in /usr/lib since they are now stored in a dynamic linker shared cache,
+    # so we use find_library() to locate the library.
+    find_library(LIB_ICONV iconv)
+    if (NOT LIB_ICONV)
+        message(FATAL_ERROR "iconv not found")
+    endif()
+
     add_executable(${PROJECT_NAME} MACOSX_BUNDLE phonometrica.cpp ${APP_FILES})
     target_link_libraries(
             ${PROJECT_NAME} phon-runtime pcre2-8 fftw3 pthread dl sndfile ${LIB_ICONV}

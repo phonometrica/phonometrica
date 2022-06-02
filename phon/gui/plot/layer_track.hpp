@@ -34,7 +34,7 @@ public:
 
 	LayerTrack(wxWindow *parent, const Handle<Annotation> &annot, double duration, intptr_t layer_index);
 
-	void DrawYAxis(PaintDC &dc, const wxRect &rect);
+	void DrawYAxis(PaintDC &dc, const wxRect &rect) override;
 
 	void SetSelectedEvent(const AutoEvent &e);
 

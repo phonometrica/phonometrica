@@ -106,6 +106,43 @@ Array<double> mean(const Array<double> &x, int dim)
 	return sums;
 }
 
+double maximum(const Array<double> &x)
+{
+	double result = x(1,1);
+
+	for (intptr_t i = 1; i <= x.nrow(); i++)
+	{
+		for (intptr_t j = 1; j <= x.ncol(); j++)
+		{
+			auto value = x(i,j);
+			if ((std::isfinite(value) && value > result) || !std::isfinite(result)) {
+				result = value;
+			}
+		}
+	}
+
+	return result;
+}
+
+double minimum(const Array<double> &x)
+{
+	double result = x(1,1);
+
+	for (intptr_t i = 1; i <= x.nrow(); i++)
+	{
+		for (intptr_t j = 1; j <= x.ncol(); j++)
+		{
+			auto value = x(i,j);
+			if ((std::isfinite(value) && value < result) || !std::isfinite(result)) {
+				result = value;
+			}
+		}
+	}
+
+	return result;
+}
+
+
 double sample_variance(const Array<double> &x)
 {
     double mu = mean(x);

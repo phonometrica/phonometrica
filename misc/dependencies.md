@@ -43,7 +43,7 @@ It is recommended to compile wxWidgets from source to get the latest version.
 ### Recommended build settings on macOS:
 
 ```
-./configure --with-cocoa --with-libjpeg=builtin --with-libpng=builtin --with-regex=builtin --without-libtiff --with-zlib=builtin --disable-shared --enable-utf8 --enable-utf8only --enable-aui --disable-no_rtti --disable-no_exceptions
+./configure --with-cocoa --with-libjpeg=builtin --with-libpng=builtin --with-regex=builtin --without-libtiff --with-zlib=builtin --disable-shared --enable-utf8 --enable-utf8only --enable-aui --disable-no_rtti --disable-no_exceptions --with-cxx=17 
 ```
 
 ### Recommended build settings on Linux: 

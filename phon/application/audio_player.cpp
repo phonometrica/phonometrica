@@ -139,7 +139,7 @@ int AudioPlayer::playback(void *out, void *, unsigned int nframe, double, RtAudi
 		}
 		else
 		{
-			auto size = size_t(nframe * player->data->channels());
+			auto size = size_t(nframe * player->data->nchannel());
 			play_silence(output, size);
 		}
 	}
@@ -173,7 +173,7 @@ void AudioPlayer::prepare()
 #if PHON_MACOS
     m_params.nChannels = 2;
     output_rate = MAC_SAMPLE_RATE;
-    remaining = (data->size() / data->channels()) * double(output_rate) / data->sample_rate();
+    remaining = (data->size() / data->nchannel()) * double(output_rate) / data->sample_rate();
     auto input_size = floor(FRAME_COUNT * double(output_rate) / data->sample_rate());
     m_buffer.resize(input_size);
     m_cache_data.resize(input_size);
@@ -186,7 +186,7 @@ void AudioPlayer::prepare()
 #if PHON_LINUX
     m_options.flags = RTAUDIO_ALSA_USE_DEFAULT;
 #elif PHON_MACOS
-    if (data->channels() == 1)
+    if (data->nchannel() == 1)
         m_options.flags = RTAUDIO_NONINTERLEAVED | RTAUDIO_SCHEDULE_REALTIME;
 	else
 		m_options.flags = 0;

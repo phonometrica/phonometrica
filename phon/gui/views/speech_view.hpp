@@ -34,6 +34,7 @@
 #include <phon/gui/message_ctrl.hpp>
 #include <phon/gui/plot/spectrogram.hpp>
 #include <phon/gui/plot/intensity_track.hpp>
+#include <phon/gui/plot/pitch_track.hpp>
 #include <phon/application/audio_player.hpp>
 #include <phon/application/sound.hpp>
 
@@ -161,7 +162,11 @@ protected:
 
 	void ShowFormants(bool value);
 
+	void OnShowPitch(wxCommandEvent &e);
+
 	void OnShowIntensity(wxCommandEvent &e);
+
+	void ShowPitch(bool value);
 
 	void ShowIntensity(bool value);
 
@@ -217,6 +222,8 @@ protected:
 	std::vector<Waveform*> waveforms;
 
 	std::vector<Spectrogram*> spectrograms;
+
+	std::vector<PitchTrack*> pitch_tracks;
 
 	std::vector<IntensityTrack*> intensity_tracks;
 

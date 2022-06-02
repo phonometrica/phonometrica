@@ -79,6 +79,16 @@ void SpeechView::Initialize()
 	}
 	for (int i = 0; i <= m_sound->nchannel(); i++)
 	{
+		auto track = new PitchTrack(this, m_sound, i);
+		m_inner_sizer->Add(track, 1, wxEXPAND|wxRIGHT, 10);
+		auto hline = new HLine(this);
+		m_inner_sizer->Add(hline);
+		pitch_tracks.push_back(track);
+		pitch_lines.push_back(hline);
+		m_plots.append(track);
+	}
+	for (int i = 0; i <= m_sound->nchannel(); i++)
+	{
 		auto track = new IntensityTrack(this, m_sound, i);
 		m_inner_sizer->Add(track, 1, wxEXPAND|wxRIGHT, 10);
 		auto hline = new HLine(this);
@@ -157,11 +167,12 @@ void SpeechView::Initialize()
 	bool show_wave = Settings::get_boolean(category, "waveform");
 	bool show_spectrogram = Settings::get_boolean(category, "spectrogram");
 	bool show_formants = Settings::get_boolean(category, "formants");
-//	bool show_pitch = Settings::get_boolean(category, "pitch");
+	bool show_pitch = Settings::get_boolean(category, "pitch");
 	bool show_intensity = Settings::get_boolean(category, "intensity");
 	ShowWaveforms(show_wave);
 	ShowSpectrogram(show_spectrogram);
 	ShowFormants(show_formants);
+	ShowPitch(show_pitch);
 	ShowIntensity(show_intensity);
 
 	Layout();
@@ -709,9 +720,22 @@ void SpeechView::OnShowFormants(wxCommandEvent &e)
 	UpdatePlotLayout();
 }
 
+void SpeechView::OnShowPitch(wxCommandEvent &e)
+{
+	ShowPitch(e.IsChecked());
+}
+
 void SpeechView::OnShowIntensity(wxCommandEvent &e)
 {
 	ShowIntensity(e.IsChecked());
+}
+
+void SpeechView::ShowPitch(bool value)
+{
+	Settings::set_value("sound_plots", "pitch", value);
+	for (auto track : pitch_tracks) {
+		track->SetPlotVisible(value);
+	}
 	UpdatePlotLayout();
 }
 
@@ -825,6 +849,7 @@ void SpeechView::ShowChannel(int channel, bool show)
 {
 	waveforms[channel]->SetChannelVisible(show);
 	spectrograms[channel]->SetChannelVisible(show);
+	pitch_tracks[channel]->SetChannelVisible(show);
 	intensity_tracks[channel]->SetChannelVisible(show);
 }
 
@@ -838,6 +863,9 @@ void SpeechView::UpdatePlotLayout()
 		show = spectrograms[i]->IsVisible();
 		spectrograms[i]->Show(show);
 		spectrogram_lines[i]->Show(show);
+		show = pitch_tracks[i]->IsVisible();
+		pitch_tracks[i]->Show(show);
+		pitch_lines[i]->Show(show);
 		show = intensity_tracks[i]->IsVisible();
 		intensity_tracks[i]->Show(show);
 		intensity_lines[i]->Show(show);

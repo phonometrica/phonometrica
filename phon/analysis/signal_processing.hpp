@@ -44,7 +44,28 @@ enum class WindowType
     Gaussian,
     Hamming,
     Hann,
+    Kaiser,
     Rectangular
+};
+
+class FFT
+{
+public:
+
+	FFT(intptr_t nfft);
+
+	~FFT();
+
+	Array<std::complex<double>> &process(const Array<double> &data);
+
+private:
+
+	void *impl;
+
+	intptr_t nfft;
+
+	Array<double> input;
+	Array<std::complex<double>> output;
 };
 
 
@@ -63,6 +84,10 @@ std::vector<double> get_lpc_coefficients(const Array<double> &frame, int npole);
 
 // Get formant frequencies and bandwidths from a set of LPC coefficients.
 bool get_formants(const std::vector<double> &lpc_coeffs, double Fs, std::vector<double> &freqs, std::vector<double> &bw);
+
+Array<std::complex<double>> specgram(const Array<double> &data, int nfft, intptr_t noverlap, intptr_t window_size, WindowType window_type = WindowType::Hann);
+
+Array<double> medfilt1(const Array<double> &signal, int n);
 
 }} // namespace phonometrica::speech
 

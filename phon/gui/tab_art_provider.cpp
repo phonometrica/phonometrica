@@ -363,14 +363,15 @@ void TabArtProvider::DrawTab(wxDC &dc, wxWindow *wnd, const wxAuiNotebookPage &p
 	if (page.bitmap.IsOk())
 	{
 		bitmap_offset = tab_x + wnd->FromDIP(8);
+        const wxBitmap bitmap = page.bitmap.GetBitmapFor(wnd);
 
 		// draw bitmap
-		dc.DrawBitmap(page.bitmap,
+		dc.DrawBitmap(bitmap,
 					  bitmap_offset,
-					  drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetScaledHeight()/2),
+					  drawn_tab_yoff + (drawn_tab_height/2) - (bitmap.GetLogicalHeight()/2),
 					  true);
 
-		text_offset = bitmap_offset + page.bitmap.GetScaledWidth();
+		text_offset = bitmap_offset + bitmap.GetScaledWidth();
 		text_offset += wnd->FromDIP(3); // bitmap padding
 	}
 	else
@@ -382,15 +383,14 @@ void TabArtProvider::DrawTab(wxDC &dc, wxWindow *wnd, const wxAuiNotebookPage &p
 	int close_button_width = 0;
 	if (close_button_state != wxAUI_BUTTON_STATE_HIDDEN)
 	{
-		wxBitmap bmp = m_disabledCloseBmp;
+		wxBitmapBundle bb = m_disabledCloseBmp;
 
 		if (close_button_state == wxAUI_BUTTON_STATE_HOVER ||
 			close_button_state == wxAUI_BUTTON_STATE_PRESSED)
 		{
-			bmp = m_activeCloseBmp;
+			bb = m_activeCloseBmp;
 		}
-
-		wxAuiScaleBitmap(bmp, wnd->GetDPIScaleFactor());
+        const wxBitmap bmp = bb.GetBitmapFor(wnd);
 
 		int offsetY = tab_y-1;
 		if (m_flags & wxAUI_NB_BOTTOM)
@@ -437,8 +437,12 @@ void TabArtProvider::DrawTab(wxDC &dc, wxWindow *wnd, const wxAuiNotebookPage &p
 		wxRect focusRectBitmap;
 
 		if (page.bitmap.IsOk())
-			focusRectBitmap = wxRect(bitmap_offset, drawn_tab_yoff + (drawn_tab_height/2) - (page.bitmap.GetScaledHeight()/2),
-									 page.bitmap.GetScaledWidth(), page.bitmap.GetScaledHeight());
+        {
+            const wxBitmap bitmap = page.bitmap.GetBitmapFor(wnd);
+
+            focusRectBitmap = wxRect(bitmap_offset, drawn_tab_yoff + (drawn_tab_height/2) - (bitmap.GetScaledHeight()/2),
+                                     bitmap.GetScaledWidth(), bitmap.GetScaledHeight());
+        }
 
 		if (page.bitmap.IsOk() && draw_text.IsEmpty())
 			focusRect = focusRectBitmap;
