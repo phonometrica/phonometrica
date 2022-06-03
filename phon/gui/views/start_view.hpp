@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
  *                                                                                                                     *
- * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
+ * Copyright (C) 2019-2022 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
  * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
@@ -51,6 +51,8 @@ private:
 	void UpdateView() override { };
 
 	void SetupUi(MainWindow *win);
+
+    wxColour GetHoverColour() const;
 
 #ifdef __WXGTK__
 	wxButton *MakeButton(const wxBitmap &img);

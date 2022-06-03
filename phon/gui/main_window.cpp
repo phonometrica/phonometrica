@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
  *                                                                                                                     *
- * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
+ * Copyright (C) 2019-2022 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
  * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
@@ -801,7 +801,7 @@ void MainWindow::OnAbout(wxCommandEvent &)
 	dlg.SetIcon(icon);
 	dlg.SetVersion(utils::get_version());
 	dlg.SetDescription(_("A program for speech annotation and analysis"));
-	dlg.SetCopyright("(C) 2019-2021");
+	dlg.SetCopyright("(C) 2019-2022");
 	dlg.SetWebSite("http://www.phonometrica-ling.org");
 	dlg.AddDeveloper("Julien Eychenne");
 	dlg.AddDeveloper(wxString::FromUTF8("Léa Courdès-Murphy"));

@@ -3,7 +3,7 @@
  * Copyright (C) 1997-2005  Kåre Sjölander <kare@speech.kth.se>                                                        *
  * Copyright (C) 1992-2019 Paul Boersma                                                                                *
  * Copyright (c) 1999-2010 by Kelly Fitz and Lippold Haken                                                             *
- * Copyright (C) 2019-2021 Julien Eychenne <jeychenne@gmail.com>                                                       *
+ * Copyright (C) 2019-2022 Julien Eychenne <jeychenne@gmail.com>                                                       *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
  * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *

@@ -1,6 +1,6 @@
 /***********************************************************************************************************************
  *                                                                                                                     *
- * Copyright (C) 2019-2021 Julien Eychenne                                                                             *
+ * Copyright (C) 2019-2022 Julien Eychenne                                                                             *
  *                                                                                                                     *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public   *
  * License as published by the Free Software Foundation, either version 2 of the License, or (at your option) any      *
@@ -121,8 +121,27 @@ wxButton *StartView::MakeButton(const wxBitmap &img, const wxString &description
 	font.MakeLarger();
 	btn->SetFont(font);
 
-	return btn;
+#ifndef __WXGTK__
+    btn->Bind(wxEVT_ENTER_WINDOW, [btn,this](wxMouseEvent &) { btn->SetBackgroundColour(GetHoverColour()); btn->Refresh(); });
+    btn->Bind(wxEVT_LEAVE_WINDOW, [btn,this](wxMouseEvent &) { btn->SetBackgroundColour(GetBackgroundColour()); btn->Refresh(); });
+#endif
+
+    return btn;
 }
 #endif // #if __WXGTK__
+
+wxColour StartView::GetHoverColour() const
+{
+    auto col = GetBackgroundColour();
+    double factor = 0.85;
+    auto r = col.Red();
+    auto g = col.Green();
+    auto b = col.Blue();
+    r = (unsigned char)(r + factor * (255 - r));
+    g = (unsigned char)(g + factor * (255 - g));
+    b = (unsigned char)(b + factor * (255 - b));
+
+    return {r,g,b};
+}
 
 } // namespace phonometrica
