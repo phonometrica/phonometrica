@@ -485,12 +485,14 @@ Variant Runtime::interpret(Handle <Closure> &closure)
 			{
 				trace_op();
 				int narg = *ip++;
-				bool value = peek(-narg).to_boolean();
+				bool value = peek(-narg).resolve().to_boolean();
 				if (!value)
 				{
 					auto msg = (narg == 2) ? utils::format("Assertion failed: %", peek(-1).to_string()) : std::string("Assertion failed");
+                    pop(narg);
 					RUNTIME_ERROR(msg);
 				}
+                pop(narg);
 				break;
 			}
 			case Opcode::Call:
