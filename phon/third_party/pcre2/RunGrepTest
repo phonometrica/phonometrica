@@ -558,7 +558,7 @@ echo "RC=$?" >>testtrygrep
 echo "---------------------------- Test 107 -----------------------------" >>testtrygrep
 echo "a" >testtemp1grep
 echo "aaaaa" >>testtemp1grep
-(cd $srcdir; $valgrind $vjs $pcre2grep  --line-offsets '(?<=\Ka)' $builddir/testtemp1grep) >>testtrygrep 2>&1
+(cd $srcdir; $valgrind $vjs $pcre2grep  --line-offsets --allow-lookaround-bsk '(?<=\Ka)' $builddir/testtemp1grep) >>testtrygrep 2>&1
 echo "RC=$?" >>testtrygrep
 
 echo "---------------------------- Test 108 ------------------------------" >>testtrygrep
@@ -638,13 +638,13 @@ echo "RC=$?" >>testtrygrep
 
 echo "---------------------------- Test 125 -----------------------------" >>testtrygrep
 printf 'abcd\n' >testNinputgrep
-$valgrind $vjs $pcre2grep --colour=always '(?<=\K.)' testNinputgrep >>testtrygrep
+$valgrind $vjs $pcre2grep --colour=always --allow-lookaround-bsk '(?<=\K.)' testNinputgrep >>testtrygrep
 echo "RC=$?" >>testtrygrep
-$valgrind $vjs $pcre2grep --colour=always '(?=.\K)' testNinputgrep >>testtrygrep
+$valgrind $vjs $pcre2grep --colour=always --allow-lookaround-bsk '(?=.\K)' testNinputgrep >>testtrygrep
 echo "RC=$?" >>testtrygrep
-$valgrind $vjs $pcre2grep --colour=always '(?<=\K[ac])' testNinputgrep >>testtrygrep
+$valgrind $vjs $pcre2grep --colour=always --allow-lookaround-bsk '(?<=\K[ac])' testNinputgrep >>testtrygrep
 echo "RC=$?" >>testtrygrep
-$valgrind $vjs $pcre2grep --colour=always '(?=[ac]\K)' testNinputgrep >>testtrygrep
+$valgrind $vjs $pcre2grep --colour=always --allow-lookaround-bsk '(?=[ac]\K)' testNinputgrep >>testtrygrep
 echo "RC=$?" >>testtrygrep
 
 echo "---------------------------- Test 126 -----------------------------" >>testtrygrep
@@ -674,10 +674,14 @@ echo "---------------------------- Test 131 -----------------------------" >>tes
 echo "RC=$?" >>testtrygrep
 
 echo "---------------------------- Test 132 -----------------------------" >>testtrygrep
-(cd $srcdir; $valgrind $vjs $pcre2grep -m1 -A3 '^match'; echo '---'; head -1) <$srcdir/testdata/grepinput >>testtrygrep 2>&1
+(cd $srcdir; exec 3<testdata/grepinput; $valgrind $vjs $pcre2grep -m1 -A3 '^match' <&3; echo '---'; head -1 <&3; exec 3<&-) >>testtrygrep 2>&1
 echo "RC=$?" >>testtrygrep
 
 echo "---------------------------- Test 133 -----------------------------" >>testtrygrep
+(cd $srcdir; exec 3<testdata/grepinput; $valgrind $vjs $pcre2grep -m1 -A3 '^match' <&3; echo '---'; $valgrind $vjs $pcre2grep -m1 -A3 '^match' <&3; exec 3<&-) >>testtrygrep 2>&1
+echo "RC=$?" >>testtrygrep
+
+echo "---------------------------- Test 134 -----------------------------" >>testtrygrep
 (cd $srcdir; $valgrind $vjs $pcre2grep -m1 -O '=$x{41}$x423$o{103}$o1045=' 'fox') <$srcdir/testdata/grepinputv >>testtrygrep 2>&1
 echo "RC=$?" >>testtrygrep
 
@@ -701,7 +705,7 @@ if [ $utf8 -ne 0 ] ; then
   echo "RC=$?" >>testtrygrep
 
   echo "---------------------------- Test U3 ------------------------------" >>testtrygrep
-  (cd $srcdir; $valgrind $vjs $pcre2grep --line-offsets -u --newline=any '(?<=\K\x{17f})' ./testdata/grepinput8) >>testtrygrep
+  (cd $srcdir; $valgrind $vjs $pcre2grep --line-offsets -u --newline=any --allow-lookaround-bsk '(?<=\K\x{17f})' ./testdata/grepinput8) >>testtrygrep
   echo "RC=$?" >>testtrygrep
 
   echo "---------------------------- Test U4 ------------------------------" >>testtrygrep
@@ -755,22 +759,26 @@ $valgrind $vjs $pcre2grep -n --newline=any "^(abc|def|ghi|jkl)" testNinputgrep >
 printf '%c--------------------------- Test N6 ------------------------------\r\n' - >>testtrygrep
 $valgrind $vjs $pcre2grep -n --newline=anycrlf "^(abc|def|ghi|jkl)" testNinputgrep >>testtrygrep
 
-# It seems impossible to handle NUL characters easily in many operating
-# systems, including Solaris (aka SunOS), where the version of sed explicitly
-# doesn't like them, and also MacOS (Darwin), OpenBSD, FreeBSD, NetBSD, and
-# some Linux distributions like Alpine, even when using GNU sed, so test for
-# a usable sed and fudge the output so that the comparison works when sed
-# doesn't.
+# This next test involves NUL characters. It seems impossible to handle them
+# easily in many operating systems. An earlier version of this script used sed
+# to translate NUL into the string ZERO, but this didn't work on Solaris (aka
+# SunOS), where the version of sed explicitly doesn't like them, and also MacOS
+# (Darwin), OpenBSD, FreeBSD, NetBSD, and some Linux distributions like Alpine,
+# even when using GNU sed. A user suggested using tr instead, which
+# necessitates translating to a single character (@). However, on (some
+# versions of?) Solaris, the normal "tr" cannot handle binary zeros, but if
+# /usr/xpg4/bin/tr is available, it can do so, so test for that.
+
+if [ -x /usr/xpg4/bin/tr ] ; then
+  tr=/usr/xpg4/bin/tr
+else
+  tr=tr
+fi
 
 printf '%c--------------------------- Test N7 ------------------------------\r\n' - >>testtrygrep
-Z=`printf '\0' | sed 's/\x00/Z/g'`
-if [ "$Z" = "Z" ]; then
-  printf 'abc\0def' >testNinputgrep
-  $valgrind $vjs $pcre2grep -na --newline=nul "^(abc|def)" testNinputgrep | sed 's/\x00/ZERO/g' >>testtrygrep
-  echo "" >>testtrygrep
-else
-  echo '1:abcZERO2:defZERO' >>testtrygrep
-fi
+printf 'abc\0def' >testNinputgrep
+$valgrind $vjs $pcre2grep -na --newline=nul "^(abc|def)" testNinputgrep | $tr '\000' '@' >>testtrygrep
+echo "" >>testtrygrep
 
 $cf $srcdir/testdata/grepoutputN testtrygrep
 if [ $? != 0 ] ; then exit 1; fi

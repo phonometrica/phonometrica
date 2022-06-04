@@ -28,7 +28,8 @@ nearly two decades, the limitations of the original API were making development
 increasingly difficult. The new API is more extensible, and it was simplified
 by abolishing the separate "study" optimizing function; in PCRE2, patterns are
 automatically optimized where possible. Since forking from PCRE1, the code has
-been extensively refactored and new features introduced.
+been extensively refactored and new features introduced. The old library is now
+obsolete and is no longer maintained.
 </P>
 <P>
 As well as Perl-style regular expression patterns, some features that appeared
@@ -38,8 +39,14 @@ Oniguruma syntax items, and there are options for requesting some minor changes
 that give better ECMAScript (aka JavaScript) compatibility.
 </P>
 <P>
-The source code for PCRE2 can be compiled to support 8-bit, 16-bit, or 32-bit
-code units, which means that up to three separate libraries may be installed.
+The source code for PCRE2 can be compiled to support strings of 8-bit, 16-bit,
+or 32-bit code units, which means that up to three separate libraries may be
+installed, one for each code unit size. The size of code unit is not related to
+the bit size of the underlying hardware. In a 64-bit environment that also
+supports 32-bit applications, versions of PCRE2 that are compiled in both
+64-bit and 32-bit modes may be needed.
+</P>
+<P>
 The original work to extend PCRE to 16-bit and 32-bit code units was done by
 Zoltan Herczeg and Christian Persch, respectively. In all three cases, strings
 can be interpreted either as one character per code unit, or as UTF-encoded
@@ -187,20 +194,20 @@ function, listing its arguments and results.
 <P>
 Philip Hazel
 <br>
-University Computing Service
+Retired from University Computing Service
 <br>
 Cambridge, England.
 <br>
 </P>
 <P>
 Putting an actual email address here is a spam magnet. If you want to email me,
-use my two initials, followed by the two digits 10, at the domain cam.ac.uk.
+use my two names separated by a dot at gmail.com.
 </P>
 <br><a name="SEC5" href="#TOC1">REVISION</a><br>
 <P>
-Last updated: 17 September 2018
+Last updated: 27 August 2021
 <br>
-Copyright &copy; 1997-2018 University of Cambridge.
+Copyright &copy; 1997-2021 University of Cambridge.
 <br>
 <p>
 Return to the <a href="index.html">PCRE2 index page</a>.

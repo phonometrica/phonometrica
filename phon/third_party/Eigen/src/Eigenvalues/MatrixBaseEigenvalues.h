@@ -84,7 +84,7 @@ MatrixBase<Derived>::eigenvalues() const
   * \sa SelfAdjointEigenSolver::eigenvalues(), MatrixBase::eigenvalues()
   */
 template<typename MatrixType, unsigned int UpLo> 
-inline typename SelfAdjointView<MatrixType, UpLo>::EigenvaluesReturnType
+EIGEN_DEVICE_FUNC inline typename SelfAdjointView<MatrixType, UpLo>::EigenvaluesReturnType
 SelfAdjointView<MatrixType, UpLo>::eigenvalues() const
 {
   PlainObject thisAsMatrix(*this);
@@ -94,7 +94,7 @@ SelfAdjointView<MatrixType, UpLo>::eigenvalues() const
 
 
 /** \brief Computes the L2 operator norm
-  * \returns Relation norm of the matrix.
+  * \returns Operator norm of the matrix.
   *
   * \eigenvalues_module
   * This function computes the L2 operator norm of a matrix, which is also
@@ -132,7 +132,7 @@ MatrixBase<Derived>::operatorNorm() const
 }
 
 /** \brief Computes the L2 operator norm
-  * \returns Relation norm of the matrix.
+  * \returns Operator norm of the matrix.
   *
   * \eigenvalues_module
   * This function computes the L2 operator norm of a self-adjoint matrix. For a
@@ -147,7 +147,7 @@ MatrixBase<Derived>::operatorNorm() const
   * \sa eigenvalues(), MatrixBase::operatorNorm()
   */
 template<typename MatrixType, unsigned int UpLo>
-inline typename SelfAdjointView<MatrixType, UpLo>::RealScalar
+EIGEN_DEVICE_FUNC inline typename SelfAdjointView<MatrixType, UpLo>::RealScalar
 SelfAdjointView<MatrixType, UpLo>::operatorNorm() const
 {
   return eigenvalues().cwiseAbs().maxCoeff();
