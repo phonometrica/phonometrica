@@ -24,7 +24,7 @@
 namespace phonometrica {
 
 ToggleButton::ToggleButton(wxWindow *parent, wxWindowID id, const wxBitmap &bmp, const wxPoint &pos, const wxSize &size) :
-	wxButton(parent, id, "", pos, size, wxBORDER_NONE)
+	wxButton(parent, id, "", pos, size, wxBORDER_NONE|wxBU_NOTEXT)
 {
 	SetBitmap(bmp);
 	m_color_off = GetBackgroundColour();

@@ -57,11 +57,15 @@ protected:
 
 	void OnPaint(wxPaintEvent &e);
 
+    wxImage MakeImage(const wxBitmap &bitmap) const;
+
 	const wxSize button_size;
 
 	wxBoxSizer *inner_sizer;
 
 	wxBitmap dropdown_bmp;
+
+    wxImage transparent_img;
 };
 
 } // namespace phonometrica

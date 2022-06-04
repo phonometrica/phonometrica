@@ -38,6 +38,7 @@ ToolBar::ToolBar(wxWindow *parent) :
 	sizer->Add(inner_sizer, 1, wxEXPAND|wxALL, 10);
 	SetSizer(sizer);
 	dropdown_bmp = wxBITMAP_PNG_FROM_DATA(dropdown);
+    transparent_img = wxBITMAP_PNG_FROM_DATA(transparent).ConvertToImage();
 	Bind(wxEVT_PAINT, &ToolBar::OnPaint, this);
 }
 
@@ -55,10 +56,9 @@ void ToolBar::AddStretchableSpace()
 
 wxButton *ToolBar::AddButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
 {
-	auto btn = new wxButton(this, id, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-	btn->SetBitmap(bitmap);
-	btn->SetMaxSize(button_size);
-	btn->SetToolTip(tooltip);
+	auto btn = new wxButton(this, id, "", wxDefaultPosition, button_size, wxBORDER_NONE|wxBU_NOTEXT);
+    btn->SetBitmap(MakeImage(bitmap));
+    btn->SetToolTip(tooltip);
 	inner_sizer->Add(btn, 0, wxLEFT, padding);
 
 #ifndef __WXGTK__
@@ -71,8 +71,7 @@ wxButton *ToolBar::AddButton(const wxBitmap &bitmap, const wxString &tooltip, in
 
 ToggleButton *ToolBar::AddToggleButton(const wxBitmap &bitmap, const wxString &tooltip, int id)
 {
-	auto btn = new ToggleButton(this, id, bitmap, wxDefaultPosition, wxDefaultSize);
-	btn->SetMaxSize(button_size);
+	auto btn = new ToggleButton(this, id, MakeImage(bitmap), wxDefaultPosition, button_size);
 	btn->SetToolTip(tooltip);
 	inner_sizer->Add(btn, 0, wxLEFT, padding);
 
@@ -145,6 +144,18 @@ void ToolBar::OnPaint(wxPaintEvent &e)
 	dc.DrawLine(size.x-1, 0, size.x-1, size.y);
 
 	e.Skip();
+}
+
+wxImage ToolBar::MakeImage(const wxBitmap &bitmap) const
+{
+    // The behaviour of buttons varies across platforms, and we can't get a nicely centered bitmap on mac if the
+    // button is larger than the bitmap, so we create our own bitmap with the original bitmap centered on a
+    // transparent background
+    wxImage img(button_size, false);
+    img.Paste(transparent_img, 0, 0);
+    img.Paste(bitmap.ConvertToImage(), 4, 4);
+
+    return img;
 }
 
 } // namespace phonometrica
