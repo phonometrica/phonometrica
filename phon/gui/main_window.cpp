@@ -1574,7 +1574,7 @@ void MainWindow::SetShellFunctions()
 	};
 
 	auto get_visible_channels = [this](Runtime &rt, std::span<Variant>) -> Variant {
-		auto view = dynamic_cast<SoundView*>(viewer->GetCurrentView());
+		auto view = dynamic_cast<SpeechView*>(viewer->GetCurrentView());
 		Array<Variant> result;
 		if (view)
 		{

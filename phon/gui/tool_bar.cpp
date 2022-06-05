@@ -108,7 +108,7 @@ wxButton *ToolBar::AddMenuButton(const wxBitmap &bitmap, const wxString &tooltip
 	wxMemoryDC dc;
 	auto bmp = bitmap;
 	dc.SelectObject(bmp);
-	dc.DrawBitmap(dropdown_bmp, 0, 0);
+	dc.DrawBitmap(dropdown_bmp, 4, 4); // fit a 20x20 arrow in a 28x28 bitmap
 	dc.SelectObject(wxNullBitmap);
 
 	return AddButton(bmp, tooltip, id);
@@ -153,7 +153,7 @@ wxImage ToolBar::MakeImage(const wxBitmap &bitmap) const
     // transparent background
     wxImage img(button_size, false);
     img.Paste(transparent_img, 0, 0);
-    img.Paste(bitmap.ConvertToImage(), 4, 4);
+    img.Paste(bitmap.ConvertToImage(), 2, 2);
 
     return img;
 }

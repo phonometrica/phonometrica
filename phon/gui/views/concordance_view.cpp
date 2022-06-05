@@ -59,11 +59,12 @@ ConcordanceView::ConcordanceView(wxWindow *parent, Handle<Concordance> conc) :
 	m_play_tool = m_toolbar->AddButton(play_icon, _("Play selection"));
 	auto stop_tool = m_toolbar->AddButton(ICN(stop), _("Stop playing"));
 
-	auto praat_tool = m_toolbar->AddButton(ICN(praat), _("Open selection in Praat"));
-	auto view_tool = m_toolbar->AddButton(ICN(eye), _("Open match in annotation"));
+    auto praat_icon = ICN(praat).ConvertToImage().Rescale(24, 24, wxIMAGE_QUALITY_HIGH);
+	auto praat_tool = m_toolbar->AddButton(praat_icon, _("Open selection in Praat"));
+	auto view_tool = m_toolbar->AddButton(ICN(eye2), _("Open match in annotation"));
 	m_toolbar->AddSeparator();
 
-	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite20), _("Bookmark match"));
+	auto bookmark_tool = m_toolbar->AddButton(ICN(favorite_24), _("Bookmark match"));
 	m_toolbar->AddSeparator();
 
 	auto del_row_tool = m_toolbar->AddButton(ICN(delete_row), _("Delete selected row(s)"));

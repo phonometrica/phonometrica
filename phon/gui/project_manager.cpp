@@ -72,7 +72,7 @@ ProjectManager::ProjectManager(Runtime &rt, wxWindow *parent) :
 	hsizer->AddStretchSpacer();
 	hsizer->Add(activity_indicator);
 	menu_btn = new wxButton(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-	menu_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(menu));
+	menu_btn->SetBitmap(wxBITMAP_PNG_FROM_DATA(menu).ConvertToImage().Rescale(20, 20, wxIMAGE_QUALITY_HIGH));
 	menu_btn->SetMaxSize(wxSize(30, 30));
 	menu_btn->SetToolTip(_("Show project menu"));
 	hsizer->Add(menu_btn, 0, wxRIGHT, 10);

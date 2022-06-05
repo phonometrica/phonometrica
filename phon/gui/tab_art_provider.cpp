@@ -427,6 +427,8 @@ void TabArtProvider::DrawTab(wxDC &dc, wxWindow *wnd, const wxAuiNotebookPage &p
 				text_offset,
 				drawn_tab_yoff + (drawn_tab_height)/2 - (texty/2) - 1);
 
+// We don't want a focus rectangle
+#if 0
 	// draw focus rectangle
 	if (page.active && (wnd->FindFocus() == wnd))
 	{
@@ -455,6 +457,7 @@ void TabArtProvider::DrawTab(wxDC &dc, wxWindow *wnd, const wxAuiNotebookPage &p
 
 		wxRendererNative::Get().DrawFocusRect(wnd, dc, focusRect, 0);
 	}
+#endif // #if 0
 
 	*out_tab_rect = wxRect(tab_x, tab_y, tab_width, tab_height);
 

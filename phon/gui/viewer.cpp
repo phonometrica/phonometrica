@@ -282,13 +282,13 @@ void Viewer::OnMainCloseButtonClicked(wxAuiNotebookEvent &)
 
 Handle<Sound> Viewer::GetCurrentSound() const
 {
-	auto view = dynamic_cast<const SoundView*>(GetCurrentView());
+	auto view = dynamic_cast<const SpeechView*>(GetCurrentView());
 
 	if (view) {
 		return view->GetSound();
 	}
 
-	return Handle<Sound>();
+	return {};
 }
 
 Handle<Annotation> Viewer::GetCurrentAnnotation() const
@@ -299,7 +299,7 @@ Handle<Annotation> Viewer::GetCurrentAnnotation() const
 		return view->GetAnnotation();
 	}
 
-	return Handle<Annotation>();
+	return {};
 }
 
 double Viewer::GetWindowDuration() const

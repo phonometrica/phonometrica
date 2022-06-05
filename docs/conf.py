@@ -229,7 +229,7 @@ latex_elements = {
 'preamble': '''
 	\usepackage{kotex}
 	\setcounter{tocdepth}{1}
-	''',
+    ''',
 
 # Latex figure (float) alignment
 #'figure_align': 'htbp',
